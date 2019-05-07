@@ -5,8 +5,8 @@ steps:
 - script: docker info
   displayName: 'Info'
 
-- script: docker-compose build
+- script: docker build -t job-queue-internal-api-php-client .
   displayName: 'Build Tests'
 
-- script: docker-compose run tests
+- script: docker run job-queue-internal-api-php-client composer ci
   displayName: 'Run Tests'
