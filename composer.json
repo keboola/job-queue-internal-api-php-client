@@ -1,7 +1,7 @@
 {
     "name": "keboola/job-queue-internal-api-php-client",
     "license": "MIT",
-    "type": "project",
+    "type": "library",
     "description": "Client for internal job queue API",
     "keywords": [
         "keboola",

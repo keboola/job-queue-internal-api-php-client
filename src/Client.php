@@ -23,6 +23,34 @@ use Symfony\Component\Validator\Validation;
 
 class Client
 {
+    public function getNewJobIds(): array
+    {
+        return ['123', '456', '789', '13579', '24680'];
+    }
+
+    private function getFakeJobs(): array
+    {
+        return [
+            '123' => new Job('123'),
+            '456' => new Job('456'),
+            '789' => new Job('789'),
+            '13579' => new Job('13579'),
+            '24680' => new Job('25680'),
+        ];
+    }
+
+
+    public function getFakeJobData(array $jobIds): array
+    {
+        $jobs = array_filter(
+            $this->getFakeJobs(),
+            function ($key) use ($jobIds) {
+                return in_array($key, $jobIds);
+            },
+            ARRAY_FILTER_USE_KEY
+        );
+        return $jobs;
+    }
 
     /**
      * @var GuzzleClient
