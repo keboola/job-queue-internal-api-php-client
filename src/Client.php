@@ -31,7 +31,50 @@ class Client
     private function getFakeJobs(): array
     {
         return [
-            '123' => new Job('123'),
+            '123' => new Job([
+                'id' => 504835005,
+                'runId' => '504835006',
+                'lockName' => 'docker-578-keboola.ex-db-snowflake-454124290',
+                'project' => [
+                    'id' => 578,
+                    'name' => 'Odinuv Sandbox',
+                ],
+                'token' => [
+                    'id' => '27978',
+                    'description' => 'ondrej.popelka@keboola.com',
+                    'token' => 'xxx-xxxxxxxxxxxxxxx-xxxxx',
+                ],
+                'component' => 'docker',
+                'command' => 'run',
+                'params' => [
+                    'config' => '454124290',
+                    'component' => 'keboola.ex-db-snowflake',
+                    'mode' => 'run',
+                ],
+                'result' => [],
+                'status' => 'waiting',
+                'process' => [
+                    'host' => 'kbc-us-east-1-syrup-docker-i-0b7fe86d8115ceab2',
+                    'pid' => 5203,
+                ],
+                'createdTime' => '2019-05-15T14:10:32+02:00',
+                'startTime' => '2019-05-15T14:10:33+02:00',
+                'endTime' => '2019-05-15T14:11:13+02:00',
+                'durationSeconds' => 40,
+                'waitSeconds' => 1,
+                'nestingLevel' => 0,
+                'error' => null,
+                'errorNote' => null,
+                'terminatedBy' => [
+                    'id' => null,
+                    'description' => null,
+                ],
+                'encrypted' => null,
+                'usage' => [],
+                '_index' => 'prod_syrup_docker_2017_3',
+                '_type' => 'jobs',
+                'isFinished' => true,
+            ]),
             '456' => new Job('456'),
             '789' => new Job('789'),
             '13579' => new Job('13579'),
