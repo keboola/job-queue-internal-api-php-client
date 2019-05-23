@@ -46,4 +46,9 @@ class Job
     {
         return $this->data['params']['mode'];
     }
+
+    public function getRowId(): string
+    {
+        return $this->data['params']['row'];
+    }
 }
