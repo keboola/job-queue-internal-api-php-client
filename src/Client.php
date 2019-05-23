@@ -47,7 +47,7 @@ class Client
                 ],
                 'token' => [
                     'id' => '27978',
-                    'token' => 'xxx-xxxxxxxxxxxxxxx-xxxxx',
+                    'token' => 'KBC::ProjectSecure::eJwBXwGg/mE6Mjp7aTowO3M6MTM1OiLe9QIAwxn75pxU9nMzF+kXnlc6EK7ccWO37vRz1alBlcAvdnjIppLmQOJKitUHiOA+FzDcKft0zxU6/2rW8+sEA+SiAPeBOQ1qFE2zDl9j5Gr8vpx4X9w7UTV18IpU6u2pARLqLwNAqzgKphye17F4uv7Zf260AtJLR82HbtNAtKX5eVpI4uAiO2k6MTtzOjE4NDoiAQIDAHiUapM47LpNvMSjuEzEf1BZ03rH6yxNXGD7eyDrPYUBcwEx5s9UxhTA0mN7hMjKAtiyAAAAfjB8BgkqhkiG9w0BBwagbzBtAgEAMGgGCSqGSIb3DQEHATAeBglghkgBZQMEAS4wEQQMTq59j24GQDe/BvSFAgEQgDvLrnuSvy4S0yXo4QjOvW9bvnt0GnFkbsvXOWMwqFNJJK898zozTW9G8lg3RnFKTRLJXXJRe1+aV24eDiI7fdsFk84=',
                 ],
                 'params' => [
                     'config' => '454124290',
@@ -63,7 +63,7 @@ class Client
                 ],
                 'token' => [
                     'id' => '27978',
-                    'token' => 'xxx-xxxxxxxxxxxxxxx-xxxxx',
+                    'token' => 'KBC::ProjectSecure::eJwBXwGg/mE6Mjp7aTowO3M6MTM1OiLe9QIAwxn75pxU9nMzF+kXnlc6EK7ccWO37vRz1alBlcAvdnjIppLmQOJKitUHiOA+FzDcKft0zxU6/2rW8+sEA+SiAPeBOQ1qFE2zDl9j5Gr8vpx4X9w7UTV18IpU6u2pARLqLwNAqzgKphye17F4uv7Zf260AtJLR82HbtNAtKX5eVpI4uAiO2k6MTtzOjE4NDoiAQIDAHiUapM47LpNvMSjuEzEf1BZ03rH6yxNXGD7eyDrPYUBcwEx5s9UxhTA0mN7hMjKAtiyAAAAfjB8BgkqhkiG9w0BBwagbzBtAgEAMGgGCSqGSIb3DQEHATAeBglghkgBZQMEAS4wEQQMTq59j24GQDe/BvSFAgEQgDvLrnuSvy4S0yXo4QjOvW9bvnt0GnFkbsvXOWMwqFNJJK898zozTW9G8lg3RnFKTRLJXXJRe1+aV24eDiI7fdsFk84=',
                 ],
                 'params' => [
                     'config' => '454124290',
@@ -78,7 +78,7 @@ class Client
                                 ],
                                 'host' => 'kebooladev.snowflakecomputing.com',
                                 'user' => 'HELP_TUTORIAL',
-                                '#password' => 'KBC::ProjectSecure::eJwBOAHH/mE6Mjp7aTowO3M6OTc6It71AgB6un2rm9AzRNWb2Q7WAejQhCtSEKyirVJ18VNHleHk89cLnRJ7zzPFKE6fkjAkq5FEyzw5xNJy5mXAh/OuHdu9yTFkDO488rdpM/N5wmMrKN9aciW+xQumAHxnDfgiO2k6MTtzOjE4NDoiAQIDAHhlXs9v5x5d+klIkL9bzyaH5qzvWHJt2fGW9czDhWdtwAGg8LsMPuOc1+MDJKt5SKSoAAAAfjB8BgkqhkiG9w0BBwagbzBtAgEAMGgGCSqGSIb3DQEHATAeBglghkgBZQMEAS4wEQQM1GbfaWSsjDx30kQyAgEQgDt50hAYTRQyF+JESFrHsx17mOsyPlLrsUjrTYq0+uTPFlnuZZs9F5MU1R5MJNkYIIFnxsUlA35bVgMrwSI7fTKAgYc=',
+                                '#password' => 'KBC::ProjectSecure::eJwBOAHH/mE6Mjp7aTowO3M6OTc6It71AgCsrnMd2QutRVDYvH5YQzW5K7q5D6s5C+qvg1EgL/0x+Y8U+ZOKS73edbRMsh5x6Zfhp1j+SoF0KcbrilYJCwY8uV11v1+txX57xESQm9Kfmb5YdhbQW0GnRayfchsiO2k6MTtzOjE4NDoiAQIDAHiUapM47LpNvMSjuEzEf1BZ03rH6yxNXGD7eyDrPYUBcwEx5s9UxhTA0mN7hMjKAtiyAAAAfjB8BgkqhkiG9w0BBwagbzBtAgEAMGgGCSqGSIb3DQEHATAeBglghkgBZQMEAS4wEQQMTq59j24GQDe/BvSFAgEQgDvLrnuSvy4S0yXo4QjOvW9bvnt0GnFkbsvXOWMwqFNJJK898zozTW9G8lg3RnFKTRLJXXJRe1+aV24eDiI7fWCAfZo=',
                                 'database' => 'HELP_TUTORIAL',
                                 'schema' => 'HELP_TUTORIAL',
                                 'warehouse' => 'DEV',
@@ -110,7 +110,7 @@ class Client
                 ],
                 'token' => [
                     'id' => '27978',
-                    'token' => 'xxx-xxxxxxxxxxxxxxx-xxxxx',
+                    'token' => 'KBC::ProjectSecure::eJwBXwGg/mE6Mjp7aTowO3M6MTM1OiLe9QIAwxn75pxU9nMzF+kXnlc6EK7ccWO37vRz1alBlcAvdnjIppLmQOJKitUHiOA+FzDcKft0zxU6/2rW8+sEA+SiAPeBOQ1qFE2zDl9j5Gr8vpx4X9w7UTV18IpU6u2pARLqLwNAqzgKphye17F4uv7Zf260AtJLR82HbtNAtKX5eVpI4uAiO2k6MTtzOjE4NDoiAQIDAHiUapM47LpNvMSjuEzEf1BZ03rH6yxNXGD7eyDrPYUBcwEx5s9UxhTA0mN7hMjKAtiyAAAAfjB8BgkqhkiG9w0BBwagbzBtAgEAMGgGCSqGSIb3DQEHATAeBglghkgBZQMEAS4wEQQMTq59j24GQDe/BvSFAgEQgDvLrnuSvy4S0yXo4QjOvW9bvnt0GnFkbsvXOWMwqFNJJK898zozTW9G8lg3RnFKTRLJXXJRe1+aV24eDiI7fdsFk84=',
                 ],
                 'params' => [
                     'config' => '470523946',
@@ -127,7 +127,7 @@ class Client
                 ],
                 'token' => [
                     'id' => '27978',
-                    'token' => 'xxx-xxxxxxxxxxxxxxx-xxxxx',
+                    'token' => 'KBC::ProjectSecure::eJwBXwGg/mE6Mjp7aTowO3M6MTM1OiLe9QIAwxn75pxU9nMzF+kXnlc6EK7ccWO37vRz1alBlcAvdnjIppLmQOJKitUHiOA+FzDcKft0zxU6/2rW8+sEA+SiAPeBOQ1qFE2zDl9j5Gr8vpx4X9w7UTV18IpU6u2pARLqLwNAqzgKphye17F4uv7Zf260AtJLR82HbtNAtKX5eVpI4uAiO2k6MTtzOjE4NDoiAQIDAHiUapM47LpNvMSjuEzEf1BZ03rH6yxNXGD7eyDrPYUBcwEx5s9UxhTA0mN7hMjKAtiyAAAAfjB8BgkqhkiG9w0BBwagbzBtAgEAMGgGCSqGSIb3DQEHATAeBglghkgBZQMEAS4wEQQMTq59j24GQDe/BvSFAgEQgDvLrnuSvy4S0yXo4QjOvW9bvnt0GnFkbsvXOWMwqFNJJK898zozTW9G8lg3RnFKTRLJXXJRe1+aV24eDiI7fdsFk84=',
                 ],
                 'params' => [
                     'config' => '489371184',
@@ -143,7 +143,7 @@ class Client
                 ],
                 'token' => [
                     'id' => '27978',
-                    'token' => 'xxx-xxxxxxxxxxxxxxx-xxxxx',
+                    'token' => 'KBC::ProjectSecure::eJwBXwGg/mE6Mjp7aTowO3M6MTM1OiLe9QIAwxn75pxU9nMzF+kXnlc6EK7ccWO37vRz1alBlcAvdnjIppLmQOJKitUHiOA+FzDcKft0zxU6/2rW8+sEA+SiAPeBOQ1qFE2zDl9j5Gr8vpx4X9w7UTV18IpU6u2pARLqLwNAqzgKphye17F4uv7Zf260AtJLR82HbtNAtKX5eVpI4uAiO2k6MTtzOjE4NDoiAQIDAHiUapM47LpNvMSjuEzEf1BZ03rH6yxNXGD7eyDrPYUBcwEx5s9UxhTA0mN7hMjKAtiyAAAAfjB8BgkqhkiG9w0BBwagbzBtAgEAMGgGCSqGSIb3DQEHATAeBglghkgBZQMEAS4wEQQMTq59j24GQDe/BvSFAgEQgDvLrnuSvy4S0yXo4QjOvW9bvnt0GnFkbsvXOWMwqFNJJK898zozTW9G8lg3RnFKTRLJXXJRe1+aV24eDiI7fdsFk84=',
                 ],
                 'params' => [
                     'config' => '463211215',
