@@ -41,56 +41,119 @@ class Client
     {
         return [
             '123' => new Job([
-                'id' => 504835005,
-                'runId' => '504835006',
-                'lockName' => 'docker-578-keboola.ex-db-snowflake-454124290',
+                'id' => '123',
                 'project' => [
                     'id' => 578,
-                    'name' => 'Odinuv Sandbox',
                 ],
                 'token' => [
                     'id' => '27978',
-                    'description' => 'ondrej.popelka@keboola.com',
                     'token' => 'xxx-xxxxxxxxxxxxxxx-xxxxx',
                 ],
-                'component' => 'docker',
-                'command' => 'run',
                 'params' => [
                     'config' => '454124290',
                     'component' => 'keboola.ex-db-snowflake',
                     'mode' => 'run',
                 ],
-                'result' => [],
                 'status' => 'waiting',
-                'process' => [
-                    'host' => 'kbc-us-east-1-syrup-docker-i-0b7fe86d8115ceab2',
-                    'pid' => 5203,
-                ],
-                'createdTime' => '2019-05-15T14:10:32+02:00',
-                'startTime' => '2019-05-15T14:10:33+02:00',
-                'endTime' => '2019-05-15T14:11:13+02:00',
-                'durationSeconds' => 40,
-                'waitSeconds' => 1,
-                'nestingLevel' => 0,
-                'error' => null,
-                'errorNote' => null,
-                'terminatedBy' => [
-                    'id' => null,
-                    'description' => null,
-                ],
-                'encrypted' => null,
-                'usage' => [],
-                '_index' => 'prod_syrup_docker_2017_3',
-                '_type' => 'jobs',
-                'isFinished' => true,
             ]),
-            '456' => new Job('456'),
-            '789' => new Job('789'),
-            '13579' => new Job('13579'),
-            '24680' => new Job('25680'),
+            '456' => new Job([
+                'id' => '456',
+                'project' => [
+                    'id' => 578,
+                ],
+                'token' => [
+                    'id' => '27978',
+                    'token' => 'xxx-xxxxxxxxxxxxxxx-xxxxx',
+                ],
+                'params' => [
+                    'config' => '454124290',
+                    'component' => 'keboola.ex-db-snowflake',
+                    'mode' => 'run',
+                    'configData' => [
+                        'parameters' => [
+                            'db' => [
+                                'port' => 443,
+                                'ssh' => [
+                                    'sshPort' => 22,
+                                ],
+                                'host' => 'kebooladev.snowflakecomputing.com',
+                                'user' => 'HELP_TUTORIAL',
+                                '#password' => 'KBC::ProjectSecure::eJwBOAHH/mE6Mjp7aTowO3M6OTc6It71AgB6un2rm9AzRNWb2Q7WAejQhCtSEKyirVJ18VNHleHk89cLnRJ7zzPFKE6fkjAkq5FEyzw5xNJy5mXAh/OuHdu9yTFkDO488rdpM/N5wmMrKN9aciW+xQumAHxnDfgiO2k6MTtzOjE4NDoiAQIDAHhlXs9v5x5d+klIkL9bzyaH5qzvWHJt2fGW9czDhWdtwAGg8LsMPuOc1+MDJKt5SKSoAAAAfjB8BgkqhkiG9w0BBwagbzBtAgEAMGgGCSqGSIb3DQEHATAeBglghkgBZQMEAS4wEQQM1GbfaWSsjDx30kQyAgEQgDt50hAYTRQyF+JESFrHsx17mOsyPlLrsUjrTYq0+uTPFlnuZZs9F5MU1R5MJNkYIIFnxsUlA35bVgMrwSI7fTKAgYc=',
+                                'database' => 'HELP_TUTORIAL',
+                                'schema' => 'HELP_TUTORIAL',
+                                'warehouse' => 'DEV',
+                            ],
+                            'tables' => [
+                                [
+                                    'outputTable' => 'in.c-keboola-ex-db-snowflake-454124290.user',
+                                    'columns' => [],
+                                    'name' => 'USER',
+                                    'incremental' => false,
+                                    'id' => 85768,
+                                    'enabled' => true,
+                                    'table' => [
+                                        'schema' => 'HELP_TUTORIAL',
+                                        'tableName' => 'USER',
+                                    ],
+                                    'primaryKey' => [],
+                                ],
+                            ],
+                        ],
+                    ],
+                ],
+                'status' => 'waiting',
+            ]),
+            '789' => new Job([
+                'id' => '789',
+                'project' => [
+                    'id' => 578,
+                ],
+                'token' => [
+                    'id' => '27978',
+                    'token' => 'xxx-xxxxxxxxxxxxxxx-xxxxx',
+                ],
+                'params' => [
+                    'config' => '470523946',
+                    'component' => 'keboola.ex-http',
+                    'mode' => 'run',
+                    'row' => '470523979',
+                ],
+                'status' => 'waiting',
+            ]),
+            '13579' => new Job([
+                'id' => '13579',
+                'project' => [
+                    'id' => 578,
+                ],
+                'token' => [
+                    'id' => '27978',
+                    'token' => 'xxx-xxxxxxxxxxxxxxx-xxxxx',
+                ],
+                'params' => [
+                    'config' => '489371184',
+                    'component' => 'keboola.app-end-of-life',
+                    'mode' => 'run',
+                ],
+                'status' => 'waiting',
+            ]),
+            '24680' => new Job([
+                'id' => '24680',
+                'project' => [
+                    'id' => 578,
+                ],
+                'token' => [
+                    'id' => '27978',
+                    'token' => 'xxx-xxxxxxxxxxxxxxx-xxxxx',
+                ],
+                'params' => [
+                    'config' => '463211215',
+                    'component' => 'keboola.wr-slack',
+                    'mode' => 'run',
+                ],
+                'status' => 'waiting',
+            ]),
         ];
     }
-
 
     public function getFakeJobData(array $jobIds): array
     {

@@ -21,7 +21,7 @@ class Job
 
     public function getProjectId(): string
     {
-        return $this->data['project']['id'];
+        return (string) $this->data['project']['id'];
     }
 
     public function getToken(): string
