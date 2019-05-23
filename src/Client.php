@@ -28,6 +28,15 @@ class Client
         return ['123', '456', '789', '13579', '24680'];
     }
 
+    public function getJobUsage(string $jobId): array
+    {
+        return [];
+    }
+
+    public function setJobUsage(string $jobId, array $usage): void
+    {
+    }
+
     private function getFakeJobs(): array
     {
         return [
