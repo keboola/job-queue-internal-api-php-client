@@ -164,7 +164,7 @@ class Client
             },
             ARRAY_FILTER_USE_KEY
         );
-        return $jobs;
+        return array_values($jobs);
     }
 
     /**
