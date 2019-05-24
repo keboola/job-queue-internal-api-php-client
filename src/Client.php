@@ -152,6 +152,28 @@ class Client
                 ],
                 'status' => 'waiting',
             ]),
+            '159' => new Job([
+                'id' => '159',
+                'project' => [
+                    'id' => 578,
+                ],
+                'token' => [
+                    'id' => '27978',
+                    'token' => 'KBC::ProjectSecure::eJwBXwGg/mE6Mjp7aTowO3M6MTM1OiLe9QIAWu54YVTWAGI/+RqKC9EvGC9mPdfpfaS6A5T3SiL0l9r7mdpGYAKyx+LWbcTISF5omuG7MHAlJCFQofEAFHQgNeCVFs4yJaWfOu10jtVUd28seQIApRkmYIEfiQ43OvmpQUGrdQ+GztmVcdAhsicTwqzzqowa7Fy5sMjVOxjwVdQLC1YiO2k6MTtzOjE4NDoiAQIDAHiUapM47LpNvMSjuEzEf1BZ03rH6yxNXGD7eyDrPYUBcwFnltsVgnCyvbiHDnMtz81bAAAAfjB8BgkqhkiG9w0BBwagbzBtAgEAMGgGCSqGSIb3DQEHATAeBglghkgBZQMEAS4wEQQMW7WaPXxkDjunCSVWAgEQgDts4jVhh180sFLCx4L1fCX+MrEkTFeq4NP4fjJC2xerOIVq783+TZO8A4MxLqLFi9e8UwU8C9YRnxY9MyI7fZudjgc=',
+                ],
+                'params' => [
+                    'component' => 'keboola.r-transformation',
+                    'mode' => 'run',
+                    'configData' => [
+                        'parameters' => [
+                            'script' => [
+                                'app$logInfo(R.Version()) write(file = \'/data/out/files/pokus.rds\', x = \'fooBar\') app$writeFileManifest(\'/data/out/files/pokus.rds\', fileTags = c(\'foo\', \'bar\'), isPublic = TRUE, isPermanent = FALSE, notify = FALSE)',
+                            ],
+                        ],
+                    ],
+                ],
+                'status' => 'waiting',
+            ]),
         ];
     }
 
