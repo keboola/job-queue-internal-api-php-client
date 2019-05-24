@@ -13,16 +13,16 @@ class Job
     {
         $this->data = $data;
         if (empty($this->data['params']['component'])) {
-            throw new \Exception('Invalid job data: missing params.component');
+            throw new ClientException('Invalid job data: missing params.component');
         }
         if (empty($this->data['params']['mode'])) {
-            throw new \Exception('Invalid job data: missing params.mode');
+            throw new ClientException('Invalid job data: missing params.mode');
         }
         if (empty($this->data['token']['token'])) {
-            throw new \Exception('Invalid job data: missing token.token');
+            throw new ClientException('Invalid job data: missing token.token');
         }
         if (empty($this->data['project']['id'])) {
-            throw new \Exception('Invalid job data: missing project.id');
+            throw new ClientException('Invalid job data: missing project.id');
         }
     }
 
