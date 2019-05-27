@@ -23,6 +23,9 @@ use Symfony\Component\Validator\Validation;
 
 class Client
 {
+    public const STATUS_ERROR = 'error';
+    public const STATUS_SUCCESS = 'success';
+
     public function getNewJobIds(): array
     {
         return ['123', '456', '789', '13579', '24680'];
@@ -291,15 +294,19 @@ class Client
         }
     }
 
-    public function getJobData(string $jobId): array
+    public function getJob(string $jobId): Job
     {
         $request = new Request('GET', 'jobs/' . $jobId);
-        return $this->sendRequest($request);
+        $result = $this->sendRequest($request);
+        if (!$result) {
+            throw new ClientException(sprintf('Job "%s" not found.', $jobId));
+        }
+        return new Job($result);
     }
 
-    public function postJobResult(string $jobId, array $result): array
+    public function postJobResult(string $jobId, string $status, array $result): array
     {
-        $request = new Request('POST', 'jobs/' . $jobId, [], json_encode($result));
+        $request = new Request('POST', 'jobs/' . $jobId, [], json_encode(['status' => $status, 'result' => $result]));
         return $this->sendRequest($request);
     }
 }

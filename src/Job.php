@@ -24,6 +24,14 @@ class Job
         if (empty($this->data['project']['id'])) {
             throw new ClientException('Invalid job data: missing project.id');
         }
+        if (isset($this->data['params']['mode']) && !is_scalar($this->data['params']['row'])) {
+            throw new ClientException(
+                sprintf(
+                    'Unsupported row value "%s". Scalar row ID is required.',
+                    var_export($this->data['params']['row'], true)
+                )
+            );
+        }
     }
 
     public function getId(): string
