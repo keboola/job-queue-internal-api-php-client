@@ -34,6 +34,11 @@ class Job
         }
     }
 
+    public function getTag(): ?string
+    {
+        return $this->data['params']['tag'] ?? null;
+    }
+
     public function getId(): string
     {
         return $this->data['id'];
