@@ -28,7 +28,7 @@ class Client
 
     public function getNewJobIds(): array
     {
-        return ['123', '456', '789', '13579', '24680'];
+        return ['159'];
     }
 
     public function addJobUsage(string $jobId, array $usage): void
