@@ -296,6 +296,7 @@ class Client
         if (!$result) {
             throw new ClientException(sprintf('Job "%s" not found.', $jobId));
         }
+        $result = $this->getFakeJobs()[$jobId];
         return new Job($result);
     }
 
