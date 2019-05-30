@@ -291,13 +291,14 @@ class Client
 
     public function getJob(string $jobId): Job
     {
+        $result = $this->getFakeJobs()[$jobId];
+        return new Job($result);
+
         $request = new Request('GET', 'jobs/' . $jobId);
         $result = $this->sendRequest($request);
         if (!$result) {
             throw new ClientException(sprintf('Job "%s" not found.', $jobId));
         }
-        $result = $this->getFakeJobs()[$jobId];
-        return new Job($result);
     }
 
     public function postJobResult(string $jobId, string $status, array $result): array
