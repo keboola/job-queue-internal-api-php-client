@@ -165,7 +165,7 @@ class Client
                     'configData' => [
                         'parameters' => [
                             'script' => [
-                                'app$logInfo(R.Version()) write(file = \'/data/out/files/pokus.rds\', x = \'fooBar\') app$writeFileManifest(\'/data/out/files/pokus.rds\', fileTags = c(\'foo\', \'bar\'), isPublic = TRUE, isPermanent = FALSE, notify = FALSE)',
+                                'app$logInfo(R.Version())',
                             ],
                         ],
                     ],
