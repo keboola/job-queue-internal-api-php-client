@@ -291,8 +291,7 @@ class Client
 
     public function getJob(string $jobId): Job
     {
-        $result = $this->getFakeJobs()[$jobId];
-        return new Job($result);
+        return $this->getFakeJobs()[$jobId];
 
         $request = new Request('GET', 'jobs/' . $jobId);
         $result = $this->sendRequest($request);
@@ -303,6 +302,7 @@ class Client
 
     public function postJobResult(string $jobId, string $status, array $result): array
     {
+        return [];
         $request = new Request('POST', 'jobs/' . $jobId, [], json_encode(['status' => $status, 'result' => $result]));
         return $this->sendRequest($request);
     }
