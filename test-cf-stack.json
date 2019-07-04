@@ -1,0 +1,44 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Description": "Stack for testing Job Queue Internal API PHP Client",
+    "Parameters": {
+        "KmsKeyArn": {
+            "Type": "String",
+            "Description": "DockerRunnerKMSKey created by Syrup Services stack"
+        },
+    },
+    "Resources": {
+        "JobQueueInternalApiPhpClient": {
+            "Type": "AWS::IAM::User",
+            "DeletionPolicy": "Delete",
+            "Properties": {
+                "Path": "/",
+                "Policies": [
+                    {
+                        "PolicyName": "kms-key",
+                        "PolicyDocument": {
+                            "Version": "2012-10-17",
+                            "Statement": [
+                                {
+                                    "Action": [
+                                        "kms:Encrypt",
+                                        "kms:Decrypt",
+                                        "kms:ReEncrypt*",
+                                        "kms:GenerateDataKey*",
+                                        "kms:DescribeKey"
+                                    ],
+                                    "Resource": [
+                                        {
+                                            "Ref": "KmsKeyArn"
+                                        }
+                                    ],
+                                    "Effect": "Allow"
+                                }
+                            ]
+                        }
+                    }
+                ]
+            }
+        }
+    }
+}

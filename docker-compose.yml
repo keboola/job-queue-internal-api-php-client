@@ -5,3 +5,11 @@ services:
     build: .
     volumes:
         - ./:/code
+    environment:
+      - "TEST_QUEUE_API_URL"
+      - "TEST_STORAGE_API_URL"
+      - "TEST_STORAGE_API_TOKEN"
+      - "TEST_KMS_KEY"
+      - "TEST_KMS_REGION"
+      - "TEST_AWS_ACCESS_KEY_ID"
+      - "TEST_AWS_SECRET_ACCESS_KEY"

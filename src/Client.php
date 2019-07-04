@@ -7,11 +7,12 @@ namespace Keboola\JobQueueInternalClient;
 use Closure;
 use GuzzleHttp\Client as GuzzleClient;
 use GuzzleHttp\Exception\GuzzleException;
-use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\MessageFormatter;
 use GuzzleHttp\Middleware;
 use GuzzleHttp\Psr7\Request;
+use JsonException;
+use Keboola\JobQueueInternalClient\JobFactory\Job;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Log\LoggerInterface;
@@ -23,22 +24,28 @@ use Symfony\Component\Validator\Validation;
 
 class Client
 {
-
-    /**
-     * @var GuzzleClient
-     */
-    protected $guzzle;
-
     private const DEFAULT_USER_AGENT = 'Internal PHP Client';
     private const DEFAULT_BACKOFF_RETRIES = 10;
 
-    public function __construct(string $url, string $token, array $options = [])
-    {
+    /** @var GuzzleClient */
+    protected $guzzle;
+
+    /** @var JobFactory */
+    private $jobFactory;
+
+    public function __construct(
+        JobFactory $jobFactory,
+        string $internalQueueApiUrl,
+        string $internalQueueToken,
+        array $options = []
+    ) {
         $validator = Validation::createValidator();
-        $errors = $validator->validate($url, [new Url([])]);
-        $errors->addAll($validator->validate($token, [new NotBlank([])]));
+        $errors = $validator->validate($internalQueueApiUrl, [new Url(['message' => 'Queue API URL is not valid.'])]);
+        $errors->addAll(
+            $validator->validate($internalQueueToken, [new NotBlank(['message' => 'Token is required.'])])
+        );
         if (!empty($options['backoffMaxTries'])) {
-            $errors->addAll($validator->validate($token, [new Range(['min' => 0, 'max' => 100])]));
+            $errors->addAll($validator->validate($internalQueueToken, [new Range(['min' => 0, 'max' => 100])]));
             $options['backoffMaxTries'] = intval($options['backoffMaxTries']);
         } else {
             $options['backoffMaxTries'] = self::DEFAULT_BACKOFF_RETRIES;
@@ -56,7 +63,84 @@ class Client
             }
             throw new ClientException('Invalid parameters when creating client: ' . $messages);
         }
-        $this->guzzle = $this->initClient($url, $token, $options);
+        $this->guzzle = $this->initClient($internalQueueApiUrl, $internalQueueToken, $options);
+        $this->jobFactory = $jobFactory;
+    }
+
+    public function addJobUsage(string $jobId, array $usage): void
+    {
+    }
+
+    public function createJob(Job $job): array
+    {
+        try {
+            $jobData = json_encode($job, JSON_THROW_ON_ERROR);
+            $request = new Request('POST', 'jobs/', [], $jobData);
+        } catch (JsonException $e) {
+            throw new ClientException('Invalid job data: ' . $e->getMessage(), $e->getCode(), $e);
+        }
+        return $this->sendRequest($request);
+    }
+
+    public function getJobFactory(): JobFactory
+    {
+        return $this->jobFactory;
+    }
+
+    public function getJob(string $jobId): Job
+    {
+        $request = new Request('GET', 'jobs/' . $jobId);
+        $result = $this->sendRequest($request);
+        if (!$result) {
+            throw new ClientException(sprintf('Job "%s" not found.', $jobId));
+        }
+        return new Job($result);
+    }
+
+    public function getJobs(array $jobIds): array
+    {
+        // @todo fix this
+        $request = new Request('GET', 'jobs/?query=' . implode(', ', $jobIds));
+        $result = $this->sendRequest($request);
+        if (!$result) {
+            throw new ClientException(sprintf('Job "%s" not found.', $jobId));
+        }
+        return [new Job($result)];
+    }
+
+    public function getNewJobIds(): array
+    {
+        return ['159'];
+    }
+
+    public function getJobsWithState(string $state): array
+    {
+    }
+
+    public function postJobResult(string $jobId, string $status, array $result): array
+    {
+        $request = new Request('POST', 'jobs/' . $jobId, [], json_encode(['status' => $status, 'result' => $result], JSON_THROW_ON_ERROR));
+        return $this->sendRequest($request);
+    }
+
+    private function createDefaultDecider(int $maxRetries): Closure
+    {
+        return function (
+            $retries,
+            RequestInterface $request,
+            ?ResponseInterface $response = null,
+            $error = null
+        ) use ($maxRetries) {
+            if ($retries >= $maxRetries) {
+                return false;
+            } elseif ($response && $response->getStatusCode() >= 500) {
+                return true;
+            } elseif ($error) {
+                return true;
+            } else {
+                return false;
+            }
+        };
     }
 
     private function initClient(string $url, string $token, array $options = []): GuzzleClient
@@ -68,7 +152,7 @@ class Client
             $handlerStack = HandlerStack::create();
         }
         // Set exponential backoff
-        $handlerStack->push(Middleware::retry(self::createDefaultDecider($options['backoffMaxTries'])));
+        $handlerStack->push(Middleware::retry($this->createDefaultDecider($options['backoffMaxTries'])));
         // Set handler to set default headers
         $handlerStack->push(Middleware::mapRequest(
             function (RequestInterface $request) use ($token, $options) {
@@ -89,52 +173,19 @@ class Client
             ));
         }
         // finally create the instance
-        return new GuzzleClient(['base_url' => $url, 'handler' => $handlerStack]);
-    }
-
-    private static function createDefaultDecider(int $maxRetries): Closure
-    {
-        return function (
-            $retries,
-            RequestInterface $request,
-            ?ResponseInterface $response = null,
-            $error = null
-        ) use ($maxRetries) {
-            if ($retries >= $maxRetries) {
-                return false;
-            } elseif ($response && $response->getStatusCode() >= 500) {
-                return true;
-            } elseif ($error) {
-                return true;
-            } else {
-                return false;
-            }
-        };
+        return new GuzzleClient(['base_uri' => $url, 'handler' => $handlerStack]);
     }
 
     private function sendRequest(Request $request): array
     {
         try {
             $response = $this->guzzle->send($request);
-            $data = json_decode($response->getBody()->getContents(), true);
-            if (json_last_error() !== JSON_ERROR_NONE) {
-                throw new ClientException('Unable to parse response body into JSON: ' . json_last_error());
-            }
+            $data = json_decode($response->getBody()->getContents(), true, 512, JSON_THROW_ON_ERROR);
             return $data ?: [];
         } catch (GuzzleException $e) {
             throw new ClientException($e->getMessage(), $e->getCode(), $e);
+        } catch (JsonException $e) {
+            throw new ClientException('Unable to parse response body into JSON: ' . $e->getMessage());
         }
-    }
-
-    public function getJobData(string $jobId): array
-    {
-        $request = new Request('GET', 'jobs/' . $jobId);
-        return $this->sendRequest($request);
-    }
-
-    public function postJobResult(string $jobId, array $result): array
-    {
-        $request = new Request('POST', 'jobs/' . $jobId, [], json_encode($result));
-        return $this->sendRequest($request);
     }
 }
