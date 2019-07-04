@@ -1,7 +1,7 @@
 {
     "name": "keboola/job-queue-internal-api-php-client",
     "license": "MIT",
-    "type": "project",
+    "type": "library",
     "description": "Client for internal job queue API",
     "keywords": [
         "keboola",
@@ -29,6 +29,8 @@
         "php": "^7.3",
         "ext-json": "*",
         "guzzlehttp/guzzle": "^6.3",
+        "keboola/object-encryptor": "^0.1.4",
+        "keboola/storage-api-client": "^10.6",
         "psr/log": "^1.1",
         "symfony/validator": "^4.2"
     },
