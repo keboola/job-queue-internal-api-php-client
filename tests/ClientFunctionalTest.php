@@ -6,8 +6,8 @@ namespace Keboola\JobQueueInternalClient\Tests;
 
 use Exception;
 use Keboola\JobQueueInternalClient\Client;
-use Keboola\JobQueueInternalClient\Job;
 use Keboola\JobQueueInternalClient\JobFactory;
+use Keboola\JobQueueInternalClient\JobFactory\Job;
 use Keboola\ObjectEncryptor\ObjectEncryptorFactory;
 use PHPUnit\Framework\TestCase;
 
@@ -61,9 +61,13 @@ class ClientFunctionalTest extends TestCase
         ]);
         $response = $client->createJob($job);
         self::assertNotEmpty($response['id']);
-        self::assertNotEmpty($response['createdTime']);
         unset($response['id']);
+        self::assertNotEmpty($response['createdTime']);
         unset($response['createdTime']);
+        $storageClient = new \Keboola\StorageApi\Client(['url' => getenv('TEST_STORAGE_API_URL'), 'token' => getenv('TEST_STORAGE_API_TOKEN')]);
+        $tokenInfo = $storageClient->verifyToken();
+        self::assertStringStartsWith('KBC::ProjectSecure::', $response['token']['token']);
+        unset($response['token']['token']);
         $expected = [
             'params' => [
                 'config' => '454124290',
@@ -71,7 +75,21 @@ class ClientFunctionalTest extends TestCase
                 'mode' => 'run',
             ],
             'status' => 'created',
+            'project' => [
+                'id' => $tokenInfo['owner']['id'],
+            ],
+            'token' => [
+                'id' => $tokenInfo['id'],
+            ],
         ];
         self::assertEquals($expected, $response);
+    }
+
+    public function testGetJobs(): void
+    {
+        $client = $this->getClient();
+        $response = $client->getJobsWithStatus([Job::STATUS_CREATED]);
+        self::assertNotEmpty($response[0]->getId());
+        //self::assertNotEmpty($response['createdTime']);
     }
 }
