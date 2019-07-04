@@ -113,8 +113,23 @@ class Client
         return ['159'];
     }
 
-    public function getJobsWithState(string $state): array
+    public function getJobsWithStatus(array $statuses): array
     {
+        $conditions = array_map(function (string $status): string {
+            return 'status:' . $status;
+        }, $statuses);
+        $query = '(' . implode(' OR ', $conditions) . ')';
+        $request = new Request('GET', 'jobs/?query=' . $query);
+        $result = $this->sendRequest($request);
+        $jobs = array_map(function (array $jobData): ?Job {
+            try {
+                return $this->jobFactory->loadExistingJob($jobData);
+            } catch (\Throwable $e) {
+                // ignore invalid job
+                return null;
+            }
+        }, $result);
+        return array_filter($jobs);
     }
 
     public function postJobResult(string $jobId, string $status, array $result): array
