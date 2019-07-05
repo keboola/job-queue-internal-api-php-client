@@ -71,7 +71,7 @@ class Client
     {
     }
 
-    public function createJob(Job $job): array
+    public function createJob(Job $job): Job
     {
         try {
             $jobData = json_encode($job, JSON_THROW_ON_ERROR);
@@ -79,7 +79,8 @@ class Client
         } catch (JsonException $e) {
             throw new ClientException('Invalid job data: ' . $e->getMessage(), $e->getCode(), $e);
         }
-        return $this->sendRequest($request);
+        $result = $this->sendRequest($request);
+        return $this->jobFactory->loadFromExistingJobData($result);
     }
 
     public function getJobFactory(): JobFactory
@@ -123,13 +124,19 @@ class Client
         $result = $this->sendRequest($request);
         $jobs = array_map(function (array $jobData): ?Job {
             try {
-                return $this->jobFactory->loadExistingJob($jobData);
+                return $this->jobFactory->loadFromExistingJobData($jobData);
             } catch (\Throwable $e) {
                 // ignore invalid job
                 return null;
             }
         }, $result);
         return array_filter($jobs);
+    }
+
+    public function updateJob(Job $newJob): array
+    {
+        $request = new Request('PUT', 'jobs/' . $newJob->getId(), [], json_encode(['status' => $newJob->getStatus()], JSON_THROW_ON_ERROR));
+        return $this->sendRequest($request);
     }
 
     public function postJobResult(string $jobId, string $status, array $result): array
@@ -203,4 +210,5 @@ class Client
             throw new ClientException('Unable to parse response body into JSON: ' . $e->getMessage());
         }
     }
+
 }

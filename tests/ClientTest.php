@@ -25,7 +25,7 @@ class ClientTest extends TestCase
 
     private function getClient(array $options): Client
     {
-        return new Client($this->getJobFactory(), 'http://example.com/', 'dummy', $options);
+        return new Client($this->getJobFactory(), 'http://example.com/', 'testToken', $options);
     }
 
     public function testGetJobData(): void
@@ -62,16 +62,23 @@ class ClientTest extends TestCase
         $stack = HandlerStack::create($mock);
         $stack->push($history);
         $client = $this->getClient(['handler' => $stack]);
-        $job = $client->getJob('123');``
+        $job = $client->getJob('123');
         self::assertEquals('123', $job->getId());
         self::assertEquals('123456', $job->getConfigId());
         self::assertEquals('keboola.test', $job->getComponentId());
+        self::assertEquals('456', $job->getProjectId());
+        self::assertEquals('run', $job->getMode());
+        self::assertEquals('created', $job->getStatus());
+        self::assertNull($job->getResult());
+        self::assertNull($job->getTag());
+        self::assertNull($job->getRowId());
+        self::assertFalse($job->isFinished());
         self::assertStringStartsWith('KBC::ProjectSecure::', $job->getToken());
         self::assertEquals(['parameters' => ['foo' => 'bar']], $job->getConfigData());
         self::assertCount(1, $requestHistory);
         /** @var Request $request */
         $request = $requestHistory[0]['request'];
-        self::assertEquals('jobs/123', $request->getUri()->__toString());
+        self::assertEquals('http://example.com/jobs/123', $request->getUri()->__toString());
         self::assertEquals('GET', $request->getMethod());
         self::assertEquals('testToken', $request->getHeader('X-InternalApi-Token')[0]);
         self::assertEquals('Internal PHP Client', $request->getHeader('User-Agent')[0]);
