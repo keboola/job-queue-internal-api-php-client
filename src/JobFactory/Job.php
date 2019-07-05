@@ -5,19 +5,10 @@ declare(strict_types=1);
 namespace Keboola\JobQueueInternalClient\JobFactory;
 
 use JsonSerializable;
+use Keboola\JobQueueInternalClient\JobFactory;
 
 class Job implements JsonSerializable
 {
-    public const STATUS_CANCELLED = 'cancelled';
-    public const STATUS_CREATED = 'created';
-    public const STATUS_ERROR = 'error';
-    public const STATUS_PROCESSING = 'processing';
-    public const STATUS_SUCCESS = 'success';
-    public const STATUS_TERMINATED = 'terminated';
-    public const STATUS_TERMINATING = 'terminating';
-    public const STATUS_WAITING = 'waiting';
-    public const STATUS_WARNING = 'warning';
-
     /** @var array */
     private $data;
 
@@ -39,12 +30,6 @@ class Job implements JsonSerializable
     public function getConfigId(): ?string
     {
         return $this->data['params']['config'] ?? null;
-    }
-
-    public function getFinishedStatuses(): array
-    {
-        return [self::STATUS_SUCCESS, self::STATUS_WARNING, self::STATUS_ERROR, self::STATUS_CANCELLED,
-            self::STATUS_TERMINATED];
     }
 
     public function getId(): string
@@ -89,7 +74,7 @@ class Job implements JsonSerializable
 
     public function isFinished(): bool
     {
-        return in_array($this->data['status'], $this->getFinishedStatuses());
+        return in_array($this->data['status'], JobFactory::getFinishedStatuses());
     }
 
     public function jsonSerialize(): array

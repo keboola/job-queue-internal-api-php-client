@@ -27,6 +27,19 @@ class ClientFunctionalTest extends TestCase
         }
         putenv('AWS_ACCESS_KEY_ID=' . getenv('TEST_AWS_ACCESS_KEY_ID'));
         putenv('AWS_SECRET_ACCESS_KEY=' . getenv('TEST_AWS_SECRET_ACCESS_KEY'));
+        $this->cleanJobs();
+    }
+
+    private function cleanJobs(): void
+    {
+        // cancel all created jobs
+        $client = $this->getClient();
+        $response = $client->getJobsWithStatus([JobFactory::STATUS_CREATED]);
+        /** @var Job $job */
+        foreach ($response as $job) {
+            $newJob = $client->getJobFactory()->modifyJob($job, ['status' => JobFactory::STATUS_CANCELLED]);
+            $client->updateJob($newJob);
+        }
     }
 
     private function getJobFactory(): JobFactory
@@ -59,12 +72,17 @@ class ClientFunctionalTest extends TestCase
                 'mode' => 'run',
             ],
         ]);
-        $response = $client->createJob($job);
+        $response = $client->createJob($job)->jsonSerialize();
         self::assertNotEmpty($response['id']);
         unset($response['id']);
         self::assertNotEmpty($response['createdTime']);
         unset($response['createdTime']);
-        $storageClient = new \Keboola\StorageApi\Client(['url' => getenv('TEST_STORAGE_API_URL'), 'token' => getenv('TEST_STORAGE_API_TOKEN')]);
+        $storageClient = new \Keboola\StorageApi\Client(
+            [
+                'url' => getenv('TEST_STORAGE_API_URL'),
+                'token' => getenv('TEST_STORAGE_API_TOKEN'),
+            ]
+        );
         $tokenInfo = $storageClient->verifyToken();
         self::assertStringStartsWith('KBC::ProjectSecure::', $response['token']['token']);
         unset($response['token']['token']);
@@ -73,6 +91,8 @@ class ClientFunctionalTest extends TestCase
                 'config' => '454124290',
                 'component' => 'keboola.ex-db-snowflake',
                 'mode' => 'run',
+                'row' => null,
+                'tag' => null,
             ],
             'status' => 'created',
             'project' => [
@@ -88,8 +108,22 @@ class ClientFunctionalTest extends TestCase
     public function testGetJobs(): void
     {
         $client = $this->getClient();
-        $response = $client->getJobsWithStatus([Job::STATUS_CREATED]);
-        self::assertNotEmpty($response[0]->getId());
-        //self::assertNotEmpty($response['createdTime']);
+        $job = $client->getJobFactory()->createNewJob([
+            'token' => [
+                'token' => getenv('TEST_STORAGE_API_TOKEN'),
+            ],
+            'params' => [
+                'config' => '454124290',
+                'component' => 'keboola.ex-db-snowflake',
+                'mode' => 'run',
+            ],
+        ]);
+        $createdJob = $client->createJob($job);
+        $client = $this->getClient();
+        $response = $client->getJobsWithStatus([JobFactory::STATUS_CREATED]);
+        self::assertCount(1, $response);
+        /** @var Job $listedJob */
+        $listedJob = $response[0];
+        self::assertEquals($createdJob->jsonSerialize(), $listedJob->jsonSerialize());
     }
 }

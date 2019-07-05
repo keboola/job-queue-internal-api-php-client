@@ -4,14 +4,27 @@ declare(strict_types=1);
 
 namespace Keboola\JobQueueInternalClient;
 
+use Keboola\JobQueueInternalClient\JobFactory\FullJobDefinition;
 use Keboola\JobQueueInternalClient\JobFactory\Job;
+use Keboola\JobQueueInternalClient\JobFactory\NewJobDefinition;
 use Keboola\JobQueueInternalClient\JobFactory\StorageClientFactory;
 use Keboola\ObjectEncryptor\ObjectEncryptorFactory;
 use Keboola\ObjectEncryptor\Wrapper\ProjectWrapper;
 use Keboola\StorageApi\ClientException as StorageClientException;
+use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 
 class JobFactory
 {
+    public const STATUS_CANCELLED = 'cancelled';
+    public const STATUS_CREATED = 'created';
+    public const STATUS_ERROR = 'error';
+    public const STATUS_PROCESSING = 'processing';
+    public const STATUS_SUCCESS = 'success';
+    public const STATUS_TERMINATED = 'terminated';
+    public const STATUS_TERMINATING = 'terminating';
+    public const STATUS_WAITING = 'waiting';
+    public const STATUS_WARNING = 'warning';
+
     /** @var StorageClientFactory */
     private $storageClientFactory;
 
@@ -26,68 +39,51 @@ class JobFactory
         $this->objectEncryptorFactory = $objectEncryptorFactory;
     }
 
-    public function createNewJob(array $data): Job
+    public static function getFinishedStatuses(): array
     {
-        $data = $this->validateNewJobData($data);
-        $data = $this->initializeNewJobData($data);
-        $data = $this->validateJobData($data);
-        $job = new Job($data);
-        return $job;
+        return [self::STATUS_SUCCESS, self::STATUS_WARNING, self::STATUS_ERROR, self::STATUS_CANCELLED,
+            self::STATUS_TERMINATED];
     }
 
-    public function loadExistingJob(array $data): Job
+    public static function getAllStatuses(): array
     {
-        $data = $this->validateJobData($data);
+        return [self::STATUS_CANCELLED, self::STATUS_CREATED, self::STATUS_ERROR, self::STATUS_PROCESSING,
+            self::STATUS_SUCCESS, self::STATUS_TERMINATED, self::STATUS_TERMINATING, self::STATUS_WAITING,
+            self::STATUS_WARNING];
+    }
+
+    public function createNewJob(array $data): Job
+    {
+        $data = $this->validateJobData($data, NewJobDefinition::class);
+        $data = $this->initializeNewJobData($data);
+        $data = $this->validateJobData($data, FullJobDefinition::class);
         return new Job($data);
     }
 
-    private function validateNewJobData(array $data): array
+    public function loadFromExistingJobData(array $data): Job
     {
-        if (empty($data['params']['component'])) {
-            throw new ClientException('Invalid job data: missing params.component');
-        }
-        if (empty($data['params']['mode'])) {
-            throw new ClientException('Invalid job data: missing params.mode');
-        }
-        if (empty($data['token']['token'])) {
-            throw new ClientException('Invalid job data: missing token.token');
-        }
-        if (isset($data['params']['row']) && !is_scalar($data['params']['row'])) {
-            throw new ClientException(
-                sprintf(
-                    'Unsupported row value "%s". Scalar row ID is required.',
-                    var_export($data['params']['row'], true)
-                )
-            );
-        }
-        if (isset($data['params']['configData']) && !is_array($data['params']['configData'])) {
-            throw new ClientException(
-                sprintf(
-                    'Unsupported configData value "%s". Array is required.',
-                    var_export($data['params']['configData'], true)
-                )
-            );
-        }
-        return $data;
+        $data = $this->validateJobData($data, FullJobDefinition::class);
+        return new Job($data);
     }
 
-    private function validateJobData(array $data): array
+    public function modifyJob(Job $job, array $patchData): Job
     {
-        $data = $this->validateNewJobData($data);
-        if (empty($data['id'])) {
-            throw new ClientException('Invalid job data: missing id');
+        $data = $job->jsonSerialize();
+        $data = array_replace_recursive($data, $patchData);
+        $data = $this->validateJobData($data, FullJobDefinition::class);
+        return new Job($data);
+    }
+
+    private function validateJobData(array $data, string $validatorClass): array
+    {
+        try {
+            /** @var NewJobDefinition $jobDefinition */
+            $jobDefinition = new $validatorClass();
+            $data = $jobDefinition->processData($data);
+            return $data;
+        } catch (InvalidConfigurationException $e) {
+            throw new ClientException($e->getMessage(), $e->getCode(), $e);
         }
-        if (empty($data['project']['id'])) {
-            throw new ClientException('Invalid job data: missing project.id');
-        }
-        if (empty($data['token']['id'])) {
-            throw new ClientException('Invalid job data: missing token.id');
-        }
-        // todo check valid values for status
-        if (empty($data['status'])) {
-            throw new ClientException('Invalid job data: missing status');
-        }
-        return $data;
     }
 
     private function initializeNewJobData(array $data): array
@@ -97,7 +93,7 @@ class JobFactory
             $tokenInfo = $client->verifyToken();
             $data['project']['id'] = $tokenInfo['owner']['id'];
             $data['token']['id'] = $tokenInfo['id'];
-            $data['status'] = Job::STATUS_CREATED;
+            $data['status'] = self::STATUS_CREATED;
             $data['id'] = $client->generateId();
         } catch (StorageClientException $e) {
             throw new ClientException('Cannot create job: ' . $e->getMessage(), $e->getCode(), $e);
