@@ -43,6 +43,7 @@ class ClientTest extends TestCase
                         "id": "789",
                         "token": "KBC::ProjectSecure::eJwBYAGf"
                     },
+                    "status": "created",
                     "params": {
                         "mode": "run",
                         "component": "keboola.test",
@@ -108,7 +109,7 @@ class ClientTest extends TestCase
         self::assertCount(1, $container);
         /** @var Request $request */
         $request = $container[0]['request'];
-        self::assertEquals('jobs/123', $request->getUri()->__toString());
+        self::assertEquals('http://example.com/jobs/123', $request->getUri()->__toString());
         self::assertEquals('POST', $request->getMethod());
         self::assertEquals(
             '{"images":{"digests":{"keboola.test":{"id":"123"}}}}',
