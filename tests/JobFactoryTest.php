@@ -112,12 +112,12 @@ class JobFactoryTest extends TestCase
         $job = $factory->createNewJob($data);
         $newJob = $factory->modifyJob($job, ['params' => ['config' => '345'], 'status' => 'waiting']);
         self::assertNotEmpty($job->getId());
-        self::assertEquals('123', $newJob->getConfigId());
-        self::assertEquals('345', $job->getConfigId());
+        self::assertEquals('345', $newJob->getConfigId());
+        self::assertEquals('123', $job->getConfigId());
         self::assertEquals('waiting', $newJob->getStatus());
-        self::assertEquals('345', $job->getStatus());
+        self::assertEquals('created', $job->getStatus());
         self::assertStringStartsWith('KBC::ProjectSecure::', $job->getToken());
-        self::assertEquals('234', $job->getRowId());
+        self::assertNull($job->getRowId());
         self::assertEquals(['parameters' => ['foo' => 'bar']], $job->getConfigData());
         self::assertEquals('latest', $job->getTag());
     }
