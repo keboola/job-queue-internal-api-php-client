@@ -14,6 +14,7 @@ class FullJobDefinition extends NewJobDefinition
 {
     protected function getRootDefinition(TreeBuilder $treeBuilder): ArrayNodeDefinition
     {
+        /** @var ArrayNodeDefinition $rootNode */
         $rootNode = $treeBuilder->getRootNode();
         // @formatter:off
         $rootNode
@@ -51,7 +52,8 @@ class FullJobDefinition extends NewJobDefinition
                     ->end()
                 ->end()
                 ->scalarNode('createdTime')->end()
-                ->scalarNode('id')->isRequired()->cannotBeEmpty()->end();
+                ->scalarNode('id')->isRequired()->cannotBeEmpty()->end()
+            ->end();
         // @formatter:on
 
         return $rootNode;

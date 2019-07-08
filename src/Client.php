@@ -104,7 +104,7 @@ class Client
         $request = new Request('GET', 'jobs/?query=' . implode(', ', $jobIds));
         $result = $this->sendRequest($request);
         if (!$result) {
-            throw new ClientException(sprintf('Job "%s" not found.', $jobId));
+            throw new ClientException(sprintf('Jobs "%s" not found.', implode(', ', $jobIds)));
         }
         return [new Job($result)];
     }
@@ -135,13 +135,29 @@ class Client
 
     public function updateJob(Job $newJob): array
     {
-        $request = new Request('PUT', 'jobs/' . $newJob->getId(), [], json_encode(['status' => $newJob->getStatus()], JSON_THROW_ON_ERROR));
+        $request = new Request(
+            'PUT',
+            'jobs/' . $newJob->getId(),
+            [],
+            json_encode(
+                ['status' => $newJob->getStatus()],
+                JSON_THROW_ON_ERROR
+            )
+        );
         return $this->sendRequest($request);
     }
 
     public function postJobResult(string $jobId, string $status, array $result): array
     {
-        $request = new Request('POST', 'jobs/' . $jobId, [], json_encode(['status' => $status, 'result' => $result], JSON_THROW_ON_ERROR));
+        $request = new Request(
+            'POST',
+            'jobs/' . $jobId,
+            [],
+            json_encode(
+                ['status' => $status, 'result' => $result],
+                JSON_THROW_ON_ERROR
+            )
+        );
         return $this->sendRequest($request);
     }
 
@@ -210,5 +226,4 @@ class Client
             throw new ClientException('Unable to parse response body into JSON: ' . $e->getMessage());
         }
     }
-
 }
