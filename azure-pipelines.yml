@@ -10,13 +10,13 @@ steps:
 
 - script: |
     docker run \
-    -e TEST_QUEUE_API_URL \
-    -e TEST_STORAGE_API_URL \
-    -e TEST_STORAGE_API_TOKEN \
-    -e TEST_KMS_KEY_ALIAS \
-    -e TEST_KMS_REGION \
-    -e TEST_AWS_ACCESS_KEY_ID \
-    -e TEST_AWS_SECRET_ACCESS_KEY \
+    -e TEST_QUEUE_API_URL=$env:TEST_QUEUE_API_URL \
+    -e TEST_STORAGE_API_URL=$env:TEST_STORAGE_API_URL \
+    -e TEST_STORAGE_API_TOKEN=$env:TEST_STORAGE_API_TOKEN \
+    -e TEST_KMS_KEY_ALIAS=$env:TEST_KMS_KEY_ALIAS \
+    -e TEST_KMS_REGION=$env:TEST_KMS_REGION \
+    -e TEST_AWS_ACCESS_KEY_ID=$env:TEST_AWS_ACCESS_KEY_ID \
+    -e TEST_AWS_SECRET_ACCESS_KEY=$env:TEST_AWS_SECRET_ACCESS_KEY \
     job-queue-internal-api-php-client composer ci
   displayName: 'Run Tests'
   env:
