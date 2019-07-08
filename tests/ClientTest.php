@@ -99,8 +99,12 @@ class ClientTest extends TestCase
         $history = Middleware::history($container);
         $stack = HandlerStack::create($mock);
         $stack->push($history);
-        $client = new Client('http://example.com/', 'testToken', ['handler' => $stack]);
-        $client->postJobResult('123', ['images' => ['digests' => ['keboola.test' => ['id' => '123']]]]);
+        $client = $this->getClient(['handler' => $stack]);
+        $client->postJobResult(
+            '123',
+            JobFactory::STATUS_SUCCESS,
+            ['images' => ['digests' => ['keboola.test' => ['id' => '123']]]]
+        );
         self::assertCount(1, $container);
         /** @var Request $request */
         $request = $container[0]['request'];

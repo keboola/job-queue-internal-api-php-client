@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Keboola\JobQueueInternalClient\Tests;
+namespace Keboola\JobQueueInternalClient\Tests\JobFactory;
 
 use Keboola\JobQueueInternalClient\JobFactory\NewJobDefinition;
 use PHPUnit\Framework\TestCase;
