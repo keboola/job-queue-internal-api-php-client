@@ -105,7 +105,7 @@ class ClientFunctionalTest extends TestCase
         self::assertEquals($expected, $response);
     }
 
-    public function testGetJobs(): void
+    public function testGetJobsWithStatuses(): void
     {
         $client = $this->getClient();
         $job = $client->getJobFactory()->createNewJob([
@@ -121,6 +121,28 @@ class ClientFunctionalTest extends TestCase
         $createdJob = $client->createJob($job);
         $client = $this->getClient();
         $response = $client->getJobsWithStatus([JobFactory::STATUS_CREATED]);
+        self::assertCount(1, $response);
+        /** @var Job $listedJob */
+        $listedJob = $response[0];
+        self::assertEquals($createdJob->jsonSerialize(), $listedJob->jsonSerialize());
+    }
+
+    public function testGetJobsWithIds(): void
+    {
+        $client = $this->getClient();
+        $job = $client->getJobFactory()->createNewJob([
+            'token' => [
+                'token' => getenv('TEST_STORAGE_API_TOKEN'),
+            ],
+            'params' => [
+                'config' => '454124290',
+                'component' => 'keboola.ex-db-snowflake',
+                'mode' => 'run',
+            ],
+        ]);
+        $createdJob = $client->createJob($job);
+        $client = $this->getClient();
+        $response = $client->getJobsWithIds([$createdJob->getId()]);
         self::assertCount(1, $response);
         /** @var Job $listedJob */
         $listedJob = $response[0];
