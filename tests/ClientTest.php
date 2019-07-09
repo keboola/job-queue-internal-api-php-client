@@ -112,7 +112,7 @@ class ClientTest extends TestCase
         self::assertEquals('http://example.com/jobs/123', $request->getUri()->__toString());
         self::assertEquals('POST', $request->getMethod());
         self::assertEquals(
-            '{"images":{"digests":{"keboola.test":{"id":"123"}}}}',
+            '{"status":"success","result":{"images":{"digests":{"keboola.test":{"id":"123"}}}}}',
             $request->getBody()->getContents()
         );
         self::assertEquals('testToken', $request->getHeader('X-InternalApi-Token')[0]);

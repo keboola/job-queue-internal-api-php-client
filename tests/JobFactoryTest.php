@@ -107,6 +107,12 @@ class JobFactoryTest extends TestCase
                 'config' => '123',
                 'component' => 'keboola.test',
                 'mode' => 'run',
+                'tag' => 'latest',
+                'configData' => [
+                    'parameters' => [
+                        'foo' => 'bar'
+                    ]
+                ]
             ],
         ];
         $job = $factory->createNewJob($data);
