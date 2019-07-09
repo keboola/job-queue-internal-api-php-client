@@ -66,7 +66,7 @@ class JobTest extends TestCase
 
     public function testGetProjectId(): void
     {
-        $this->assertEquals('123', (string) $this->job->getProjectId());
+        $this->assertEquals('123', $this->job->getProjectId());
     }
 
     public function testGetResult(): void
