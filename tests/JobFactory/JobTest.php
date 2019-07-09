@@ -17,8 +17,8 @@ class JobTest extends TestCase
             'component' => 'keboola.ex-db-snowflake',
             'mode' => 'run',
             'configData' => [
-                'parameters' => ['foo' => 'bar']
-            ]
+                'parameters' => ['foo' => 'bar'],
+            ],
         ],
         'status' => 'created',
         'project' => [
@@ -26,14 +26,14 @@ class JobTest extends TestCase
         ],
         'token' => [
             'id' => '456',
-            'token' => 'KBC::ProjectSecure::token'
+            'token' => 'KBC::ProjectSecure::token',
         ],
     ];
 
     /** @var Job */
     private $job;
 
-    public function setUp()
+    public function setUp(): void
     {
         parent::setUp();
         $this->job = $this->createJob();

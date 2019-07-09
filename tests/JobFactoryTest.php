@@ -110,9 +110,9 @@ class JobFactoryTest extends TestCase
                 'tag' => 'latest',
                 'configData' => [
                     'parameters' => [
-                        'foo' => 'bar'
-                    ]
-                ]
+                        'foo' => 'bar',
+                    ],
+                ],
             ],
         ];
         $job = $factory->createNewJob($data);
