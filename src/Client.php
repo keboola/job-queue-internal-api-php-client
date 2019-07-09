@@ -98,15 +98,15 @@ class Client
         return new Job($result);
     }
 
-    public function getJobs(array $jobIds): array
+    public function getJobsWithIds(array $jobIds): array
     {
-        // @todo fix this
-        $request = new Request('GET', 'jobs/?query=' . implode(', ', $jobIds));
+        $conditions = array_map(function (string $status): string {
+            return 'id:' . $status;
+        }, $jobIds);
+        $query = '(' . implode(' OR ', $conditions) . ')';
+        $request = new Request('GET', 'jobs/?query=' . $query);
         $result = $this->sendRequest($request);
-        if (!$result) {
-            throw new ClientException(sprintf('Jobs "%s" not found.', implode(', ', $jobIds)));
-        }
-        return [new Job($result)];
+        return $this->mapJobsFromResponse($result);
     }
 
     public function getNewJobIds(): array
@@ -122,15 +122,7 @@ class Client
         $query = '(' . implode(' OR ', $conditions) . ')';
         $request = new Request('GET', 'jobs/?query=' . $query);
         $result = $this->sendRequest($request);
-        $jobs = array_map(function (array $jobData): ?Job {
-            try {
-                return $this->jobFactory->loadFromExistingJobData($jobData);
-            } catch (\Throwable $e) {
-                // ignore invalid job
-                return null;
-            }
-        }, $result);
-        return array_filter($jobs);
+        return $this->mapJobsFromResponse($result);
     }
 
     public function updateJob(Job $newJob): array
@@ -159,6 +151,19 @@ class Client
             )
         );
         return $this->sendRequest($request);
+    }
+
+    private function mapJobsFromResponse(array $responseBody): array
+    {
+        $jobs = array_map(function (array $jobData): ?Job {
+            try {
+                return $this->jobFactory->loadFromExistingJobData($jobData);
+            } catch (\Throwable $e) {
+                // ignore invalid job
+                return null;
+            }
+        }, $responseBody);
+        return array_filter($jobs);
     }
 
     private function createDefaultDecider(int $maxRetries): Closure
