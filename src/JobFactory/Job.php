@@ -6,15 +6,24 @@ namespace Keboola\JobQueueInternalClient\JobFactory;
 
 use JsonSerializable;
 use Keboola\JobQueueInternalClient\JobFactory;
+use Keboola\ObjectEncryptor\ObjectEncryptorFactory;
 
 class Job implements JsonSerializable
 {
     /** @var array */
     private $data;
 
-    public function __construct(array $data)
+    /** @var ObjectEncryptorFactory */
+    private $objectEncryptorFactory;
+
+    public function __construct(ObjectEncryptorFactory $objectEncryptorFactory, array $data)
     {
         $this->data = $data;
+        // it's important to clone here because we change state of the factory!, todo add test for this!
+        $this->objectEncryptorFactory = clone $objectEncryptorFactory;
+        $this->objectEncryptorFactory->setProjectId($this->getProjectId());
+        $this->objectEncryptorFactory->setComponentId($this->getComponentId());
+        $this->objectEncryptorFactory->setConfigurationId($this->getConfigId());
     }
 
     public function getComponentId(): string
@@ -80,5 +89,15 @@ class Job implements JsonSerializable
     public function jsonSerialize(): array
     {
         return $this->data;
+    }
+
+    public function getTokenDecrypted(): string
+    {
+        return $this->objectEncryptorFactory->getEncryptor()->decrypt($this->getToken());
+    }
+
+    public function getConfigDataDecrypted(): array
+    {
+        return $this->objectEncryptorFactory->getEncryptor()->decrypt($this->getConfigData());
     }
 }

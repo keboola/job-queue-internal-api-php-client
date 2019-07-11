@@ -94,6 +94,16 @@ class Client
         return $this->jobFactory;
     }
 
+    public function getJob(string $jobId): Job
+    {
+        $request = new Request('GET', 'jobs/' . $jobId);
+        $result = $this->sendRequest($request);
+        if (!$result) {
+            throw new ClientException(sprintf('Job "%s" not found.', $jobId));
+        }
+        return $this->jobFactory->loadFromExistingJobData($result);
+    }
+
     public function getJobsWithIds(array $jobIds): array
     {
         $conditions = array_map(function (string $status): string {

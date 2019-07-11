@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Keboola\JobQueueInternalClient\Tests\JobFactory;
 
+use Keboola\JobQueueInternalClient\JobFactory;
 use Keboola\JobQueueInternalClient\JobFactory\Job;
+use Keboola\ObjectEncryptor\ObjectEncryptorFactory;
 use PHPUnit\Framework\TestCase;
 
 class JobTest extends TestCase
@@ -36,7 +38,7 @@ class JobTest extends TestCase
     public function setUp(): void
     {
         parent::setUp();
-        $this->job = $this->createJob();
+        $this->job = $this->getJob();
     }
 
     public function testGetComponentId(): void
@@ -104,8 +106,12 @@ class JobTest extends TestCase
         $this->assertEquals($this->jobData, $this->job->jsonSerialize());
     }
 
-    private function createJob(): Job
+    private function getJob(): Job
     {
-        return new Job($this->jobData);
+        $objectEncryptorFactoryMock = self::getMockBuilder(ObjectEncryptorFactory::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+        /** @var ObjectEncryptorFactory $objectEncryptorFactoryMock */
+        return new Job($objectEncryptorFactoryMock, $this->jobData);
     }
 }
