@@ -21,6 +21,7 @@ use Symfony\Component\Validator\Constraints\Range;
 use Symfony\Component\Validator\Constraints\Url;
 use Symfony\Component\Validator\ConstraintViolationInterface;
 use Symfony\Component\Validator\Validation;
+use Throwable;
 
 class Client
 {
@@ -33,7 +34,11 @@ class Client
     /** @var JobFactory */
     private $jobFactory;
 
+    /** @var LoggerInterface */
+    private $logger;
+
     public function __construct(
+        LoggerInterface $logger,
         JobFactory $jobFactory,
         string $internalQueueApiUrl,
         string $internalQueueToken,
@@ -65,6 +70,7 @@ class Client
         }
         $this->guzzle = $this->initClient($internalQueueApiUrl, $internalQueueToken, $options);
         $this->jobFactory = $jobFactory;
+        $this->logger = $logger;
     }
 
     public function addJobUsage(string $jobId, array $usage): void
@@ -86,16 +92,6 @@ class Client
     public function getJobFactory(): JobFactory
     {
         return $this->jobFactory;
-    }
-
-    public function getJob(string $jobId): Job
-    {
-        $request = new Request('GET', 'jobs/' . $jobId);
-        $result = $this->sendRequest($request);
-        if (!$result) {
-            throw new ClientException(sprintf('Job "%s" not found.', $jobId));
-        }
-        return new Job($result);
     }
 
     public function getJobsWithIds(array $jobIds): array
@@ -153,7 +149,8 @@ class Client
         $jobs = array_map(function (array $jobData): ?Job {
             try {
                 return $this->jobFactory->loadFromExistingJobData($jobData);
-            } catch (\Throwable $e) {
+            } catch (Throwable $e) {
+                $this->logger->error('Failed to read Job ' . $e->getMessage());
                 // ignore invalid job
                 return null;
             }
