@@ -10,6 +10,7 @@ use Keboola\JobQueueInternalClient\JobFactory;
 use Keboola\JobQueueInternalClient\JobFactory\Job;
 use Keboola\ObjectEncryptor\ObjectEncryptorFactory;
 use PHPUnit\Framework\TestCase;
+use Psr\Log\NullLogger;
 
 class ClientFunctionalTest extends TestCase
 {
@@ -56,7 +57,7 @@ class ClientFunctionalTest extends TestCase
 
     private function getClient(): Client
     {
-        return new Client($this->getJobFactory(), (string) getenv('TEST_QUEUE_API_URL'), 'dummy', []);
+        return new Client(new NullLogger(), $this->getJobFactory(), (string) getenv('TEST_QUEUE_API_URL'), 'dummy', []);
     }
 
     public function testCreateJob(): void

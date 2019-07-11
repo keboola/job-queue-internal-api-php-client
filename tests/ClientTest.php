@@ -13,6 +13,7 @@ use Keboola\JobQueueInternalClient\Client;
 use Keboola\JobQueueInternalClient\JobFactory;
 use Keboola\ObjectEncryptor\ObjectEncryptorFactory;
 use PHPUnit\Framework\TestCase;
+use Psr\Log\NullLogger;
 
 class ClientTest extends TestCase
 {
@@ -25,7 +26,7 @@ class ClientTest extends TestCase
 
     private function getClient(array $options): Client
     {
-        return new Client($this->getJobFactory(), 'http://example.com/', 'testToken', $options);
+        return new Client(new NullLogger(), $this->getJobFactory(), 'http://example.com/', 'testToken', $options);
     }
 
     public function testGetJobData(): void
