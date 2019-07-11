@@ -57,13 +57,13 @@ class JobFactory
         $data = $this->validateJobData($data, NewJobDefinition::class);
         $data = $this->initializeNewJobData($data);
         $data = $this->validateJobData($data, FullJobDefinition::class);
-        return new Job($data);
+        return new Job($this->objectEncryptorFactory, $data);
     }
 
     public function loadFromExistingJobData(array $data): Job
     {
         $data = $this->validateJobData($data, FullJobDefinition::class);
-        return new Job($data);
+        return new Job($this->objectEncryptorFactory, $data);
     }
 
     public function modifyJob(Job $job, array $patchData): Job
@@ -71,7 +71,7 @@ class JobFactory
         $data = $job->jsonSerialize();
         $data = array_replace_recursive($data, $patchData);
         $data = $this->validateJobData($data, FullJobDefinition::class);
-        return new Job($data);
+        return new Job($this->objectEncryptorFactory, $data);
     }
 
     private function validateJobData(array $data, string $validatorClass): array
