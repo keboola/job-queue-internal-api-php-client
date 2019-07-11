@@ -109,11 +109,6 @@ class Client
         return $this->mapJobsFromResponse($result);
     }
 
-    public function getNewJobIds(): array
-    {
-        return ['159'];
-    }
-
     public function getJobsWithStatus(array $statuses): array
     {
         $conditions = array_map(function (string $status): string {
