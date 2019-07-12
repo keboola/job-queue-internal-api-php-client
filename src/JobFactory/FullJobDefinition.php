@@ -51,6 +51,7 @@ class FullJobDefinition extends NewJobDefinition
                         ->thenInvalid('Status must be one of ' . implode(', ', JobFactory::getAllStatuses()) . '.')
                     ->end()
                 ->end()
+                ->arrayNode('result')->ignoreExtraKeys(false)->end()
                 ->scalarNode('createdTime')->end()
                 ->scalarNode('id')->isRequired()->cannotBeEmpty()->end()
             ->end();

@@ -149,4 +149,28 @@ class ClientFunctionalTest extends TestCase
         $listedJob = $response[0];
         self::assertEquals($createdJob->jsonSerialize(), $listedJob->jsonSerialize());
     }
+
+    public function testPostJobResult(): void
+    {
+        $client = $this->getClient();
+        $job = $client->getJobFactory()->createNewJob([
+            'token' => [
+                'token' => getenv('TEST_STORAGE_API_TOKEN'),
+            ],
+            'params' => [
+                'config' => '454124290',
+                'component' => 'keboola.ex-db-snowflake',
+                'mode' => 'run',
+            ],
+        ]);
+        $createdJob = $client->createJob($job);
+        $client = $this->getClient();
+        $job = $client->getJob($createdJob->getId());
+        self::assertEquals(JobFactory::STATUS_CREATED, $job->getStatus());
+        self::assertEquals(null, $job->getResult());
+        $client->postJobResult($createdJob->getId(), JobFactory::STATUS_SUCCESS, ['foo' => 'bar']);
+        $job = $client->getJob($createdJob->getId());
+        self::assertEquals(JobFactory::STATUS_SUCCESS, $job->getStatus());
+        self::assertEquals(['foo' => 'bar'], $job->getResult());
+    }
 }

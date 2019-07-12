@@ -111,7 +111,7 @@ class ClientTest extends TestCase
         /** @var Request $request */
         $request = $container[0]['request'];
         self::assertEquals('http://example.com/jobs/123', $request->getUri()->__toString());
-        self::assertEquals('POST', $request->getMethod());
+        self::assertEquals('PUT', $request->getMethod());
         self::assertEquals(
             '{"status":"success","result":{"images":{"digests":{"keboola.test":{"id":"123"}}}}}',
             $request->getBody()->getContents()
