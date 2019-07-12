@@ -143,7 +143,7 @@ class Client
     public function postJobResult(string $jobId, string $status, array $result): array
     {
         $request = new Request(
-            'POST',
+            'PUT',
             'jobs/' . $jobId,
             [],
             json_encode(
