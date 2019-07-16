@@ -5,7 +5,7 @@
         "KmsKeyArn": {
             "Type": "String",
             "Description": "DockerRunnerKMSKey created by Syrup Services stack"
-        },
+        }
     },
     "Resources": {
         "JobQueueInternalApiPhpClient": {

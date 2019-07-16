@@ -29,6 +29,7 @@
         "php": "^7.3",
         "ext-json": "*",
         "guzzlehttp/guzzle": "^6.3",
+        "infection/infection": "^0.13.4",
         "keboola/object-encryptor": "^0.1.4",
         "keboola/storage-api-client": "^10.6",
         "psr/log": "^1.1",
@@ -47,11 +48,13 @@
         "phpcs": "phpcs --extensions=php src tests",
         "phpcbf": "phpcbf --extensions=php src tests",
         "phplint": "parallel-lint -j 10 --exclude vendor .",
+        "infection": "infection --threads=4 --min-covered-msi=80 --coverage=build/logs",
         "build": [
             "@phplint",
             "@phpcs",
             "@phpstan",
-            "@tests"
+            "@tests",
+            "@infection"
         ],
         "ci": [
             "@composer validate --no-check-all --strict",

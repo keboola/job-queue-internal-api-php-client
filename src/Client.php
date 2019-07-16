@@ -45,12 +45,12 @@ class Client
         array $options = []
     ) {
         $validator = Validation::createValidator();
-        $errors = $validator->validate($internalQueueApiUrl, [new Url(['message' => 'Queue API URL is not valid.'])]);
+        $errors = $validator->validate($internalQueueApiUrl, [new Url()]);
         $errors->addAll(
-            $validator->validate($internalQueueToken, [new NotBlank(['message' => 'Token is required.'])])
+            $validator->validate($internalQueueToken, [new NotBlank()])
         );
         if (!empty($options['backoffMaxTries'])) {
-            $errors->addAll($validator->validate($internalQueueToken, [new Range(['min' => 0, 'max' => 100])]));
+            $errors->addAll($validator->validate($options['backoffMaxTries'], [new Range(['min' => 0, 'max' => 100])]));
             $options['backoffMaxTries'] = intval($options['backoffMaxTries']);
         } else {
             $options['backoffMaxTries'] = self::DEFAULT_BACKOFF_RETRIES;
@@ -64,7 +64,7 @@ class Client
             $messages = '';
             /** @var ConstraintViolationInterface $error */
             foreach ($errors as $error) {
-                $messages .= $error->getMessage() . "\n";
+                $messages .= 'Value "' . $error->getInvalidValue() . '" is invalid: ' . $error->getMessage() . "\n";
             }
             throw new ClientException('Invalid parameters when creating client: ' . $messages);
         }
@@ -75,6 +75,7 @@ class Client
 
     public function addJobUsage(string $jobId, array $usage): void
     {
+        // todo implement this
     }
 
     public function createJob(Job $job): Job
@@ -98,9 +99,6 @@ class Client
     {
         $request = new Request('GET', 'jobs/' . $jobId);
         $result = $this->sendRequest($request);
-        if (!$result) {
-            throw new ClientException(sprintf('Job "%s" not found.', $jobId));
-        }
         return $this->jobFactory->loadFromExistingJobData($result);
     }
 

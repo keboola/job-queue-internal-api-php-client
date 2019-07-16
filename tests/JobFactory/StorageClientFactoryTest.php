@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Keboola\JobQueueInternalClient\Tests\JobFactory;
 
 use Exception;
+use Keboola\JobQueueInternalClient\ClientException;
 use Keboola\JobQueueInternalClient\JobFactory\StorageClientFactory;
 use Keboola\StorageApi\Client;
 use PHPUnit\Framework\TestCase;
@@ -32,7 +33,7 @@ class StorageClientFactoryTest extends TestCase
 
     public function testGetClient(): void
     {
-        $storageClientFactory = $this->getStorageClientFactory();
+        $storageClientFactory = new StorageClientFactory($this->storageApiUrl);
         $client = $storageClientFactory->getClient(getenv('TEST_STORAGE_API_TOKEN'));
 
         $this->assertInstanceOf(Client::class, $client);
@@ -40,8 +41,10 @@ class StorageClientFactoryTest extends TestCase
         $this->assertEquals($this->storageApiToken, $client->getTokenString());
     }
 
-    private function getStorageClientFactory(): StorageClientFactory
+    public function testCreateFactoryInvalidUrl(): void
     {
-        return new StorageClientFactory($this->storageApiUrl);
+        self::expectExceptionMessage('Value "foo bar" is invalid: Storage API URL is not valid.');
+        self::expectException(ClientException::class);
+        new StorageClientFactory('foo bar');
     }
 }

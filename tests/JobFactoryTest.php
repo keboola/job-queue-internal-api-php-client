@@ -57,6 +57,8 @@ class JobFactoryTest extends TestCase
         self::assertEquals('123', $job->getConfigId());
         self::assertStringStartsWith('KBC::ProjectSecure::', $job->getToken());
         self::assertEquals([], $job->getConfigData());
+        self::assertEquals(getenv('TEST_STORAGE_API_TOKEN'), $job->getTokenDecrypted());
+        self::assertEquals([], $job->getConfigDataDecrypted());
         self::assertNull($job->getRowId());
         self::assertNull($job->getTag());
     }
@@ -140,5 +142,23 @@ class JobFactoryTest extends TestCase
         self::expectException(ClientException::class);
         self::expectExceptionMessage('The child node "token" at path "job" must be configured.');
         $this->getJobFactory()->createNewJob($jobData);
+    }
+
+    public function testCreateInvalidToken(): void
+    {
+        $data = [
+            'token' => [
+                'token' => 'invalid',
+            ],
+            'params' => [
+                'config' => '123',
+                'component' => 'keboola.test',
+                'mode' => 'run',
+            ],
+        ];
+        putenv('TEST_STORAGE_API_TOKEN=invalid');
+        self::expectException(ClientException::class);
+        self::expectExceptionMessage('Cannot create job: Invalid access token');
+        $this->getJobFactory()->createNewJob($data);
     }
 }
