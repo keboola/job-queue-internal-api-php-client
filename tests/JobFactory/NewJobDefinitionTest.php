@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace Keboola\JobQueueInternalClient\Tests\JobFactory;
 
 use Keboola\JobQueueInternalClient\JobFactory\NewJobDefinition;
-use PHPUnit\Framework\TestCase;
+use Keboola\JobQueueInternalClient\Tests\BaseTest;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 
-class NewJobDefinitionTest extends TestCase
+class NewJobDefinitionTest extends BaseTest
 {
     public function testValidJobMinimal(): void
     {

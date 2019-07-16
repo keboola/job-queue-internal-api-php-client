@@ -4,13 +4,12 @@ declare(strict_types=1);
 
 namespace Keboola\JobQueueInternalClient\Tests\JobFactory;
 
-use Exception;
 use Keboola\JobQueueInternalClient\ClientException;
 use Keboola\JobQueueInternalClient\JobFactory\StorageClientFactory;
+use Keboola\JobQueueInternalClient\Tests\BaseTest;
 use Keboola\StorageApi\Client;
-use PHPUnit\Framework\TestCase;
 
-class StorageClientFactoryTest extends TestCase
+class StorageClientFactoryTest extends BaseTest
 {
     /** @var string */
     private $storageApiUrl;
@@ -21,12 +20,6 @@ class StorageClientFactoryTest extends TestCase
     public function setUp(): void
     {
         parent::setUp();
-        if (empty(getenv('TEST_STORAGE_API_URL')) || empty(getenv('TEST_STORAGE_API_TOKEN'))) {
-            throw new Exception(
-                'The environment variable "TEST_STORAGE_API_URL" or "TEST_STORAGE_API_TOKEN" is empty.'
-            );
-        }
-
         $this->storageApiUrl = getenv('TEST_STORAGE_API_URL');
         $this->storageApiToken = getenv('TEST_STORAGE_API_TOKEN');
     }

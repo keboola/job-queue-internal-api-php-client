@@ -5,3 +5,5 @@ docs/
 composer.lock
 /.php_cs.cache
 /.env
+/build/logs
+/infection.log

@@ -36,7 +36,9 @@ class JobFactory
         ObjectEncryptorFactory $objectEncryptorFactory
     ) {
         $this->storageClientFactory = $storageClientFactory;
-        $this->objectEncryptorFactory = $objectEncryptorFactory;
+        // it's important to clone here because we change state of the factory!,
+        // this is tested by JobFactoryTest::testEncryptionFactoryIsolation()
+        $this->objectEncryptorFactory = clone $objectEncryptorFactory;
     }
 
     public static function getFinishedStatuses(): array
@@ -96,7 +98,11 @@ class JobFactory
             $data['status'] = self::STATUS_CREATED;
             $data['id'] = $client->generateId();
         } catch (StorageClientException $e) {
-            throw new ClientException('Cannot create job: ' . $e->getMessage(), $e->getCode(), $e);
+            throw new ClientException(
+                'Cannot create job: ' . $e->getMessage() . ' ' . $data['token']['token'],
+                $e->getCode(),
+                $e
+            );
         }
         $this->objectEncryptorFactory->setProjectId($tokenInfo['owner']['id']);
         $this->objectEncryptorFactory->setComponentId($data ['params']['component']);

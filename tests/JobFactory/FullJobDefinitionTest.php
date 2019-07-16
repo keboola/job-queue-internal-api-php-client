@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace Keboola\JobQueueInternalClient\Tests\JobFactory;
 
 use Keboola\JobQueueInternalClient\JobFactory\FullJobDefinition;
-use PHPUnit\Framework\TestCase;
+use Keboola\JobQueueInternalClient\Tests\BaseTest;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 
-class FullJobDefinitionTest extends TestCase
+class FullJobDefinitionTest extends BaseTest
 {
-    public function testValidJobMinimal(): void
+    public function testValidJobMaximal(): void
     {
         $expectedData = [
             'token' => [
@@ -22,10 +22,16 @@ class FullJobDefinitionTest extends TestCase
             ],
             'params' => [
                 'config' => '123',
+                'configData' => [
+                    'foo' => 'bar',
+                ],
                 'component' => 'keboola.test',
                 'mode' => 'run',
             ],
             'id' => '1234',
+            'result' => [
+                'bar' => 'foo',
+            ],
             'status' => 'created',
         ];
         $definition = new FullJobDefinition();

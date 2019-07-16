@@ -4,29 +4,18 @@ declare(strict_types=1);
 
 namespace Keboola\JobQueueInternalClient\Tests;
 
-use Exception;
 use Keboola\JobQueueInternalClient\Client;
 use Keboola\JobQueueInternalClient\ClientException;
 use Keboola\JobQueueInternalClient\JobFactory;
 use Keboola\JobQueueInternalClient\JobFactory\Job;
 use Keboola\ObjectEncryptor\ObjectEncryptorFactory;
-use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
 
-class ClientFunctionalTest extends TestCase
+class ClientFunctionalTest extends BaseTest
 {
     public function setUp(): void
     {
         parent::setUp();
-        if (empty(getenv('TEST_QUEUE_API_URL')) || empty(getenv('TEST_STORAGE_API_URL'))
-            || empty(getenv('TEST_STORAGE_API_TOKEN'))
-            || empty(getenv('TEST_KMS_KEY_ALIAS')) || empty(getenv('TEST_KMS_REGION'))
-            || empty(getenv('TEST_AWS_ACCESS_KEY_ID')) || empty(getenv('TEST_AWS_SECRET_ACCESS_KEY'))
-        ) {
-            throw new Exception('The environment variable "TEST_QUEUE_API_URL" or "TEST_STORAGE_API_URL" ' .
-                'or "TEST_STORAGE_API_TOKEN" or "TEST_KMS_KEY_ALIAS" or "TEST_KMS_REGION" or ' .
-                '"TEST_AWS_ACCESS_KEY_ID" or "TEST_AWS_SECRET_ACCESS_KEY" is empty.');
-        }
         putenv('AWS_ACCESS_KEY_ID=' . getenv('TEST_AWS_ACCESS_KEY_ID'));
         putenv('AWS_SECRET_ACCESS_KEY=' . getenv('TEST_AWS_SECRET_ACCESS_KEY'));
         $this->cleanJobs();
@@ -58,7 +47,12 @@ class ClientFunctionalTest extends TestCase
 
     private function getClient(): Client
     {
-        return new Client(new NullLogger(), $this->getJobFactory(), (string) getenv('TEST_QUEUE_API_URL'), 'dummy', []);
+        return new Client(
+            new NullLogger(),
+            $this->getJobFactory(),
+            (string) getenv('TEST_QUEUE_API_URL'),
+            'dummy'
+        );
     }
 
     public function testCreateJob(): void

@@ -19,7 +19,8 @@ class Job implements JsonSerializable
     public function __construct(ObjectEncryptorFactory $objectEncryptorFactory, array $data)
     {
         $this->data = $data;
-        // it's important to clone here because we change state of the factory!, todo add test for this!
+        // it's important to clone here because we change state of the factory!
+        // this is tested by JobFactoryTest::testEncryptionMultipleJobs()
         $this->objectEncryptorFactory = clone $objectEncryptorFactory;
         $this->objectEncryptorFactory->setProjectId($this->getProjectId());
         $this->objectEncryptorFactory->setComponentId($this->getComponentId());
