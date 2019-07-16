@@ -14,11 +14,11 @@ use Keboola\JobQueueInternalClient\ClientException;
 use Keboola\JobQueueInternalClient\JobFactory;
 use Keboola\JobQueueInternalClient\JobFactory\Job;
 use Keboola\ObjectEncryptor\ObjectEncryptorFactory;
-use PHPUnit\Framework\TestCase;
+use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 use Psr\Log\Test\TestLogger;
 
-class ClientTest extends TestCase
+class ClientTest extends BaseTest
 {
     private function getJobFactory(): JobFactory
     {
@@ -27,9 +27,15 @@ class ClientTest extends TestCase
         return new JobFactory($storageClientFactory, $objectEncryptorFactory);
     }
 
-    private function getClient(array $options): Client
+    private function getClient(array $options, ?LoggerInterface $logger = null): Client
     {
-        return new Client(new NullLogger(), $this->getJobFactory(), 'http://example.com/', 'testToken', $options);
+        return new Client(
+            $logger ?? new NullLogger(),
+            $this->getJobFactory(),
+            'http://example.com/',
+            'testToken',
+            $options
+        );
     }
 
     public function testCreateClientInvalidBackoff(): void
@@ -44,6 +50,36 @@ class ClientTest extends TestCase
             'http://example.com/',
             'testToken',
             ['backoffMaxTries' => 'abc']
+        );
+    }
+
+    public function testCreateClientTooLowBackoff(): void
+    {
+        self::expectException(ClientException::class);
+        self::expectExceptionMessage(
+            'Invalid parameters when creating client: Value "-1" is invalid: This value should be 0 or more.'
+        );
+        new Client(
+            new NullLogger(),
+            $this->getJobFactory(),
+            'http://example.com/',
+            'testToken',
+            ['backoffMaxTries' => -1]
+        );
+    }
+
+    public function testCreateClientTooHighBackoff(): void
+    {
+        self::expectException(ClientException::class);
+        self::expectExceptionMessage(
+            'Invalid parameters when creating client: Value "101" is invalid: This value should be 100 or less.'
+        );
+        new Client(
+            new NullLogger(),
+            $this->getJobFactory(),
+            'http://example.com/',
+            'testToken',
+            ['backoffMaxTries' => 101]
         );
     }
 
@@ -63,6 +99,16 @@ class ClientTest extends TestCase
             'Invalid parameters when creating client: Value "invalid url" is invalid: This value is not a valid URL.'
         );
         new Client(new NullLogger(), $this->getJobFactory(), 'invalid url', 'testToken');
+    }
+
+    public function testCreateClientMultipleErrors(): void
+    {
+        self::expectException(ClientException::class);
+        self::expectExceptionMessage(
+            'Invalid parameters when creating client: Value "invalid url" is invalid: This value is not a valid URL.'
+            . "\n" . 'Value "" is invalid: This value should not be blank.' . "\n"
+        );
+        new Client(new NullLogger(), $this->getJobFactory(), 'invalid url', '');
     }
 
     public function testClientRequestResponse(): void
@@ -344,5 +390,38 @@ class ClientTest extends TestCase
         self::expectException(ClientException::class);
         self::expectExceptionMessage('Invalid job data: Type is not supported');
         $client->createJob($job);
+    }
+
+    public function testClientInvalidJobResponse(): void
+    {
+        $mock = new MockHandler([
+            new Response(
+                200,
+                ['Content-Type' => 'application/json'],
+                '[{
+                    "id": "123",
+                    "project": {
+                        "id": "456"
+                    },
+                    "token": {
+                        "id": "789",
+                        "token": "KBC::ProjectSecure::aSdF"
+                    },
+                    "status": "created"
+                }]'
+            ),
+        ]);
+        // Add the history middleware to the handler stack.
+        $requestHistory = [];
+        $history = Middleware::history($requestHistory);
+        $stack = HandlerStack::create($mock);
+        $stack->push($history);
+        $logger = new TestLogger();
+        $client = $this->getClient(['handler' => $stack], $logger);
+        $jobs = $client->getJobsWithIds(['123']);
+        self::assertCount(0, $jobs);
+        self::assertTrue($logger->hasErrorThatContains(
+            'Failed to parse Job data: The child node "params" at path "job" must be configured.'
+        ));
     }
 }

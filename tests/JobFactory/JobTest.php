@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace Keboola\JobQueueInternalClient\Tests\JobFactory;
 
 use Keboola\JobQueueInternalClient\JobFactory\Job;
+use Keboola\JobQueueInternalClient\Tests\BaseTest;
 use Keboola\ObjectEncryptor\ObjectEncryptorFactory;
-use PHPUnit\Framework\TestCase;
 
-class JobTest extends TestCase
+class JobTest extends BaseTest
 {
     /** @var array */
     private $jobData = [

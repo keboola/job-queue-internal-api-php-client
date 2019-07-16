@@ -4,25 +4,19 @@ declare(strict_types=1);
 
 namespace Keboola\JobQueueInternalClient\Tests;
 
-use Exception;
 use Keboola\JobQueueInternalClient\ClientException;
 use Keboola\JobQueueInternalClient\JobFactory;
 use Keboola\ObjectEncryptor\ObjectEncryptorFactory;
-use PHPUnit\Framework\TestCase;
+use Keboola\ObjectEncryptor\Wrapper\ComponentWrapper;
+use Keboola\ObjectEncryptor\Wrapper\ConfigurationWrapper;
+use Keboola\ObjectEncryptor\Wrapper\ProjectWrapper;
+use Keboola\StorageApi\Client;
 
-class JobFactoryTest extends TestCase
+class JobFactoryTest extends BaseTest
 {
     public function setUp(): void
     {
         parent::setUp();
-        if (empty(getenv('TEST_STORAGE_API_URL')) || empty(getenv('TEST_STORAGE_API_TOKEN'))
-            || empty(getenv('TEST_KMS_KEY_ALIAS')) || empty(getenv('TEST_KMS_REGION'))
-            || empty(getenv('TEST_AWS_ACCESS_KEY_ID')) || empty(getenv('TEST_AWS_SECRET_ACCESS_KEY'))
-        ) {
-            throw new Exception('The environment variable "TEST_STORAGE_API_URL" ' .
-                'or "TEST_STORAGE_API_TOKEN" or "TEST_KMS_KEY_ALIAS" or "TEST_KMS_REGION" or ' .
-                '"TEST_AWS_ACCESS_KEY_ID" or "TEST_AWS_SECRET_ACCESS_KEY" is empty.');
-        }
         putenv('AWS_ACCESS_KEY_ID=' . getenv('TEST_AWS_ACCESS_KEY_ID'));
         putenv('AWS_SECRET_ACCESS_KEY=' . getenv('TEST_AWS_SECRET_ACCESS_KEY'));
     }
@@ -37,6 +31,11 @@ class JobFactoryTest extends TestCase
             ''
         );
         return new JobFactory($storageClientFactory, $objectEncryptorFactory);
+    }
+
+    public function testDummy(): void
+    {
+        self::assertEquals(true, true);
     }
 
     public function testCreateNewJob(): void
@@ -156,9 +155,191 @@ class JobFactoryTest extends TestCase
                 'mode' => 'run',
             ],
         ];
-        putenv('TEST_STORAGE_API_TOKEN=invalid');
         self::expectException(ClientException::class);
         self::expectExceptionMessage('Cannot create job: Invalid access token');
         $this->getJobFactory()->createNewJob($data);
+    }
+
+    public function testEncryption(): void
+    {
+        $objectEncryptorFactory = new ObjectEncryptorFactory(
+            (string) getenv('TEST_KMS_KEY_ALIAS'),
+            (string) getenv('TEST_KMS_REGION'),
+            '',
+            ''
+        );
+        $client = new Client(
+            [
+                'url' => getenv('TEST_STORAGE_API_URL'),
+                'token' => getenv('TEST_STORAGE_API_TOKEN'),
+            ]
+        );
+        $tokenInfo = $client->verifyToken();
+        $objectEncryptorFactory->setProjectId($tokenInfo['owner']['id']);
+        $objectEncryptorFactory->setConfigurationId('123');
+        $objectEncryptorFactory->setComponentId('keboola.test');
+        $objectEncryptorFactory->setStackId(parse_url(getenv('TEST_STORAGE_API_URL'), PHP_URL_HOST));
+
+        $factory = $this->getJobFactory();
+        $data = [
+            'token' => [
+                'token' => getenv('TEST_STORAGE_API_TOKEN'),
+            ],
+            'params' => [
+                'config' => '123',
+                'configData' => [
+                    '#foo1' => $objectEncryptorFactory->getEncryptor()->encrypt('bar1', ProjectWrapper::class),
+                    '#foo2' => $objectEncryptorFactory->getEncryptor()->encrypt('bar2', ComponentWrapper::class),
+                    '#foo3' => $objectEncryptorFactory->getEncryptor()->encrypt('bar3', ConfigurationWrapper::class),
+                ],
+                'component' => 'keboola.test',
+                'mode' => 'run',
+            ],
+        ];
+        $job = $factory->createNewJob($data);
+        self::assertStringStartsWith('KBC::ProjectSecure', $job->getConfigData()['#foo1']);
+        self::assertStringStartsWith('KBC::ComponentSecure', $job->getConfigData()['#foo2']);
+        self::assertStringStartsWith('KBC::ConfigSecure', $job->getConfigData()['#foo3']);
+        self::assertEquals(
+            [
+                '#foo1' => 'bar1',
+                '#foo2' => 'bar2',
+                '#foo3' => 'bar3',
+            ],
+            $job->getConfigDataDecrypted()
+        );
+    }
+
+    public function testEncryptionMultipleJobs(): void
+    {
+        /* this test does basically the same as testEncryption() method, but with two different jobs and
+        ObjectEncryptor settings. Because ObjectEncryptorFactory is not immutable (legacy reasons), it has to
+        be cloned inside the Job class before it is modified. This method actually tests that it is cloned (i.e. two
+        jobs do not interfere with each other). */
+        $objectEncryptorFactory = new ObjectEncryptorFactory(
+            (string) getenv('TEST_KMS_KEY_ALIAS'),
+            (string) getenv('TEST_KMS_REGION'),
+            '',
+            ''
+        );
+        $storageClientFactory = new JobFactory\StorageClientFactory((string) getenv('TEST_STORAGE_API_URL'));
+        $client = new Client(
+            [
+                'url' => getenv('TEST_STORAGE_API_URL'),
+                'token' => getenv('TEST_STORAGE_API_TOKEN'),
+            ]
+        );
+        $tokenInfo = $client->verifyToken();
+        $objectEncryptorFactory->setStackId(parse_url(getenv('TEST_STORAGE_API_URL'), PHP_URL_HOST));
+
+        $objectEncryptorFactory->setProjectId($tokenInfo['owner']['id']);
+        $objectEncryptorFactory->setConfigurationId('123');
+        $objectEncryptorFactory->setComponentId('keboola.test1');
+        $data = [
+            'token' => [
+                'token' => getenv('TEST_STORAGE_API_TOKEN'),
+            ],
+            'params' => [
+                'config' => '123',
+                'configData' => [
+                    '#foo11' => $objectEncryptorFactory->getEncryptor()->encrypt('bar11', ProjectWrapper::class),
+                    '#foo12' => $objectEncryptorFactory->getEncryptor()->encrypt('bar12', ComponentWrapper::class),
+                    '#foo13' => $objectEncryptorFactory->getEncryptor()->encrypt('bar13', ConfigurationWrapper::class),
+                ],
+                'component' => 'keboola.test1',
+                'mode' => 'run',
+            ],
+        ];
+        $jobFactory1 = new JobFactory($storageClientFactory, $objectEncryptorFactory);
+        $job1 = $jobFactory1->createNewJob($data);
+
+        $objectEncryptorFactory->setProjectId($tokenInfo['owner']['id']);
+        $objectEncryptorFactory->setConfigurationId('456');
+        $objectEncryptorFactory->setComponentId('keboola.test2');
+        $data = [
+            'token' => [
+                'token' => getenv('TEST_STORAGE_API_TOKEN'),
+            ],
+            'params' => [
+                'config' => '456',
+                'configData' => [
+                    '#foo21' => $objectEncryptorFactory->getEncryptor()->encrypt('bar21', ProjectWrapper::class),
+                    '#foo22' => $objectEncryptorFactory->getEncryptor()->encrypt('bar22', ComponentWrapper::class),
+                    '#foo23' => $objectEncryptorFactory->getEncryptor()->encrypt('bar23', ConfigurationWrapper::class),
+                ],
+                'component' => 'keboola.test2',
+                'mode' => 'run',
+            ],
+        ];
+        $jobFactory2 = new JobFactory($storageClientFactory, $objectEncryptorFactory);
+        $job2 = $jobFactory2->createNewJob($data);
+
+        self::assertEquals('123', $job1->getConfigId());
+        self::assertStringStartsWith('KBC::ProjectSecure', $job1->getConfigData()['#foo11']);
+        self::assertStringStartsWith('KBC::ComponentSecure', $job1->getConfigData()['#foo12']);
+        self::assertStringStartsWith('KBC::ConfigSecure', $job1->getConfigData()['#foo13']);
+        self::assertEquals(
+            [
+                '#foo11' => 'bar11',
+                '#foo12' => 'bar12',
+                '#foo13' => 'bar13',
+            ],
+            $job1->getConfigDataDecrypted()
+        );
+
+        self::assertEquals('456', $job2->getConfigId());
+        self::assertStringStartsWith('KBC::ProjectSecure', $job2->getConfigData()['#foo21']);
+        self::assertStringStartsWith('KBC::ComponentSecure', $job2->getConfigData()['#foo22']);
+        self::assertStringStartsWith('KBC::ConfigSecure', $job2->getConfigData()['#foo23']);
+        self::assertEquals(
+            [
+                '#foo21' => 'bar21',
+                '#foo22' => 'bar22',
+                '#foo23' => 'bar23',
+            ],
+            $job2->getConfigDataDecrypted()
+        );
+    }
+
+    public function testEncryptionFactoryIsolation(): void
+    {
+        /* this test does basically the same as testEncryption() method, but with two different jobs and
+        ObjectEncryptor settings. Because ObjectEncryptorFactory is not immutable (legacy reasons), it has to
+        be cloned inside the Job class before it is modified. This method actually tests that it is cloned (i.e. two
+        jobs do not interfere with each other). */
+        $objectEncryptorFactory = new ObjectEncryptorFactory(
+            (string) getenv('TEST_KMS_KEY_ALIAS'),
+            (string) getenv('TEST_KMS_REGION'),
+            '',
+            ''
+        );
+        $client = new Client(
+            [
+                'url' => getenv('TEST_STORAGE_API_URL'),
+                'token' => getenv('TEST_STORAGE_API_TOKEN'),
+            ]
+        );
+        $tokenInfo = $client->verifyToken();
+        $objectEncryptorFactory->setStackId(parse_url(getenv('TEST_STORAGE_API_URL'), PHP_URL_HOST));
+
+        $objectEncryptorFactory->setProjectId($tokenInfo['owner']['id']);
+        $objectEncryptorFactory->setConfigurationId('456');
+        $objectEncryptorFactory->setComponentId('keboola.different-test');
+        $encrypted = $objectEncryptorFactory->getEncryptor()->encrypt('bar', ProjectWrapper::class);
+        $storageClientFactory = new JobFactory\StorageClientFactory((string) getenv('TEST_STORAGE_API_URL'));
+        $jobFactory = new JobFactory($storageClientFactory, $objectEncryptorFactory);
+        $data = [
+            'token' => [
+                'token' => getenv('TEST_STORAGE_API_TOKEN'),
+            ],
+            'params' => [
+                'config' => '123',
+                'component' => 'keboola.test1',
+                'mode' => 'run',
+            ],
+        ];
+        $jobFactory->createNewJob($data);
+        self::assertStringStartsWith('KBC::ProjectSecure', $encrypted);
+        self::assertEquals('bar', $objectEncryptorFactory->getEncryptor()->decrypt($encrypted));
     }
 }

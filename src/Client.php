@@ -27,6 +27,7 @@ class Client
 {
     private const DEFAULT_USER_AGENT = 'Internal PHP Client';
     private const DEFAULT_BACKOFF_RETRIES = 10;
+    private const JSON_DEPTH = 512;
 
     /** @var GuzzleClient */
     protected $guzzle;
@@ -55,9 +56,7 @@ class Client
         } else {
             $options['backoffMaxTries'] = self::DEFAULT_BACKOFF_RETRIES;
         }
-        if (!empty($options['userAgent'])) {
-            $options['userAgent'] = (string) $options['userAgent'];
-        } else {
+        if (empty($options['userAgent'])) {
             $options['userAgent'] = self::DEFAULT_USER_AGENT;
         }
         if ($errors->count() !== 0) {
@@ -158,7 +157,7 @@ class Client
             try {
                 return $this->jobFactory->loadFromExistingJobData($jobData);
             } catch (Throwable $e) {
-                $this->logger->error('Failed to read Job ' . $e->getMessage());
+                $this->logger->error('Failed to parse Job data: ' . $e->getMessage());
                 // ignore invalid job
                 return null;
             }
@@ -223,7 +222,7 @@ class Client
     {
         try {
             $response = $this->guzzle->send($request);
-            $data = json_decode($response->getBody()->getContents(), true, 512, JSON_THROW_ON_ERROR);
+            $data = json_decode($response->getBody()->getContents(), true, self::JSON_DEPTH, JSON_THROW_ON_ERROR);
             return $data ?: [];
         } catch (GuzzleException $e) {
             throw new ClientException($e->getMessage(), $e->getCode(), $e);

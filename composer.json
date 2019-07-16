@@ -43,16 +43,13 @@
         "keboola/coding-standard": ">=7.0.2"
     },
     "scripts": {
-        "tests": "phpunit",
+        "tests": "phpunit --coverage-clover build/logs/clover.xml --coverage-xml=build/logs/coverage-xml --log-junit=build/logs/phpunit.junit.xml",
         "phpstan": "phpstan analyse --no-progress --level=max src tests -c phpstan.neon",
         "phpcs": "phpcs --extensions=php src tests",
         "phpcbf": "phpcbf --extensions=php src tests",
         "phplint": "parallel-lint -j 10 --exclude vendor .",
-        "infection": "infection --threads=4 --min-covered-msi=80 --coverage=build/logs",
+        "infection": "infection --threads=4 --min-covered-msi=90 --coverage=build/logs",
         "build": [
-            "@phplint",
-            "@phpcs",
-            "@phpstan",
             "@tests",
             "@infection"
         ],
