@@ -6,6 +6,7 @@ namespace Keboola\JobQueueInternalClient\Tests;
 
 use Exception;
 use Keboola\JobQueueInternalClient\Client;
+use Keboola\JobQueueInternalClient\ClientException;
 use Keboola\JobQueueInternalClient\JobFactory;
 use Keboola\JobQueueInternalClient\JobFactory\Job;
 use Keboola\ObjectEncryptor\ObjectEncryptorFactory;
@@ -104,6 +105,37 @@ class ClientFunctionalTest extends TestCase
             ],
         ];
         self::assertEquals($expected, $response);
+    }
+
+    public function testGetJob(): void
+    {
+        $client = $this->getClient();
+        $job = $client->getJobFactory()->createNewJob([
+            'token' => [
+                'token' => getenv('TEST_STORAGE_API_TOKEN'),
+            ],
+            'params' => [
+                'config' => '454124290',
+                'component' => 'keboola.ex-db-snowflake',
+                'mode' => 'run',
+            ],
+        ]);
+        $createdJob = $client->createJob($job);
+        $client = $this->getClient();
+        $job = $client->getJob($createdJob->getId());
+        self::assertEquals($createdJob->getToken(), $job->getToken());
+        self::assertEquals($createdJob->getConfigData(), $job->getConfigData());
+        self::assertEquals($createdJob->getComponentId(), $job->getComponentId());
+        self::assertEquals($createdJob->getConfigId(), $job->getConfigId());
+        self::assertEquals($createdJob->getMode(), $job->getMode());
+    }
+
+    public function testGetInvalidJob(): void
+    {
+        $client = $this->getClient();
+        self::expectException(ClientException::class);
+        self::expectExceptionMessage('404 Not Found');
+        $client->getJob('123456');
     }
 
     public function testGetJobsWithStatuses(): void

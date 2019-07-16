@@ -20,7 +20,7 @@ class StorageClientFactory
         $errors = $validator->validate($storageApiUrl, [new Url(['message' => 'Storage API URL is not valid.'])]);
         if ($errors->count() !== 0) {
             throw new ClientException(
-                'Invalid parameters when creating Storage client: ' . $errors->get(0)->getMessage()
+                'Value "' . $errors->get(0)->getInvalidValue() . '" is invalid: ' . $errors->get(0)->getMessage()
             );
         }
         $this->storageApiUrl = $storageApiUrl;
