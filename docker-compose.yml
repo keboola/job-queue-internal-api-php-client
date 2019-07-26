@@ -1,15 +1,70 @@
 version: "2"
 services:
   # for development purposes
-  dev:
+  tests: &tests
     build: .
     volumes:
         - ./:/code
     environment:
-      - "TEST_QUEUE_API_URL"
-      - "TEST_STORAGE_API_URL"
-      - "TEST_STORAGE_API_TOKEN"
-      - "TEST_KMS_KEY_ALIAS"
-      - "TEST_KMS_REGION"
-      - "TEST_AWS_ACCESS_KEY_ID"
-      - "TEST_AWS_SECRET_ACCESS_KEY"
+      - TEST_QUEUE_API_URL=http://internal-api:3000
+      - TEST_STORAGE_API_URL
+      - TEST_STORAGE_API_TOKEN
+      - TEST_KMS_KEY_ALIAS
+      - TEST_KMS_REGION
+      - TEST_AWS_ACCESS_KEY_ID
+      - TEST_AWS_SECRET_ACCESS_KEY
+    depends_on:
+      - internal-api
+    networks:
+      - internal-api-client
+    command: ["/code/docker/phpunit.sh"]
+
+  tests-local: 
+    <<: *tests
+    volumes:
+      - ./:/code
+
+  internal-api:
+    image: keboola/docker-job-queue-internal-api
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./:/build-code
+    environment:
+      - AWS_ACCOUNT_ID=123456
+      - AWS_ACCESS_KEY_ID=test
+      - AWS_SECRET_ACCESS_KEY=test123
+      - AWS_KMS_KEY_ID=test123
+      - CLOUDFORMATION_ROLE_ARN=cfrolearn
+      - LAMBDA_EXECUTION_ROLE_ARN=lambdarolearn
+      - VPC_SECURITY_GROUP=vpcsecgroup
+      - VPC_SUBNET1=vpcsubnet1
+      - VPC_SUBNET2=vpcsubnet2
+      - VPC_ID=vpcid
+      - API_GW_ID=*
+      - REGION=us-east-1
+      - SERVICE_NAME=job-queue-internal-api-tests
+      - STAGE=test
+      - KEBOOLA_STACK=job-queue-internal-api-tests
+      - ELASTICSEARCH_ENDPOINT=http://elastic:9200
+      - SLS_DEBUG=true
+    command: ['sh', '-c', '/build-code/docker/wait-for-it.sh --strict --timeout=120 elastic:9200 -- serverless offline start --host 0.0.0.0']
+    #command: sh -c 'serverless offline start --host 0.0.0.0'
+    networks:
+      - internal-api-client
+    depends_on:
+      - elastic
+
+  elastic:
+    container_name: elastic
+    image: elasticsearch:6.8.0
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    environment:
+      - discovery.type=single-node
+    networks:
+      - internal-api-client
+
+networks:
+  internal-api-client:
