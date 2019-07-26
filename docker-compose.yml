@@ -3,8 +3,6 @@ services:
   # for development purposes
   tests: &tests
     build: .
-    volumes:
-        - ./:/code
     environment:
       - TEST_QUEUE_API_URL=http://internal-api:3000
       - TEST_STORAGE_API_URL
