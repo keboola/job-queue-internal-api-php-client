@@ -31,6 +31,8 @@ class ClientFunctionalTest extends BaseTest
             $newJob = $client->getJobFactory()->modifyJob($job, ['status' => JobFactory::STATUS_CANCELLED]);
             $client->updateJob($newJob);
         }
+        // give elastic some time understand what happened
+        sleep(1);
     }
 
     private function getJobFactory(): JobFactory
