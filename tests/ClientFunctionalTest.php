@@ -170,12 +170,25 @@ class ClientFunctionalTest extends BaseTest
             ],
         ]);
         $createdJob = $client->createJob($job);
-        $client = $this->getClient();
         $response = $client->getJobsWithIds([$createdJob->getId()]);
         self::assertCount(1, $response);
         /** @var Job $listedJob */
         $listedJob = $response[0];
         self::assertEquals($createdJob->jsonSerialize(), $listedJob->jsonSerialize());
+    }
+
+    public function testGetJobsWithNoIds(): void
+    {
+        $client = $this->getClient();
+        $response = $client->getJobsWithIds([]);
+        self::assertCount(0, $response);
+    }
+
+    public function testGetJobsWithNoStatuses(): void
+    {
+        $client = $this->getClient();
+        $response = $client->getJobsWithStatus([]);
+        self::assertCount(0, $response);
     }
 
     public function testPostJobResult(): void
