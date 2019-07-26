@@ -1,29 +1,19 @@
 pool:
-  vmImage: 'ubuntu-latest'
+  name: 'Default'
 
 steps:
 - script: docker info
   displayName: 'Info'
 
-- script: docker build -t job-queue-internal-api-php-client .
+- script: docker-compose build
   displayName: 'Build Tests'
 
-- script: |
-    docker run \
-    -e TEST_QUEUE_API_URL \
-    -e TEST_STORAGE_API_URL \
-    -e TEST_STORAGE_API_TOKEN \
-    -e TEST_KMS_KEY_ALIAS \
-    -e TEST_KMS_REGION \
-    -e TEST_AWS_ACCESS_KEY_ID \
-    -e TEST_AWS_SECRET_ACCESS_KEY \
-    job-queue-internal-api-php-client composer ci
+- script: docker-compose run tests
   displayName: 'Run Tests'
   env:
-    TEST_QUEUE_API_URL: $(testQueueApiUrl)
-    TEST_STORAGE_API_URL: https://connection.keboola.com
-    TEST_STORAGE_API_TOKEN: $(testStorageApiToken)
-    TEST_KMS_KEY_ALIAS: alias/syrup-testing-docker-runner
-    TEST_KMS_REGION: us-east-1
-    TEST_AWS_ACCESS_KEY_ID: $(testAwsAccessKeyId)
-    TEST_AWS_SECRET_ACCESS_KEY: $(testAwsSecretAccessKey)
+    TEST_STORAGE_API_URL: $(TEST_STORAGE_API_URL)
+    TEST_STORAGE_API_TOKEN: $(TEST_STORAGE_API_TOKEN)
+    TEST_KMS_KEY_ALIAS: $(TEST_KMS_KEY_ALIAS)
+    TEST_KMS_REGION: $(TEST_KMS_REGION)
+    TEST_AWS_ACCESS_KEY_ID: $(TEST_AWS_ACCESS_KEY_ID)
+    TEST_AWS_SECRET_ACCESS_KEY: $(TEST_AWS_SECRET_ACCESS_KEY)

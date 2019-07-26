@@ -2,7 +2,29 @@
 
 PHP client for the Internal Job Queue API ([API docs](https://app.swaggerhub.com/apis-docs/keboola/job-queue-internal-api/1.0.1)).
 
-## Running locally
+## Usage
+```bash
+composer require keboola/job-queue-internal-api-php-client
+```
+
+```php
+use Keboola\JobQueueInternalClient\Client;
+
+
+$storageClientFactory = new JobFactory\StorageClientFactory('http://connetion.keboola.com/');
+$objectEncryptorFactory = new ObjectEncryptorFactory('alias/some-key', 'us-east-1', '', '');
+$jobFactory = new JobFactory($storageClientFactory, $objectEncryptorFactory);
+$client = new Client(
+    new NullLogger(),
+    $jobFacory,
+    'http://internal.queue.api/',
+    'testQueueToken'
+);
+$client->getJobData('123');
+$client->postJobResult('123', 'success', ['images' => ['digests' => []]);
+```
+
+## Development
 Create a user (`JobQueueInternalApiPhpClient`) for local development using the `test-cf-stack.json` CF template. Create AWS key for the created user. Set the following environment variables in `.env` file (use `.env.dist` as sample):
 
 - `AWS_ACCESS_KEY_ID` - The created security credentials for the `JobQueueInternalApiPhpClient` user.
@@ -22,19 +44,3 @@ To run tests with local code use:
     docker-compose run tests-local composer install
     docker-compose run tests-local
 
-## Usage
-```bash
-composer require keboola/job-queue-internal-api-php-client
-```
-
-
-```php
-use Keboola\JobQueueInternalClient\Client;
-
-$client = new Client('http://internal.api/', 'testToken');
-$client->getJobData('123');
-$client->postJobResult('123', ['images' => ['digests' => []]);
-```
-
-## Development
-Run tests with `docker-compose up`
