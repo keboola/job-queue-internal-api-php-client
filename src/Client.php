@@ -81,7 +81,7 @@ class Client
     {
         try {
             $jobData = json_encode($job, JSON_THROW_ON_ERROR);
-            $request = new Request('POST', 'jobs/', [], $jobData);
+            $request = new Request('POST', 'jobs', [], $jobData);
         } catch (JsonException $e) {
             throw new ClientException('Invalid job data: ' . $e->getMessage(), $e->getCode(), $e);
         }
@@ -107,7 +107,7 @@ class Client
             return 'id:' . $status;
         }, $jobIds);
         $query = '(' . implode(' OR ', $conditions) . ')';
-        $request = new Request('GET', 'jobs/?query=' . $query);
+        $request = new Request('GET', 'jobs?query=' . $query);
         $result = $this->sendRequest($request);
         return $this->mapJobsFromResponse($result);
     }
@@ -118,7 +118,7 @@ class Client
             return 'status:' . $status;
         }, $statuses);
         $query = '(' . implode(' OR ', $conditions) . ')';
-        $request = new Request('GET', 'jobs/?query=' . $query);
+        $request = new Request('GET', 'jobs?query=' . $query);
         $result = $this->sendRequest($request);
         return $this->mapJobsFromResponse($result);
     }
