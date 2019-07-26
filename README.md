@@ -10,7 +10,6 @@ composer require keboola/job-queue-internal-api-php-client
 ```php
 use Keboola\JobQueueInternalClient\Client;
 
-
 $storageClientFactory = new JobFactory\StorageClientFactory('http://connetion.keboola.com/');
 $objectEncryptorFactory = new ObjectEncryptorFactory('alias/some-key', 'us-east-1', '', '');
 $jobFactory = new JobFactory($storageClientFactory, $objectEncryptorFactory);
@@ -36,11 +35,14 @@ Create a user (`JobQueueInternalApiPhpClient`) for local development using the `
 
 Than you can run tests:
 
+```bash
     docker-compose build
     docker-compose run tests
+```
 
 To run tests with local code use:
 
+```bash
     docker-compose run tests-local composer install
     docker-compose run tests-local
-
+```
