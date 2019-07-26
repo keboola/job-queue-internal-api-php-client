@@ -103,6 +103,9 @@ class Client
 
     public function getJobsWithIds(array $jobIds): array
     {
+        if (!$jobIds) {
+            return [];
+        }
         $conditions = array_map(function (string $status): string {
             return 'id:' . $status;
         }, $jobIds);
@@ -114,6 +117,9 @@ class Client
 
     public function getJobsWithStatus(array $statuses): array
     {
+        if (!$statuses) {
+            return [];
+        }
         $conditions = array_map(function (string $status): string {
             return 'status:' . $status;
         }, $statuses);
