@@ -1,0 +1,112 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Keboola\JobQueueInternalClient\Tests\JobFactory;
+
+use Keboola\JobQueueInternalClient\JobFactory\Job;
+use Keboola\JobQueueInternalClient\Tests\BaseTest;
+use Keboola\ObjectEncryptor\ObjectEncryptorFactory;
+
+class JobTest extends BaseTest
+{
+    /** @var array */
+    private $jobData = [
+        'id' => '123456456',
+        'params' => [
+            'config' => '454124290',
+            'component' => 'keboola.ex-db-snowflake',
+            'mode' => 'run',
+            'configData' => [
+                'parameters' => ['foo' => 'bar'],
+            ],
+        ],
+        'status' => 'created',
+        'project' => [
+            'id' => '123',
+        ],
+        'token' => [
+            'id' => '456',
+            'token' => 'KBC::ProjectSecure::token',
+        ],
+    ];
+
+    public function setUp(): void
+    {
+        parent::setUp();
+    }
+
+    public function testGetComponentId(): void
+    {
+        self::assertEquals('keboola.ex-db-snowflake', $this->getJob()->getComponentId());
+    }
+
+    public function testGetConfigData(): void
+    {
+        self::assertEquals(['parameters' => ['foo' => 'bar']], $this->getJob()->getConfigData());
+    }
+
+    public function testGetConfigId(): void
+    {
+        self::assertEquals('454124290', $this->getJob()->getConfigId());
+    }
+
+    public function testGetId(): void
+    {
+        self::assertEquals('123456456', $this->getJob()->getId());
+    }
+
+    public function testGetMode(): void
+    {
+        self::assertEquals('run', $this->getJob()->getMode());
+    }
+
+    public function testGetProjectId(): void
+    {
+        self::assertEquals('123', $this->getJob()->getProjectId());
+    }
+
+    public function testGetResult(): void
+    {
+        self::assertNull($this->getJob()->getResult());
+    }
+
+    public function testGetRowId(): void
+    {
+        self::assertNull($this->getJob()->getRowId());
+    }
+
+    public function testGetStatus(): void
+    {
+        self::assertEquals('created', $this->getJob()->getStatus());
+    }
+
+    public function testGetTag(): void
+    {
+        self::assertNull($this->getJob()->getTag());
+    }
+
+    public function testGetToken(): void
+    {
+        self::assertStringStartsWith('KBC::ProjectSecure::', $this->getJob()->getToken());
+    }
+
+    public function testIsFinished(): void
+    {
+        self::assertFalse($this->getJob()->isFinished());
+    }
+
+    public function testJsonSerialize(): void
+    {
+        self::assertEquals($this->jobData, $this->getJob()->jsonSerialize());
+    }
+
+    private function getJob(): Job
+    {
+        $objectEncryptorFactoryMock = self::getMockBuilder(ObjectEncryptorFactory::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+        /** @var ObjectEncryptorFactory $objectEncryptorFactoryMock */
+        return new Job($objectEncryptorFactoryMock, $this->jobData);
+    }
+}

@@ -1,12 +1,19 @@
 pool:
-  vmImage: 'ubuntu-latest'
+  name: 'Default'
 
 steps:
 - script: docker info
   displayName: 'Info'
 
-- script: docker build -t job-queue-internal-api-php-client .
+- script: docker-compose build --no-cache --pull
   displayName: 'Build Tests'
 
-- script: docker run job-queue-internal-api-php-client composer ci
+- script: docker-compose run --rm tests
   displayName: 'Run Tests'
+  env:
+    TEST_STORAGE_API_URL: $(TEST_STORAGE_API_URL)
+    TEST_STORAGE_API_TOKEN: $(TEST_STORAGE_API_TOKEN)
+    TEST_KMS_KEY_ALIAS: $(TEST_KMS_KEY_ALIAS)
+    TEST_KMS_REGION: $(TEST_KMS_REGION)
+    TEST_AWS_ACCESS_KEY_ID: $(TEST_AWS_ACCESS_KEY_ID)
+    TEST_AWS_SECRET_ACCESS_KEY: $(TEST_AWS_SECRET_ACCESS_KEY)
