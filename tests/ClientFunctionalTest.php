@@ -214,4 +214,31 @@ class ClientFunctionalTest extends BaseTest
         self::assertEquals(JobFactory::STATUS_SUCCESS, $job->getStatus());
         self::assertEquals(['foo' => 'bar'], $job->getResult());
     }
+
+    public function testGetJobsWithProjectId(): void
+    {
+        $projectId = getenv('TEST_KBC_PROJECT_ID');
+
+        $client = $this->getClient();
+        $job = $client->getJobFactory()->createNewJob([
+            'project' => [
+                'id' => $projectId,
+            ],
+            'token' => [
+                'token' => getenv('TEST_STORAGE_API_TOKEN'),
+            ],
+            'params' => [
+                'config' => '454124290',
+                'component' => 'keboola.ex-db-snowflake',
+                'mode' => 'run',
+            ],
+        ]);
+        $createdJob = $client->createJob($job);
+        $client = $this->getClient();
+        $response = $client->getJobsWithProjectId($projectId);
+        self::assertCount(1, $response);
+        /** @var Job $listedJob */
+        $listedJob = $response[0];
+        self::assertEquals($createdJob->jsonSerialize(), $listedJob->jsonSerialize());
+    }
 }
