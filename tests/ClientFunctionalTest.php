@@ -217,8 +217,6 @@ class ClientFunctionalTest extends BaseTest
 
     public function testGetJobsWithProjectId(): void
     {
-        $projectId = getenv('TEST_KBC_PROJECT_ID');
-
         $client = $this->getClient();
         $job = $client->getJobFactory()->createNewJob([
             'token' => [
@@ -232,7 +230,7 @@ class ClientFunctionalTest extends BaseTest
         ]);
         $createdJob = $client->createJob($job);
         $client = $this->getClient();
-        $response = $client->getJobsWithProjectId($projectId, 'id:' . $job->getId());
+        $response = $client->getJobsWithProjectId($job->getProjectId(), 'id:' . $job->getId());
 
         self::assertCount(1, $response);
         /** @var Job $listedJob */
