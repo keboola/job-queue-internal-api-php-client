@@ -101,10 +101,17 @@ class Client
         return $this->jobFactory->loadFromExistingJobData($result);
     }
 
-    public function getJobsWithProjectId(string $projectId, $query = '', $offset = 0, $limit = 100): array
-    {
-        $pathQuery = sprintf('query=(projectId: %s AND %s)', $projectId, $query);
-        $request = new Request('GET', sprintf('jobs?query=%s&offset=%s&limit=%s', $pathQuery, $offset, $limit));
+    public function getJobsWithProjectId(
+        string $projectId,
+        string $query = '',
+        int $offset = 0,
+        int $limit = 100
+    ): array {
+        $pathQuery = sprintf('project.id:%s', $projectId);
+        if (!empty($query)) {
+            $pathQuery .= sprintf(' AND %s', $query);
+        }
+        $request = new Request('GET', sprintf('jobs?query=(%s)&offset=%s&limit=%s', $pathQuery, $offset, $limit));
         $result = $this->sendRequest($request);
         return $this->mapJobsFromResponse($result);
     }

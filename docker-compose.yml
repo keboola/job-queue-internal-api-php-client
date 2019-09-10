@@ -11,13 +11,14 @@ services:
       - TEST_KMS_REGION
       - TEST_AWS_ACCESS_KEY_ID
       - TEST_AWS_SECRET_ACCESS_KEY
+      - TEST_KBC_PROJECT_ID
     depends_on:
       - internal-api
     networks:
       - internal-api-client
     command: ["/code/docker/phpunit.sh"]
 
-  tests-local: 
+  tests-local:
     <<: *tests
     volumes:
       - ./:/code

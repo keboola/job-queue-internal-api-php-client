@@ -221,9 +221,6 @@ class ClientFunctionalTest extends BaseTest
 
         $client = $this->getClient();
         $job = $client->getJobFactory()->createNewJob([
-            'project' => [
-                'id' => $projectId,
-            ],
             'token' => [
                 'token' => getenv('TEST_STORAGE_API_TOKEN'),
             ],
@@ -235,7 +232,8 @@ class ClientFunctionalTest extends BaseTest
         ]);
         $createdJob = $client->createJob($job);
         $client = $this->getClient();
-        $response = $client->getJobsWithProjectId($projectId);
+        $response = $client->getJobsWithProjectId($projectId, 'id:' . $job->getId());
+
         self::assertCount(1, $response);
         /** @var Job $listedJob */
         $listedJob = $response[0];
