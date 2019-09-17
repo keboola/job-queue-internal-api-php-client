@@ -75,6 +75,8 @@ class FullJobDefinitionTest extends BaseTest
         return [
             'Missing token' => [
                 [
+                    'id' => '12345',
+                    'status' => 'created',
                     'params' => [
                         'config' => '123',
                         'component' => 'keboola.test',
