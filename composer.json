@@ -52,7 +52,7 @@
         "build": [
             "@phplint",
             "@phpcs",
-            "@phpstan",            
+            "@phpstan",
             "@tests",
             "@infection"
         ],

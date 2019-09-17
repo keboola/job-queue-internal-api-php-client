@@ -214,4 +214,49 @@ class ClientFunctionalTest extends BaseTest
         self::assertEquals(JobFactory::STATUS_SUCCESS, $job->getStatus());
         self::assertEquals(['foo' => 'bar'], $job->getResult());
     }
+
+    public function testGetJobsWithProjectId(): void
+    {
+        $client = $this->getClient();
+        $job = $client->getJobFactory()->createNewJob([
+            'token' => [
+                'token' => getenv('TEST_STORAGE_API_TOKEN'),
+            ],
+            'params' => [
+                'config' => '454124290',
+                'component' => 'keboola.ex-db-snowflake',
+                'mode' => 'run',
+            ],
+        ]);
+        $createdJob = $client->createJob($job);
+        $client = $this->getClient();
+        $response = $client->getJobsWithProjectId($job->getProjectId(), 'id:' . $job->getId());
+
+        self::assertCount(1, $response);
+        /** @var Job $listedJob */
+        $listedJob = $response[0];
+        self::assertEquals($createdJob->jsonSerialize(), $listedJob->jsonSerialize());
+    }
+
+    public function testGetJobsWithProjectIdNonExisting(): void
+    {
+        $client = $this->getClient();
+
+        $job = $client->getJobFactory()->createNewJob([
+            'token' => [
+                'token' => getenv('TEST_STORAGE_API_TOKEN'),
+            ],
+            'params' => [
+                'config' => '454124290',
+                'component' => 'keboola.ex-db-snowflake',
+                'mode' => 'run',
+            ],
+        ]);
+        $client->createJob($job);
+        $client = $this->getClient();
+        $query = 'component:keboola.non-existing-component';
+        $response = $client->getJobsWithProjectId($job->getProjectId(), $query);
+
+        self::assertCount(0, $response);
+    }
 }
