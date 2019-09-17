@@ -237,4 +237,26 @@ class ClientFunctionalTest extends BaseTest
         $listedJob = $response[0];
         self::assertEquals($createdJob->jsonSerialize(), $listedJob->jsonSerialize());
     }
+
+    public function testGetJobsWithProjectIdNonExisting(): void
+    {
+        $client = $this->getClient();
+
+        $job = $client->getJobFactory()->createNewJob([
+            'token' => [
+                'token' => getenv('TEST_STORAGE_API_TOKEN'),
+            ],
+            'params' => [
+                'config' => '454124290',
+                'component' => 'keboola.ex-db-snowflake',
+                'mode' => 'run',
+            ],
+        ]);
+        $client->createJob($job);
+        $client = $this->getClient();
+        $query = 'component:keboola.non-existing-component';
+        $response = $client->getJobsWithProjectId($job->getProjectId(), $query);
+
+        self::assertCount(0, $response);
+    }
 }

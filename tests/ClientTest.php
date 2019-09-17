@@ -424,4 +424,47 @@ class ClientTest extends BaseTest
             'Failed to parse Job data: The child node "params" at path "job" must be configured.'
         ));
     }
+
+    public function testClientGetJobsWithProjectIdDefaults(): void
+    {
+        $mock = new MockHandler([
+            new Response(
+                200,
+                ['Content-Type' => 'application/json'],
+                '[{
+                    "id": "123",
+                    "project": {
+                        "id": "456"
+                    },
+                    "token": {
+                        "id": "789",
+                        "token": "KBC::ProjectSecure::aSdF"
+                    },
+                    "status": "created",
+                    "params": {
+                        "mode": "run",
+                        "component": "keboola.test",
+                        "config": "123456"
+                    }
+                }]'
+            ),
+        ]);
+
+        $requestHistory = [];
+        $history = Middleware::history($requestHistory);
+        $stack = HandlerStack::create($mock);
+        $stack->push($history);
+        $logger = new TestLogger();
+        $client = $this->getClient(['handler' => $stack], $logger);
+        $jobs = $client->getJobsWithProjectId('456');
+
+        self::assertCount(1, $jobs);
+        /** @var Job $job */
+        $job = $jobs[0];
+        self::assertEquals('123', $job->getId());
+        self::assertEquals('456', $job->getProjectId());
+
+        $request = $mock->getLastRequest();
+        self::assertEquals('query=(project.id:456)&offset=0&limit=100', $request->getUri()->getQuery());
+    }
 }
