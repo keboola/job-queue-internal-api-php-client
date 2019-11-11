@@ -20,14 +20,14 @@ class StorageClientFactoryTest extends BaseTest
     public function setUp(): void
     {
         parent::setUp();
-        $this->storageApiUrl = getenv('TEST_STORAGE_API_URL');
-        $this->storageApiToken = getenv('TEST_STORAGE_API_TOKEN');
+        $this->storageApiUrl = (string) getenv('TEST_STORAGE_API_URL');
+        $this->storageApiToken = (string) getenv('TEST_STORAGE_API_TOKEN');
     }
 
     public function testGetClient(): void
     {
         $storageClientFactory = new StorageClientFactory($this->storageApiUrl);
-        $client = $storageClientFactory->getClient(getenv('TEST_STORAGE_API_TOKEN'));
+        $client = $storageClientFactory->getClient((string) getenv('TEST_STORAGE_API_TOKEN'));
 
         $this->assertInstanceOf(Client::class, $client);
         $this->assertEquals($this->storageApiUrl, $client->getApiUrl());

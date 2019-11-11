@@ -8,6 +8,9 @@ steps:
 - script: docker-compose build --no-cache --pull
   displayName: 'Build Tests'
 
+- script: docker pull keboola/docker-job-queue-internal-api
+  displayName: 'Pull Images'
+
 - script: docker-compose run --rm tests
   displayName: 'Run Tests'
   env:

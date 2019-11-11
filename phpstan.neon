@@ -1,6 +1,5 @@
 parameters:
     ignoreErrors:
-        - '#Call to an undefined method Symfony\\Component\\Config\\Definition\\Builder\\NodeParentInterface::scalarNode\(\).#'
         - '#Calling method scalarNode\(\) on possibly null value of type Symfony\\Component\\Config\\Definition\\Builder\\NodeParentInterface|null.#'
         - '#Parameter \#1 \$job of method Keboola\\JobQueueInternalClient\\Client::createJob\(\) expects Keboola\\JobQueueInternalClient\\JobFactory\\Job, PHPUnit\\Framework\\MockObject\\MockObject given.#'
         - '#Parameter \#1 \$objectEncryptorFactory of class Keboola\\JobQueueInternalClient\\JobFactory\\Job constructor expects Keboola\\ObjectEncryptor\\ObjectEncryptorFactory, PHPUnit\\Framework\\MockObject\\MockObject given.#'

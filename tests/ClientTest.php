@@ -301,7 +301,7 @@ class ClientTest extends BaseTest
             $client->getJob('123');
             self::fail('Must throw exception');
         } catch (ClientException $e) {
-            self::assertContains('500 Internal Server Error', $e->getMessage());
+            self::assertStringContainsString('500 Internal Server Error', $e->getMessage());
         }
         self::assertCount(11, $requestHistory);
     }
@@ -327,7 +327,7 @@ class ClientTest extends BaseTest
             $client->getJob('123');
             self::fail('Must throw exception');
         } catch (ClientException $e) {
-            self::assertContains('500 Internal Server Error', $e->getMessage());
+            self::assertStringContainsString('500 Internal Server Error', $e->getMessage());
         }
         self::assertCount(4, $requestHistory);
     }
