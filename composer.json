@@ -29,7 +29,6 @@
         "php": "^7.3",
         "ext-json": "*",
         "guzzlehttp/guzzle": "^6.3",
-        "infection/infection": "^0.13.4",
         "keboola/object-encryptor": "^0.1.4",
         "keboola/storage-api-client": "^10.6",
         "psr/log": "^1.1",
@@ -38,8 +37,9 @@
     },
     "require-dev": {
         "jakub-onderka/php-parallel-lint": "^1.0",
-        "phpstan/phpstan-shim": "^0.9.1",
-        "phpunit/phpunit": "^7.1",
+        "infection/infection": "^0.14",
+        "phpstan/phpstan-shim": "^0.11",
+        "phpunit/phpunit": "^8.0",
         "keboola/coding-standard": ">=7.0.2"
     },
     "scripts": {
