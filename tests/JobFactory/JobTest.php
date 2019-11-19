@@ -96,17 +96,29 @@ class JobTest extends BaseTest
         self::assertFalse($this->getJob()->isFinished());
     }
 
+    public function testIsLegacy(): void
+    {
+        self::assertFalse($this->getJob()->isLegacyComponent());
+    }
+
+    public function testIsLegacyOrchestrator(): void
+    {
+        $jobData = $this->jobData;
+        $jobData['params']['component'] = 'orchestrator';
+        self::assertTrue($this->getJob($jobData)->isLegacyComponent());
+    }
+
     public function testJsonSerialize(): void
     {
         self::assertEquals($this->jobData, $this->getJob()->jsonSerialize());
     }
 
-    private function getJob(): Job
+    private function getJob(?array $jobData = null): Job
     {
         $objectEncryptorFactoryMock = self::getMockBuilder(ObjectEncryptorFactory::class)
             ->disableOriginalConstructor()
             ->getMock();
         /** @var ObjectEncryptorFactory $objectEncryptorFactoryMock */
-        return new Job($objectEncryptorFactoryMock, $this->jobData);
+        return new Job($objectEncryptorFactoryMock, $jobData ?? $this->jobData);
     }
 }
