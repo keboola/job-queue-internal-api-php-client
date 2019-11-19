@@ -95,6 +95,7 @@ class JobFactoryTest extends BaseTest
     {
         self::assertCount(5, JobFactory::getFinishedStatuses());
         self::assertCount(9, JobFactory::getAllStatuses());
+        self::assertCount(3, JobFactory::getLegacyComponents());
     }
 
     public function testModifyJob(): void

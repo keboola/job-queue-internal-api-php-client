@@ -54,6 +54,11 @@ class JobFactory
             self::STATUS_WARNING];
     }
 
+    public static function getLegacyComponents(): array
+    {
+        return ['orchestrator', 'transformation', 'provisioning'];
+    }
+
     public function createNewJob(array $data): Job
     {
         $data = $this->validateJobData($data, NewJobDefinition::class);
