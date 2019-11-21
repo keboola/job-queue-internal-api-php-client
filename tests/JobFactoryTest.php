@@ -6,6 +6,8 @@ namespace Keboola\JobQueueInternalClient\Tests;
 
 use Keboola\JobQueueInternalClient\ClientException;
 use Keboola\JobQueueInternalClient\JobFactory;
+use Keboola\JobQueueInternalClient\JobFactory\Job;
+use Keboola\ObjectEncryptor\Legacy\Encryptor;
 use Keboola\ObjectEncryptor\ObjectEncryptorFactory;
 use Keboola\ObjectEncryptor\Wrapper\ComponentWrapper;
 use Keboola\ObjectEncryptor\Wrapper\ConfigurationWrapper;
@@ -28,7 +30,7 @@ class JobFactoryTest extends BaseTest
             (string) getenv('TEST_KMS_KEY_ALIAS'),
             (string) getenv('TEST_KMS_REGION'),
             '',
-            ''
+            '123456789012345678901234567890ab'
         );
         return new JobFactory($storageClientFactory, $objectEncryptorFactory);
     }
@@ -60,6 +62,30 @@ class JobFactoryTest extends BaseTest
         self::assertEquals([], $job->getConfigDataDecrypted());
         self::assertNull($job->getRowId());
         self::assertNull($job->getTag());
+    }
+
+    public function testGetTokenLegacyDecrypted(): void
+    {
+        $factory = $this->getJobFactory();
+        $data = [
+            'token' => [
+                'token' => getenv('TEST_STORAGE_API_TOKEN'),
+            ],
+            'params' => [
+                'config' => '123',
+                'component' => 'keboola.test',
+                'mode' => 'run',
+            ],
+        ];
+        $job = $factory->createNewJob($data);
+        $reflection = new \ReflectionProperty(Job::class, 'data');
+        $reflection->setAccessible(true);
+        $data = $reflection->getValue($job);
+        $encryptor = new Encryptor('123456789012345678901234567890ab');
+        $data['token']['token'] = $encryptor->encrypt('someToken');
+        $reflection->setValue($job, $data);
+        self::assertNotEquals('someToken', $job->getToken());
+        self::assertEquals('someToken', $job->getTokenDecrypted());
     }
 
     public function testCreateNewJobFull(): void

@@ -57,7 +57,7 @@ class ClientTest extends BaseTest
     {
         self::expectException(ClientException::class);
         self::expectExceptionMessage(
-            'Invalid parameters when creating client: Value "-1" is invalid: This value should be 0 or more.'
+            'Invalid parameters when creating client: Value "-1" is invalid: This value should be 0 and 100.'
         );
         new Client(
             new NullLogger(),
@@ -72,7 +72,7 @@ class ClientTest extends BaseTest
     {
         self::expectException(ClientException::class);
         self::expectExceptionMessage(
-            'Invalid parameters when creating client: Value "101" is invalid: This value should be 100 or less.'
+            'Invalid parameters when creating client: Value "101" is invalid: This value should be between 0 and 100.'
         );
         new Client(
             new NullLogger(),
