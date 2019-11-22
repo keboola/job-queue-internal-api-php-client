@@ -94,7 +94,7 @@ class Job implements JsonSerializable
 
     public function getTokenDecrypted(): string
     {
-        return $this->objectEncryptorFactory->getEncryptor()->decrypt($this->getToken());
+        return $this->objectEncryptorFactory->getEncryptor(true)->decrypt($this->getToken());
     }
 
     public function getConfigDataDecrypted(): array
