@@ -44,7 +44,7 @@ class Job implements JsonSerializable
 
     public function getId(): string
     {
-        return $this->data['id'];
+        return (string) $this->data['id'];
     }
 
     public function getMode(): string
