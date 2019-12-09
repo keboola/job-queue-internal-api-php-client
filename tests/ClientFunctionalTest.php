@@ -229,7 +229,6 @@ class ClientFunctionalTest extends BaseTest
             ],
         ]);
         $createdJob = $client->createJob($job);
-        $client = $this->getClient();
         $response = $client->getJobsWithProjectId($job->getProjectId(), 'id:' . $job->getId());
 
         self::assertCount(1, $response);
