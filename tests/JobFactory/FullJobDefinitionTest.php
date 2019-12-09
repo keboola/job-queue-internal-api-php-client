@@ -70,6 +70,57 @@ class FullJobDefinitionTest extends BaseTest
         self::assertEquals($data, $definition->processData($data));
     }
 
+    public function testOrchestratorJob(): void
+    {
+        $expectedData = [
+            'token' => [
+                'token' => getenv('TEST_STORAGE_API_TOKEN'),
+                'id' => '12345',
+            ],
+            'project' => [
+                'id' => '123',
+            ],
+            'params' => [
+                'config' => 12345,
+                'orchestration' => [
+                    'id' => 123456,
+                    'name' => 'Test orchestration',
+                ],
+                'initializedBy' => 'trigger',
+                'initiator' => [
+                    'id' => 199182,
+                    'description' => 'john.doe@keboola.com',
+                    'userAgent' => 'my-ua',
+                ],
+                'notificationsEmails' => [],
+                'tasks' => [
+                    [
+                        'phase' => 'New phase',
+                        'actionParameters' => [
+                            'config' => '554424643',
+                        ],
+                        'component' => 'keboola.ex-db-snowflake',
+                        'action' => 'run',
+                        'active' => true,
+                        'continueOnFailure' => false,
+                        'id' => 1234567,
+                        'timeoutMinutes' => null,
+                    ],
+                ],
+            ],
+            'id' => '1234',
+            'result' => [
+                'bar' => 'foo',
+            ],
+            'status' => 'created',
+        ];
+        $definition = new FullJobDefinition();
+        $processedData = $definition->processData($expectedData);
+        $expectedData['params']['row'] = null;
+        $expectedData['params']['tag'] = null;
+        self::assertEquals($expectedData, $processedData);
+    }
+
     public function invalidJobProvider(): array
     {
         return [
@@ -85,6 +136,7 @@ class FullJobDefinitionTest extends BaseTest
                 ],
                 'The child node "token" at path "job" must be configured.',
             ],
+            /*
             'Missing component' => [
                 [
                     'token' => [
@@ -121,6 +173,7 @@ class FullJobDefinitionTest extends BaseTest
                 ],
                 'The child node "mode" at path "job.params" must be configured.',
             ],
+            */
             'Invalid mode' => [
                 [
                     'token' => [

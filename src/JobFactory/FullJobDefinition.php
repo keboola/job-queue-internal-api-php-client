@@ -94,10 +94,11 @@ class FullJobDefinition extends NewJobDefinition
         $node = $treeBuilder->getRootNode();
 
         $node->isRequired()
+            ->ignoreExtraKeys(false)
             ->children()
                 ->scalarNode('config')->end()
-                ->scalarNode('component')->isRequired()->cannotBeEmpty()->end()
-                ->scalarNode('mode')->isRequired()
+                ->scalarNode('component')->cannotBeEmpty()->end()
+                ->scalarNode('mode')
                     ->validate()
                         ->ifNotInArray(['run', 'debug'])
                         ->thenInvalid('Mode must be one of "run" or "debug".')

@@ -29,7 +29,7 @@ class Job implements JsonSerializable
 
     public function getComponentId(): string
     {
-        return $this->data['params']['component'];
+        return $this->data['params']['component'] ?? '';
     }
 
     public function getConfigData(): array
@@ -104,6 +104,6 @@ class Job implements JsonSerializable
 
     public function isLegacyComponent(): bool
     {
-        return in_array($this->getComponentId(), JobFactory::getLegacyComponents());
+        return empty($this->getComponentId()) || in_array($this->getComponentId(), JobFactory::getLegacyComponents());
     }
 }
