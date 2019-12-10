@@ -49,6 +49,12 @@ class JobTest extends BaseTest
     public function testGetConfigId(): void
     {
         self::assertEquals('454124290', $this->getJob()->getConfigId());
+
+        $jobDataWitConfigIdInt = $this->jobData;
+        $jobDataWitConfigIdInt['params']['config'] = (int) 123456789;
+        $configId = $this->getJob($jobDataWitConfigIdInt)->getConfigId();
+        self::assertIsString($configId);
+        self::assertEquals('123456789', $configId);
     }
 
     public function testGetId(): void
