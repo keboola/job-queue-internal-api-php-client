@@ -39,7 +39,7 @@ class Job implements JsonSerializable
 
     public function getConfigId(): ?string
     {
-        return $this->data['params']['config'] ?? null;
+        return (string) $this->data['params']['config'] ?? null;
     }
 
     public function getId(): string
