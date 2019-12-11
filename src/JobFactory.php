@@ -96,28 +96,38 @@ class JobFactory
     private function initializeNewJobData(array $data): array
     {
         try {
-            $client = $this->storageClientFactory->getClient($data['token']['token']);
+            $client = $this->storageClientFactory->getClient($data['token']);
             $tokenInfo = $client->verifyToken();
-            $data['project']['id'] = $tokenInfo['owner']['id'];
-            $data['token']['id'] = $tokenInfo['id'];
-            $data['status'] = self::STATUS_CREATED;
-            $data['id'] = $client->generateId();
+            $jobData = [
+                'project' => ['id' => $tokenInfo['owner']['id']],
+                'token' => ['id' => $tokenInfo['id']],
+                'status' => self::STATUS_CREATED,
+                'id' => $client->generateId(),
+                'params' => [
+                    'mode' => $data['mode'],
+                    'component' => $data['component'],
+                    'config' => $data['config'] ?? null,
+                    'configData' => $data['configData'] ?? null,
+                    'row' => $data['row'] ?? null,
+                    'tag' => $data['tag'] ?? null,
+                ],
+            ];
         } catch (StorageClientException $e) {
             throw new ClientException(
-                'Cannot create job: ' . $e->getMessage() . ' ' . $data['token']['token'],
+                'Cannot create job: ' . $e->getMessage() . ' ' . $data['token'],
                 $e->getCode(),
                 $e
             );
         }
         $this->objectEncryptorFactory->setProjectId($tokenInfo['owner']['id']);
-        $this->objectEncryptorFactory->setComponentId($data ['params']['component']);
+        $this->objectEncryptorFactory->setComponentId($data['component']);
         $this->objectEncryptorFactory->setStackId(
             parse_url($this->storageClientFactory->getStorageApiUrl(), PHP_URL_HOST)
         );
-        $data['token']['token'] = $this->objectEncryptorFactory->getEncryptor()->encrypt(
-            $data['token']['token'],
+        $jobData['token']['token'] = $this->objectEncryptorFactory->getEncryptor()->encrypt(
+            $data['token'],
             ProjectWrapper::class
         );
-        return $data;
+        return $jobData;
     }
 }
