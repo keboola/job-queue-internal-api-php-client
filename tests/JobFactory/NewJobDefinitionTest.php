@@ -13,14 +13,10 @@ class NewJobDefinitionTest extends BaseTest
     public function testValidJobMinimal(): void
     {
         $data = [
-            'token' => [
-                'token' => getenv('TEST_STORAGE_API_TOKEN'),
-            ],
-            'params' => [
-                'config' => '123',
-                'component' => 'keboola.test',
-                'mode' => 'run',
-            ],
+            'token' => getenv('TEST_STORAGE_API_TOKEN'),
+            'config' => '123',
+            'component' => 'keboola.test',
+            'mode' => 'run',
         ];
         $definition = new NewJobDefinition();
         self::assertEquals($data, $definition->processData($data));
@@ -29,21 +25,17 @@ class NewJobDefinitionTest extends BaseTest
     public function testValidJobFull(): void
     {
         $data = [
-            'token' => [
-                'token' => getenv('TEST_STORAGE_API_TOKEN'),
-            ],
-            'params' => [
-                'config' => '123',
-                'component' => 'keboola.test',
-                'mode' => 'run',
-                'row' => '234',
-                'configData' => [
-                    'parameters' => [
-                        'foo' => 'bar',
-                    ],
+            'token' => getenv('TEST_STORAGE_API_TOKEN'),
+            'config' => '123',
+            'component' => 'keboola.test',
+            'mode' => 'run',
+            'row' => '234',
+            'configData' => [
+                'parameters' => [
+                    'foo' => 'bar',
                 ],
-                'tag' => 'latest',
             ],
+            'tag' => 'latest',
         ];
         $definition = new NewJobDefinition();
         self::assertEquals($data, $definition->processData($data));
@@ -54,100 +46,66 @@ class NewJobDefinitionTest extends BaseTest
         return [
             'Missing token' => [
                 [
-                    'params' => [
-                        'config' => '123',
-                        'component' => 'keboola.test',
-                        'mode' => 'run',
-                    ],
+                    'config' => '123',
+                    'component' => 'keboola.test',
+                    'mode' => 'run',
                 ],
                 'The child node "token" at path "job" must be configured.',
             ],
             'Missing component' => [
                 [
-                    'token' => [
-                        'token' => getenv('TEST_STORAGE_API_TOKEN'),
-                    ],
-                    'params' => [
-                        'config' => '123',
-                        'mode' => 'run',
-                    ],
+                    'token' => getenv('TEST_STORAGE_API_TOKEN'),
+                    'config' => '123',
+                    'mode' => 'run',
                 ],
-                'The child node "component" at path "job.params" must be configured.',
+                'The child node "component" at path "job" must be configured.',
             ],
             'Missing mode' => [
                 [
-                    'token' => [
-                        'token' => getenv('TEST_STORAGE_API_TOKEN'),
-                    ],
-                    'params' => [
-                        'config' => '123',
-                        'component' => 'keboola.test',
-                    ],
+                    'token' => getenv('TEST_STORAGE_API_TOKEN'),
+                    'config' => '123',
+                    'component' => 'keboola.test',
                 ],
-                'The child node "mode" at path "job.params" must be configured.',
+                'The child node "mode" at path "job" must be configured.',
             ],
             'Invalid mode' => [
                 [
-                    'token' => [
-                        'token' => getenv('TEST_STORAGE_API_TOKEN'),
-                    ],
-                    'params' => [
-                        'config' => '123',
-                        'component' => 'keboola.test',
-                        'mode' => 'invalid',
-                    ],
+                    'token' => getenv('TEST_STORAGE_API_TOKEN'),
+                    'config' => '123',
+                    'component' => 'keboola.test',
+                    'mode' => 'invalid',
                 ],
-                'Invalid configuration for path "job.params.mode": Mode must be one of "run" or "debug".',
+                'Invalid configuration for path "job.mode": Mode must be one of "run" or "debug".',
             ],
-            'Missing params' => [
+                'Invalid configData' => [
                 [
-                    'token' => [
-                        'token' => getenv('TEST_STORAGE_API_TOKEN'),
-                    ],
+                    'token' => getenv('TEST_STORAGE_API_TOKEN'),
+                    'config' => '123',
+                    'configData' => '345',
+                    'component' => 'keboola.test',
+                    'mode' => 'run',
                 ],
-                'The child node "params" at path "job" must be configured.',
-            ],
-            'Invalid configData' => [
-                [
-                    'token' => [
-                        'token' => getenv('TEST_STORAGE_API_TOKEN'),
-                    ],
-                    'params' => [
-                        'config' => '123',
-                        'configData' => '345',
-                        'component' => 'keboola.test',
-                        'mode' => 'run',
-                    ],
-                ],
-                'Invalid type for path "job.params.configData". Expected array, but got string',
+                'Invalid type for path "job.configData". Expected array, but got string',
             ],
             'Invalid row' => [
                 [
-                    'token' => [
-                        'token' => getenv('TEST_STORAGE_API_TOKEN'),
-                    ],
-                    'params' => [
-                        'config' => '123',
-                        'component' => 'keboola.test',
-                        'mode' => 'run',
-                        'row' => ['123'],
-                    ],
+                    'token' => getenv('TEST_STORAGE_API_TOKEN'),
+                    'config' => '123',
+                    'component' => 'keboola.test',
+                    'mode' => 'run',
+                    'row' => ['123'],
                 ],
-                'Invalid type for path "job.params.row". Expected scalar, but got array.',
+                'Invalid type for path "job.row". Expected scalar, but got array.',
             ],
             'Invalid tag' => [
                 [
-                    'token' => [
-                        'token' => getenv('TEST_STORAGE_API_TOKEN'),
-                    ],
-                    'params' => [
-                        'config' => '123',
-                        'component' => 'keboola.test',
-                        'mode' => 'run',
-                        'tag' => ['234'],
-                    ],
+                    'token' => getenv('TEST_STORAGE_API_TOKEN'),
+                    'config' => '123',
+                    'component' => 'keboola.test',
+                    'mode' => 'run',
+                    'tag' => ['234'],
                 ],
-                'Invalid type for path "job.params.tag". Expected scalar, but got array.',
+                'Invalid type for path "job.tag". Expected scalar, but got array.',
             ],
         ];
     }
