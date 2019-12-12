@@ -31,35 +31,20 @@ class NewJobDefinition implements ConfigurationInterface
         // @formatter:off
         $rootNode
             ->children()
-                ->arrayNode('token')->isRequired()
-                    ->children()
-                        ->scalarNode('id')->end()
-                        ->scalarNode('token')->isRequired()->cannotBeEmpty()->end()
+                ->scalarNode('token')->isRequired()->cannotBeEmpty()->end()
+                ->scalarNode('config')->end()
+                ->scalarNode('component')->isRequired()->cannotBeEmpty()->end()
+                ->scalarNode('mode')->isRequired()
+                    ->validate()
+                        ->ifNotInArray(['run', 'debug'])
+                        ->thenInvalid('Mode must be one of "run" or "debug".')
                     ->end()
                 ->end()
-                ->arrayNode('project')
-                    ->children()
-                        ->scalarNode('id')->end()
-                    ->end()
-                ->end()
-                ->arrayNode('params')->isRequired()
-                    ->children()
-                        ->scalarNode('config')->end()
-                        ->scalarNode('component')->isRequired()->cannotBeEmpty()->end()
-                        ->scalarNode('mode')->isRequired()
-                            ->validate()
-                                ->ifNotInArray(['run', 'debug'])
-                                ->thenInvalid('Mode must be one of "run" or "debug".')
-                            ->end()
-                        ->end()
-                        ->scalarNode('row')->end()
-                        ->scalarNode('tag')->end()
-                        ->arrayNode('configData')->ignoreExtraKeys(false)->end()
-                    ->end()
-                ->end()
+                ->scalarNode('row')->end()
+                ->scalarNode('tag')->end()
+                ->arrayNode('configData')->ignoreExtraKeys(false)->end()
             ->end();
         // @formatter:on
-
         return $rootNode;
     }
 }
