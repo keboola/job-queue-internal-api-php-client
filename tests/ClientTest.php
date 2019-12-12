@@ -296,14 +296,14 @@ class ClientTest extends BaseTest
         $history = Middleware::history($requestHistory);
         $stack = HandlerStack::create($mock);
         $stack->push($history);
-        $client = $this->getClient(['handler' => $stack]);
+        $client = $this->getClient(['handler' => $stack, 'backoffMaxTries' => 1]);
         try {
             $client->getJob('123');
             self::fail('Must throw exception');
         } catch (ClientException $e) {
             self::assertStringContainsString('500 Internal Server Error', $e->getMessage());
         }
-        self::assertCount(11, $requestHistory);
+        self::assertCount(2, $requestHistory);
     }
 
     public function testRetryFailureReducedBackoff(): void
