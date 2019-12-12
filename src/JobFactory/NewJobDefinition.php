@@ -34,7 +34,7 @@ class NewJobDefinition implements ConfigurationInterface
                 ->scalarNode('token')->isRequired()->cannotBeEmpty()->end()
                 ->scalarNode('config')->end()
                 ->scalarNode('component')->isRequired()->cannotBeEmpty()->end()
-                ->scalarNode('mode')->isRequired()
+                ->scalarNode('mode')->defaultValue('run')
                     ->validate()
                         ->ifNotInArray(['run', 'debug'])
                         ->thenInvalid('Mode must be one of "run" or "debug".')

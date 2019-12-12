@@ -16,10 +16,11 @@ class NewJobDefinitionTest extends BaseTest
             'token' => getenv('TEST_STORAGE_API_TOKEN'),
             'config' => '123',
             'component' => 'keboola.test',
-            'mode' => 'run',
         ];
         $definition = new NewJobDefinition();
-        self::assertEquals($data, $definition->processData($data));
+        $processed = $definition->processData($data);
+        $data['mode'] = 'run';
+        self::assertEquals($data, $processed);
     }
 
     public function testValidJobFull(): void
@@ -59,14 +60,6 @@ class NewJobDefinitionTest extends BaseTest
                     'mode' => 'run',
                 ],
                 'The child node "component" at path "job" must be configured.',
-            ],
-            'Missing mode' => [
-                [
-                    'token' => getenv('TEST_STORAGE_API_TOKEN'),
-                    'config' => '123',
-                    'component' => 'keboola.test',
-                ],
-                'The child node "mode" at path "job" must be configured.',
             ],
             'Invalid mode' => [
                 [
