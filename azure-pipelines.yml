@@ -5,10 +5,11 @@ steps:
 - script: docker info
   displayName: 'Info'
 
+- script: docker-compose pull internal-api
+  displayName: 'Pull Internal API image'
+
 - script: docker-compose build --no-cache --pull
   displayName: 'Build Tests'
-
-- script: docker-compose pull internal-api
 
 - script: docker-compose run --rm tests
   displayName: 'Run Tests'
