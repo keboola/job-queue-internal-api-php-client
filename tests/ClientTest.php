@@ -136,7 +136,8 @@ class ClientTest extends BaseTest
                                 "foo": "bar"
                             }
                         }
-                    }
+                    },
+                    "result": {}
                 }'
             ),
         ]);
@@ -153,7 +154,7 @@ class ClientTest extends BaseTest
         self::assertEquals('456', $job->getProjectId());
         self::assertEquals('run', $job->getMode());
         self::assertEquals('created', $job->getStatus());
-        self::assertNull($job->getResult());
+        self::assertEquals([], $job->getResult());
         self::assertNull($job->getTag());
         self::assertNull($job->getRowId());
         self::assertFalse($job->isFinished());
