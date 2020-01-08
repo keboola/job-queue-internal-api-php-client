@@ -64,6 +64,24 @@ class JobTest extends BaseTest
         self::assertEquals('123456456', $this->getJob()->getId());
     }
 
+    public function testGetParentRunId(): void
+    {
+        self::assertEquals('', $this->getJob()->getParentRunId());
+
+        $jobData = $this->jobData;
+        $jobData['runId'] = '1234.5678';
+        self::assertEquals('1234', $this->getJob()->getParentRunId());
+    }
+
+    public function testGetRunId(): void
+    {
+        self::assertEquals('123456', $this->getJob()->getRunId());
+
+        $jobData = $this->jobData;
+        $jobData['runId'] = '1234.5678';
+        self::assertEquals('5678', $this->getJob()->getParentRunId());
+    }
+
     public function testGetMode(): void
     {
         self::assertEquals('run', $this->getJob()->getMode());
