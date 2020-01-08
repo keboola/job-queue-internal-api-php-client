@@ -8,6 +8,8 @@ steps:
 - script: docker-compose build --no-cache --pull
   displayName: 'Build Tests'
 
+- script:
+
 - script: docker-compose run --rm tests
   displayName: 'Run Tests'
   env:
