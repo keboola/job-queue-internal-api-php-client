@@ -10,6 +10,8 @@ use Keboola\ObjectEncryptor\ObjectEncryptorFactory;
 
 class Job implements JsonSerializable
 {
+    public const RUN_ID_DELIMITER = '.';
+
     /** @var array */
     private $data;
 
@@ -19,6 +21,13 @@ class Job implements JsonSerializable
     public function __construct(ObjectEncryptorFactory $objectEncryptorFactory, array $data)
     {
         $this->data = $data;
+        // while it would make more sense to store parentRunId, i want to keep this compatible with the old queue ATM
+        if (!empty($this->data['parentRunId'])) {
+            $this->data['runId'] = $this->data['parentRunId'] . self::RUN_ID_DELIMITER . $this->data['id'];
+            unset($this->data['parentRunId']);
+        } else {
+            $this->data['runId'] = $this->data['id'];
+        }
         // it's important to clone here because we change state of the factory!
         // this is tested by JobFactoryTest::testEncryptionMultipleJobs()
         $this->objectEncryptorFactory = clone $objectEncryptorFactory;
@@ -92,6 +101,21 @@ class Job implements JsonSerializable
     public function getToken(): string
     {
         return $this->data['token']['token'];
+    }
+
+    public function getParentRunId(): string
+    {
+        return (string) $this->data['parentRunId'] ?? '';
+    }
+
+    public function getRunId(): string
+    {
+        $parentRunId = $this->getParentRunId();
+        if ($parentRunId) {
+            return $parentRunId . self::RUN_ID_DELIMITER . $this->getId();
+        } else {
+            return $this->getId();
+        }
     }
 
     public function isFinished(): bool
