@@ -111,6 +111,7 @@ class JobFactory
                     'row' => $data['row'] ?? null,
                     'tag' => $data['tag'] ?? null,
                 ],
+                'result' => [],
             ];
         } catch (StorageClientException $e) {
             throw new ClientException(
