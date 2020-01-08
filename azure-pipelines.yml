@@ -5,7 +5,7 @@ steps:
 - script: docker info
   displayName: 'Info'
 
-- script: docker-compose pull internal-api
+- script: docker pull keboola/docker-job-queue-internal-api:latest
   displayName: 'Pull Internal API image'
 
 - script: docker-compose build --no-cache --pull
