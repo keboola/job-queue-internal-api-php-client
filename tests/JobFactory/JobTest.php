@@ -50,11 +50,13 @@ class JobTest extends BaseTest
     {
         self::assertEquals('454124290', $this->getJob()->getConfigId());
 
-        $jobDataWitConfigIdInt = $this->jobData;
-        $jobDataWitConfigIdInt['params']['config'] = (int) 123456789;
-        $configId = $this->getJob($jobDataWitConfigIdInt)->getConfigId();
-        self::assertIsString($configId);
-        self::assertEquals('123456789', $configId);
+        $jobDataWithConfigIdInt = $this->jobData;
+        $jobDataWithConfigIdInt['params']['config'] = 123456789;
+        self::assertSame('123456789', $this->getJob($jobDataWithConfigIdInt)->getConfigId());
+
+        $jobDataWithoutConfigId = $this->jobData;
+        unset($jobDataWithoutConfigId['params']['config']);
+        self::assertNull($this->getJob($jobDataWithoutConfigId)->getConfigId());
     }
 
     public function testGetId(): void
@@ -80,6 +82,14 @@ class JobTest extends BaseTest
     public function testGetRowId(): void
     {
         self::assertNull($this->getJob()->getRowId());
+
+        $jobDataWithRowIdInt = $this->jobData;
+        $jobDataWithRowIdInt['params']['row'] = 123456789;
+        self::assertSame('123456789', $this->getJob($jobDataWithRowIdInt)->getRowId());
+
+        $jobDataWithoutRowId = $this->jobData;
+        unset($jobDataWithoutRowId['params']['row']);
+        self::assertNull($this->getJob($jobDataWithoutRowId)->getRowId());
     }
 
     public function testGetStatus(): void
@@ -90,6 +100,14 @@ class JobTest extends BaseTest
     public function testGetTag(): void
     {
         self::assertNull($this->getJob()->getTag());
+
+        $jobDataWithTagNumeric = $this->jobData;
+        $jobDataWithTagNumeric['params']['tag'] = 1.1;
+        self::assertSame('1.1', $this->getJob($jobDataWithTagNumeric)->getTag());
+
+        $jobDataWithoutTag = $this->jobData;
+        unset($jobDataWithoutTag['params']['tag']);
+        self::assertNull($this->getJob($jobDataWithoutTag)->getTag());
     }
 
     public function testGetToken(): void

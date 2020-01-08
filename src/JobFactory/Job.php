@@ -39,7 +39,11 @@ class Job implements JsonSerializable
 
     public function getConfigId(): ?string
     {
-        return (string) $this->data['params']['config'] ?? null;
+        if (empty($this->data['params']['config'])) {
+            return null;
+        } else {
+            return (string) $this->data['params']['config'];
+        }
     }
 
     public function getId(): string
@@ -64,7 +68,11 @@ class Job implements JsonSerializable
 
     public function getRowId(): ?string
     {
-        return $this->data['params']['row'] ?? null;
+        if (empty($this->data['params']['row'])) {
+            return null;
+        } else {
+            return (string) $this->data['params']['row'];
+        }
     }
 
     public function getStatus(): string
@@ -74,7 +82,11 @@ class Job implements JsonSerializable
 
     public function getTag(): ?string
     {
-        return $this->data['params']['tag'] ?? null;
+        if (empty($this->data['params']['tag'])) {
+            return null;
+        } else {
+            return (string) $this->data['params']['tag'];
+        }
     }
 
     public function getToken(): string
