@@ -16,10 +16,12 @@ class NewJobDefinitionTest extends BaseTest
             'token' => getenv('TEST_STORAGE_API_TOKEN'),
             'config' => '123',
             'component' => 'keboola.test',
+            'result' => [],
         ];
         $definition = new NewJobDefinition();
         $processed = $definition->processData($data);
         $data['mode'] = 'run';
+        $data['result'] = [];
         self::assertEquals($data, $processed);
     }
 
@@ -37,6 +39,7 @@ class NewJobDefinitionTest extends BaseTest
                 ],
             ],
             'tag' => 'latest',
+            'result' => ['foo' => 'bar'],
         ];
         $definition = new NewJobDefinition();
         self::assertEquals($data, $definition->processData($data));
@@ -70,7 +73,7 @@ class NewJobDefinitionTest extends BaseTest
                 ],
                 'Invalid configuration for path "job.mode": Mode must be one of "run" or "debug".',
             ],
-                'Invalid configData' => [
+            'Invalid configData' => [
                 [
                     'token' => getenv('TEST_STORAGE_API_TOKEN'),
                     'config' => '123',
@@ -99,6 +102,17 @@ class NewJobDefinitionTest extends BaseTest
                     'tag' => ['234'],
                 ],
                 'Invalid type for path "job.tag". Expected scalar, but got array.',
+            ],
+            'Invalid result' => [
+                [
+                    'token' => getenv('TEST_STORAGE_API_TOKEN'),
+                    'config' => '123',
+                    'component' => 'keboola.test',
+                    'mode' => 'run',
+                    'tag' => '234',
+                    'result' => 'invalid',
+                ],
+                'Invalid type for path "job.result". Expected array, but got string',
             ],
         ];
     }
