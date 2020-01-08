@@ -5,13 +5,10 @@ steps:
 - script: docker info
   displayName: 'Info'
 
-- script: docker pull keboola/docker-job-queue-internal-api:latest
-  displayName: 'Pull Internal API image'
-
 - script: docker-compose build --no-cache --pull
   displayName: 'Build Tests'
 
-- script: docker-compose run --rm tests
+- script: docker-compose pull && docker-conpose run --rm tests
   displayName: 'Run Tests'
   env:
     TEST_STORAGE_API_URL: $(TEST_STORAGE_API_URL)
