@@ -23,7 +23,7 @@ services:
       - ./:/code
 
   internal-api:
-    image: keboola/docker-job-queue-internal-api
+    image: keboola/docker-job-queue-internal-api:latest
     ports:
       - "3000:3000"
     volumes:

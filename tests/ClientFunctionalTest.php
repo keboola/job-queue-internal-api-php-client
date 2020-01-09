@@ -96,6 +96,7 @@ class ClientFunctionalTest extends BaseTest
             'token' => [
                 'id' => $tokenInfo['id'],
             ],
+            'result' => [],
         ];
         self::assertEquals($expected, $response);
     }
@@ -117,6 +118,7 @@ class ClientFunctionalTest extends BaseTest
         self::assertEquals($createdJob->getComponentId(), $job->getComponentId());
         self::assertEquals($createdJob->getConfigId(), $job->getConfigId());
         self::assertEquals($createdJob->getMode(), $job->getMode());
+        self::assertEquals([], $job->getResult());
     }
 
     public function testGetInvalidJob(): void
@@ -189,7 +191,7 @@ class ClientFunctionalTest extends BaseTest
         $client = $this->getClient();
         $job = $client->getJob($createdJob->getId());
         self::assertEquals(JobFactory::STATUS_CREATED, $job->getStatus());
-        self::assertEquals(null, $job->getResult());
+        self::assertEquals([], $job->getResult());
         $client->postJobResult($createdJob->getId(), JobFactory::STATUS_SUCCESS, ['foo' => 'bar']);
         $job = $client->getJob($createdJob->getId());
         self::assertEquals(JobFactory::STATUS_SUCCESS, $job->getStatus());
