@@ -86,6 +86,7 @@ class FullJobDefinitionTest extends BaseTest
                     'id' => 123456,
                     'name' => 'Test orchestration',
                 ],
+                'component' => 'orchestrator',
                 'initializedBy' => 'trigger',
                 'initiator' => [
                     'id' => 199182,
