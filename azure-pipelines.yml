@@ -5,10 +5,13 @@ steps:
 - script: docker info
   displayName: 'Info'
 
-- script: docker-compose build --no-cache --pull
+- script: |
+  docker-compose down
+  docker-compose build --pull
+  docker-compose pull
   displayName: 'Build Tests'
 
-- script: docker-compose pull && docker-compose run --rm tests
+- script: docker-compose run --rm tests
   displayName: 'Run Tests'
   env:
     TEST_STORAGE_API_URL: $(TEST_STORAGE_API_URL)
