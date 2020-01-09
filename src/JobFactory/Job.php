@@ -50,7 +50,7 @@ class Job implements JsonSerializable
             return null;
         } else {
             return (string) $this->data['params']['config'];
-    }
+        }
     }
 
     public function getId(): string
@@ -79,7 +79,7 @@ class Job implements JsonSerializable
             return null;
         } else {
             return (string) $this->data['params']['row'];
-    }
+        }
     }
 
     public function getStatus(): string
@@ -93,7 +93,7 @@ class Job implements JsonSerializable
             return null;
         } else {
             return (string) $this->data['params']['tag'];
-    }
+        }
     }
 
     public function getToken(): string

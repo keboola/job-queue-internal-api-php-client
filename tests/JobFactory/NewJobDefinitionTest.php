@@ -74,7 +74,7 @@ class NewJobDefinitionTest extends BaseTest
                 ],
                 'Invalid configuration for path "job.mode": Mode must be one of "run" or "debug".',
             ],
-                'Invalid configData' => [
+            'Invalid configData' => [
                 [
                     'token' => getenv('TEST_STORAGE_API_TOKEN'),
                     'config' => '123',
