@@ -57,9 +57,9 @@ class Job implements JsonSerializable
         return (string) $this->data['project']['id'];
     }
 
-    public function getResult(): ?array
+    public function getResult(): array
     {
-        return $this->data['result'] ?? null;
+        return $this->data['result'] ?? [];
     }
 
     public function getRowId(): ?string

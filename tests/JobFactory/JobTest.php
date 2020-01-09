@@ -74,7 +74,7 @@ class JobTest extends BaseTest
 
     public function testGetResult(): void
     {
-        self::assertNull($this->getJob()->getResult());
+        self::assertEquals([], $this->getJob()->getResult());
     }
 
     public function testGetRowId(): void
