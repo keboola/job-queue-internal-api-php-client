@@ -69,6 +69,12 @@ class JobFactory
 
     public function loadFromExistingJobData(array $data): Job
     {
+        /* For legacy components (e.g. orchestrator), there is no params.component node in elastic. Instead, the
+        component is stored in root. Here we make a copy of component id under params.component to make it
+        compatible with the rest of the jobs. */
+        if (empty($data['params']['component']) && !empty($data['component'])) {
+            $data['params']['component'] = $data['component'];
+        }
         $data = $this->validateJobData($data, FullJobDefinition::class);
         return new Job($this->objectEncryptorFactory, $data);
     }
