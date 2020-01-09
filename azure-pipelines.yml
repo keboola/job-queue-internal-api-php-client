@@ -6,9 +6,9 @@ steps:
   displayName: 'Info'
 
 - script: |
-  docker-compose down
-  docker-compose build --pull
-  docker-compose pull
+    docker-compose down
+    docker-compose build --pull
+    docker-compose pull
   displayName: 'Build Tests'
 
 - script: docker-compose run --rm tests
