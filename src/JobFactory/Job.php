@@ -21,11 +21,9 @@ class Job implements JsonSerializable
     public function __construct(ObjectEncryptorFactory $objectEncryptorFactory, array $data)
     {
         $this->data = $data;
-        // while it would make more sense to store parentRunId, i want to keep this compatible with the old queue ATM
-        if (!empty($this->data['parentRunId'])) {
-            $this->data['runId'] = $this->data['parentRunId'] . self::RUN_ID_DELIMITER . $this->data['id'];
-            unset($this->data['parentRunId']);
-        } else {
+        /* FullJobDefinition should have runId required, but it doesn't have because some jobs don't have it in Elastic
+        - i.e. it's optional, but to the outside always present. */
+        if (empty($this->data['runId'])) {
             $this->data['runId'] = $this->data['id'];
         }
         // it's important to clone here because we change state of the factory!
@@ -105,17 +103,14 @@ class Job implements JsonSerializable
 
     public function getParentRunId(): string
     {
-        return (string) $this->data['parentRunId'] ?? '';
+        $parts = explode(self::RUN_ID_DELIMITER, $this->getRunId());
+        array_pop($parts);
+        return implode(self::RUN_ID_DELIMITER, $parts);
     }
 
     public function getRunId(): string
     {
-        $parentRunId = $this->getParentRunId();
-        if ($parentRunId) {
-            return $parentRunId . self::RUN_ID_DELIMITER . $this->getId();
-        } else {
-            return $this->getId();
-        }
+        return (string) $this->data['runId'];
     }
 
     public function isFinished(): bool
