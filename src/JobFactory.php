@@ -54,6 +54,11 @@ class JobFactory
             self::STATUS_WARNING];
     }
 
+    public static function getKillableStatuses(): array
+    {
+        return [self::STATUS_CREATED, self::STATUS_WAITING, self::STATUS_PROCESSING];
+    }
+
     public static function getLegacyComponents(): array
     {
         return ['orchestrator', 'transformation', 'provisioning'];
