@@ -29,6 +29,7 @@ class NewJobDefinitionTest extends BaseTest
     {
         $data = [
             'token' => getenv('TEST_STORAGE_API_TOKEN'),
+            'parentRunId' => '12345',
             'config' => '123',
             'component' => 'keboola.test',
             'mode' => 'run',
@@ -113,6 +114,17 @@ class NewJobDefinitionTest extends BaseTest
                     'result' => 'invalid',
                 ],
                 'Invalid type for path "job.result". Expected array, but got string',
+            ],
+            'Invalid run id' => [
+                [
+                    'token' => getenv('TEST_STORAGE_API_TOKEN'),
+                    'parentRunId' => ['123', '345'],
+                    'config' => '123',
+                    'component' => 'keboola.test',
+                    'mode' => 'run',
+                    'tag' => ['234'],
+                ],
+                'Invalid type for path "job.parentRunId". Expected scalar, but got array.',
             ],
         ];
     }

@@ -80,6 +80,8 @@ class ClientFunctionalTest extends BaseTest
         $tokenInfo = $storageClient->verifyToken();
         self::assertStringStartsWith('KBC::ProjectSecure::', $response['token']['token']);
         unset($response['token']['token']);
+        self::assertNotEmpty($response['runId']);
+        unset($response['runId']);
         $expected = [
             'params' => [
                 'config' => '454124290',

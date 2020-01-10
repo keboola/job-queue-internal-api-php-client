@@ -10,6 +10,8 @@ use Keboola\ObjectEncryptor\ObjectEncryptorFactory;
 
 class Job implements JsonSerializable
 {
+    public const RUN_ID_DELIMITER = '.';
+
     /** @var array */
     private $data;
 
@@ -19,6 +21,11 @@ class Job implements JsonSerializable
     public function __construct(ObjectEncryptorFactory $objectEncryptorFactory, array $data)
     {
         $this->data = $data;
+        /* FullJobDefinition should have runId required, but it doesn't have because some jobs don't have it in Elastic
+        - i.e. it's optional, but to the outside always present. */
+        if (empty($this->data['runId'])) {
+            $this->data['runId'] = $this->data['id'];
+        }
         // it's important to clone here because we change state of the factory!
         // this is tested by JobFactoryTest::testEncryptionMultipleJobs()
         $this->objectEncryptorFactory = clone $objectEncryptorFactory;
@@ -92,6 +99,18 @@ class Job implements JsonSerializable
     public function getToken(): string
     {
         return $this->data['token']['token'];
+    }
+
+    public function getParentRunId(): string
+    {
+        $parts = explode(self::RUN_ID_DELIMITER, $this->getRunId());
+        array_pop($parts);
+        return implode(self::RUN_ID_DELIMITER, $parts);
+    }
+
+    public function getRunId(): string
+    {
+        return (string) $this->data['runId'];
     }
 
     public function isFinished(): bool
