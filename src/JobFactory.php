@@ -119,6 +119,11 @@ class JobFactory
                 ],
                 'result' => [],
             ];
+            if (!empty($data['parentRunId'])) {
+                $jobData['runId'] = $data['parentRunId'] . Job::RUN_ID_DELIMITER . $jobData['id'];
+            } else {
+                $jobData['runId'] = $jobData['id'];
+            }
         } catch (StorageClientException $e) {
             throw new ClientException(
                 'Cannot create job: ' . $e->getMessage() . ' ' . $data['token'],

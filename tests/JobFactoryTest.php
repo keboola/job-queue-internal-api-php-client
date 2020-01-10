@@ -58,6 +58,7 @@ class JobFactoryTest extends BaseTest
         self::assertEquals([], $job->getConfigDataDecrypted());
         self::assertNull($job->getRowId());
         self::assertNull($job->getTag());
+        self::assertEquals($job->getId(), $job->getRunId());
     }
 
     public function testGetTokenLegacyDecrypted(): void
@@ -85,6 +86,7 @@ class JobFactoryTest extends BaseTest
         $factory = $this->getJobFactory();
         $data = [
             'token' => getenv('TEST_STORAGE_API_TOKEN'),
+            'parentRunId' => '2345',
             'config' => '123',
             'component' => 'keboola.test',
             'mode' => 'run',
@@ -103,6 +105,7 @@ class JobFactoryTest extends BaseTest
         self::assertEquals('234', $job->getRowId());
         self::assertEquals(['parameters' => ['foo' => 'bar']], $job->getConfigData());
         self::assertEquals('latest', $job->getTag());
+        self::assertEquals('2345.' . $job->getId(), $job->getRunId());
     }
 
     public function testCreateLegacyJob(): void

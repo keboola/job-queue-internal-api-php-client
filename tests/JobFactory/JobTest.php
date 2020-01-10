@@ -64,6 +64,32 @@ class JobTest extends BaseTest
         self::assertEquals('123456456', $this->getJob()->getId());
     }
 
+    public function testGetParentRunId(): void
+    {
+        self::assertEquals('', $this->getJob()->getParentRunId());
+
+        $jobData = $this->jobData;
+        $jobData['runId'] = '1234.567';
+        self::assertSame('1234', $this->getJob($jobData)->getParentRunId());
+
+        $jobData = $this->jobData;
+        $jobData['runId'] = 1234.567;
+        self::assertSame('1234', $this->getJob($jobData)->getParentRunId());
+    }
+
+    public function testGetRunId(): void
+    {
+        self::assertEquals('123456456', $this->getJob()->getRunId());
+
+        $jobData = $this->jobData;
+        $jobData['runId'] = '1234.567';
+        self::assertEquals('1234.567', $this->getJob($jobData)->getRunId());
+
+        $jobData = $this->jobData;
+        $jobData['runId'] = 1234.567;
+        self::assertEquals('1234.567', $this->getJob($jobData)->getRunId());
+    }
+
     public function testGetMode(): void
     {
         self::assertEquals('run', $this->getJob()->getMode());
@@ -143,7 +169,9 @@ class JobTest extends BaseTest
 
     public function testJsonSerialize(): void
     {
-        self::assertEquals($this->jobData, $this->getJob()->jsonSerialize());
+        $expected = $this->jobData;
+        $expected['runId'] = '123456456';
+        self::assertEquals($expected, $this->getJob()->jsonSerialize());
     }
 
     private function getJob(?array $jobData = null): Job
