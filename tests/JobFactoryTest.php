@@ -105,6 +105,62 @@ class JobFactoryTest extends BaseTest
         self::assertEquals('latest', $job->getTag());
     }
 
+    public function testCreateLegacyJob(): void
+    {
+        $factory = $this->getJobFactory();
+        $data = [
+            'id' => '664651692',
+            'runId' => '664651695',
+            'lockName' => 'orchestrator-12345',
+            'project' => [
+                'id' => '219',
+            ],
+            'token' => [
+                'id' => '12345',
+                'token' => getenv('TEST_STORAGE_API_TOKEN'),
+            ],
+            'component' => 'orchestrator',
+            'command' => 'run',
+            'params' => [
+                'config' => 456789,
+                'mode' => 'run',
+                'row' => null,
+                'tag' => null,
+            ],
+            'status' => 'waiting',
+            'createdTime' => '2020-01-09T12:46:08.164Z',
+        ];
+        $job = $factory->loadFromExistingJobData($data);
+        self::assertNotEmpty($job->getId());
+        self::assertSame('456789', $job->getConfigId());
+        self::assertSame(null, $job->getRowId());
+        self::assertSame([], $job->getConfigData());
+        self::assertSame(null, $job->getTag());
+        self::assertSame('orchestrator', $job->getComponentId());
+    }
+
+    public function testLoadInvalidJob(): void
+    {
+        $jobData = [
+            'id' => '664651692',
+            'status' => 'waiting',
+            'params' => [
+                'config' => '123',
+                'mode' => 'run',
+            ],
+            'project' => [
+                'id' => '219',
+            ],
+            'token' => [
+                'id' => '12345',
+                'token' => getenv('TEST_STORAGE_API_TOKEN'),
+            ],
+        ];
+        self::expectException(ClientException::class);
+        self::expectExceptionMessage('The child node "component" at path "job.params" must be configured.');
+        $this->getJobFactory()->loadFromExistingJobData($jobData);
+    }
+
     public function testStaticGetters(): void
     {
         self::assertCount(5, JobFactory::getFinishedStatuses());
