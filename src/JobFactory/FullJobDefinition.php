@@ -97,7 +97,7 @@ class FullJobDefinition extends NewJobDefinition
             ->ignoreExtraKeys(false)
             ->children()
                 ->scalarNode('config')->end()
-                ->scalarNode('component')->cannotBeEmpty()->end()
+                ->scalarNode('component')->cannotBeEmpty()->isRequired()->end()
                 ->scalarNode('mode')
                     ->validate()
                         ->ifNotInArray(['run', 'debug'])
