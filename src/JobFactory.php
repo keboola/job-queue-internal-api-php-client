@@ -131,7 +131,7 @@ class JobFactory
             }
         } catch (StorageClientException $e) {
             throw new ClientException(
-                'Cannot create job: ' . $e->getMessage() . ' ' . $data['token'],
+                'Cannot create job: "' . $e->getMessage() . '".',
                 $e->getCode(),
                 $e
             );
