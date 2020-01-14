@@ -221,7 +221,7 @@ class JobFactoryTest extends BaseTest
             'mode' => 'run',
         ];
         self::expectException(ClientException::class);
-        self::expectExceptionMessage('Cannot create job: Invalid access token');
+        self::expectExceptionMessage('Cannot create job: "Invalid access token".');
         $this->getJobFactory()->createNewJob($data);
     }
 
