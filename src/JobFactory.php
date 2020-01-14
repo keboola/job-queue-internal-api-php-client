@@ -114,6 +114,7 @@ class JobFactory
                 'token' => ['id' => $tokenInfo['id']],
                 'status' => self::STATUS_CREATED,
                 'id' => $client->generateId(),
+                'component' => 'docker',
                 'params' => [
                     'mode' => $data['mode'],
                     'component' => $data['component'],

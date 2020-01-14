@@ -92,6 +92,8 @@ class ClientFunctionalTest extends BaseTest
                 'configData' => [],
             ],
             'status' => 'created',
+            // for backward compatibility only
+            'component' => 'docker',
             'project' => [
                 'id' => $tokenInfo['owner']['id'],
             ],
