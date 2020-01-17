@@ -192,7 +192,8 @@ class FullJobDefinitionTest extends BaseTest
                         'mode' => 'invalid',
                     ],
                 ],
-                'Invalid configuration for path "job.params.mode": Mode must be one of "run" or "debug".',
+                'Invalid configuration for path "job.params.mode": Mode must be one of "run" ' .
+                'or "debug" (or "dry-run","prepare","input","full","single").',
             ],
             'Missing params' => [
                 [
