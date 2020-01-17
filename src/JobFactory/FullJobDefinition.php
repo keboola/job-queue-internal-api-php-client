@@ -42,6 +42,10 @@ class FullJobDefinition extends NewJobDefinition
                     ->end()
                 ->end()
                 ->arrayNode('process')->ignoreExtraKeys(false)->end()
+                ->scalarNode('isFinished')->end()
+                ->scalarNode('url')->end()
+                ->scalarNode('_index')->end()
+                ->scalarNode('_type')->end()
                 ->append($this->addTokenNode())
                 ->append($this->addProjectNode())
                 ->append($this->addParamsNode())
@@ -100,8 +104,13 @@ class FullJobDefinition extends NewJobDefinition
                 ->scalarNode('component')->cannotBeEmpty()->isRequired()->end()
                 ->scalarNode('mode')
                     ->validate()
-                        ->ifNotInArray(['run', 'debug'])
-                        ->thenInvalid('Mode must be one of "run" or "debug".')
+                        ->ifNotInArray(['run', 'debug',
+                            // these are only for compatibility with transformation jobs, not used on new jobs
+                            'dry-run', 'prepare', 'input', 'full', 'single',
+                        ])
+                        ->thenInvalid(
+                            'Mode must be one of "run" or "debug" (or "dry-run","prepare","input","full","single").'
+                        )
                     ->end()
                 ->end()
                 ->scalarNode('row')->defaultNull()->end()

@@ -108,7 +108,7 @@ class JobFactoryTest extends BaseTest
         self::assertEquals('2345.' . $job->getId(), $job->getRunId());
     }
 
-    public function testCreateLegacyJob(): void
+    public function testLoadLegacyOrchestratorJob(): void
     {
         $factory = $this->getJobFactory();
         $data = [
@@ -162,6 +162,55 @@ class JobFactoryTest extends BaseTest
         self::expectException(ClientException::class);
         self::expectExceptionMessage('The child node "component" at path "job.params" must be configured.');
         $this->getJobFactory()->loadFromExistingJobData($jobData);
+    }
+
+    public function testLoadLegacyTransformationsJob(): void
+    {
+        $jobData = [
+            'id' => 138361,
+            'runId' => '138362',
+            'lockName' => 'transformation-21-137869-run',
+            'project' => [
+                'id' => 21,
+                'name' => 'Odin - Queue',
+            ],
+            'token' => [
+                'id' => '127',
+                'description' => 'john.doe@keboola.com',
+                'token' => getenv('TEST_STORAGE_API_TOKEN'),
+            ],
+            'component' => 'transformation',
+            'command' => 'run',
+            'params' => [
+                'call' => 'run',
+                'mode' => 'full',
+                'phases' => [],
+                'transformations' => [],
+                'config' => '137869',
+                'configBucketId' => '137869',
+            ],
+            'result' => [],
+            'status' => 'waiting',
+            'process' => [
+                'host' => 'ip-10-0-41-225.us-east-2.compute.internal',
+                'pid' => 96,
+            ],
+            'createdTime' => '2020-01-17T10:21:14+01:00',
+            'startTime' => null,
+            'endTime' => null,
+            'durationSeconds' => null,
+            'waitSeconds' => null,
+            'nestingLevel' => 0,
+            'isFinished' => false,
+            '_index' => null,
+            '_type' => null,
+            'url' => 'https://queue.east-us-2.azure.keboola.com/jobs/138361',
+        ];
+        $job = $this->getJobFactory()->loadFromExistingJobData($jobData);
+        $jobData['params']['component'] = 'transformation';
+        $jobData['params']['row'] = null;
+        $jobData['params']['tag'] = null;
+        self::assertEquals($jobData, $job->jsonSerialize());
     }
 
     public function testStaticGetters(): void
