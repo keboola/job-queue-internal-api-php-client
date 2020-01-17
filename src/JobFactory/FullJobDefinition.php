@@ -106,7 +106,7 @@ class FullJobDefinition extends NewJobDefinition
                     ->validate()
                         ->ifNotInArray(['run', 'debug',
                             // these are only for compatibility with transformation jobs, not used on new jobs
-                            'dry-run', 'prepare', 'input', 'full', 'single'
+                            'dry-run', 'prepare', 'input', 'full', 'single',
                         ])
                         ->thenInvalid(
                             'Mode must be one of "run" or "debug" (or "dry-run","prepare","input","full","single").'
