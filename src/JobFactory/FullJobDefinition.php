@@ -64,7 +64,7 @@ class FullJobDefinition extends NewJobDefinition
     {
         return function ($v) {
             if (is_scalar($v)) {
-                return empty($v) ? null : (string)$v;
+                return empty($v) ? null : (string) $v;
             } else {
                 return $v;
             }

@@ -32,8 +32,6 @@ class ClientFunctionalTest extends BaseTest
             $newJob = $client->getJobFactory()->modifyJob($job, ['status' => JobFactory::STATUS_CANCELLED]);
             $client->updateJob($newJob);
         }
-        // give elastic some time understand what happened
-        sleep(1);
     }
 
     private function getJobFactory(): JobFactory
@@ -170,6 +168,28 @@ class ClientFunctionalTest extends BaseTest
         self::assertEquals($createdJob->jsonSerialize(), $listedJob->jsonSerialize());
     }
 
+    public function testListJobsEscaping(): void
+    {
+        $client = $this->getClient();
+        $job = $client->getJobFactory()->createNewJob([
+            'token' => getenv('TEST_STORAGE_API_TOKEN'),
+            'config' => '(*^&^$%£  $"£)?! \'',
+            'component' => '[]{}=žýřčšěš',
+            'mode' => 'run',
+        ]);
+        $createdJob = $client->createJob($job);
+        $response = $client->listJobs(
+            (new JobListOptions())
+                ->setConfigs(['(*^&^$%£  $"£)?! \''])
+                ->setComponents(['[]{}=žýřčšěš'])
+                ->setStatuses([JobFactory::STATUS_CREATED])
+        );
+        self::assertCount(1, $response);
+        /** @var Job $listedJob */
+        $listedJob = $response[0];
+        self::assertEquals($createdJob->jsonSerialize(), $listedJob->jsonSerialize());
+    }
+
     public function testGetJobsWithNoIds(): void
     {
         $client = $this->getClient();
@@ -214,7 +234,7 @@ class ClientFunctionalTest extends BaseTest
             'mode' => 'run',
         ]);
         $createdJob = $client->createJob($job);
-        $response = $client->getJobsWithProjectId(
+        $response = $client->listJobs(
             (new JobListOptions())->setProjects([$job->getProjectId()])->setIds([$job->getId()])
         );
 
@@ -236,7 +256,7 @@ class ClientFunctionalTest extends BaseTest
         ]);
         $client->createJob($job);
         $client = $this->getClient();
-        $response = $client->getJobsWithProjectId(
+        $response = $client->listJobs(
             (new JobListOptions())
                 ->setProjects([$job->getProjectId()])
                 ->setComponents(['keboola.non-existing-component'])
