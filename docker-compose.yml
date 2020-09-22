@@ -4,7 +4,7 @@ services:
   tests: &tests
     build: .
     environment:
-      - TEST_QUEUE_API_URL=http://internal-api:3000
+      - TEST_QUEUE_API_URL=http://internal-api:80
       - TEST_STORAGE_API_URL
       - TEST_STORAGE_API_TOKEN
       - TEST_KMS_KEY_ALIAS
