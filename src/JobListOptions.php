@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace Keboola\JobQueueInternalClient;
 
-use Keboola\JobQueueInternalClient\JobFactory\Job;
-
 class JobListOptions
 {
     /** @var array */
@@ -54,90 +52,6 @@ class JobListOptions
     {
     }
 
-    public function setIds(array $values): JobListOptions
-    {
-        $this->ids = $values;
-        return $this;
-    }
-
-    public function setComponents(array $values): JobListOptions
-    {
-        $this->components = $values;
-        return $this;
-    }
-
-    public function setConfigs(array $values): JobListOptions
-    {
-        $this->configs = $values;
-        return $this;
-    }
-
-    public function setModes(array $values): JobListOptions
-    {
-        $this->modes = $values;
-        return $this;
-    }
-
-    public function setProjects(array $values): JobListOptions
-    {
-        $this->projects = $values;
-        return $this;
-    }
-
-    public function setStatuses(array $values): JobListOptions
-    {
-        $this->statuses = $values;
-        return $this;
-    }
-
-    public function setStartTimeFrom(string $value): JobListOptions
-    {
-        $this->startTimeFrom = $value;
-        return $this;
-    }
-
-    public function setStartTimeTo(string $value): JobListOptions
-    {
-        $this->startTimeTo = $value;
-        return $this;
-    }
-
-    public function setCreatedTimeFrom(string $value): JobListOptions
-    {
-        $this->createdTimeFrom = $value;
-        return $this;
-    }
-
-    public function setCreatedTimeTo(string $value): JobListOptions
-    {
-        $this->createdTimeTo = $value;
-        return $this;
-    }
-
-    public function setEndTimeFrom(string $value): JobListOptions
-    {
-        $this->endTimeFrom = $value;
-        return $this;
-    }
-
-    public function setEndTimeTo(string $value): JobListOptions
-    {
-        $this->endTimeTo = $value;
-        return $this;
-    }
-
-    public function setOffset(string $value): JobListOptions
-    {
-        $this->offset = $value;
-        return $this;
-    }
-
-    public function setLimit(string $value): JobListOptions
-    {
-        $this->limit = $value;
-        return $this;
-    }
-
     public function getQueryParameters(): array
     {
         $arrayableProps = ['ids' => 'id', 'components' => 'component', 'configs' => 'config', 'modes' => 'mode',
@@ -159,5 +73,201 @@ class JobListOptions
             }
         }
         return $parameters;
+    }
+
+    /**
+     * @return array
+     */
+    public function getIds(): array
+    {
+        return $this->ids;
+    }
+
+    public function setIds(array $values): JobListOptions
+    {
+        $this->ids = $values;
+        return $this;
+    }
+
+    /**
+     * @return array
+     */
+    public function getComponents(): array
+    {
+        return $this->components;
+    }
+
+    public function setComponents(array $values): JobListOptions
+    {
+        $this->components = $values;
+        return $this;
+    }
+
+    /**
+     * @return array
+     */
+    public function getConfigs(): array
+    {
+        return $this->configs;
+    }
+
+    public function setConfigs(array $values): JobListOptions
+    {
+        $this->configs = $values;
+        return $this;
+    }
+
+    /**
+     * @return array
+     */
+    public function getModes(): array
+    {
+        return $this->modes;
+    }
+
+    public function setModes(array $values): JobListOptions
+    {
+        $this->modes = $values;
+        return $this;
+    }
+
+    /**
+     * @return array
+     */
+    public function getProjects(): array
+    {
+        return $this->projects;
+    }
+
+    public function setProjects(array $values): JobListOptions
+    {
+        $this->projects = $values;
+        return $this;
+    }
+
+    /**
+     * @return array
+     */
+    public function getStatuses(): array
+    {
+        return $this->statuses;
+    }
+
+    public function setStatuses(array $values): JobListOptions
+    {
+        $this->statuses = $values;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getStartTimeFrom(): string
+    {
+        return $this->startTimeFrom;
+    }
+
+    public function setStartTimeFrom(string $value): JobListOptions
+    {
+        $this->startTimeFrom = $value;
+        return $this;
+    }
+
+    /**
+     * @return int
+     */
+    public function getOffset(): int
+    {
+        return $this->offset;
+    }
+
+    public function setOffset(string $value): JobListOptions
+    {
+        $this->offset = $value;
+        return $this;
+    }
+
+    /**
+     * @return int
+     */
+    public function getLimit(): int
+    {
+        return $this->limit;
+    }
+
+    public function setLimit(string $value): JobListOptions
+    {
+        $this->limit = $value;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getCreatedTimeFrom(): string
+    {
+        return $this->createdTimeFrom;
+    }
+
+    public function setCreatedTimeFrom(string $value): JobListOptions
+    {
+        $this->createdTimeFrom = $value;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getEndTimeTo(): string
+    {
+        return $this->endTimeTo;
+    }
+
+    public function setEndTimeTo(string $value): JobListOptions
+    {
+        $this->endTimeTo = $value;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getEndTimeFrom(): string
+    {
+        return $this->endTimeFrom;
+    }
+
+    public function setEndTimeFrom(string $value): JobListOptions
+    {
+        $this->endTimeFrom = $value;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getStartTimeTo(): string
+    {
+        return $this->startTimeTo;
+    }
+
+    public function setStartTimeTo(string $value): JobListOptions
+    {
+        $this->startTimeTo = $value;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getCreatedTimeTo(): string
+    {
+        return $this->createdTimeTo;
+    }
+
+    public function setCreatedTimeTo(string $value): JobListOptions
+    {
+        $this->createdTimeTo = $value;
+        return $this;
     }
 }

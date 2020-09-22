@@ -467,6 +467,49 @@ class ClientTest extends BaseTest
         self::assertEquals('456', $job->getProjectId());
 
         $request = $mock->getLastRequest();
-        self::assertEquals('query=(project.id:456)&offset=0&limit=100', $request->getUri()->getQuery());
+        self::assertEquals('project%5B%5D=456&limit=100', $request->getUri()->getQuery());
+    }
+
+    public function testClientGetJobsEscaping(): void
+    {
+        $mock = new MockHandler([
+            new Response(
+                200,
+                ['Content-Type' => 'application/json'],
+                '[{
+                    "id": "123",
+                    "project": {
+                        "id": "456"
+                    },
+                    "token": {
+                        "id": "789",
+                        "token": "KBC::ProjectSecure::aSdF"
+                    },
+                    "status": "created",
+                    "params": {
+                        "mode": "run",
+                        "component": "th!$ |& n°t valid",
+                        "config": "123456"
+                    }
+                }]'
+            ),
+        ]);
+
+        $requestHistory = [];
+        $history = Middleware::history($requestHistory);
+        $stack = HandlerStack::create($mock);
+        $stack->push($history);
+        $logger = new TestLogger();
+        $client = $this->getClient(['handler' => $stack], $logger);
+        $jobs = $client->getJobsWithProjectId((new JobListOptions())->setProjects(['456']));
+
+        self::assertCount(1, $jobs);
+        /** @var Job $job */
+        $job = $jobs[0];
+        self::assertEquals('123', $job->getId());
+        self::assertEquals('456', $job->getProjectId());
+
+        $request = $mock->getLastRequest();
+        self::assertEquals('project%5B%5D=456&limit=100', $request->getUri()->getQuery());
     }
 }
