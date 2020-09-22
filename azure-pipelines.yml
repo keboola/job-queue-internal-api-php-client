@@ -1,6 +1,15 @@
 pool:
   vmImage: ubuntu-latest
 
+pr: none
+trigger:
+  batch: true
+  branches:
+    include:
+      - '*'
+  tags:
+    include:
+      - '*'
 
 steps:
 
