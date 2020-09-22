@@ -82,7 +82,7 @@ class JobFactoryTest extends BaseTest
         self::assertSame('123', $job->getConfigId());
         self::assertSame('123', $job->getRowId());
         self::assertSame('123', $job->getTag());
-        self::assertSame('1234.567.' . $job->getId() , $job->getRunId());
+        self::assertSame('1234.567.' . $job->getId(), $job->getRunId());
         self::assertSame('1234.567', $job->getParentRunId());
         self::assertSame('123', $job->jsonSerialize()['params']['config']);
         self::assertSame('123', $job->jsonSerialize()['params']['row']);

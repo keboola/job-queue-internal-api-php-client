@@ -48,10 +48,6 @@ class JobListOptions
     /** @var int */
     private $limit = 100;
 
-    public function __construct()
-    {
-    }
-
     public function getQueryParameters(): array
     {
         $arrayableProps = ['ids' => 'id', 'components' => 'component', 'configs' => 'config', 'modes' => 'mode',
@@ -75,9 +71,6 @@ class JobListOptions
         return $parameters;
     }
 
-    /**
-     * @return array
-     */
     public function getIds(): array
     {
         return $this->ids;
@@ -89,9 +82,6 @@ class JobListOptions
         return $this;
     }
 
-    /**
-     * @return array
-     */
     public function getComponents(): array
     {
         return $this->components;
@@ -103,9 +93,6 @@ class JobListOptions
         return $this;
     }
 
-    /**
-     * @return array
-     */
     public function getConfigs(): array
     {
         return $this->configs;
@@ -117,9 +104,6 @@ class JobListOptions
         return $this;
     }
 
-    /**
-     * @return array
-     */
     public function getModes(): array
     {
         return $this->modes;
@@ -131,9 +115,6 @@ class JobListOptions
         return $this;
     }
 
-    /**
-     * @return array
-     */
     public function getProjects(): array
     {
         return $this->projects;
@@ -145,9 +126,6 @@ class JobListOptions
         return $this;
     }
 
-    /**
-     * @return array
-     */
     public function getStatuses(): array
     {
         return $this->statuses;
@@ -159,9 +137,6 @@ class JobListOptions
         return $this;
     }
 
-    /**
-     * @return string
-     */
     public function getStartTimeFrom(): string
     {
         return $this->startTimeFrom;
@@ -173,37 +148,28 @@ class JobListOptions
         return $this;
     }
 
-    /**
-     * @return int
-     */
     public function getOffset(): int
     {
         return $this->offset;
     }
 
-    public function setOffset(string $value): JobListOptions
+    public function setOffset(int $value): JobListOptions
     {
         $this->offset = $value;
         return $this;
     }
 
-    /**
-     * @return int
-     */
     public function getLimit(): int
     {
         return $this->limit;
     }
 
-    public function setLimit(string $value): JobListOptions
+    public function setLimit(int $value): JobListOptions
     {
         $this->limit = $value;
         return $this;
     }
 
-    /**
-     * @return string
-     */
     public function getCreatedTimeFrom(): string
     {
         return $this->createdTimeFrom;
@@ -215,9 +181,6 @@ class JobListOptions
         return $this;
     }
 
-    /**
-     * @return string
-     */
     public function getEndTimeTo(): string
     {
         return $this->endTimeTo;
@@ -229,9 +192,6 @@ class JobListOptions
         return $this;
     }
 
-    /**
-     * @return string
-     */
     public function getEndTimeFrom(): string
     {
         return $this->endTimeFrom;
@@ -243,9 +203,6 @@ class JobListOptions
         return $this;
     }
 
-    /**
-     * @return string
-     */
     public function getStartTimeTo(): string
     {
         return $this->startTimeTo;
@@ -257,9 +214,6 @@ class JobListOptions
         return $this;
     }
 
-    /**
-     * @return string
-     */
     public function getCreatedTimeTo(): string
     {
         return $this->createdTimeTo;

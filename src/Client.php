@@ -101,7 +101,8 @@ class Client
         return $this->jobFactory->loadFromExistingJobData($result);
     }
 
-    public function getJobsWithProjectId(JobListOptions $listOptions): array {
+    public function listJobs(JobListOptions $listOptions): array
+    {
         $request = new Request('GET', 'jobs/?' . implode('&', $listOptions->getQueryParameters()));
         $result = $this->sendRequest($request);
         return $this->mapJobsFromResponse($result);
