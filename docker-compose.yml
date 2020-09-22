@@ -23,46 +23,38 @@ services:
       - ./:/code
 
   internal-api:
-    image: keboola/docker-job-queue-internal-api:latest
+    image: keboolapes.azurecr.io/job-queue-internal-api:latest
     ports:
-      - "3000:3000"
+      - "80:80"
     volumes:
       - ./:/build-code
+      - ./var:/code/var
     environment:
-      - AWS_ACCOUNT_ID=123456
-      - AWS_ACCESS_KEY_ID=test
-      - AWS_SECRET_ACCESS_KEY=test123
-      - AWS_KMS_KEY_ID=test123
-      - CLOUDFORMATION_ROLE_ARN=cfrolearn
-      - LAMBDA_EXECUTION_ROLE_ARN=lambdarolearn
-      - VPC_SECURITY_GROUP=vpcsecgroup
-      - VPC_SUBNET1=vpcsubnet1
-      - VPC_SUBNET2=vpcsubnet2
-      - VPC_ID=vpcid
-      - API_GW_ID=*
-      - REGION=us-east-1
-      - SERVICE_NAME=job-queue-internal-api-tests
-      - STAGE=test
-      - KEBOOLA_STACK=job-queue-internal-api-tests
-      - ELASTICSEARCH_ENDPOINT=http://elastic:9200
-      - ELASTICSEARCH_INDEX_PREFIX=tests_syrup_docker
-      - REGION_AZ_COUNT=2
-      - SLS_DEBUG=true
-    command: ['sh', '-c', '/build-code/docker/wait-for-it.sh --strict --timeout=120 elastic:9200 -- serverless offline start --host 0.0.0.0']
-    #command: sh -c 'serverless offline start --host 0.0.0.0'
+      - log_abs_connection_string=
+      - log_abs_container=debug-files
+      - logs_s3_bucket=
+      - logs_s3_bucket_region=
+      - MYSQL_ROOT_PASSWORD=root
+      - DATABASE_USER=root
+      - DATABASE_PASSWORD=root
+      - DATABASE_HOST=mysql
+      - DATABASE_PORT=3306
+      - DATABASE_NAME=jobs
+
+    command: ['sh', '-c', '/build-code/docker/wait-for-it.sh --strict --timeout=120 mysql:3306 -- php bin/console doctrine:migrations:migrate && apache2-foreground']
     networks:
       - internal-api-client
     depends_on:
-      - elastic
+      - mysql
 
-  elastic:
-    container_name: elastic
-    image: elasticsearch:2.3
+  mysql:
+    image: mysql:8
+    command: --default-authentication-plugin=mysql_native_password
     ports:
-      - "9200:9200"
-      - "9300:9300"
+      - "3306:3306"
     environment:
-      - discovery.type=single-node
+      - MYSQL_DATABASE=jobs
+      - MYSQL_ROOT_PASSWORD=root
     networks:
       - internal-api-client
 

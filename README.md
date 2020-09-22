@@ -24,6 +24,24 @@ $client->postJobResult('123', 'success', ['images' => ['digests' => []]);
 ```
 
 ## Development
+Create a service principal to download Internal Queue API image and login:
+
+	SERVICE_PRINCIPAL_NAME=devel-job-queue-internal-api-pull
+
+	ACR_REGISTRY_ID=$(az acr show --name keboolapes --query id --output tsv --subscription c5182964-8dca-42c8-a77a-fa2a3c6946ea)
+
+	SP_PASSWORD=$(az ad sp create-for-rbac --name http://$SERVICE_PRINCIPAL_NAME --scopes $ACR_REGISTRY_ID --role acrpull --query password --output tsv)
+	
+	SP_APP_ID=$(az ad sp show --id http://$SERVICE_PRINCIPAL_NAME --query appId --output tsv)
+
+	SP_APP_ID=$(az ad sp show --id http://$SERVICE_PRINCIPAL_NAME --query password --output tsv)
+
+Login and pull the image:
+
+	docker login keboolapes.azurecr.io --username $SP_APP_ID --password $SP_PASSWORD
+
+	docker pull keboolapes.azurecr.io/job-queue-internal-api:latest
+
 Create a user (`JobQueueInternalApiPhpClient`) for local development using the `test-cf-stack.json` CF template. Create AWS key for the created user. Set the following environment variables in `.env` file (use `.env.dist` as sample):
 
 - `AWS_ACCESS_KEY_ID` - The created security credentials for the `JobQueueInternalApiPhpClient` user.
