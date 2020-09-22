@@ -26,6 +26,7 @@ class Job implements JsonSerializable
         if (empty($this->data['runId'])) {
             $this->data['runId'] = $this->data['id'];
         }
+        $this->data['isFinished'] = (bool) in_array($this->getStatus(), JobFactory::getFinishedStatuses());
         // it's important to clone here because we change state of the factory!
         // this is tested by JobFactoryTest::testEncryptionMultipleJobs()
         $this->objectEncryptorFactory = clone $objectEncryptorFactory;
@@ -115,7 +116,7 @@ class Job implements JsonSerializable
 
     public function isFinished(): bool
     {
-        return in_array($this->data['status'], JobFactory::getFinishedStatuses());
+        return (bool) $this->data['isFinished'];
     }
 
     public function jsonSerialize(): array

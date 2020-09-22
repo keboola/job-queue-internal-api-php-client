@@ -13,6 +13,7 @@ use Keboola\JobQueueInternalClient\Client;
 use Keboola\JobQueueInternalClient\ClientException;
 use Keboola\JobQueueInternalClient\JobFactory;
 use Keboola\JobQueueInternalClient\JobFactory\Job;
+use Keboola\JobQueueInternalClient\JobListOptions;
 use Keboola\ObjectEncryptor\ObjectEncryptorFactory;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
@@ -457,7 +458,7 @@ class ClientTest extends BaseTest
         $stack->push($history);
         $logger = new TestLogger();
         $client = $this->getClient(['handler' => $stack], $logger);
-        $jobs = $client->getJobsWithProjectId('456');
+        $jobs = $client->getJobsWithProjectId((new JobListOptions())->setProjects(['456']));
 
         self::assertCount(1, $jobs);
         /** @var Job $job */
