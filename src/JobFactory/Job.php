@@ -47,16 +47,12 @@ class Job implements JsonSerializable
 
     public function getConfigId(): ?string
     {
-        if (empty($this->data['params']['config'])) {
-            return null;
-        } else {
-            return (string) $this->data['params']['config'];
-        }
+        return $this->data['params']['config'] ?? null;
     }
 
     public function getId(): string
     {
-        return (string) $this->data['id'];
+        return $this->data['id'];
     }
 
     public function getMode(): string
@@ -66,7 +62,7 @@ class Job implements JsonSerializable
 
     public function getProjectId(): string
     {
-        return (string) $this->data['project']['id'];
+        return $this->data['project']['id'];
     }
 
     public function getResult(): array
@@ -76,11 +72,7 @@ class Job implements JsonSerializable
 
     public function getRowId(): ?string
     {
-        if (empty($this->data['params']['row'])) {
-            return null;
-        } else {
-            return (string) $this->data['params']['row'];
-        }
+        return $this->data['params']['row'] ?? null;
     }
 
     public function getStatus(): string
@@ -90,11 +82,7 @@ class Job implements JsonSerializable
 
     public function getTag(): ?string
     {
-        if (empty($this->data['params']['tag'])) {
-            return null;
-        } else {
-            return (string) $this->data['params']['tag'];
-        }
+        return $this->data['params']['tag'] ?? null;
     }
 
     public function getToken(): string
@@ -111,7 +99,7 @@ class Job implements JsonSerializable
 
     public function getRunId(): string
     {
-        return (string) $this->data['runId'];
+        return $this->data['runId'];
     }
 
     public function isFinished(): bool
