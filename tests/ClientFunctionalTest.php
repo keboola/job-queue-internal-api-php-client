@@ -8,6 +8,7 @@ use Keboola\JobQueueInternalClient\Client;
 use Keboola\JobQueueInternalClient\ClientException;
 use Keboola\JobQueueInternalClient\JobFactory;
 use Keboola\JobQueueInternalClient\JobFactory\Job;
+use Keboola\JobQueueInternalClient\JobListOptions;
 use Keboola\ObjectEncryptor\ObjectEncryptorFactory;
 use Psr\Log\NullLogger;
 
@@ -31,8 +32,6 @@ class ClientFunctionalTest extends BaseTest
             $newJob = $client->getJobFactory()->modifyJob($job, ['status' => JobFactory::STATUS_CANCELLED]);
             $client->updateJob($newJob);
         }
-        // give elastic some time understand what happened
-        sleep(1);
     }
 
     private function getJobFactory(): JobFactory
@@ -101,6 +100,7 @@ class ClientFunctionalTest extends BaseTest
                 'id' => $tokenInfo['id'],
             ],
             'result' => [],
+            'isFinished' => false,
         ];
         self::assertEquals($expected, $response);
     }
@@ -168,6 +168,28 @@ class ClientFunctionalTest extends BaseTest
         self::assertEquals($createdJob->jsonSerialize(), $listedJob->jsonSerialize());
     }
 
+    public function testListJobsEscaping(): void
+    {
+        $client = $this->getClient();
+        $job = $client->getJobFactory()->createNewJob([
+            'token' => getenv('TEST_STORAGE_API_TOKEN'),
+            'config' => '(*^&^$%£  $"£)?! \'',
+            'component' => '[]{}=žýřčšěš',
+            'mode' => 'run',
+        ]);
+        $createdJob = $client->createJob($job);
+        $response = $client->listJobs(
+            (new JobListOptions())
+                ->setConfigs(['(*^&^$%£  $"£)?! \''])
+                ->setComponents(['[]{}=žýřčšěš'])
+                ->setStatuses([JobFactory::STATUS_CREATED])
+        );
+        self::assertCount(1, $response);
+        /** @var Job $listedJob */
+        $listedJob = $response[0];
+        self::assertEquals($createdJob->jsonSerialize(), $listedJob->jsonSerialize());
+    }
+
     public function testGetJobsWithNoIds(): void
     {
         $client = $this->getClient();
@@ -196,9 +218,9 @@ class ClientFunctionalTest extends BaseTest
         $job = $client->getJob($createdJob->getId());
         self::assertEquals(JobFactory::STATUS_CREATED, $job->getStatus());
         self::assertEquals([], $job->getResult());
-        $client->postJobResult($createdJob->getId(), JobFactory::STATUS_SUCCESS, ['foo' => 'bar']);
+        $client->postJobResult($createdJob->getId(), JobFactory::STATUS_PROCESSING, ['foo' => 'bar']);
         $job = $client->getJob($createdJob->getId());
-        self::assertEquals(JobFactory::STATUS_SUCCESS, $job->getStatus());
+        self::assertEquals(JobFactory::STATUS_PROCESSING, $job->getStatus());
         self::assertEquals(['foo' => 'bar'], $job->getResult());
     }
 
@@ -212,7 +234,9 @@ class ClientFunctionalTest extends BaseTest
             'mode' => 'run',
         ]);
         $createdJob = $client->createJob($job);
-        $response = $client->getJobsWithProjectId($job->getProjectId(), 'id:' . $job->getId());
+        $response = $client->listJobs(
+            (new JobListOptions())->setProjects([$job->getProjectId()])->setIds([$job->getId()])
+        );
 
         self::assertCount(1, $response);
         /** @var Job $listedJob */
@@ -232,8 +256,11 @@ class ClientFunctionalTest extends BaseTest
         ]);
         $client->createJob($job);
         $client = $this->getClient();
-        $query = 'component:keboola.non-existing-component';
-        $response = $client->getJobsWithProjectId($job->getProjectId(), $query);
+        $response = $client->listJobs(
+            (new JobListOptions())
+                ->setProjects([$job->getProjectId()])
+                ->setComponents(['keboola.non-existing-component'])
+        );
 
         self::assertCount(0, $response);
     }

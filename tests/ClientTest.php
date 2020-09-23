@@ -13,6 +13,7 @@ use Keboola\JobQueueInternalClient\Client;
 use Keboola\JobQueueInternalClient\ClientException;
 use Keboola\JobQueueInternalClient\JobFactory;
 use Keboola\JobQueueInternalClient\JobFactory\Job;
+use Keboola\JobQueueInternalClient\JobListOptions;
 use Keboola\ObjectEncryptor\ObjectEncryptorFactory;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
@@ -457,7 +458,7 @@ class ClientTest extends BaseTest
         $stack->push($history);
         $logger = new TestLogger();
         $client = $this->getClient(['handler' => $stack], $logger);
-        $jobs = $client->getJobsWithProjectId('456');
+        $jobs = $client->listJobs((new JobListOptions())->setProjects(['456']));
 
         self::assertCount(1, $jobs);
         /** @var Job $job */
@@ -466,6 +467,55 @@ class ClientTest extends BaseTest
         self::assertEquals('456', $job->getProjectId());
 
         $request = $mock->getLastRequest();
-        self::assertEquals('query=(project.id:456)&offset=0&limit=100', $request->getUri()->getQuery());
+        self::assertEquals('project%5B%5D=456&limit=100', $request->getUri()->getQuery());
+    }
+
+    public function testClientGetJobsEscaping(): void
+    {
+        $mock = new MockHandler([
+            new Response(
+                200,
+                ['Content-Type' => 'application/json'],
+                '[{
+                    "id": "123",
+                    "project": {
+                        "id": "šěřč!@#%^$&"
+                    },
+                    "token": {
+                        "id": "789",
+                        "token": "KBC::ProjectSecure::aSdF"
+                    },
+                    "status": "created",
+                    "params": {
+                        "mode": "run",
+                        "component": "th!$ |& n°t valid",
+                        "config": "123456"
+                    }
+                }]'
+            ),
+        ]);
+
+        $requestHistory = [];
+        $history = Middleware::history($requestHistory);
+        $stack = HandlerStack::create($mock);
+        $stack->push($history);
+        $logger = new TestLogger();
+        $client = $this->getClient(['handler' => $stack], $logger);
+        $jobs = $client->listJobs(
+            (new JobListOptions())->setProjects(['šěřč!@#%^$&'])->setComponents(['th!$ |& n°t valid'])
+        );
+
+        self::assertCount(1, $jobs);
+        /** @var Job $job */
+        $job = $jobs[0];
+        self::assertEquals('123', $job->getId());
+        self::assertEquals('šěřč!@#%^$&', $job->getProjectId());
+
+        $request = $mock->getLastRequest();
+        self::assertEquals(
+            'component%5B%5D=th%21%24+%7C%26+n%C2%B0t+valid&' .
+                'project%5B%5D=%C5%A1%C4%9B%C5%99%C4%8D%21%40%23%25%5E%24%26&limit=100',
+            $request->getUri()->getQuery()
+        );
     }
 }
