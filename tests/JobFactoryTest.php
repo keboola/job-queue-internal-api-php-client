@@ -61,6 +61,35 @@ class JobFactoryTest extends BaseTest
         self::assertEquals($job->getId(), $job->getRunId());
     }
 
+    public function testCreateNewJobNormalize(): void
+    {
+        $factory = $this->getJobFactory();
+        $data = [
+            'token' => getenv('TEST_STORAGE_API_TOKEN'),
+            'config' => 123,
+            'component' => 123,
+            'mode' => 'run',
+            'tag' => 123,
+            'row' => 123,
+            'parentRunId' => 1234.567,
+        ];
+        $job = $factory->createNewJob($data);
+        self::assertNotEmpty($job->getId());
+        self::assertStringStartsWith('KBC::ProjectSecure::', $job->getToken());
+        self::assertSame([], $job->getConfigData());
+        self::assertSame(getenv('TEST_STORAGE_API_TOKEN'), $job->getTokenDecrypted());
+        self::assertSame([], $job->getConfigDataDecrypted());
+        self::assertSame('123', $job->getConfigId());
+        self::assertSame('123', $job->getRowId());
+        self::assertSame('123', $job->getTag());
+        self::assertSame('1234.567.' . $job->getId(), $job->getRunId());
+        self::assertSame('1234.567', $job->getParentRunId());
+        self::assertSame('123', $job->jsonSerialize()['params']['config']);
+        self::assertSame('123', $job->jsonSerialize()['params']['row']);
+        self::assertSame('123', $job->jsonSerialize()['params']['tag']);
+        self::assertSame('1234.567.' . $job->getId(), $job->jsonSerialize()['runId']);
+    }
+
     public function testGetTokenLegacyDecrypted(): void
     {
         $factory = $this->getJobFactory();

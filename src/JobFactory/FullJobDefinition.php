@@ -18,8 +18,13 @@ class FullJobDefinition extends NewJobDefinition
         // @formatter:off
         $rootNode
             ->children()
-                ->scalarNode('id')->isRequired()->cannotBeEmpty()->end()
-                ->scalarNode('runId')->end()
+                ->scalarNode('id')
+                    ->isRequired()->cannotBeEmpty()
+                    ->beforeNormalization()->always($this->getStringNormalizer())->end()
+                ->end()
+                ->scalarNode('runId')
+                    ->beforeNormalization()->always($this->getStringNormalizer())->end()
+                ->end()
                 ->scalarNode('lockName')->end()
                 ->scalarNode('component')->end()
                 ->scalarNode('command')->end()
@@ -55,6 +60,17 @@ class FullJobDefinition extends NewJobDefinition
         return $rootNode;
     }
 
+    private function getStringNormalizer(): \Closure
+    {
+        return function ($v) {
+            if (is_scalar($v)) {
+                return empty($v) ? null : (string) $v;
+            } else {
+                return $v;
+            }
+        };
+    }
+
     private function addProjectNode(): NodeDefinition
     {
         $treeBuilder = new TreeBuilder('project');
@@ -64,8 +80,13 @@ class FullJobDefinition extends NewJobDefinition
 
         $node->isRequired()
             ->children()
-                ->scalarNode('id')->isRequired()->cannotBeEmpty()->end()
-                ->scalarNode('name')->end()
+                ->scalarNode('id')
+                    ->isRequired()->cannotBeEmpty()
+                    ->beforeNormalization()->always($this->getStringNormalizer())->end()
+                ->end()
+                ->scalarNode('name')
+                    ->beforeNormalization()->always($this->getStringNormalizer())->end()
+                ->end()
             ->end()
         ->end();
 
@@ -81,9 +102,17 @@ class FullJobDefinition extends NewJobDefinition
 
         $node->isRequired()
             ->children()
-                ->scalarNode('id')->isRequired()->cannotBeEmpty()->end()
-                ->scalarNode('description')->end()
-                ->scalarNode('token')->isRequired()->cannotBeEmpty()->end()
+                ->scalarNode('id')
+                    ->isRequired()->cannotBeEmpty()
+                    ->beforeNormalization()->always($this->getStringNormalizer())->end()
+                ->end()
+                ->scalarNode('description')
+                    ->beforeNormalization()->always($this->getStringNormalizer())->end()
+                ->end()
+                ->scalarNode('token')
+                    ->isRequired()->cannotBeEmpty()
+                    ->beforeNormalization()->always($this->getStringNormalizer())->end()
+                ->end()
             ->end()
         ->end();
 
@@ -100,8 +129,13 @@ class FullJobDefinition extends NewJobDefinition
         $node->isRequired()
             ->ignoreExtraKeys(false)
             ->children()
-                ->scalarNode('config')->end()
-                ->scalarNode('component')->cannotBeEmpty()->isRequired()->end()
+                ->scalarNode('config')
+                    ->beforeNormalization()->always($this->getStringNormalizer())->end()
+                ->end()
+                ->scalarNode('component')
+                    ->cannotBeEmpty()->isRequired()
+                    ->beforeNormalization()->always($this->getStringNormalizer())->end()
+                ->end()
                 ->scalarNode('mode')
                     ->validate()
                         ->ifNotInArray(['run', 'debug',
@@ -113,8 +147,14 @@ class FullJobDefinition extends NewJobDefinition
                         )
                     ->end()
                 ->end()
-                ->scalarNode('row')->defaultNull()->end()
-                ->scalarNode('tag')->defaultNull()->end()
+                ->scalarNode('row')
+                    ->defaultNull()
+                    ->beforeNormalization()->always($this->getStringNormalizer())->end()
+                ->end()
+                ->scalarNode('tag')
+                    ->defaultNull()
+                    ->beforeNormalization()->always($this->getStringNormalizer())->end()
+                ->end()
                 ->arrayNode('configData')->ignoreExtraKeys(false)->end()
             ->end()
         ->end();

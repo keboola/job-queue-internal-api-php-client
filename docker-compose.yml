@@ -15,7 +15,7 @@ services:
       - internal-api
     networks:
       - internal-api-client
-    command: ["/code/docker/phpunit.sh"]
+    command: ['sh', '-c', '/code/docker/wait-for-it.sh --strict --timeout=120 internal-api:80 -- composer ci']
 
   tests-local:
     <<: *tests
@@ -25,10 +25,10 @@ services:
   internal-api:
     image: keboolapes.azurecr.io/job-queue-internal-api:latest
     ports:
-      - "80:80"
+      - "81:80"
     volumes:
+      # to get wait-for-it
       - ./:/build-code
-      - ./var:/code/var
     environment:
       - log_abs_connection_string=
       - log_abs_container=debug-files
@@ -51,7 +51,7 @@ services:
     image: mysql:8
     command: --default-authentication-plugin=mysql_native_password
     ports:
-      - "3306:3306"
+      - "3307:3306"
     environment:
       - MYSQL_DATABASE=jobs
       - MYSQL_ROOT_PASSWORD=root

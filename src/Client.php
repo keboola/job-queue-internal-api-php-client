@@ -101,17 +101,9 @@ class Client
         return $this->jobFactory->loadFromExistingJobData($result);
     }
 
-    public function getJobsWithProjectId(
-        string $projectId,
-        string $query = '',
-        int $offset = 0,
-        int $limit = 100
-    ): array {
-        $pathQuery = sprintf('project.id:%s', $projectId);
-        if (!empty($query)) {
-            $pathQuery .= sprintf(' AND %s', $query);
-        }
-        $request = new Request('GET', sprintf('jobs?query=(%s)&offset=%s&limit=%s', $pathQuery, $offset, $limit));
+    public function listJobs(JobListOptions $listOptions): array
+    {
+        $request = new Request('GET', 'jobs/?' . implode('&', $listOptions->getQueryParameters()));
         $result = $this->sendRequest($request);
         return $this->mapJobsFromResponse($result);
     }
@@ -121,11 +113,10 @@ class Client
         if (!$jobIds) {
             return [];
         }
-        $conditions = array_map(function (string $status): string {
-            return 'id:' . $status;
+        $conditions = array_map(function (string $id): string {
+            return 'id[]=' . urlencode($id);
         }, $jobIds);
-        $query = '(' . implode(' OR ', $conditions) . ')';
-        $request = new Request('GET', 'jobs?query=' . $query);
+        $request = new Request('GET', 'jobs?' . implode('&', $conditions));
         $result = $this->sendRequest($request);
         return $this->mapJobsFromResponse($result);
     }
@@ -136,10 +127,9 @@ class Client
             return [];
         }
         $conditions = array_map(function (string $status): string {
-            return 'status:' . $status;
+            return 'status[]=' . $status;
         }, $statuses);
-        $query = '(' . implode(' OR ', $conditions) . ')';
-        $request = new Request('GET', 'jobs?query=' . $query);
+        $request = new Request('GET', 'jobs?' . implode('&', $conditions));
         $result = $this->sendRequest($request);
         return $this->mapJobsFromResponse($result);
     }
