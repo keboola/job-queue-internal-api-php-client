@@ -1,5 +1,6 @@
 pool:
-  vmImage: ubuntu-latest
+  name: 'Default'
+#  vmImage: ubuntu-latest
 
 pr: none
 trigger:
