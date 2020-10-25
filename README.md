@@ -24,41 +24,42 @@ $client->postJobResult('123', 'success', ['images' => ['digests' => []]);
 ```
 
 ## Development
-Create a service principal to download Internal Queue API image and login:
+- Create a service principal to download Internal Queue API image and login:
 
-	SERVICE_PRINCIPAL_NAME=[USERNAME]-job-queue-internal-api-pull
+    ```bash
+        SERVICE_PRINCIPAL_NAME=[USERNAME]-job-queue-internal-api-pull
+        ACR_REGISTRY_ID=$(az acr show --name keboolapes --query id --output tsv --subscription c5182964-8dca-42c8-a77a-fa2a3c6946ea)
+        SP_PASSWORD=$(az ad sp create-for-rbac --name http://$SERVICE_PRINCIPAL_NAME --scopes $ACR_REGISTRY_ID --role acrpull --query password --output tsv)
+        SP_APP_ID=$(az ad sp show --id http://$SERVICE_PRINCIPAL_NAME --query appId --output tsv)    
+    ```
 
-	ACR_REGISTRY_ID=$(az acr show --name keboolapes --query id --output tsv --subscription c5182964-8dca-42c8-a77a-fa2a3c6946ea)
+- Login and pull the image:
 
-	SP_PASSWORD=$(az ad sp create-for-rbac --name http://$SERVICE_PRINCIPAL_NAME --scopes $ACR_REGISTRY_ID --role acrpull --query password --output tsv)
-	
-	SP_APP_ID=$(az ad sp show --id http://$SERVICE_PRINCIPAL_NAME --query appId --output tsv)
+    ```bash
+        docker login keboolapes.azurecr.io --username $SP_APP_ID --password $SP_PASSWORD
+        docker pull keboolapes.azurecr.io/job-queue-internal-api:latest
+    ```
+- Create a user (`JobQueueInternalApiPhpClient`) for local development using the `test-cf-stack.json` CF template. 
+    - Create AWS key for the created user. 
+    - Set the following environment variables in `.env` file (use `.env.dist` as sample):
 
-Login and pull the image:
+        - `AWS_ACCESS_KEY_ID` - The created security credentials for the `JobQueueInternalApiPhpClient` user.
+        - `AWS_SECRET_ACCESS_KEY` - The created security credentials for the `JobQueueInternalApiPhpClient` user.
+        - `TEST_KMS_REGION` - `Region` output of the above stack.
+        - `TEST_KMS_KEY_ALIAS` - `KmsKey` output of the above stack.
+        - `TEST_STORAGE_API_URL` - Keboola Connection URL.
+        - `TEST_STORAGE_API_TOKEN` - Token a to test project.
 
-	docker login keboolapes.azurecr.io --username $SP_APP_ID --password $SP_PASSWORD
+- Than you can run tests:
 
-	docker pull keboolapes.azurecr.io/job-queue-internal-api:latest
+    ```bash
+        docker-compose build
+        docker-compose run tests
+    ```
 
-Create a user (`JobQueueInternalApiPhpClient`) for local development using the `test-cf-stack.json` CF template. Create AWS key for the created user. Set the following environment variables in `.env` file (use `.env.dist` as sample):
+- To run tests with local code use:
 
-- `AWS_ACCESS_KEY_ID` - The created security credentials for the `JobQueueInternalApiPhpClient` user.
-- `AWS_SECRET_ACCESS_KEY` - The created security credentials for the `JobQueueInternalApiPhpClient` user.
-- `TEST_KMS_REGION` - `Region` output of the above stack.
-- `TEST_KMS_KEY_ALIAS` - `KmsKey` output of the above stack.
-- `TEST_STORAGE_API_URL` - Keboola Connection URL.
-- `TEST_STORAGE_API_TOKEN` - Token a to test project.
-
-Than you can run tests:
-
-```bash
-    docker-compose build
-    docker-compose run tests
-```
-
-To run tests with local code use:
-
-```bash
-    docker-compose run tests-local composer install
-    docker-compose run tests-local
-```
+    ```bash
+        docker-compose run tests-local composer install
+        docker-compose run tests-local
+    ```
