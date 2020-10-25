@@ -82,7 +82,7 @@ class NewJobDefinitionTest extends BaseTest
                     'component' => 'keboola.test',
                     'mode' => 'run',
                 ],
-                'Invalid type for path "job.configData". Expected array, but got string',
+                'Invalid type for path "job.configData". Expected "array", but got "string"',
             ],
             'Invalid row' => [
                 [
@@ -92,7 +92,7 @@ class NewJobDefinitionTest extends BaseTest
                     'mode' => 'run',
                     'row' => ['123'],
                 ],
-                'Invalid type for path "job.row". Expected scalar, but got array.',
+                'Invalid type for path "job.row". Expected "scalar", but got "array".',
             ],
             'Invalid tag' => [
                 [
@@ -102,7 +102,7 @@ class NewJobDefinitionTest extends BaseTest
                     'mode' => 'run',
                     'tag' => ['234'],
                 ],
-                'Invalid type for path "job.tag". Expected scalar, but got array.',
+                'Invalid type for path "job.tag". Expected "scalar", but got "array".',
             ],
             'Invalid result' => [
                 [
@@ -113,7 +113,7 @@ class NewJobDefinitionTest extends BaseTest
                     'tag' => '234',
                     'result' => 'invalid',
                 ],
-                'Invalid type for path "job.result". Expected array, but got string',
+                'Invalid type for path "job.result". Expected "array", but got "string"',
             ],
             'Invalid run id' => [
                 [
@@ -124,7 +124,7 @@ class NewJobDefinitionTest extends BaseTest
                     'mode' => 'run',
                     'tag' => ['234'],
                 ],
-                'Invalid type for path "job.parentRunId". Expected scalar, but got array.',
+                'Invalid type for path "job.parentRunId". Expected "scalar", but got "array".',
             ],
         ];
     }

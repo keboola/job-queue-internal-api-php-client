@@ -321,7 +321,7 @@ class JobFactoryTest extends BaseTest
         $objectEncryptorFactory->setProjectId($tokenInfo['owner']['id']);
         $objectEncryptorFactory->setConfigurationId('123');
         $objectEncryptorFactory->setComponentId('keboola.test');
-        $objectEncryptorFactory->setStackId(parse_url((string) getenv('TEST_STORAGE_API_URL'), PHP_URL_HOST));
+        $objectEncryptorFactory->setStackId((string) parse_url((string) getenv('TEST_STORAGE_API_URL'), PHP_URL_HOST));
 
         $factory = $this->getJobFactory();
         $data = [
@@ -369,7 +369,7 @@ class JobFactoryTest extends BaseTest
             ]
         );
         $tokenInfo = $client->verifyToken();
-        $objectEncryptorFactory->setStackId(parse_url((string) getenv('TEST_STORAGE_API_URL'), PHP_URL_HOST));
+        $objectEncryptorFactory->setStackId((string) parse_url((string) getenv('TEST_STORAGE_API_URL'), PHP_URL_HOST));
 
         $objectEncryptorFactory->setProjectId($tokenInfo['owner']['id']);
         $objectEncryptorFactory->setConfigurationId('123');
@@ -451,7 +451,7 @@ class JobFactoryTest extends BaseTest
             ]
         );
         $tokenInfo = $client->verifyToken();
-        $objectEncryptorFactory->setStackId(parse_url((string) getenv('TEST_STORAGE_API_URL'), PHP_URL_HOST));
+        $objectEncryptorFactory->setStackId((string) parse_url((string) getenv('TEST_STORAGE_API_URL'), PHP_URL_HOST));
 
         $objectEncryptorFactory->setProjectId($tokenInfo['owner']['id']);
         $objectEncryptorFactory->setConfigurationId('456');
