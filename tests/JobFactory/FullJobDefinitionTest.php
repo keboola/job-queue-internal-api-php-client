@@ -227,7 +227,7 @@ class FullJobDefinitionTest extends BaseTest
                         'mode' => 'run',
                     ],
                 ],
-                'Invalid type for path "job.params.configData". Expected array, but got string',
+                'Invalid type for path "job.params.configData". Expected "array", but got "string"',
             ],
             'Invalid row' => [
                 [
@@ -247,7 +247,7 @@ class FullJobDefinitionTest extends BaseTest
                         'row' => ['123'],
                     ],
                 ],
-                'Invalid type for path "job.params.row". Expected scalar, but got array.',
+                'Invalid type for path "job.params.row". Expected "scalar", but got "array".',
             ],
             'Invalid tag' => [
                 [
@@ -267,7 +267,7 @@ class FullJobDefinitionTest extends BaseTest
                         'tag' => ['234'],
                     ],
                 ],
-                'Invalid type for path "job.params.tag". Expected scalar, but got array.',
+                'Invalid type for path "job.params.tag". Expected "scalar", but got "array".',
             ],
             'Missing id' => [
                 [
