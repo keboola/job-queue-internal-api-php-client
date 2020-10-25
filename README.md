@@ -43,8 +43,8 @@ $client->postJobResult('123', 'success', ['images' => ['digests' => []]);
     - Create AWS key for the created user. 
     - Set the following environment variables in `.env` file (use `.env.dist` as sample):
 
-        - `AWS_ACCESS_KEY_ID` - The created security credentials for the `JobQueueInternalApiPhpClient` user.
-        - `AWS_SECRET_ACCESS_KEY` - The created security credentials for the `JobQueueInternalApiPhpClient` user.
+        - `TEST_AWS_ACCESS_KEY_ID` - The created security credentials for the `JobQueueInternalApiPhpClient` user.
+        - `TEST_AWS_SECRET_ACCESS_KEY` - The created security credentials for the `JobQueueInternalApiPhpClient` user.
         - `TEST_KMS_REGION` - `Region` output of the above stack.
         - `TEST_KMS_KEY_ALIAS` - `KmsKey` output of the above stack.
         - `TEST_STORAGE_API_URL` - Keboola Connection URL.
