@@ -136,6 +136,7 @@ class Client
 
     public function updateJob(Job $newJob): array
     {
+        /** @noinspection PhpUnhandledExceptionInspection */
         $request = new Request(
             'PUT',
             'jobs/' . $newJob->getId(),
@@ -150,6 +151,7 @@ class Client
 
     public function postJobResult(string $jobId, string $status, array $result): array
     {
+        /** @noinspection PhpUnhandledExceptionInspection */
         $request = new Request(
             'PUT',
             'jobs/' . $jobId,
