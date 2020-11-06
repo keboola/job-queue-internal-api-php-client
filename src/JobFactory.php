@@ -140,7 +140,7 @@ class JobFactory
         $this->objectEncryptorFactory->setProjectId($tokenInfo['owner']['id']);
         $this->objectEncryptorFactory->setComponentId($data['component']);
         $this->objectEncryptorFactory->setStackId(
-            parse_url($this->storageClientFactory->getStorageApiUrl(), PHP_URL_HOST)
+            (string) parse_url($this->storageClientFactory->getStorageApiUrl(), PHP_URL_HOST)
         );
         $jobData['token']['token'] = $this->objectEncryptorFactory->getEncryptor()->encrypt(
             $data['token'],
