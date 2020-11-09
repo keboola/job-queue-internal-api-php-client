@@ -143,7 +143,7 @@ class JobFactory
             'tag' => $data['tag'] ?? null,
             'result' => [],
             'usageData' => [],
-            'isFinished' => false
+            'isFinished' => false,
         ];
     }
 }

@@ -180,7 +180,7 @@ class ClientFunctionalTest extends BaseTest
         $response = $client->listJobs(
             (new JobListOptions())
                 ->setConfigs(['(*^&^$%£  $"£)?! \''])
-//                ->setComponents(['[]{}=žýřčšěš'])
+            //                ->setComponents(['[]{}=žýřčšěš'])
                 ->setStatuses([JobFactory::STATUS_CREATED])
         );
         self::assertCount(1, $response);
