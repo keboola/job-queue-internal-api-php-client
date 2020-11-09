@@ -25,6 +25,9 @@ class JobFactory
     public const STATUS_WAITING = 'waiting';
     public const STATUS_WARNING = 'warning';
 
+    public const DESIRED_STATUS_PROCESSING = 'processing';
+    public const DESIRED_STATUS_TERMINATING = 'terminating';
+
     /** @var StorageClientFactory */
     private $storageClientFactory;
 
@@ -74,12 +77,6 @@ class JobFactory
 
     public function loadFromExistingJobData(array $data): Job
     {
-        /* For legacy components (e.g. orchestrator), there is no params.component node in elastic. Instead, the
-        component is stored in root. Here we make a copy of component id under params.component to make it
-        compatible with the rest of the jobs. */
-        if (empty($data['params']['component']) && !empty($data['component'])) {
-            $data['params']['component'] = $data['component'];
-        }
         $data = $this->validateJobData($data, FullJobDefinition::class);
         return new Job($this->objectEncryptorFactory, $data);
     }
@@ -109,27 +106,8 @@ class JobFactory
         try {
             $client = $this->storageClientFactory->getClient($data['token']);
             $tokenInfo = $client->verifyToken();
-            $jobData = [
-                'project' => ['id' => $tokenInfo['owner']['id']],
-                'token' => ['id' => $tokenInfo['id']],
-                'status' => self::STATUS_CREATED,
-                'id' => $client->generateId(),
-                'component' => 'docker',
-                'params' => [
-                    'mode' => $data['mode'],
-                    'component' => $data['component'],
-                    'config' => $data['config'] ?? null,
-                    'configData' => $data['configData'] ?? null,
-                    'row' => $data['row'] ?? null,
-                    'tag' => $data['tag'] ?? null,
-                ],
-                'result' => [],
-            ];
-            if (!empty($data['parentRunId'])) {
-                $jobData['runId'] = $data['parentRunId'] . Job::RUN_ID_DELIMITER . $jobData['id'];
-            } else {
-                $jobData['runId'] = $jobData['id'];
-            }
+            $jobId = $client->generateId();
+            $runId = empty($data['parentRunId']) ? $jobId : $data['parentRunId'] . Job::RUN_ID_DELIMITER . $jobId;
         } catch (StorageClientException $e) {
             throw new ClientException(
                 'Cannot create job: "' . $e->getMessage() . '".',
@@ -142,10 +120,30 @@ class JobFactory
         $this->objectEncryptorFactory->setStackId(
             (string) parse_url($this->storageClientFactory->getStorageApiUrl(), PHP_URL_HOST)
         );
-        $jobData['token']['token'] = $this->objectEncryptorFactory->getEncryptor()->encrypt(
+        $encryptedToken = $this->objectEncryptorFactory->getEncryptor()->encrypt(
             $data['token'],
             ProjectWrapper::class
         );
-        return $jobData;
+
+        return [
+            'id' => $jobId,
+            'runId' => $runId,
+            'projectId' => $tokenInfo['owner']['id'],
+            'projectName' => $tokenInfo['owner']['name'],
+            'tokenId' => $tokenInfo['id'],
+            'tokenString' => $encryptedToken,
+            'tokenDescription' => $tokenInfo['description'],
+            'status' => self::STATUS_CREATED,
+            'desiredStatus' => self::DESIRED_STATUS_PROCESSING,
+            'mode' => $data['mode'],
+            'component' => $data['component'],
+            'configId' => $data['config'] ?? null,
+            'configData' => $data['configData'] ?? null, //@todo encrypt configData?
+            'configRowId' => $data['row'] ?? null,
+            'tag' => $data['tag'] ?? null,
+            'result' => [],
+            'usageData' => [],
+            'isFinished' => false
+        ];
     }
 }

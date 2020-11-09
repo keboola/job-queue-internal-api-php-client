@@ -35,34 +35,39 @@ class Job implements JsonSerializable
         $this->objectEncryptorFactory->setConfigurationId($this->getConfigId());
     }
 
-    public function getComponentId(): string
-    {
-        return $this->data['params']['component'] ?? '';
-    }
-
-    public function getConfigData(): array
-    {
-        return $this->data['params']['configData'] ?? [];
-    }
-
-    public function getConfigId(): ?string
-    {
-        return $this->data['params']['config'] ?? null;
-    }
-
     public function getId(): string
     {
         return $this->data['id'];
     }
 
+    public function getComponentId(): string
+    {
+        return $this->data['component'] ?? '';
+    }
+
+    public function getConfigData(): array
+    {
+        return $this->data['configData'] ?? [];
+    }
+
+    public function getConfigId(): ?string
+    {
+        return $this->data['configId'] ?? null;
+    }
+
     public function getMode(): string
     {
-        return $this->data['params']['mode'];
+        return $this->data['mode'];
     }
 
     public function getProjectId(): string
     {
-        return $this->data['project']['id'];
+        return $this->data['projectId'];
+    }
+
+    public function getProjectName(): string
+    {
+        return $this->data['projectName'];
     }
 
     public function getResult(): array
@@ -70,9 +75,9 @@ class Job implements JsonSerializable
         return $this->data['result'] ?? [];
     }
 
-    public function getRowId(): ?string
+    public function getConfigRowId(): ?string
     {
-        return $this->data['params']['row'] ?? null;
+        return $this->data['configRowId'] ?? null;
     }
 
     public function getStatus(): string
@@ -80,14 +85,29 @@ class Job implements JsonSerializable
         return $this->data['status'];
     }
 
-    public function getTag(): ?string
+    public function getDesiredStatus(): string
     {
-        return $this->data['params']['tag'] ?? null;
+        return $this->data['desiredStatus'];
     }
 
-    public function getToken(): string
+    public function getTag(): ?string
     {
-        return $this->data['token']['token'];
+        return $this->data['tag'] ?? null;
+    }
+
+    public function getTokenString(): string
+    {
+        return $this->data['tokenString'];
+    }
+
+    public function getTokenId(): string
+    {
+        return $this->data['tokenId'];
+    }
+
+    public function getTokenDescription(): string
+    {
+        return $this->data['tokenDescription'];
     }
 
     public function getParentRunId(): string
@@ -107,6 +127,11 @@ class Job implements JsonSerializable
         return (bool) $this->data['isFinished'];
     }
 
+    public function getUsageData(): array
+    {
+        return $this->data['usageData'] ?? [];
+    }
+
     public function jsonSerialize(): array
     {
         return $this->data;
@@ -114,7 +139,7 @@ class Job implements JsonSerializable
 
     public function getTokenDecrypted(): string
     {
-        return $this->objectEncryptorFactory->getEncryptor(true)->decrypt($this->getToken());
+        return $this->objectEncryptorFactory->getEncryptor(true)->decrypt($this->getTokenString());
     }
 
     public function getConfigDataDecrypted(): array

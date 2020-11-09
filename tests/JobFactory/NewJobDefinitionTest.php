@@ -20,9 +20,13 @@ class NewJobDefinitionTest extends BaseTest
         ];
         $definition = new NewJobDefinition();
         $processed = $definition->processData($data);
-        $data['mode'] = 'run';
-        $data['result'] = [];
-        self::assertEquals($data, $processed);
+        self::assertEquals(
+            array_merge($data, [
+                'mode' => 'run',
+                'result' => [],
+            ]),
+            $processed
+        );
     }
 
     public function testValidJobFull(): void
