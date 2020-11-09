@@ -61,7 +61,7 @@ class FullJobDefinitionTest extends BaseTest
         ];
         $definition = new FullJobDefinition();
         self::assertEquals(array_merge($data, [
-            'isFinished' => false
+            'isFinished' => false,
         ]), $definition->processData($data));
     }
 
