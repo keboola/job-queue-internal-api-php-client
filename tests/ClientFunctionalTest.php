@@ -98,6 +98,9 @@ class ClientFunctionalTest extends BaseTest
             'result' => [],
             'usageData' => [],
             'isFinished' => false,
+            'startTime' => null,
+            'endTime' => null,
+            'durationSeconds' => 0,
         ];
         self::assertEquals($expected, $response);
     }
