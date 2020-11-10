@@ -50,7 +50,7 @@ class JobListOptions
 
     public function getQueryParameters(): array
     {
-        $arrayableProps = ['ids' => 'id', 'components' => 'component', 'configs' => 'configId', 'modes' => 'mode',
+        $arrayableProps = ['ids' => 'id', 'components' => 'componentId', 'configs' => 'configId', 'modes' => 'mode',
             'projects' => 'projectId', 'statuses' => 'status'];
         $scalarProps = ['startTimeFrom' => 'startTimeFrom', 'startTimeTo' => 'startTimeTo',
             'createdTimeFrom' => 'createdTimeFrom', 'createdTimeTo' => 'createdTimeTo', 'endTimeFrom' => 'endTimeFrom',

@@ -14,7 +14,7 @@ class JobTest extends BaseTest
     private $jobData = [
         'id' => '123456456',
         'configId' => '454124290',
-        'component' => 'keboola.ex-db-snowflake',
+        'componentId' => 'keboola.ex-db-snowflake',
         'mode' => 'run',
         'configData' => [
             'parameters' => ['foo' => 'bar'],
@@ -129,14 +129,14 @@ class JobTest extends BaseTest
     public function testIsLegacyOrchestrator(): void
     {
         $jobData = $this->jobData;
-        $jobData['component'] = 'orchestrator';
+        $jobData['componentId'] = 'orchestrator';
         self::assertTrue($this->getJob($jobData)->isLegacyComponent());
     }
 
     public function testLegacyOrchestratorJob(): void
     {
         $jobData = $this->jobData;
-        unset($jobData['component']);
+        unset($jobData['componentId']);
         $job = $this->getJob($jobData);
         self::assertEquals('', $job->getComponentId());
         self::assertTrue($job->isLegacyComponent());

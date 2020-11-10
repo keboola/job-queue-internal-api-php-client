@@ -60,9 +60,9 @@ class ClientFunctionalTest extends BaseTest
     {
         $client = $this->getClient();
         $job = $client->getJobFactory()->createNewJob([
-            'token' => getenv('TEST_STORAGE_API_TOKEN'),
-            'config' => '454124290',
-            'component' => 'keboola.ex-db-snowflake',
+            'tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+            'configId' => '454124290',
+            'componentId' => 'keboola.ex-db-snowflake',
             'mode' => 'run',
         ]);
         $response = $client->createJob($job)->jsonSerialize();
@@ -84,7 +84,7 @@ class ClientFunctionalTest extends BaseTest
         unset($response['runId']);
         $expected = [
             'configId' => '454124290',
-            'component' => 'keboola.ex-db-snowflake',
+            'componentId' => 'keboola.ex-db-snowflake',
             'mode' => 'run',
             'configRowId' => null,
             'tag' => null,
@@ -98,6 +98,9 @@ class ClientFunctionalTest extends BaseTest
             'result' => [],
             'usageData' => [],
             'isFinished' => false,
+            'startTime' => null,
+            'endTime' => null,
+            'durationSeconds' => 0,
         ];
         self::assertEquals($expected, $response);
     }
@@ -106,9 +109,9 @@ class ClientFunctionalTest extends BaseTest
     {
         $client = $this->getClient();
         $job = $client->getJobFactory()->createNewJob([
-            'token' => getenv('TEST_STORAGE_API_TOKEN'),
-            'config' => '454124290',
-            'component' => 'keboola.ex-db-snowflake',
+            'tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+            'configId' => '454124290',
+            'componentId' => 'keboola.ex-db-snowflake',
             'mode' => 'run',
         ]);
         $createdJob = $client->createJob($job);
@@ -134,9 +137,9 @@ class ClientFunctionalTest extends BaseTest
     {
         $client = $this->getClient();
         $job = $client->getJobFactory()->createNewJob([
-            'token' => getenv('TEST_STORAGE_API_TOKEN'),
-            'config' => '454124290',
-            'component' => 'keboola.ex-db-snowflake',
+            'tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+            'configId' => '454124290',
+            'componentId' => 'keboola.ex-db-snowflake',
             'mode' => 'run',
         ]);
         $createdJob = $client->createJob($job);
@@ -152,9 +155,9 @@ class ClientFunctionalTest extends BaseTest
     {
         $client = $this->getClient();
         $job = $client->getJobFactory()->createNewJob([
-            'token' => getenv('TEST_STORAGE_API_TOKEN'),
-            'config' => '454124290',
-            'component' => 'keboola.ex-db-snowflake',
+            'tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+            'configId' => '454124290',
+            'componentId' => 'keboola.ex-db-snowflake',
             'mode' => 'run',
         ]);
         $createdJob = $client->createJob($job);
@@ -169,9 +172,9 @@ class ClientFunctionalTest extends BaseTest
     {
         $client = $this->getClient();
         $job = $client->getJobFactory()->createNewJob([
-            'token' => getenv('TEST_STORAGE_API_TOKEN'),
-            'config' => '(*^&^$%£  $"£)?! \'',
-            'component' => '[]{}=žýřčšěš',
+            'tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+            'configId' => '(*^&^$%£  $"£)?! \'',
+            'componentId' => '[]{}=žýřčšěš',
             'mode' => 'run',
         ]);
         $createdJob = $client->createJob($job);
@@ -207,9 +210,9 @@ class ClientFunctionalTest extends BaseTest
     {
         $client = $this->getClient();
         $job = $client->getJobFactory()->createNewJob([
-            'token' => getenv('TEST_STORAGE_API_TOKEN'),
-            'config' => '454124290',
-            'component' => 'keboola.ex-db-snowflake',
+            'tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+            'configId' => '454124290',
+            'componentId' => 'keboola.ex-db-snowflake',
             'mode' => 'run',
         ]);
         $createdJob = $client->createJob($job);
@@ -227,9 +230,9 @@ class ClientFunctionalTest extends BaseTest
     {
         $client = $this->getClient();
         $job = $client->getJobFactory()->createNewJob([
-            'token' => getenv('TEST_STORAGE_API_TOKEN'),
-            'config' => '454124290',
-            'component' => 'keboola.ex-db-snowflake',
+            'tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+            'configId' => '454124290',
+            'componentId' => 'keboola.ex-db-snowflake',
             'mode' => 'run',
         ]);
         $createdJob = $client->createJob($job);
@@ -248,9 +251,9 @@ class ClientFunctionalTest extends BaseTest
         $client = $this->getClient();
 
         $job = $client->getJobFactory()->createNewJob([
-            'token' => getenv('TEST_STORAGE_API_TOKEN'),
-            'config' => '454124290',
-            'component' => 'keboola.ex-db-snowflake',
+            'tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+            'configId' => '454124290',
+            'componentId' => 'keboola.ex-db-snowflake',
             'mode' => 'run',
         ]);
         $client->createJob($job);

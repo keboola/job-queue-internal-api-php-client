@@ -104,7 +104,7 @@ class JobFactory
     private function initializeNewJobData(array $data): array
     {
         try {
-            $client = $this->storageClientFactory->getClient($data['token']);
+            $client = $this->storageClientFactory->getClient($data['tokenString']);
             $tokenInfo = $client->verifyToken();
             $jobId = $client->generateId();
             $runId = empty($data['parentRunId']) ? $jobId : $data['parentRunId'] . Job::RUN_ID_DELIMITER . $jobId;
@@ -116,12 +116,12 @@ class JobFactory
             );
         }
         $this->objectEncryptorFactory->setProjectId($tokenInfo['owner']['id']);
-        $this->objectEncryptorFactory->setComponentId($data['component']);
+        $this->objectEncryptorFactory->setComponentId($data['componentId']);
         $this->objectEncryptorFactory->setStackId(
             (string) parse_url($this->storageClientFactory->getStorageApiUrl(), PHP_URL_HOST)
         );
         $encryptedToken = $this->objectEncryptorFactory->getEncryptor()->encrypt(
-            $data['token'],
+            $data['tokenString'],
             ProjectWrapper::class
         );
 
@@ -136,10 +136,10 @@ class JobFactory
             'status' => self::STATUS_CREATED,
             'desiredStatus' => self::DESIRED_STATUS_PROCESSING,
             'mode' => $data['mode'],
-            'component' => $data['component'],
-            'configId' => $data['config'] ?? null,
+            'componentId' => $data['componentId'],
+            'configId' => $data['configId'] ?? null,
             'configData' => $data['configData'] ?? null, //@todo encrypt configData?
-            'configRowId' => $data['row'] ?? null,
+            'configRowId' => $data['configRowId'] ?? null,
             'tag' => $data['tag'] ?? null,
             'result' => [],
             'usageData' => [],

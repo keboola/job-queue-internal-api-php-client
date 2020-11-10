@@ -31,9 +31,9 @@ class NewJobDefinition implements ConfigurationInterface
         // @formatter:off
         $rootNode
             ->children()
-                ->scalarNode('token')->isRequired()->cannotBeEmpty()->end()
-                ->scalarNode('config')->end()
-                ->scalarNode('component')->isRequired()->cannotBeEmpty()->end()
+                ->scalarNode('tokenString')->isRequired()->cannotBeEmpty()->end()
+                ->scalarNode('configId')->end()
+                ->scalarNode('componentId')->isRequired()->cannotBeEmpty()->end()
                 ->arrayNode('result')->ignoreExtraKeys(false)->end()
                 ->scalarNode('mode')->defaultValue('run')
                     ->validate()
@@ -41,7 +41,7 @@ class NewJobDefinition implements ConfigurationInterface
                         ->thenInvalid('Mode must be one of "run" or "debug".')
                     ->end()
                 ->end()
-                ->scalarNode('row')->end()
+                ->scalarNode('configRowId')->end()
                 ->scalarNode('tag')->end()
                 ->scalarNode('parentRunId')->end()
                 ->arrayNode('configData')->ignoreExtraKeys(false)->end()
