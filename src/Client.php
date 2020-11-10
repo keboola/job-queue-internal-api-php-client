@@ -103,7 +103,7 @@ class Client
 
     public function listJobs(JobListOptions $listOptions): array
     {
-        $request = new Request('GET', 'jobs/?' . implode('&', $listOptions->getQueryParameters()));
+        $request = new Request('GET', 'jobs?' . implode('&', $listOptions->getQueryParameters()));
         $result = $this->sendRequest($request);
         return $this->mapJobsFromResponse($result);
     }
