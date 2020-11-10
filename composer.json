@@ -29,7 +29,7 @@
         "php": "^7.3",
         "ext-json": "*",
         "guzzlehttp/guzzle": "^6.3",
-        "keboola/object-encryptor": "^0.2",
+        "keboola/object-encryptor": "^0.3",
         "keboola/storage-api-client": "^10.6",
         "psr/log": "^1.1",
         "symfony/config": "^4.4",
