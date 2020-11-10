@@ -23,7 +23,6 @@ steps:
     docker-compose down
     docker-compose build --pull
     docker-compose pull
-    docker images --digests
   displayName: 'Build Tests'
 
 - script: docker-compose run --rm tests

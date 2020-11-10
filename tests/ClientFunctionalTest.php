@@ -98,9 +98,6 @@ class ClientFunctionalTest extends BaseTest
             'result' => [],
             'usageData' => [],
             'isFinished' => false,
-            'startTime' => null,
-            'endTime' => null,
-            'durationSeconds' => 0,
         ];
         self::assertEquals($expected, $response);
     }
@@ -256,12 +253,13 @@ class ClientFunctionalTest extends BaseTest
             'componentId' => 'keboola.ex-db-snowflake',
             'mode' => 'run',
         ]);
+
         $client->createJob($job);
         $client = $this->getClient();
         $response = $client->listJobs(
             (new JobListOptions())
-                ->setProjects([$job->getProjectId()])
-                ->setComponents(['keboola.non-existing-component'])
+                ->setProjects(['123'])
+                ->setComponents(['keboola.non-existent'])
         );
 
         self::assertCount(0, $response);
