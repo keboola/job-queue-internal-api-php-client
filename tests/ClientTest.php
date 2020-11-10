@@ -120,25 +120,24 @@ class ClientTest extends BaseTest
                 ['Content-Type' => 'application/json'],
                 '{
                     "id": "123",
-                    "project": {
-                        "id": "456"
-                    },
-                    "token": {
-                        "id": "789",
-                        "token": "KBC::ProjectSecure::aSdF"
-                    },
+                    "projectId": "456",
+                    "projectName": "Test project",
+                    "tokenId": "789",
+                    "tokenString": "KBC::ProjectSecure::aSdF",
+                    "tokenDescription": "my token",
                     "status": "created",
-                    "params": {
-                        "mode": "run",
-                        "component": "keboola.test",
-                        "config": "123456",
-                        "configData": {
-                            "parameters": {
-                                "foo": "bar"
-                            }
+                    "desiredStatus": "processing",
+                    "mode": "run",
+                    "componentId": "keboola.test",
+                    "configId": "123456",
+                    "configData": {
+                        "parameters": {
+                            "foo": "bar"
                         }
                     },
-                    "result": {}
+                    "result": {},
+                    "usageData": {},
+                    "isFinished": false
                 }'
             ),
         ]);
@@ -153,13 +152,15 @@ class ClientTest extends BaseTest
         self::assertEquals('123456', $job->getConfigId());
         self::assertEquals('keboola.test', $job->getComponentId());
         self::assertEquals('456', $job->getProjectId());
+        self::assertEquals('Test project', $job->getProjectName());
         self::assertEquals('run', $job->getMode());
         self::assertEquals('created', $job->getStatus());
         self::assertEquals([], $job->getResult());
+        self::assertEquals([], $job->getUsageData());
         self::assertNull($job->getTag());
-        self::assertNull($job->getRowId());
+        self::assertNull($job->getConfigRowId());
         self::assertFalse($job->isFinished());
-        self::assertStringStartsWith('KBC::ProjectSecure::', $job->getToken());
+        self::assertStringStartsWith('KBC::ProjectSecure::', $job->getTokenString());
         self::assertEquals(['parameters' => ['foo' => 'bar']], $job->getConfigData());
         self::assertCount(1, $requestHistory);
         /** @var Request $request */
@@ -199,19 +200,24 @@ class ClientTest extends BaseTest
                 ['Content-Type' => 'application/json'],
                 '{
                     "id": "123",
-                    "project": {
-                        "id": "456"
-                    },
-                    "token": {
-                        "id": "789",
-                        "token": "KBC::ProjectSecure::eJwBYAGf"
-                    },
+                    "projectId": "456",
+                    "projectName": "Test project",
+                    "tokenId": "789",
+                    "tokenString": "KBC::ProjectSecure::aSdF",
+                    "tokenDescription": "my token",
                     "status": "created",
-                    "params": {
-                        "mode": "run",
-                        "component": "keboola.test",
-                        "config": "123456"
-                    }
+                    "desiredStatus": "processing",
+                    "mode": "run",
+                    "componentId": "keboola.test",
+                    "configId": "123456",
+                    "configData": {
+                        "parameters": {
+                            "foo": "bar"
+                        }
+                    },
+                    "result": {},
+                    "usageData": {},
+                    "isFinished": false
                 }'
             ),
         ]);
@@ -248,19 +254,24 @@ class ClientTest extends BaseTest
                 ['Content-Type' => 'application/json'],
                 '{
                     "id": "123",
-                    "project": {
-                        "id": "456"
-                    },
-                    "token": {
-                        "id": "789",
-                        "token": "KBC::ProjectSecure::aSdF"
-                    },
+                    "projectId": "456",
+                    "projectName": "Test project",
+                    "tokenId": "789",
+                    "tokenString": "KBC::ProjectSecure::aSdF",
+                    "tokenDescription": "my token",
                     "status": "created",
-                    "params": {
-                        "mode": "run",
-                        "component": "keboola.test",
-                        "config": "123456"
-                    }
+                    "desiredStatus": "processing",
+                    "mode": "run",
+                    "componentId": "keboola.test",
+                    "configId": "123456",
+                    "configData": {
+                        "parameters": {
+                            "foo": "bar"
+                        }
+                    },
+                    "result": {},
+                    "usageData": {},
+                    "isFinished": false
                 }'
             ),
         ]);
@@ -385,7 +396,7 @@ class ClientTest extends BaseTest
         $client = $this->getClient(['handler' => $stack]);
         $job = self::getMockBuilder(Job::class)
             ->disableOriginalConstructor()
-            ->setMethods(['jsonSerialize'])
+            ->onlyMethods(['jsonSerialize'])
             ->getMock();
         $job->method('jsonSerialize')->willReturn(['foo' => fopen('php://memory', 'rw')]);
         /** @var Job $job */
@@ -400,16 +411,13 @@ class ClientTest extends BaseTest
             new Response(
                 200,
                 ['Content-Type' => 'application/json'],
-                '[{
-                    "id": "123",
-                    "project": {
-                        "id": "456"
-                    },
-                    "token": {
-                        "id": "789",
-                        "token": "KBC::ProjectSecure::aSdF"
-                    },
-                    "status": "created"
+                '[{                    
+                    "projectId": "456",
+                    "projectName": "Test project",
+                    "tokenId": "789",
+                    "tokenString": "KBC::ProjectSecure::aSdF",
+                    "tokenDescription": "my token",
+                    "status": "created"                    
                 }]'
             ),
         ]);
@@ -423,7 +431,7 @@ class ClientTest extends BaseTest
         $jobs = $client->getJobsWithIds(['123']);
         self::assertCount(0, $jobs);
         self::assertTrue($logger->hasErrorThatContains(
-            'Failed to parse Job data: The child node "params" at path "job" must be configured.'
+            'Failed to parse Job data: The child node "id" at path "job" must be configured.'
         ));
     }
 
@@ -435,19 +443,24 @@ class ClientTest extends BaseTest
                 ['Content-Type' => 'application/json'],
                 '[{
                     "id": "123",
-                    "project": {
-                        "id": "456"
-                    },
-                    "token": {
-                        "id": "789",
-                        "token": "KBC::ProjectSecure::aSdF"
-                    },
+                    "projectId": "456",
+                    "projectName": "Test project",
+                    "tokenId": "789",
+                    "tokenString": "KBC::ProjectSecure::aSdF",
+                    "tokenDescription": "my token",
                     "status": "created",
-                    "params": {
-                        "mode": "run",
-                        "component": "keboola.test",
-                        "config": "123456"
-                    }
+                    "desiredStatus": "processing",
+                    "mode": "run",
+                    "componentId": "keboola.test",
+                    "configId": "123456",
+                    "configData": {
+                        "parameters": {
+                            "foo": "bar"
+                        }
+                    },
+                    "result": {},
+                    "usageData": {},
+                    "isFinished": false
                 }]'
             ),
         ]);
@@ -467,7 +480,7 @@ class ClientTest extends BaseTest
         self::assertEquals('456', $job->getProjectId());
 
         $request = $mock->getLastRequest();
-        self::assertEquals('project%5B%5D=456&limit=100', $request->getUri()->getQuery());
+        self::assertEquals('projectId%5B%5D=456&limit=100', $request->getUri()->getQuery());
     }
 
     public function testClientGetJobsEscaping(): void
@@ -478,19 +491,24 @@ class ClientTest extends BaseTest
                 ['Content-Type' => 'application/json'],
                 '[{
                     "id": "123",
-                    "project": {
-                        "id": "šěřč!@#%^$&"
-                    },
-                    "token": {
-                        "id": "789",
-                        "token": "KBC::ProjectSecure::aSdF"
-                    },
+                    "projectId": "šěřč!@#%^$&",
+                    "projectName": "Test project",
+                    "tokenId": "789",
+                    "tokenString": "KBC::ProjectSecure::aSdF",
+                    "tokenDescription": "my token",
                     "status": "created",
-                    "params": {
-                        "mode": "run",
-                        "component": "th!$ |& n°t valid",
-                        "config": "123456"
-                    }
+                    "desiredStatus": "processing",
+                    "mode": "run",
+                    "componentId": "th!$ |& n°t valid",
+                    "configId": "123456",
+                    "configData": {
+                        "parameters": {
+                            "foo": "bar"
+                        }
+                    },
+                    "result": {},
+                    "usageData": {},
+                    "isFinished": false
                 }]'
             ),
         ]);
@@ -513,8 +531,8 @@ class ClientTest extends BaseTest
 
         $request = $mock->getLastRequest();
         self::assertEquals(
-            'component%5B%5D=th%21%24+%7C%26+n%C2%B0t+valid&' .
-                'project%5B%5D=%C5%A1%C4%9B%C5%99%C4%8D%21%40%23%25%5E%24%26&limit=100',
+            'componentId%5B%5D=th%21%24+%7C%26+n%C2%B0t+valid&' .
+                'projectId%5B%5D=%C5%A1%C4%9B%C5%99%C4%8D%21%40%23%25%5E%24%26&limit=100',
             $request->getUri()->getQuery()
         );
     }

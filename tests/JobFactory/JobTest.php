@@ -13,22 +13,17 @@ class JobTest extends BaseTest
     /** @var array */
     private $jobData = [
         'id' => '123456456',
-        'params' => [
-            'config' => '454124290',
-            'component' => 'keboola.ex-db-snowflake',
-            'mode' => 'run',
-            'configData' => [
-                'parameters' => ['foo' => 'bar'],
-            ],
+        'configId' => '454124290',
+        'componentId' => 'keboola.ex-db-snowflake',
+        'mode' => 'run',
+        'configData' => [
+            'parameters' => ['foo' => 'bar'],
         ],
         'status' => 'created',
-        'project' => [
-            'id' => '123',
-        ],
-        'token' => [
-            'id' => '456',
-            'token' => 'KBC::ProjectSecure::token',
-        ],
+        'desiredStatus' => 'processing',
+        'projectId' => '123',
+        'tokenId' => '456',
+        'tokenString' => 'KBC::ProjectSecure::token',
     ];
 
     public function setUp(): void
@@ -51,7 +46,7 @@ class JobTest extends BaseTest
         self::assertEquals('454124290', $this->getJob()->getConfigId());
 
         $jobDataWithoutConfigId = $this->jobData;
-        unset($jobDataWithoutConfigId['params']['config']);
+        unset($jobDataWithoutConfigId['configId']);
         self::assertNull($this->getJob($jobDataWithoutConfigId)->getConfigId());
     }
 
@@ -95,11 +90,11 @@ class JobTest extends BaseTest
 
     public function testGetRowId(): void
     {
-        self::assertNull($this->getJob()->getRowId());
+        self::assertNull($this->getJob()->getConfigRowId());
 
         $jobDataWithRowId = $this->jobData;
-        $jobDataWithRowId['params']['row'] = '123456789';
-        self::assertSame('123456789', $this->getJob($jobDataWithRowId)->getRowId());
+        $jobDataWithRowId['configRowId'] = '123456789';
+        self::assertSame('123456789', $this->getJob($jobDataWithRowId)->getConfigRowId());
     }
 
     public function testGetStatus(): void
@@ -112,13 +107,13 @@ class JobTest extends BaseTest
         self::assertNull($this->getJob()->getTag());
 
         $jobDataWithTag = $this->jobData;
-        $jobDataWithTag['params']['tag'] = '1.1';
+        $jobDataWithTag['tag'] = '1.1';
         self::assertSame('1.1', $this->getJob($jobDataWithTag)->getTag());
     }
 
     public function testGetToken(): void
     {
-        self::assertStringStartsWith('KBC::ProjectSecure::', $this->getJob()->getToken());
+        self::assertStringStartsWith('KBC::ProjectSecure::', $this->getJob()->getTokenString());
     }
 
     public function testIsFinished(): void
@@ -134,14 +129,14 @@ class JobTest extends BaseTest
     public function testIsLegacyOrchestrator(): void
     {
         $jobData = $this->jobData;
-        $jobData['params']['component'] = 'orchestrator';
+        $jobData['componentId'] = 'orchestrator';
         self::assertTrue($this->getJob($jobData)->isLegacyComponent());
     }
 
     public function testLegacyOrchestratorJob(): void
     {
         $jobData = $this->jobData;
-        unset($jobData['params']['component']);
+        unset($jobData['componentId']);
         $job = $this->getJob($jobData);
         self::assertEquals('', $job->getComponentId());
         self::assertTrue($job->isLegacyComponent());
