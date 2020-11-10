@@ -122,7 +122,7 @@ class JobFactory
         );
         $encryptedToken = $this->objectEncryptorFactory->getEncryptor()->encrypt(
             $data['tokenString'],
-            ProjectWrapper::class
+            $this->objectEncryptorFactory->getEncryptor()->getRegisteredProjectWrapperClass()
         );
 
         return [
