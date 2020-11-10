@@ -25,35 +25,73 @@ class FullJobDefinition extends NewJobDefinition
                 ->scalarNode('runId')
                     ->beforeNormalization()->always($this->getStringNormalizer())->end()
                 ->end()
-                ->scalarNode('lockName')->end()
-                ->scalarNode('component')->end()
-                ->scalarNode('command')->end()
-                ->arrayNode('result')->ignoreExtraKeys(false)->end()
+                ->scalarNode('projectId')
+                    ->isRequired()->cannotBeEmpty()
+                    ->beforeNormalization()->always($this->getStringNormalizer())->end()
+                ->end()
+                ->scalarNode('projectName')
+                    ->beforeNormalization()->always($this->getStringNormalizer())->end()
+                ->end()
+                ->scalarNode('tokenId')
+                    ->isRequired()->cannotBeEmpty()
+                    ->beforeNormalization()->always($this->getStringNormalizer())->end()
+                ->end()
+                ->scalarNode('tokenDescription')
+                    ->beforeNormalization()->always($this->getStringNormalizer())->end()
+                ->end()
+                ->scalarNode('tokenString')
+                    ->isRequired()->cannotBeEmpty()
+                    ->beforeNormalization()->always($this->getStringNormalizer())->end()
+                ->end()
+                ->scalarNode('componentId')
+                    ->cannotBeEmpty()->isRequired()
+                    ->beforeNormalization()->always($this->getStringNormalizer())->end()
+                ->end()
+                ->scalarNode('configId')
+                    ->beforeNormalization()->always($this->getStringNormalizer())->end()
+                ->end()
+                ->scalarNode('mode')
+                    ->validate()
+                        ->ifNotInArray(['run', 'debug',
+                            // these are only for compatibility with transformation jobs, not used on new jobs
+                            'dry-run', 'prepare', 'input', 'full', 'single',
+                        ])
+                        ->thenInvalid(
+                            'Mode must be one of "run" or "debug" (or "dry-run","prepare","input","full","single").'
+                        )
+                    ->end()
+                ->end()
+                ->scalarNode('configRowId')
+                    ->defaultNull()
+                    ->beforeNormalization()->always($this->getStringNormalizer())->end()
+                ->end()
+                ->scalarNode('tag')
+                    ->defaultNull()
+                    ->beforeNormalization()->always($this->getStringNormalizer())->end()
+                ->end()
+                ->arrayNode('configData')->ignoreExtraKeys(false)->end()
                 ->scalarNode('createdTime')->end()
                 ->scalarNode('startTime')->end()
                 ->scalarNode('endTime')->end()
                 ->scalarNode('durationSeconds')->end()
-                ->scalarNode('waitSeconds')->end()
-                ->scalarNode('nestingLevel')->end()
-                ->scalarNode('error')->end()
-                ->scalarNode('errorNote')->end()
-                ->scalarNode('encrypted')->end()
-                ->arrayNode('terminatedBy')->ignoreExtraKeys(false)->end()
-                ->arrayNode('usage')->ignoreExtraKeys(false)->end()
+                ->arrayNode('result')->ignoreExtraKeys(false)->end()
+                ->arrayNode('usageData')->ignoreExtraKeys(false)->end()
                 ->scalarNode('status')->isRequired()
                     ->validate()
                         ->ifNotInArray(JobFactory::getAllStatuses())
                         ->thenInvalid('Status must be one of ' . implode(', ', JobFactory::getAllStatuses()) . '.')
                     ->end()
                 ->end()
-                ->arrayNode('process')->ignoreExtraKeys(false)->end()
-                ->scalarNode('isFinished')->end()
+                ->scalarNode('desiredStatus')->isRequired()
+                    ->validate()
+                        ->ifNotInArray(JobFactory::getAllStatuses())
+                        ->thenInvalid('Status must be one of ' . implode(', ', JobFactory::getAllStatuses()) . '.')
+                    ->end()
+                ->end()
+                ->scalarNode('isFinished')
+                    ->defaultFalse()
+                ->end()
                 ->scalarNode('url')->end()
-                ->scalarNode('_index')->end()
-                ->scalarNode('_type')->end()
-                ->append($this->addTokenNode())
-                ->append($this->addProjectNode())
-                ->append($this->addParamsNode())
             ->end();
         // @formatter:on
 
@@ -69,96 +107,5 @@ class FullJobDefinition extends NewJobDefinition
                 return $v;
             }
         };
-    }
-
-    private function addProjectNode(): NodeDefinition
-    {
-        $treeBuilder = new TreeBuilder('project');
-
-        /** @var ArrayNodeDefinition $node */
-        $node = $treeBuilder->getRootNode();
-
-        $node->isRequired()
-            ->children()
-                ->scalarNode('id')
-                    ->isRequired()->cannotBeEmpty()
-                    ->beforeNormalization()->always($this->getStringNormalizer())->end()
-                ->end()
-                ->scalarNode('name')
-                    ->beforeNormalization()->always($this->getStringNormalizer())->end()
-                ->end()
-            ->end()
-        ->end();
-
-        return $node;
-    }
-
-    private function addTokenNode(): NodeDefinition
-    {
-        $treeBuilder = new TreeBuilder('token');
-
-        /** @var ArrayNodeDefinition $node */
-        $node = $treeBuilder->getRootNode();
-
-        $node->isRequired()
-            ->children()
-                ->scalarNode('id')
-                    ->isRequired()->cannotBeEmpty()
-                    ->beforeNormalization()->always($this->getStringNormalizer())->end()
-                ->end()
-                ->scalarNode('description')
-                    ->beforeNormalization()->always($this->getStringNormalizer())->end()
-                ->end()
-                ->scalarNode('token')
-                    ->isRequired()->cannotBeEmpty()
-                    ->beforeNormalization()->always($this->getStringNormalizer())->end()
-                ->end()
-            ->end()
-        ->end();
-
-        return $node;
-    }
-
-    private function addParamsNode(): NodeDefinition
-    {
-        $treeBuilder = new TreeBuilder('params');
-
-        /** @var ArrayNodeDefinition $node */
-        $node = $treeBuilder->getRootNode();
-
-        $node->isRequired()
-            ->ignoreExtraKeys(false)
-            ->children()
-                ->scalarNode('config')
-                    ->beforeNormalization()->always($this->getStringNormalizer())->end()
-                ->end()
-                ->scalarNode('component')
-                    ->cannotBeEmpty()->isRequired()
-                    ->beforeNormalization()->always($this->getStringNormalizer())->end()
-                ->end()
-                ->scalarNode('mode')
-                    ->validate()
-                        ->ifNotInArray(['run', 'debug',
-                            // these are only for compatibility with transformation jobs, not used on new jobs
-                            'dry-run', 'prepare', 'input', 'full', 'single',
-                        ])
-                        ->thenInvalid(
-                            'Mode must be one of "run" or "debug" (or "dry-run","prepare","input","full","single").'
-                        )
-                    ->end()
-                ->end()
-                ->scalarNode('row')
-                    ->defaultNull()
-                    ->beforeNormalization()->always($this->getStringNormalizer())->end()
-                ->end()
-                ->scalarNode('tag')
-                    ->defaultNull()
-                    ->beforeNormalization()->always($this->getStringNormalizer())->end()
-                ->end()
-                ->arrayNode('configData')->ignoreExtraKeys(false)->end()
-            ->end()
-        ->end();
-
-        return $node;
     }
 }

@@ -2,3 +2,9 @@ parameters:
     checkMissingIterableValueType: false
     ignoreErrors:
         - '#Cannot call method scalarNode\(\) on Symfony\\Component\\Config\\Definition\\Builder\\NodeParentInterface\|null\.#'
+        -
+            message: '#Unreachable statement \- code above always terminates\.#'
+            path: tests/JobFactory/FullJobDefinitionTest.php
+        -
+            message: '#Unreachable statement \- code above always terminates\.#'
+            path:  tests/JobFactoryTest.php
