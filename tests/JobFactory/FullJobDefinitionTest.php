@@ -22,7 +22,7 @@ class FullJobDefinitionTest extends BaseTest
             'configData' => [
                 'foo' => 'bar',
             ],
-            'component' => 'keboola.test',
+            'componentId' => 'keboola.test',
             'mode' => 'run',
             'id' => '1234',
             'result' => [
@@ -46,7 +46,7 @@ class FullJobDefinitionTest extends BaseTest
             'tokenId' => '12345',
             'projectId' => '123',
             'configId' => '123',
-            'component' => 'keboola.test',
+            'componentId' => 'keboola.test',
             'mode' => 'run',
             'configRowId' => '234',
             'configData' => [
@@ -77,7 +77,7 @@ class FullJobDefinitionTest extends BaseTest
                 'id' => 123456,
                 'name' => 'Test orchestration',
             ],
-            'component' => 'orchestrator',
+            'componentId' => 'orchestrator',
             'initializedBy' => 'trigger',
             'initiator' => [
                 'id' => 199182,
@@ -91,7 +91,7 @@ class FullJobDefinitionTest extends BaseTest
                     'actionParameters' => [
                         'config' => '554424643',
                     ],
-                    'component' => 'keboola.ex-db-snowflake',
+                    'componentId' => 'keboola.ex-db-snowflake',
                     'action' => 'run',
                     'active' => true,
                     'continueOnFailure' => false,
@@ -122,13 +122,13 @@ class FullJobDefinitionTest extends BaseTest
                     'projectId' => '123',
                     'status' => 'created',
                     'configId' => '123',
-                    'component' => 'keboola.test',
+                    'componentId' => 'keboola.test',
                     'mode' => 'run',
                 ],
                 'The child node "tokenString" at path "job" must be configured.',
             ],
             /*
-            'Missing component' => [
+            'Missing componentId' => [
                 [
                     'token' => [
                         'token' => getenv('TEST_STORAGE_API_TOKEN'),
@@ -144,7 +144,7 @@ class FullJobDefinitionTest extends BaseTest
                         'mode' => 'run',
                     ],
                 ],
-                'The child node "component" at path "job.params" must be configured.',
+                'The child node "componentId" at path "job.params" must be configured.',
             ],
             'Missing mode' => [
                 [
@@ -159,7 +159,7 @@ class FullJobDefinitionTest extends BaseTest
                     'status' => 'created',
                     'params' => [
                         'configId' => '123',
-                        'component' => 'keboola.test',
+                        'componentId' => 'keboola.test',
                     ],
                 ],
                 'The child node "mode" at path "job.params" must be configured.',
@@ -173,7 +173,7 @@ class FullJobDefinitionTest extends BaseTest
                     'id' => '12345',
                     'status' => 'created',
                     'configId' => '123',
-                    'component' => 'keboola.test',
+                    'componentId' => 'keboola.test',
                     'mode' => 'invalid',
                 ],
                 'Invalid configuration for path "job.mode": Mode must be one of "run" ' .
@@ -188,7 +188,7 @@ class FullJobDefinitionTest extends BaseTest
                     'status' => 'created',
                     'configId' => '123',
                     'configData' => '345',
-                    'component' => 'keboola.test',
+                    'componentId' => 'keboola.test',
                     'mode' => 'run',
                 ],
                 'Invalid type for path "job.configData". Expected array, but got string',
@@ -201,7 +201,7 @@ class FullJobDefinitionTest extends BaseTest
                     'id' => '12345',
                     'status' => 'created',
                     'configId' => '123',
-                    'component' => 'keboola.test',
+                    'componentId' => 'keboola.test',
                     'mode' => 'run',
                     'configRowId' => ['123'],
                 ],
@@ -215,7 +215,7 @@ class FullJobDefinitionTest extends BaseTest
                     'id' => '12345',
                     'status' => 'created',
                     'configId' => '123',
-                    'component' => 'keboola.test',
+                    'componentId' => 'keboola.test',
                     'mode' => 'run',
                     'tag' => ['234'],
                 ],
@@ -228,7 +228,7 @@ class FullJobDefinitionTest extends BaseTest
                     'projectId' => '123',
                     'status' => 'created',
                     'configId' => '123',
-                    'component' => 'keboola.test',
+                    'componentId' => 'keboola.test',
                     'mode' => 'run',
                 ],
                 'The child node "id" at path "job" must be configured.',
@@ -240,7 +240,7 @@ class FullJobDefinitionTest extends BaseTest
                     'projectId' => '123',
                     'id' => '12345',
                     'configId' => '123',
-                    'component' => 'keboola.test',
+                    'componentId' => 'keboola.test',
                     'mode' => 'run',
                 ],
                 'The child node "status" at path "job" must be configured.',
@@ -253,7 +253,7 @@ class FullJobDefinitionTest extends BaseTest
                     'id' => '12345',
                     'status' => 'invalid',
                     'configId' => '123',
-                    'component' => 'keboola.test',
+                    'componentId' => 'keboola.test',
                     'mode' => 'run',
                 ],
                 'Invalid configuration for path "job.status": Status must be one of cancelled, created, error, ' .
@@ -266,7 +266,7 @@ class FullJobDefinitionTest extends BaseTest
                     'id' => '12345',
                     'status' => 'created',
                     'configId' => '123',
-                    'component' => 'keboola.test',
+                    'componentId' => 'keboola.test',
                     'mode' => 'run',
                 ],
                 'The child node "projectId" at path "job" must be configured.',
@@ -278,7 +278,7 @@ class FullJobDefinitionTest extends BaseTest
                     'id' => '12345',
                     'status' => 'created',
                     'configId' => '123',
-                    'component' => 'keboola.test',
+                    'componentId' => 'keboola.test',
                     'mode' => 'run',
                 ],
                 'The child node "tokenId" at path "job" must be configured.',

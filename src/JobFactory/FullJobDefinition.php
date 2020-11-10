@@ -43,7 +43,7 @@ class FullJobDefinition extends NewJobDefinition
                     ->isRequired()->cannotBeEmpty()
                     ->beforeNormalization()->always($this->getStringNormalizer())->end()
                 ->end()
-                ->scalarNode('component')
+                ->scalarNode('componentId')
                     ->cannotBeEmpty()->isRequired()
                     ->beforeNormalization()->always($this->getStringNormalizer())->end()
                 ->end()

@@ -128,7 +128,7 @@ class ClientTest extends BaseTest
                     "status": "created",
                     "desiredStatus": "processing",
                     "mode": "run",
-                    "component": "keboola.test",
+                    "componentId": "keboola.test",
                     "configId": "123456",
                     "configData": {
                         "parameters": {
@@ -208,7 +208,7 @@ class ClientTest extends BaseTest
                     "status": "created",
                     "desiredStatus": "processing",
                     "mode": "run",
-                    "component": "keboola.test",
+                    "componentId": "keboola.test",
                     "configId": "123456",
                     "configData": {
                         "parameters": {
@@ -262,7 +262,7 @@ class ClientTest extends BaseTest
                     "status": "created",
                     "desiredStatus": "processing",
                     "mode": "run",
-                    "component": "keboola.test",
+                    "componentId": "keboola.test",
                     "configId": "123456",
                     "configData": {
                         "parameters": {
@@ -451,7 +451,7 @@ class ClientTest extends BaseTest
                     "status": "created",
                     "desiredStatus": "processing",
                     "mode": "run",
-                    "component": "keboola.test",
+                    "componentId": "keboola.test",
                     "configId": "123456",
                     "configData": {
                         "parameters": {
@@ -499,7 +499,7 @@ class ClientTest extends BaseTest
                     "status": "created",
                     "desiredStatus": "processing",
                     "mode": "run",
-                    "component": "th!$ |& n°t valid",
+                    "componentId": "th!$ |& n°t valid",
                     "configId": "123456",
                     "configData": {
                         "parameters": {
@@ -531,7 +531,7 @@ class ClientTest extends BaseTest
 
         $request = $mock->getLastRequest();
         self::assertEquals(
-            'component%5B%5D=th%21%24+%7C%26+n%C2%B0t+valid&' .
+            'componentId%5B%5D=th%21%24+%7C%26+n%C2%B0t+valid&' .
                 'projectId%5B%5D=%C5%A1%C4%9B%C5%99%C4%8D%21%40%23%25%5E%24%26&limit=100',
             $request->getUri()->getQuery()
         );

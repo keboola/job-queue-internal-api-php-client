@@ -42,7 +42,7 @@ class Job implements JsonSerializable
 
     public function getComponentId(): string
     {
-        return $this->data['component'] ?? '';
+        return $this->data['componentId'] ?? '';
     }
 
     public function getConfigData(): array
