@@ -261,7 +261,7 @@ class ClientFunctionalTest extends BaseTest
         $client = $this->getClient();
         $response = $client->listJobs(
             (new JobListOptions())
-                ->setProjects(['123'])
+                ->setProjects([$job->getProjectId()])
                 ->setComponents(['keboola.non-existent'])
         );
 
