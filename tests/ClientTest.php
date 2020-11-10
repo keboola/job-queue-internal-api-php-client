@@ -24,7 +24,7 @@ class ClientTest extends BaseTest
     private function getJobFactory(): JobFactory
     {
         $storageClientFactory = new JobFactory\StorageClientFactory('http://example.com/');
-        $objectEncryptorFactory = new ObjectEncryptorFactory('alias/some-key', 'us-east-1', '', '');
+        $objectEncryptorFactory = new ObjectEncryptorFactory('alias/some-key', 'us-east-1', '', '', '');
         return new JobFactory($storageClientFactory, $objectEncryptorFactory);
     }
 
