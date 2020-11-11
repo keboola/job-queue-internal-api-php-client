@@ -19,7 +19,26 @@ class ClientFunctionalTest extends BaseTest
         parent::setUp();
         putenv('AWS_ACCESS_KEY_ID=' . getenv('TEST_AWS_ACCESS_KEY_ID'));
         putenv('AWS_SECRET_ACCESS_KEY=' . getenv('TEST_AWS_SECRET_ACCESS_KEY'));
+        putenv('AZURE_TENANT_ID=' . getenv('TEST_AZURE_TENANT_ID'));
+        putenv('AZURE_CLIENT_ID=' . getenv('TEST_AZURE_CLIENT_ID'));
+        putenv('AZURE_CLIENT_SECRET=' . getenv('TEST_AZURE_CLIENT_SECRET'));
         $this->cleanJobs();
+    }
+
+    public function cipherProvider(): array
+    {
+        return [
+            'azure' => [
+                'kmsKeyId' => '',
+                'keyVaultUrl' => getenv('TEST_AZURE_KEY_VAULT_URL'),
+                'KBC::ProjectSecureKV::',
+            ],
+            'aws' => [
+                'kmsKeyId' => getenv('TEST_KMS_KEY_ID'),
+                'keyVaultUrl' => '',
+                'KBC::ProjectSecure::',
+            ],
+        ];
     }
 
     private function cleanJobs(): void
@@ -34,31 +53,38 @@ class ClientFunctionalTest extends BaseTest
         }
     }
 
-    private function getJobFactory(): JobFactory
+    private function getJobFactory(?string $kmsKeyId = null, ?string $keyVaultUrl = null): JobFactory
     {
         $storageClientFactory = new JobFactory\StorageClientFactory((string) getenv('TEST_STORAGE_API_URL'));
         $objectEncryptorFactory = new ObjectEncryptorFactory(
-            (string) getenv('TEST_KMS_KEY_ALIAS'),
+            $kmsKeyId ?? (string) getenv('TEST_KMS_KEY_ID'),
             (string) getenv('TEST_KMS_REGION'),
             '',
-            ''
+            '',
+            $keyVaultUrl ?? (string) getenv('TEST_AZURE_KEY_VAULT_URL')
         );
         return new JobFactory($storageClientFactory, $objectEncryptorFactory);
     }
 
-    private function getClient(): Client
+    private function getClient(?string $kmsKeyId = null, ?string $keyVaultUrl = null): Client
     {
         return new Client(
             new NullLogger(),
-            $this->getJobFactory(),
+            $this->getJobFactory($kmsKeyId, $keyVaultUrl),
             (string) getenv('TEST_QUEUE_API_URL'),
             'dummy'
         );
     }
 
-    public function testCreateJob(): void
+    /**
+     * @param string $kmsKeyId
+     * @param string $keyVaultUrl
+     * @param string $cipherPrefix
+     * @dataProvider cipherProvider
+     */
+    public function testCreateJob(string $kmsKeyId, string $keyVaultUrl, string $cipherPrefix): void
     {
-        $client = $this->getClient();
+        $client = $this->getClient($kmsKeyId, $keyVaultUrl);
         $job = $client->getJobFactory()->createNewJob([
             'tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
             'configId' => '454124290',
@@ -78,7 +104,7 @@ class ClientFunctionalTest extends BaseTest
             ]
         );
         $tokenInfo = $storageClient->verifyToken();
-        self::assertStringStartsWith('KBC::ProjectSecure::', $response['tokenString']);
+        self::assertStringStartsWith($cipherPrefix, $response['tokenString']);
         unset($response['tokenString']);
         self::assertNotEmpty($response['runId']);
         unset($response['runId']);
