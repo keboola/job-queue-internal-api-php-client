@@ -66,7 +66,7 @@ $client->postJobResult('123', 'success', ['images' => ['digests' => []]]);
     az ad sp create-for-rbac --name testing-job-queue-internal-api-php-client
     ```
 
-- Use the response to set values `TEST_AZUERE_CLIENT_ID`, `TEST_AZURE_CLIENT_SECRET` and `TEST_AZURE_TENANT_ID` in the `.env.` file:
+- Use the response to set values `TEST_AZURE_CLIENT_ID`, `TEST_AZURE_CLIENT_SECRET` and `TEST_AZURE_TENANT_ID` in the `.env.` file:
     ```json 
     {
       "appId": "268a6f05-xxxxxxxxxxxxxxxxxxxxxxxxxxx", //-> TEST_CLIENT_ID
@@ -79,19 +79,24 @@ $client->postJobResult('123', 'success', ['images' => ['digests' => []]]);
 
 - Get ID of the service principal:
     ```bash
-    SERVICE_PRINCIPAL_ID=$(az ad sp list --display-name testing-job-queue-internal-api-php-client --query "[0].objectId")
+    SERVICE_PRINCIPAL_ID=$(az ad sp list --display-name testing-job-queue-internal-api-php-client --query "[0].objectId" --output tsv)
     ```
 
 - Get ID of a group to which the current user belongs (e.g. "Developers"):
     ```bash
-    GROUP_ID=$(az ad group list --display-name "Developers" --query "[0].objectId")
+    GROUP_ID=$(az ad group list --display-name "Developers" --query "[0].objectId" --output tsv)
     ```
 
 - Deploy the key vault, provide tenant ID, service principal ID and group ID from the previous commands:
     ```bash
     az deployment group create --resource-group testing-job-queue-internal-api-php-client --template-file provisioning/azure.json --parameters vault_name=testing-job-queue-internal-api-php-client tenant_id=9b85ee6f-4fb0-4a46-8cb7-4dcc6b262a89 service_principal_object_id=$SERVICE_PRINCIPAL_ID group_object_id=$GROUP_ID
     ```
-  returns e.g. `https://testing-key-vault-client.vault.azure.net/keys/test-key/b7c28xxxxxxxxxxxxxxxxxxxxxxxxxxx`, use this to set values in `.env` file:
+- Show Key Vault URL
+    ```bash
+    az keyvault show --name testing-job-queue-internal-api-php-client --query "properties.vaultUri" --output tsv
+    ```
+
+returns e.g. `https://testing-key-vault-client.vault.azure.net/`, use this to set values in `.env` file:
     - `TEST_AZURE_KEY_VAULT_URL` - https://testing-key-vault-client.vault.azure.net
 
 ## Run tests
