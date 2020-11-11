@@ -91,12 +91,12 @@ $client->postJobResult('123', 'success', ['images' => ['digests' => []]]);
     ```bash
     az deployment group create --resource-group testing-job-queue-internal-api-php-client --template-file provisioning/azure.json --parameters vault_name=testing-job-queue-internal-api-php-client tenant_id=9b85ee6f-4fb0-4a46-8cb7-4dcc6b262a89 service_principal_object_id=$SERVICE_PRINCIPAL_ID group_object_id=$GROUP_ID
     ```
-- Create a key in the Key Vault and get its URI
+- Create a key in the Key Vault
     ```bash
-    az keyvault key create --name test-key --vault-name testing-job-queue-api --query "key.kid" --output tsv
+    az keyvault show --name testing-job-queue-internal-api-php-client --query "properties.vaultUri" --output tsv
     ```
-  
-returns e.g. `https://testing-key-vault-client.vault.azure.net/keys/test-key/b7c28xxxxxxxxxxxxxxxxxxxxxxxxxxx`, use this to set values in `.env` file:
+
+returns e.g. `https://testing-key-vault-client.vault.azure.net/`, use this to set values in `.env` file:
     - `TEST_AZURE_KEY_VAULT_URL` - https://testing-key-vault-client.vault.azure.net
 
 ## Run tests
