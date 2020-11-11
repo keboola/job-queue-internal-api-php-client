@@ -66,7 +66,7 @@ $client->postJobResult('123', 'success', ['images' => ['digests' => []]]);
     az ad sp create-for-rbac --name testing-job-queue-internal-api-php-client
     ```
 
-- Use the response to set values `TEST_AZUERE_CLIENT_ID`, `TEST_AZURE_CLIENT_SECRET` and `TEST_AZURE_TENANT_ID` in the `.env.` file:
+- Use the response to set values `TEST_AZURE_CLIENT_ID`, `TEST_AZURE_CLIENT_SECRET` and `TEST_AZURE_TENANT_ID` in the `.env.` file:
     ```json 
     {
       "appId": "268a6f05-xxxxxxxxxxxxxxxxxxxxxxxxxxx", //-> TEST_CLIENT_ID
@@ -79,7 +79,7 @@ $client->postJobResult('123', 'success', ['images' => ['digests' => []]]);
 
 - Get ID of the service principal:
     ```bash
-    SERVICE_PRINCIPAL_ID=$(az ad sp list --display-name testing-job-queue-internal-api-php-client --query "[0].objectId")
+    SERVICE_PRINCIPAL_ID=$(az ad sp list --display-name testing-job-queue-internal-api-php-client --query "[0].objectId" --output tsv)
     ```
 
 - Get ID of a group to which the current user belongs (e.g. "Developers"):
