@@ -9,9 +9,6 @@ use Keboola\JobQueueInternalClient\JobFactory;
 use Keboola\JobQueueInternalClient\JobFactory\Job;
 use Keboola\ObjectEncryptor\Legacy\Encryptor;
 use Keboola\ObjectEncryptor\ObjectEncryptorFactory;
-use Keboola\ObjectEncryptor\Wrapper\ComponentWrapper;
-use Keboola\ObjectEncryptor\Wrapper\ConfigurationWrapper;
-use Keboola\ObjectEncryptor\Wrapper\ProjectWrapper;
 use Keboola\StorageApi\Client;
 
 class JobFactoryTest extends BaseTest
@@ -21,16 +18,20 @@ class JobFactoryTest extends BaseTest
         parent::setUp();
         putenv('AWS_ACCESS_KEY_ID=' . getenv('TEST_AWS_ACCESS_KEY_ID'));
         putenv('AWS_SECRET_ACCESS_KEY=' . getenv('TEST_AWS_SECRET_ACCESS_KEY'));
+        putenv('AZURE_TENANT_ID=' . getenv('TEST_AZURE_TENANT_ID'));
+        putenv('AZURE_CLIENT_ID=' . getenv('TEST_AZURE_CLIENT_ID'));
+        putenv('AZURE_CLIENT_SECRET=' . getenv('TEST_AZURE_CLIENT_SECRET'));
     }
 
     private function getJobFactory(): JobFactory
     {
         $storageClientFactory = new JobFactory\StorageClientFactory((string) getenv('TEST_STORAGE_API_URL'));
         $objectEncryptorFactory = new ObjectEncryptorFactory(
-            (string) getenv('TEST_KMS_KEY_ALIAS'),
+            (string) getenv('TEST_KMS_KEY_ID'),
             (string) getenv('TEST_KMS_REGION'),
             '',
-            '123456789012345678901234567890ab'
+            '123456789012345678901234567890ab',
+            (string) getenv('TEST_AZURE_KEY_VAULT_URL')
         );
         return new JobFactory($storageClientFactory, $objectEncryptorFactory);
     }
@@ -307,10 +308,11 @@ class JobFactoryTest extends BaseTest
     public function testEncryption(): void
     {
         $objectEncryptorFactory = new ObjectEncryptorFactory(
-            (string) getenv('TEST_KMS_KEY_ALIAS'),
+            (string) getenv('TEST_KMS_KEY_ID'),
             (string) getenv('TEST_KMS_REGION'),
             '',
-            ''
+            '',
+            (string) getenv('TEST_AZURE_KEY_VAULT_URL')
         );
         $client = new Client(
             [
@@ -329,9 +331,18 @@ class JobFactoryTest extends BaseTest
             'tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
             'configId' => '123',
             'configData' => [
-                '#foo1' => $objectEncryptorFactory->getEncryptor()->encrypt('bar1', ProjectWrapper::class),
-                '#foo2' => $objectEncryptorFactory->getEncryptor()->encrypt('bar2', ComponentWrapper::class),
-                '#foo3' => $objectEncryptorFactory->getEncryptor()->encrypt('bar3', ConfigurationWrapper::class),
+                '#foo1' => $objectEncryptorFactory->getEncryptor()->encrypt(
+                    'bar1',
+                    $objectEncryptorFactory->getEncryptor()->getRegisteredProjectWrapperClass()
+                ),
+                '#foo2' => $objectEncryptorFactory->getEncryptor()->encrypt(
+                    'bar2',
+                    $objectEncryptorFactory->getEncryptor()->getRegisteredComponentWrapperClass()
+                ),
+                '#foo3' => $objectEncryptorFactory->getEncryptor()->encrypt(
+                    'bar3',
+                    $objectEncryptorFactory->getEncryptor()->getRegisteredConfigurationWrapperClass()
+                ),
             ],
             'componentId' => 'keboola.test',
             'mode' => 'run',
@@ -357,10 +368,11 @@ class JobFactoryTest extends BaseTest
         be cloned inside the Job class before it is modified. This method actually tests that it is cloned (i.e. two
         jobs do not interfere with each other). */
         $objectEncryptorFactory = new ObjectEncryptorFactory(
-            (string) getenv('TEST_KMS_KEY_ALIAS'),
+            (string) getenv('TEST_KMS_KEY_ID'),
             (string) getenv('TEST_KMS_REGION'),
             '',
-            ''
+            '',
+            (string) getenv('TEST_AZURE_KEY_VAULT_URL'),
         );
         $storageClientFactory = new JobFactory\StorageClientFactory((string) getenv('TEST_STORAGE_API_URL'));
         $client = new Client(
@@ -379,9 +391,18 @@ class JobFactoryTest extends BaseTest
             'tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
             'configId' => '123',
             'configData' => [
-                '#foo11' => $objectEncryptorFactory->getEncryptor()->encrypt('bar11', ProjectWrapper::class),
-                '#foo12' => $objectEncryptorFactory->getEncryptor()->encrypt('bar12', ComponentWrapper::class),
-                '#foo13' => $objectEncryptorFactory->getEncryptor()->encrypt('bar13', ConfigurationWrapper::class),
+                '#foo11' => $objectEncryptorFactory->getEncryptor()->encrypt(
+                    'bar11',
+                    $objectEncryptorFactory->getEncryptor()->getRegisteredProjectWrapperClass()
+                ),
+                '#foo12' => $objectEncryptorFactory->getEncryptor()->encrypt(
+                    'bar12',
+                    $objectEncryptorFactory->getEncryptor()->getRegisteredComponentWrapperClass()
+                ),
+                '#foo13' => $objectEncryptorFactory->getEncryptor()->encrypt(
+                    'bar13',
+                    $objectEncryptorFactory->getEncryptor()->getRegisteredConfigurationWrapperClass()
+                ),
             ],
             'componentId' => 'keboola.test1',
             'mode' => 'run',
@@ -396,9 +417,18 @@ class JobFactoryTest extends BaseTest
             'tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
             'configId' => '456',
             'configData' => [
-                '#foo21' => $objectEncryptorFactory->getEncryptor()->encrypt('bar21', ProjectWrapper::class),
-                '#foo22' => $objectEncryptorFactory->getEncryptor()->encrypt('bar22', ComponentWrapper::class),
-                '#foo23' => $objectEncryptorFactory->getEncryptor()->encrypt('bar23', ConfigurationWrapper::class),
+                '#foo21' => $objectEncryptorFactory->getEncryptor()->encrypt(
+                    'bar21',
+                    $objectEncryptorFactory->getEncryptor()->getRegisteredProjectWrapperClass()
+                ),
+                '#foo22' => $objectEncryptorFactory->getEncryptor()->encrypt(
+                    'bar22',
+                    $objectEncryptorFactory->getEncryptor()->getRegisteredComponentWrapperClass()
+                ),
+                '#foo23' => $objectEncryptorFactory->getEncryptor()->encrypt(
+                    'bar23',
+                    $objectEncryptorFactory->getEncryptor()->getRegisteredConfigurationWrapperClass()
+                ),
             ],
             'componentId' => 'keboola.test2',
             'mode' => 'run',
@@ -440,10 +470,11 @@ class JobFactoryTest extends BaseTest
         be cloned inside the Job class before it is modified. This method actually tests that it is cloned (i.e. two
         jobs do not interfere with each other). */
         $objectEncryptorFactory = new ObjectEncryptorFactory(
-            (string) getenv('TEST_KMS_KEY_ALIAS'),
+            (string) getenv('TEST_KMS_KEY_ID'),
             (string) getenv('TEST_KMS_REGION'),
             '',
-            ''
+            '',
+            (string) getenv('TEST_AZURE_KEY_VAULT_URL'),
         );
         $client = new Client(
             [
@@ -457,7 +488,10 @@ class JobFactoryTest extends BaseTest
         $objectEncryptorFactory->setProjectId($tokenInfo['owner']['id']);
         $objectEncryptorFactory->setConfigurationId('456');
         $objectEncryptorFactory->setComponentId('keboola.different-test');
-        $encrypted = $objectEncryptorFactory->getEncryptor()->encrypt('bar', ProjectWrapper::class);
+        $encrypted = $objectEncryptorFactory->getEncryptor()->encrypt(
+            'bar',
+            $objectEncryptorFactory->getEncryptor()->getRegisteredProjectWrapperClass()
+        );
         $storageClientFactory = new JobFactory\StorageClientFactory((string) getenv('TEST_STORAGE_API_URL'));
         $jobFactory = new JobFactory($storageClientFactory, $objectEncryptorFactory);
         $data = [
