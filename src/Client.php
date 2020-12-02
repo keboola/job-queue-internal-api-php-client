@@ -245,7 +245,9 @@ class Client
             } catch (Throwable $e2) {
                 throw new ClientException($e->getMessage(), $e->getCode(), $e2);
             }
-            if (!empty($body['context']['stringCode']) && ($body['context']['stringCode'] === 'statusTargetEqualsCurrent')) {
+            if (!empty($body['context']['stringCode']) &&
+                ($body['context']['stringCode'] === 'statusTargetEqualsCurrent')
+            ) {
                 throw new StateTargetEqualsCurrentException($e->getMessage(), $e->getCode(), $e);
             }
             throw new ClientException($e->getMessage(), $e->getCode(), $e);
