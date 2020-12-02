@@ -5,7 +5,8 @@ declare(strict_types=1);
 namespace Keboola\JobQueueInternalClient\Tests;
 
 use Keboola\JobQueueInternalClient\Client;
-use Keboola\JobQueueInternalClient\ClientException;
+use Keboola\JobQueueInternalClient\Exception\ClientException;
+use Keboola\JobQueueInternalClient\Exception\StateTargetEqualsCurrentException;
 use Keboola\JobQueueInternalClient\JobFactory;
 use Keboola\JobQueueInternalClient\JobFactory\Job;
 use Keboola\JobQueueInternalClient\JobListOptions;
@@ -292,5 +293,20 @@ class ClientFunctionalTest extends BaseTest
         );
 
         self::assertCount(0, $response);
+    }
+
+    public function testUpdateJobStatusRejected(): void
+    {
+        $client = $this->getClient();
+        $job = $client->getJobFactory()->createNewJob([
+            'tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+            'configId' => '454124290',
+            'componentId' => 'keboola.ex-db-snowflake',
+            'mode' => 'run',
+        ]);
+        $createdJob = $client->createJob($job);
+        self::expectException(StateTargetEqualsCurrentException::class);
+        self::expectExceptionMessage('Invalid status transition of job');
+        $response = $client->updateJob($createdJob);
     }
 }
