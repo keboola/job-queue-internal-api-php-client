@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Keboola\JobQueueInternalClient\JobFactory;
 
-use Keboola\JobQueueInternalClient\ClientException;
+use Keboola\JobQueueInternalClient\Exception\ClientException;
 use Keboola\StorageApi\Client as StorageApiClient;
 use Symfony\Component\Validator\Constraints\Url;
 use Symfony\Component\Validator\Validation;

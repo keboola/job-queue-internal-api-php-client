@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Keboola\JobQueueInternalClient\Tests\JobFactory;
 
-use Keboola\JobQueueInternalClient\ClientException;
+use Keboola\JobQueueInternalClient\Exception\ClientException;
 use Keboola\JobQueueInternalClient\JobFactory\StorageClientFactory;
 use Keboola\JobQueueInternalClient\Tests\BaseTest;
 use Keboola\StorageApi\Client;
