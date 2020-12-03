@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Keboola\JobQueueInternalClient;
+namespace Keboola\JobQueueInternalClient\Exception;
 
 use RuntimeException;
 

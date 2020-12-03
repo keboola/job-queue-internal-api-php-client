@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Keboola\JobQueueInternalClient\Tests;
 
-use Keboola\JobQueueInternalClient\ClientException;
+use Keboola\JobQueueInternalClient\Exception\ClientException;
 use Keboola\JobQueueInternalClient\JobFactory;
 use Keboola\JobQueueInternalClient\JobFactory\Job;
 use Keboola\ObjectEncryptor\Legacy\Encryptor;
