@@ -30,7 +30,7 @@
         "ext-json": "*",
         "guzzlehttp/guzzle": "^6.3",
         "keboola/object-encryptor": "^0.3",
-        "keboola/storage-api-client": "^10.6",
+        "keboola/storage-api-client": "^11.3",
         "psr/log": "^1.1",
         "symfony/config": "^4.4",
         "symfony/validator": "^4.4"
