@@ -118,9 +118,14 @@ class Client
         $conditions = array_map(function (string $id): string {
             return 'id[]=' . urlencode($id);
         }, $jobIds);
-        $request = new Request('GET', 'jobs?' . implode('&', $conditions));
-        $result = $this->sendRequest($request);
-        return $this->mapJobsFromResponse($result);
+        $chunks = array_chunk($conditions, 100);
+        $jobs = [];
+        foreach ($chunks as $chunk) {
+            $request = new Request('GET', 'jobs?' . implode('&', $chunk));
+            $result = $this->sendRequest($request);
+            $jobs = array_merge($jobs, $this->mapJobsFromResponse($result));
+        }
+        return $jobs;
     }
 
     public function getJobsWithStatus(array $statuses): array
@@ -237,7 +242,10 @@ class Client
     {
         try {
             $response = $this->guzzle->send($request);
-            $data = json_decode($response->getBody()->getContents(), true, self::JSON_DEPTH, JSON_THROW_ON_ERROR);
+            $ww = $response->getBody()->getContents();
+            $data = json_decode($ww, true, self::JSON_DEPTH);
+            $v = json_last_error();
+            $vv = json_last_error_msg();
             return $data ?: [];
         } catch (\GuzzleHttp\Exception\ClientException $e) {
             try {

@@ -536,4 +536,68 @@ class ClientTest extends BaseTest
             $request->getUri()->getQuery()
         );
     }
+
+    public function testClientGetJobsWithIds(): void
+    {
+        $count = 1001;
+        $jobData = [
+            'id'=> '123',
+            'projectId'=> '456',
+            'projectName'=> 'Test project',
+            'tokenId'=> '789',
+            'tokenString'=> 'KBC=>=>ProjectSecure=>=>aSdF',
+            'tokenDescription'=> 'my token',
+            'status'=> 'created',
+            'desiredStatus'=> 'processing',
+            'mode'=> 'run',
+            'componentId'=> 'keboola.test',
+            'configId'=> '123456',
+            'configData'=> [
+                'parameters'=> [
+                    'foo'=> 'bar',
+                ],
+            ],
+            'result'=> [],
+            'usageData'=> [],
+            'isFinished'=> false,
+        ];
+        $queue = array_fill(0, 10, function () use ($jobData): Response {
+            return new Response(
+                200,
+                ['Content-Type' => 'application/json'],
+                json_encode(array_fill(
+                    0,
+                    100,
+                    $jobData
+                ))
+            );
+        });
+        $queue[] = new Response(
+            200,
+            ['Content-Type' => 'application/json'],
+            json_encode([$jobData])
+        );
+        $mock = new MockHandler($queue);
+
+        $requestHistory = [];
+        $history = Middleware::history($requestHistory);
+        $stack = HandlerStack::create($mock);
+        $stack->push($history);
+        $logger = new TestLogger();
+        $client = $this->getClient(['handler' => $stack], $logger);
+
+        $startId = 1000000;
+        $endId = $startId + $count - 1;
+        $jobs = $client->getJobsWithIds(range($startId, $endId, 1));
+
+        self::assertCount($count, $jobs);
+        /** @var Job $job */
+        $job = $jobs[0];
+        self::assertEquals('123', $job->getId());
+        self::assertEquals('456', $job->getProjectId());
+
+        $request = $mock->getLastRequest();
+        self::assertEquals(0, $mock->count());
+        self::assertLessThan(2000, strlen($request->getUri()->getQuery()));
+    }
 }
