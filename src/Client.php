@@ -242,14 +242,11 @@ class Client
     {
         try {
             $response = $this->guzzle->send($request);
-            $ww = $response->getBody()->getContents();
-            $data = json_decode($ww, true, self::JSON_DEPTH);
-            $v = json_last_error();
-            $vv = json_last_error_msg();
+            $data = json_decode($response->getBody()->getContents(), true, self::JSON_DEPTH, JSON_THROW_ON_ERROR);
             return $data ?: [];
         } catch (\GuzzleHttp\Exception\ClientException $e) {
             try {
-                $body = json_decode($e->getResponse()->getBody()->getContents(), true, 512, JSON_THROW_ON_ERROR);
+                $body = json_decode($e->getResponse()->getBody()->getContents(), true, self::JSON_DEPTH, JSON_THROW_ON_ERROR);
             } catch (Throwable $e2) {
                 throw new ClientException($e->getMessage(), $e->getCode(), $e2);
             }
