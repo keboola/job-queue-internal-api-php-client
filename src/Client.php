@@ -246,7 +246,12 @@ class Client
             return $data ?: [];
         } catch (\GuzzleHttp\Exception\ClientException $e) {
             try {
-                $body = json_decode($e->getResponse()->getBody()->getContents(), true, self::JSON_DEPTH, JSON_THROW_ON_ERROR);
+                $body = json_decode(
+                    $e->getResponse()->getBody()->getContents(),
+                    true,
+                    self::JSON_DEPTH,
+                    JSON_THROW_ON_ERROR
+                );
             } catch (Throwable $e2) {
                 throw new ClientException($e->getMessage(), $e->getCode(), $e2);
             }
