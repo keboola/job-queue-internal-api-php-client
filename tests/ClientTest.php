@@ -471,7 +471,7 @@ class ClientTest extends BaseTest
         $stack->push($history);
         $logger = new TestLogger();
         $client = $this->getClient(['handler' => $stack], $logger);
-        $jobs = $client->listJobs((new JobListOptions())->setProjects(['456']));
+        $jobs = $client->listJobs((new JobListOptions())->setProjects(['456']), true);
 
         self::assertCount(1, $jobs);
         /** @var Job $job */
@@ -520,7 +520,7 @@ class ClientTest extends BaseTest
         $logger = new TestLogger();
         $client = $this->getClient(['handler' => $stack], $logger);
         $jobs = $client->listJobs(
-            (new JobListOptions())->setProjects(['šěřč!@#%^$&'])->setComponents(['th!$ |& n°t valid'])
+            (new JobListOptions())->setProjects(['šěřč!@#%^$&'])->setComponents(['th!$ |& n°t valid']), true
         );
 
         self::assertCount(1, $jobs);
@@ -598,6 +598,61 @@ class ClientTest extends BaseTest
 
         $request = $mock->getLastRequest();
         self::assertEquals(0, $mock->count());
+        self::assertStringStartsWith('id%5B%5D=1001000', $request->getUri()->getQuery());
         self::assertLessThan(2000, strlen($request->getUri()->getQuery()));
+    }
+
+
+    public function testClientGetJobsPaging(): void
+    {
+        $jobData = [
+            'id'=> '123',
+            'projectId'=> '456',
+            'projectName'=> 'Test project',
+            'tokenId'=> '789',
+            'tokenString'=> 'KBC=>=>ProjectSecure=>=>aSdF',
+            'tokenDescription'=> 'my token',
+            'status'=> 'created',
+            'desiredStatus'=> 'processing',
+            'mode'=> 'run',
+            'componentId'=> 'keboola.test',
+            'configId'=> '123456',
+            'configData'=> [
+                'parameters'=> [
+                    'foo'=> 'bar',
+                ],
+            ],
+            'result'=> [],
+            'usageData'=> [],
+            'isFinished'=> false,
+        ];
+        $queue = array_fill(0, 10, function () use ($jobData): Response {
+            return new Response(
+                200,
+                ['Content-Type' => 'application/json'],
+                (string) json_encode(array_fill(
+                    0,
+                    100,
+                    $jobData
+                ))
+            );
+        });
+        $queue[] = new Response(
+            200,
+            ['Content-Type' => 'application/json'],
+            (string) json_encode([$jobData])
+        );
+        $mock = new MockHandler($queue);
+
+        $requestHistory = [];
+        $history = Middleware::history($requestHistory);
+        $stack = HandlerStack::create($mock);
+        $stack->push($history);
+        $logger = new TestLogger();
+        $client = $this->getClient(['handler' => $stack], $logger);
+        $jobs = $client->listJobs((new JobListOptions()), true);
+        self::assertCount(1001, $jobs);
+        $request = $mock->getLastRequest();
+        self::assertEquals(0, $mock->count());
     }
 }

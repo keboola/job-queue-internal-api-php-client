@@ -103,27 +103,34 @@ class Client
         return $this->jobFactory->loadFromExistingJobData($result);
     }
 
-    public function listJobs(JobListOptions $listOptions): array
+    public function listJobs(JobListOptions $listOptions, bool $fetchAllPages): array
     {
-        $request = new Request('GET', 'jobs?' . implode('&', $listOptions->getQueryParameters()));
-        $result = $this->sendRequest($request);
-        return $this->mapJobsFromResponse($result);
+        $jobs = [];
+        $i = 1;
+        do {
+            $request = new Request('GET', 'jobs?' . implode('&', $listOptions->getQueryParameters()));
+            $result = $this->sendRequest($request);
+            $chunk = $this->mapJobsFromResponse($result);
+            $jobs = array_merge($jobs, $chunk);
+            $listOptions->setOffset($i * $listOptions->getLimit());
+        } while ($fetchAllPages && count($chunk) === $listOptions->getLimit());
+        return $jobs;
     }
 
     public function getJobsWithIds(array $jobIds): array
     {
+        /* This is rather arbitrary size, we just need to make sure that the request is not too large. It would be
+        better to measure the size of the request (depends on the id length), but that's a bit more complicated. */
+        $chunkSize = 100;
         if (!$jobIds) {
             return [];
         }
-        $conditions = array_map(function (string $id): string {
-            return 'id[]=' . urlencode($id);
-        }, $jobIds);
-        $chunks = array_chunk($conditions, 100);
+        $chunks = array_chunk($jobIds, $chunkSize);
         $jobs = [];
+        $listOptions = (new JobListOptions())->setLimit($chunkSize);
         foreach ($chunks as $chunk) {
-            $request = new Request('GET', 'jobs?' . implode('&', $chunk));
-            $result = $this->sendRequest($request);
-            $jobs = array_merge($jobs, $this->mapJobsFromResponse($result));
+            $listOptions->setIds($chunk);
+            $jobs = array_merge($jobs, $this->listJobs($listOptions, false));
         }
         return $jobs;
     }
@@ -133,12 +140,8 @@ class Client
         if (!$statuses) {
             return [];
         }
-        $conditions = array_map(function (string $status): string {
-            return 'status[]=' . $status;
-        }, $statuses);
-        $request = new Request('GET', 'jobs?' . implode('&', $conditions));
-        $result = $this->sendRequest($request);
-        return $this->mapJobsFromResponse($result);
+        $listOptions = (new JobListOptions())->setStatuses($statuses);
+        return $this->listJobs($listOptions, true);
     }
 
     public function updateJob(Job $newJob): array
