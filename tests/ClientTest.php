@@ -520,7 +520,8 @@ class ClientTest extends BaseTest
         $logger = new TestLogger();
         $client = $this->getClient(['handler' => $stack], $logger);
         $jobs = $client->listJobs(
-            (new JobListOptions())->setProjects(['šěřč!@#%^$&'])->setComponents(['th!$ |& n°t valid']), true
+            (new JobListOptions())->setProjects(['šěřč!@#%^$&'])->setComponents(['th!$ |& n°t valid']),
+            true
         );
 
         self::assertCount(1, $jobs);
