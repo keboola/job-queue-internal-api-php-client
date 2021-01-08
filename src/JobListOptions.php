@@ -59,7 +59,7 @@ class JobListOptions
         foreach ($arrayableProps as $propName => $paramName) {
             if (!empty($this->$propName)) {
                 foreach ($this->$propName as $value) {
-                    $parameters[] = $paramName . '[]=' . urlencode($value);
+                    $parameters[] = $paramName . '[]=' . urlencode((string) $value);
                 }
             }
         }
