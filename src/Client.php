@@ -113,6 +113,7 @@ class Client
             $chunk = $this->mapJobsFromResponse($result);
             $jobs = array_merge($jobs, $chunk);
             $listOptions->setOffset($i * $listOptions->getLimit());
+            $i++;
         } while ($fetchAllPages && count($chunk) === $listOptions->getLimit());
         return $jobs;
     }
