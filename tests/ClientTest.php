@@ -654,6 +654,7 @@ class ClientTest extends BaseTest
         $jobs = $client->listJobs((new JobListOptions()), true);
         self::assertCount(1001, $jobs);
         $request = $mock->getLastRequest();
+        self::assertEquals('offset=1000&limit=100', $request->getUri()->getQuery());
         self::assertEquals(0, $mock->count());
     }
 }
