@@ -211,7 +211,8 @@ class ClientFunctionalTest extends BaseTest
             (new JobListOptions())
                 ->setConfigs(['(*^&^$%£  $"£)?! \''])
             //                ->setComponents(['[]{}=žýřčšěš'])
-                ->setStatuses([JobFactory::STATUS_CREATED])
+                ->setStatuses([JobFactory::STATUS_CREATED]),
+            true
         );
         self::assertCount(1, $response);
         /** @var Job $listedJob */
@@ -264,7 +265,8 @@ class ClientFunctionalTest extends BaseTest
         ]);
         $createdJob = $client->createJob($job);
         $response = $client->listJobs(
-            (new JobListOptions())->setProjects([$job->getProjectId()])->setIds([$job->getId()])
+            (new JobListOptions())->setProjects([$job->getProjectId()])->setIds([$job->getId()]),
+            false
         );
 
         self::assertCount(1, $response);
@@ -289,7 +291,8 @@ class ClientFunctionalTest extends BaseTest
         $response = $client->listJobs(
             (new JobListOptions())
                 ->setProjects([$job->getProjectId()])
-                ->setComponents(['keboola.non-existent'])
+                ->setComponents(['keboola.non-existent']),
+            false
         );
 
         self::assertCount(0, $response);
@@ -307,6 +310,6 @@ class ClientFunctionalTest extends BaseTest
         $createdJob = $client->createJob($job);
         self::expectException(StateTargetEqualsCurrentException::class);
         self::expectExceptionMessage('Invalid status transition of job');
-        $response = $client->updateJob($createdJob);
+        $client->updateJob($createdJob);
     }
 }
