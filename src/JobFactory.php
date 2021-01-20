@@ -12,6 +12,7 @@ use Keboola\JobQueueInternalClient\JobFactory\StorageClientFactory;
 use Keboola\ObjectEncryptor\ObjectEncryptorFactory;
 use Keboola\ObjectEncryptor\Wrapper\ProjectWrapper;
 use Keboola\StorageApi\ClientException as StorageClientException;
+use Symfony\Component\Config\Definition\ConfigurationInterface;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 
 class JobFactory
@@ -43,6 +44,9 @@ class JobFactory
         // it's important to clone here because we change state of the factory!,
         // this is tested by JobFactoryTest::testEncryptionFactoryIsolation()
         $this->objectEncryptorFactory = clone $objectEncryptorFactory;
+        $this->objectEncryptorFactory->setStackId(
+            (string) parse_url($this->storageClientFactory->getStorageApiUrl(), PHP_URL_HOST)
+        );
     }
 
     public static function getFinishedStatuses(): array
@@ -93,7 +97,7 @@ class JobFactory
     private function validateJobData(array $data, string $validatorClass): array
     {
         try {
-            /** @var NewJobDefinition $jobDefinition */
+            /** @var ConfigurationInterface $jobDefinition */
             $jobDefinition = new $validatorClass();
             $data = $jobDefinition->processData($data);
             return $data;
@@ -118,9 +122,6 @@ class JobFactory
         }
         $this->objectEncryptorFactory->setProjectId($tokenInfo['owner']['id']);
         $this->objectEncryptorFactory->setComponentId($data['componentId']);
-        $this->objectEncryptorFactory->setStackId(
-            (string) parse_url($this->storageClientFactory->getStorageApiUrl(), PHP_URL_HOST)
-        );
         $encryptedToken = $this->objectEncryptorFactory->getEncryptor()->encrypt(
             $data['tokenString'],
             $this->objectEncryptorFactory->getEncryptor()->getRegisteredProjectWrapperClass()

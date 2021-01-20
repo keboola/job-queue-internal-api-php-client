@@ -60,6 +60,11 @@ class JobFactoryTest extends BaseTest
         self::assertNull($job->getConfigRowId());
         self::assertNull($job->getTag());
         self::assertEquals($job->getId(), $job->getRunId());
+        // check that the object encryptor factory is initialized (if it is not, there are no wrappers)
+        self::assertStringStartsWith(
+            'Keboola\\ObjectEncryptor\\Wrapper\\',
+            $job->getEncryptorFactory()->getEncryptor()->getRegisteredProjectWrapperClass()
+        );
     }
 
     public function testCreateNewJobNormalize(): void
@@ -348,6 +353,67 @@ class JobFactoryTest extends BaseTest
             'mode' => 'run',
         ];
         $job = $factory->createNewJob($data);
+        self::assertStringStartsWith('KBC::ProjectSecure', $job->getConfigData()['#foo1']);
+        self::assertStringStartsWith('KBC::ComponentSecure', $job->getConfigData()['#foo2']);
+        self::assertStringStartsWith('KBC::ConfigSecure', $job->getConfigData()['#foo3']);
+        self::assertEquals(
+            [
+                '#foo1' => 'bar1',
+                '#foo2' => 'bar2',
+                '#foo3' => 'bar3',
+            ],
+            $job->getConfigDataDecrypted()
+        );
+    }
+
+    public function testEncryptionExistingJob(): void
+    {
+        $objectEncryptorFactory = new ObjectEncryptorFactory(
+            (string) getenv('TEST_KMS_KEY_ID'),
+            (string) getenv('TEST_KMS_REGION'),
+            '',
+            '',
+            (string) getenv('TEST_AZURE_KEY_VAULT_URL')
+        );
+        $client = new Client(
+            [
+                'url' => getenv('TEST_STORAGE_API_URL'),
+                'token' => getenv('TEST_STORAGE_API_TOKEN'),
+            ]
+        );
+        $tokenInfo = $client->verifyToken();
+        $objectEncryptorFactory->setProjectId($tokenInfo['owner']['id']);
+        $objectEncryptorFactory->setConfigurationId('123');
+        $objectEncryptorFactory->setComponentId('keboola.test');
+        $objectEncryptorFactory->setStackId((string) parse_url((string) getenv('TEST_STORAGE_API_URL'), PHP_URL_HOST));
+
+        $factory = $this->getJobFactory();
+        $data = [
+            'id' => '123',
+            'projectId' => $tokenInfo['owner']['id'],
+            'tokenId' => '1234',
+            'status' => JobFactory::STATUS_CREATED,
+            'desiredStatus' => JobFactory::DESIRED_STATUS_PROCESSING,
+            'tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+            'configId' => '123',
+            'configData' => [
+                '#foo1' => $objectEncryptorFactory->getEncryptor()->encrypt(
+                    'bar1',
+                    $objectEncryptorFactory->getEncryptor()->getRegisteredProjectWrapperClass()
+                ),
+                '#foo2' => $objectEncryptorFactory->getEncryptor()->encrypt(
+                    'bar2',
+                    $objectEncryptorFactory->getEncryptor()->getRegisteredComponentWrapperClass()
+                ),
+                '#foo3' => $objectEncryptorFactory->getEncryptor()->encrypt(
+                    'bar3',
+                    $objectEncryptorFactory->getEncryptor()->getRegisteredConfigurationWrapperClass()
+                ),
+            ],
+            'componentId' => 'keboola.test',
+            'mode' => 'run',
+        ];
+        $job = $factory->loadFromExistingJobData($data);
         self::assertStringStartsWith('KBC::ProjectSecure', $job->getConfigData()['#foo1']);
         self::assertStringStartsWith('KBC::ComponentSecure', $job->getConfigData()['#foo2']);
         self::assertStringStartsWith('KBC::ConfigSecure', $job->getConfigData()['#foo3']);
