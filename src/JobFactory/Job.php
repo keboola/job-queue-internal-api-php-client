@@ -151,4 +151,9 @@ class Job implements JsonSerializable
     {
         return empty($this->getComponentId()) || in_array($this->getComponentId(), JobFactory::getLegacyComponents());
     }
+
+    public function getEncryptorFactory(): ObjectEncryptorFactory
+    {
+        return $this->objectEncryptorFactory;
+    }
 }
