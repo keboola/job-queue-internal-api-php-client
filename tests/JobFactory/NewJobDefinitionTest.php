@@ -13,7 +13,7 @@ class NewJobDefinitionTest extends BaseTest
     public function testValidJobMinimal(): void
     {
         $data = [
-            'tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+            '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
             'configId' => '123',
             'componentId' => 'keboola.test',
             'result' => [],
@@ -32,7 +32,7 @@ class NewJobDefinitionTest extends BaseTest
     public function testValidJobFull(): void
     {
         $data = [
-            'tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+            '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
             'parentRunId' => '12345',
             'configId' => '123',
             'componentId' => 'keboola.test',
@@ -59,11 +59,11 @@ class NewJobDefinitionTest extends BaseTest
                     'componentId' => 'keboola.test',
                     'mode' => 'run',
                 ],
-                'The child node "tokenString" at path "job" must be configured.',
+                'The child node "#tokenString" at path "job" must be configured.',
             ],
             'Missing componentId' => [
                 [
-                    'tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+                    '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
                     'configId' => '123',
                     'mode' => 'run',
                 ],
@@ -71,7 +71,7 @@ class NewJobDefinitionTest extends BaseTest
             ],
             'Invalid mode' => [
                 [
-                    'tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+                    '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
                     'configId' => '123',
                     'componentId' => 'keboola.test',
                     'mode' => 'invalid',
@@ -80,7 +80,7 @@ class NewJobDefinitionTest extends BaseTest
             ],
             'Invalid configData' => [
                 [
-                    'tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+                    '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
                     'configId' => '123',
                     'configData' => '345',
                     'componentId' => 'keboola.test',
@@ -90,7 +90,7 @@ class NewJobDefinitionTest extends BaseTest
             ],
             'Invalid row' => [
                 [
-                    'tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+                    '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
                     'configId' => '123',
                     'componentId' => 'keboola.test',
                     'mode' => 'run',
@@ -100,7 +100,7 @@ class NewJobDefinitionTest extends BaseTest
             ],
             'Invalid tag' => [
                 [
-                    'tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+                    '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
                     'configId' => '123',
                     'componentId' => 'keboola.test',
                     'mode' => 'run',
@@ -110,7 +110,7 @@ class NewJobDefinitionTest extends BaseTest
             ],
             'Invalid result' => [
                 [
-                    'tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+                    '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
                     'configId' => '123',
                     'componentId' => 'keboola.test',
                     'mode' => 'run',
@@ -121,7 +121,7 @@ class NewJobDefinitionTest extends BaseTest
             ],
             'Invalid run id' => [
                 [
-                    'tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+                    '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
                     'parentRunId' => ['123', '345'],
                     'configId' => '123',
                     'componentId' => 'keboola.test',

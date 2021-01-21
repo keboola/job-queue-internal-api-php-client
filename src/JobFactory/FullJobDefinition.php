@@ -6,7 +6,6 @@ namespace Keboola\JobQueueInternalClient\JobFactory;
 
 use Keboola\JobQueueInternalClient\JobFactory;
 use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
-use Symfony\Component\Config\Definition\Builder\NodeDefinition;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 
 class FullJobDefinition extends NewJobDefinition
@@ -39,7 +38,7 @@ class FullJobDefinition extends NewJobDefinition
                 ->scalarNode('tokenDescription')
                     ->beforeNormalization()->always($this->getStringNormalizer())->end()
                 ->end()
-                ->scalarNode('tokenString')
+                ->scalarNode('#tokenString')
                     ->isRequired()->cannotBeEmpty()
                     ->beforeNormalization()->always($this->getStringNormalizer())->end()
                 ->end()
