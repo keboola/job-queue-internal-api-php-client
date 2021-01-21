@@ -23,7 +23,7 @@ class JobTest extends BaseTest
         'desiredStatus' => 'processing',
         'projectId' => '123',
         'tokenId' => '456',
-        'tokenString' => 'KBC::ProjectSecure::token',
+        '#tokenString' => 'KBC::ProjectSecure::token',
     ];
 
     public function setUp(): void

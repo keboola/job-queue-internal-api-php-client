@@ -97,7 +97,7 @@ class Job implements JsonSerializable
 
     public function getTokenString(): string
     {
-        return $this->data['tokenString'];
+        return $this->data['#tokenString'];
     }
 
     public function getTokenId(): string
