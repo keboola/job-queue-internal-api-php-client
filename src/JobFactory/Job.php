@@ -8,10 +8,8 @@ use JsonSerializable;
 use Keboola\JobQueueInternalClient\JobFactory;
 use Keboola\ObjectEncryptor\ObjectEncryptorFactory;
 
-class Job implements JsonSerializable
+class Job implements JsonSerializable, JobInterface
 {
-    public const RUN_ID_DELIMITER = '.';
-
     /** @var array */
     private $data;
 
