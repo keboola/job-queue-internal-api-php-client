@@ -93,7 +93,7 @@ $client->postJobResult('123', 'success', ['images' => ['digests' => []]]);
     ```
 - Show Key Vault URL
     ```bash
-    az keyvault show --name testing-job-queue-internal-api-php-client --query "properties.vaultUri" --output tsv
+    az keyvault show --name test-job-api-client --query "properties.vaultUri" --output tsv
     ```
 
 returns e.g. `https://testing-key-vault-client.vault.azure.net/`, use this to set values in `.env` file:

@@ -14,7 +14,7 @@ use GuzzleHttp\Psr7\Request;
 use JsonException;
 use Keboola\JobQueueInternalClient\Exception\ClientException;
 use Keboola\JobQueueInternalClient\Exception\StateTargetEqualsCurrentException;
-use Keboola\JobQueueInternalClient\JobFactory\Job;
+use Keboola\JobQueueInternalClient\JobFactory\JobInterface;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Log\LoggerInterface;
@@ -79,7 +79,7 @@ class Client
         // todo implement this
     }
 
-    public function createJob(Job $job): Job
+    public function createJob(JobInterface $job): JobInterface
     {
         try {
             $jobData = json_encode($job, JSON_THROW_ON_ERROR);
@@ -96,7 +96,7 @@ class Client
         return $this->jobFactory;
     }
 
-    public function getJob(string $jobId): Job
+    public function getJob(string $jobId): JobInterface
     {
         $request = new Request('GET', 'jobs/' . $jobId);
         $result = $this->sendRequest($request);
@@ -145,7 +145,7 @@ class Client
         return $this->listJobs($listOptions, true);
     }
 
-    public function updateJob(Job $newJob): array
+    public function updateJob(JobInterface $newJob): array
     {
         /** @noinspection PhpUnhandledExceptionInspection */
         $request = new Request(
@@ -177,7 +177,7 @@ class Client
 
     private function mapJobsFromResponse(array $responseBody): array
     {
-        $jobs = array_map(function (array $jobData): ?Job {
+        $jobs = array_map(function (array $jobData): ?JobInterface {
             try {
                 return $this->jobFactory->loadFromExistingJobData($jobData);
             } catch (Throwable $e) {

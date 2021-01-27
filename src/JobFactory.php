@@ -7,6 +7,7 @@ namespace Keboola\JobQueueInternalClient;
 use Keboola\JobQueueInternalClient\Exception\ClientException;
 use Keboola\JobQueueInternalClient\JobFactory\FullJobDefinition;
 use Keboola\JobQueueInternalClient\JobFactory\Job;
+use Keboola\JobQueueInternalClient\JobFactory\JobInterface;
 use Keboola\JobQueueInternalClient\JobFactory\NewJobDefinition;
 use Keboola\JobQueueInternalClient\JobFactory\StorageClientFactory;
 use Keboola\ObjectEncryptor\ObjectEncryptorFactory;
@@ -72,7 +73,7 @@ class JobFactory
         return ['orchestrator', 'transformation', 'provisioning'];
     }
 
-    public function createNewJob(array $data): Job
+    public function createNewJob(array $data): JobInterface
     {
         $data = $this->validateJobData($data, NewJobDefinition::class);
         $data = $this->initializeNewJobData($data);
@@ -80,13 +81,13 @@ class JobFactory
         return new Job($this->objectEncryptorFactory, $data);
     }
 
-    public function loadFromExistingJobData(array $data): Job
+    public function loadFromExistingJobData(array $data): JobInterface
     {
         $data = $this->validateJobData($data, FullJobDefinition::class);
         return new Job($this->objectEncryptorFactory, $data);
     }
 
-    public function modifyJob(Job $job, array $patchData): Job
+    public function modifyJob(JobInterface $job, array $patchData): JobInterface
     {
         $data = $job->jsonSerialize();
         $data = array_replace_recursive($data, $patchData);
