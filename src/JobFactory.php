@@ -12,6 +12,7 @@ use Keboola\JobQueueInternalClient\JobFactory\StorageClientFactory;
 use Keboola\ObjectEncryptor\ObjectEncryptorFactory;
 use Keboola\ObjectEncryptor\Wrapper\ProjectWrapper;
 use Keboola\StorageApi\ClientException as StorageClientException;
+use Symfony\Component\Config\Definition\ConfigurationInterface;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 
 class JobFactory
@@ -43,6 +44,9 @@ class JobFactory
         // it's important to clone here because we change state of the factory!,
         // this is tested by JobFactoryTest::testEncryptionFactoryIsolation()
         $this->objectEncryptorFactory = clone $objectEncryptorFactory;
+        $this->objectEncryptorFactory->setStackId(
+            (string) parse_url($this->storageClientFactory->getStorageApiUrl(), PHP_URL_HOST)
+        );
     }
 
     public static function getFinishedStatuses(): array
@@ -93,7 +97,7 @@ class JobFactory
     private function validateJobData(array $data, string $validatorClass): array
     {
         try {
-            /** @var NewJobDefinition $jobDefinition */
+            /** @var FullJobDefinition|NewJobDefinition $jobDefinition */
             $jobDefinition = new $validatorClass();
             $data = $jobDefinition->processData($data);
             return $data;
@@ -105,7 +109,7 @@ class JobFactory
     private function initializeNewJobData(array $data): array
     {
         try {
-            $client = $this->storageClientFactory->getClient($data['tokenString']);
+            $client = $this->storageClientFactory->getClient($data['#tokenString']);
             $tokenInfo = $client->verifyToken();
             $jobId = $client->generateId();
             $runId = empty($data['parentRunId']) ? $jobId : $data['parentRunId'] . Job::RUN_ID_DELIMITER . $jobId;
@@ -118,33 +122,29 @@ class JobFactory
         }
         $this->objectEncryptorFactory->setProjectId($tokenInfo['owner']['id']);
         $this->objectEncryptorFactory->setComponentId($data['componentId']);
-        $this->objectEncryptorFactory->setStackId(
-            (string) parse_url($this->storageClientFactory->getStorageApiUrl(), PHP_URL_HOST)
-        );
-        $encryptedToken = $this->objectEncryptorFactory->getEncryptor()->encrypt(
-            $data['tokenString'],
+        $this->objectEncryptorFactory->setConfigurationId($data['configId'] ?? null);
+        return $this->objectEncryptorFactory->getEncryptor()->encrypt(
+            [
+                'id' => $jobId,
+                'runId' => $runId,
+                'projectId' => $tokenInfo['owner']['id'],
+                'projectName' => $tokenInfo['owner']['name'],
+                'tokenId' => $tokenInfo['id'],
+                '#tokenString' => $data['#tokenString'],
+                'tokenDescription' => $tokenInfo['description'],
+                'status' => self::STATUS_CREATED,
+                'desiredStatus' => self::DESIRED_STATUS_PROCESSING,
+                'mode' => $data['mode'],
+                'componentId' => $data['componentId'],
+                'configId' => $data['configId'] ?? null,
+                'configData' => $data['configData'] ?? null,
+                'configRowId' => $data['configRowId'] ?? null,
+                'tag' => $data['tag'] ?? null,
+                'result' => [],
+                'usageData' => [],
+                'isFinished' => false,
+            ],
             $this->objectEncryptorFactory->getEncryptor()->getRegisteredProjectWrapperClass()
         );
-
-        return [
-            'id' => $jobId,
-            'runId' => $runId,
-            'projectId' => $tokenInfo['owner']['id'],
-            'projectName' => $tokenInfo['owner']['name'],
-            'tokenId' => $tokenInfo['id'],
-            'tokenString' => $encryptedToken,
-            'tokenDescription' => $tokenInfo['description'],
-            'status' => self::STATUS_CREATED,
-            'desiredStatus' => self::DESIRED_STATUS_PROCESSING,
-            'mode' => $data['mode'],
-            'componentId' => $data['componentId'],
-            'configId' => $data['configId'] ?? null,
-            'configData' => $data['configData'] ?? null, //@todo encrypt configData?
-            'configRowId' => $data['configRowId'] ?? null,
-            'tag' => $data['tag'] ?? null,
-            'result' => [],
-            'usageData' => [],
-            'isFinished' => false,
-        ];
     }
 }

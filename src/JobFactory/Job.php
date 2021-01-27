@@ -97,7 +97,7 @@ class Job implements JsonSerializable
 
     public function getTokenString(): string
     {
-        return $this->data['tokenString'];
+        return $this->data['#tokenString'];
     }
 
     public function getTokenId(): string
@@ -150,5 +150,10 @@ class Job implements JsonSerializable
     public function isLegacyComponent(): bool
     {
         return empty($this->getComponentId()) || in_array($this->getComponentId(), JobFactory::getLegacyComponents());
+    }
+
+    public function getEncryptorFactory(): ObjectEncryptorFactory
+    {
+        return $this->objectEncryptorFactory;
     }
 }

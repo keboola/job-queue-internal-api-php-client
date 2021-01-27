@@ -14,7 +14,7 @@ class FullJobDefinitionTest extends BaseTest
     public function testValidJobMaximal(): void
     {
         $expectedData = [
-            'tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+            '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
             'tokenId' => '12345',
             'tokenDescription' => '?',
             'projectId' => '123',
@@ -42,7 +42,7 @@ class FullJobDefinitionTest extends BaseTest
     public function testValidJobFull(): void
     {
         $data = [
-            'tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+            '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
             'tokenId' => '12345',
             'projectId' => '123',
             'configId' => '123',
@@ -69,7 +69,7 @@ class FullJobDefinitionTest extends BaseTest
     {
         $this->markTestSkipped('fix me');
         $expectedData = [
-            'tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+            '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
             'tokenId' => '12345',
             'projectId' => '123',
             'configId' => 12345,
@@ -125,7 +125,7 @@ class FullJobDefinitionTest extends BaseTest
                     'componentId' => 'keboola.test',
                     'mode' => 'run',
                 ],
-                'The child node "tokenString" at path "job" must be configured.',
+                'The child node "#tokenString" at path "job" must be configured.',
             ],
             /*
             'Missing componentId' => [
@@ -167,7 +167,7 @@ class FullJobDefinitionTest extends BaseTest
             */
             'Invalid mode' => [
                 [
-                    'tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+                    '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
                     'tokenId' => '1234',
                     'projectId' => '123',
                     'id' => '12345',
@@ -181,7 +181,7 @@ class FullJobDefinitionTest extends BaseTest
             ],
             'Invalid configData' => [
                 [
-                    'tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+                    '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
                     'tokenId' => '1234',
                     'projectId' => '123',
                     'id' => '12345',
@@ -195,7 +195,7 @@ class FullJobDefinitionTest extends BaseTest
             ],
             'Invalid configRowId' => [
                 [
-                    'tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+                    '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
                     'tokenId' => '1234',
                     'projectId' => '123',
                     'id' => '12345',
@@ -209,7 +209,7 @@ class FullJobDefinitionTest extends BaseTest
             ],
             'Invalid tag' => [
                 [
-                    'tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+                    '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
                     'tokenId' => '1234',
                     'projectId' => '123',
                     'id' => '12345',
@@ -223,7 +223,7 @@ class FullJobDefinitionTest extends BaseTest
             ],
             'Missing id' => [
                 [
-                    'tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+                    '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
                     'tokenId' => '1234',
                     'projectId' => '123',
                     'status' => 'created',
@@ -235,7 +235,7 @@ class FullJobDefinitionTest extends BaseTest
             ],
             'Missing status' => [
                 [
-                    'tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+                    '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
                     'tokenId' => '1234',
                     'projectId' => '123',
                     'id' => '12345',
@@ -247,7 +247,7 @@ class FullJobDefinitionTest extends BaseTest
             ],
             'Invalid status' => [
                 [
-                    'tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+                    '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
                     'tokenId' => '1234',
                     'projectId' => '123',
                     'id' => '12345',
@@ -261,7 +261,7 @@ class FullJobDefinitionTest extends BaseTest
             ],
             'Missing project id' => [
                 [
-                    'tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+                    '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
                     'tokenId' => '1234',
                     'id' => '12345',
                     'status' => 'created',
@@ -273,7 +273,7 @@ class FullJobDefinitionTest extends BaseTest
             ],
             'Missing token id' => [
                 [
-                    'tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+                    '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
                     'projectId' => '123',
                     'id' => '12345',
                     'status' => 'created',
