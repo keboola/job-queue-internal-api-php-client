@@ -69,11 +69,11 @@ $client->postJobResult('123', 'success', ['images' => ['digests' => []]]);
 - Use the response to set values `TEST_AZURE_CLIENT_ID`, `TEST_AZURE_CLIENT_SECRET` and `TEST_AZURE_TENANT_ID` in the `.env.` file:
     ```json 
     {
-      "appId": "268a6f05-xxxxxxxxxxxxxxxxxxxxxxxxxxx", //-> TEST_CLIENT_ID
+      "appId": "268a6f05-xxxxxxxxxxxxxxxxxxxxxxxxxxx", //-> TEST_AZURE_CLIENT_ID
       "displayName": "testing-job-queue-internal-api-php-client",
       "name": "http://testing-job-queue-internal-api-php-client",
-      "password": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx", //-> TEST_CLIENT_SECRET
-      "tenant": "9b85ee6f-xxxxxxxxxxxxxxxxxxxxxxxxxxx" //-> TEST_TENANT_ID
+      "password": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx", //-> TEST_AZURE_CLIENT_SECRET
+      "tenant": "9b85ee6f-xxxxxxxxxxxxxxxxxxxxxxxxxxx" //-> TEST_AZURE_TENANT_ID
     }
     ```
 

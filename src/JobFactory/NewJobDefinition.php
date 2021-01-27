@@ -31,7 +31,7 @@ class NewJobDefinition implements ConfigurationInterface
         // @formatter:off
         $rootNode
             ->children()
-                ->scalarNode('tokenString')->isRequired()->cannotBeEmpty()->end()
+                ->scalarNode('#tokenString')->isRequired()->cannotBeEmpty()->end()
                 ->scalarNode('configId')->end()
                 ->scalarNode('componentId')->isRequired()->cannotBeEmpty()->end()
                 ->arrayNode('result')->ignoreExtraKeys(false)->end()
