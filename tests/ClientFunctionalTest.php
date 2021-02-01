@@ -323,7 +323,10 @@ class ClientFunctionalTest extends BaseTest
             'mode' => 'run',
         ]);
         $createdJob = $client->createJob($job);
-        $terminatingJob = $client->getJobFactory()->modifyJob($createdJob, ['desiredStatus' => JobFactory::DESIRED_STATUS_TERMINATING]);
+        $terminatingJob = $client->getJobFactory()->modifyJob(
+            $createdJob,
+            ['desiredStatus' => JobFactory::DESIRED_STATUS_TERMINATING]
+        );
         $client->updateJob($terminatingJob);
 
         $updatedJob = $client->getJob($createdJob->getId());
