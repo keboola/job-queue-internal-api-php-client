@@ -153,7 +153,10 @@ class Client
             'jobs/' . $newJob->getId(),
             [],
             json_encode(
-                ['status' => $newJob->getStatus()],
+                [
+                    'status' => $newJob->getStatus(),
+                    'desiredStatus' => $newJob->getDesiredStatus(),
+                ],
                 JSON_THROW_ON_ERROR
             )
         );
