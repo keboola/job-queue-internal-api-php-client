@@ -27,7 +27,7 @@ services:
       - ./:/code
 
   internal-api:
-    image: keboolapes.azurecr.io/job-queue-internal-api:5936
+    image: keboolapes.azurecr.io/job-queue-internal-api:6115
     ports:
       - "81:80"
     volumes:
