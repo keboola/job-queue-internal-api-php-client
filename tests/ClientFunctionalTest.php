@@ -9,6 +9,7 @@ use Keboola\JobQueueInternalClient\Exception\ClientException;
 use Keboola\JobQueueInternalClient\Exception\StateTargetEqualsCurrentException;
 use Keboola\JobQueueInternalClient\JobFactory;
 use Keboola\JobQueueInternalClient\JobFactory\Job;
+use Keboola\JobQueueInternalClient\JobFactory\JobResult;
 use Keboola\JobQueueInternalClient\JobListOptions;
 use Keboola\ObjectEncryptor\ObjectEncryptorFactory;
 use Psr\Log\NullLogger;
@@ -248,10 +249,14 @@ class ClientFunctionalTest extends BaseTest
         $job = $client->getJob($createdJob->getId());
         self::assertEquals(JobFactory::STATUS_CREATED, $job->getStatus());
         self::assertEquals([], $job->getResult());
-        $client->postJobResult($createdJob->getId(), JobFactory::STATUS_PROCESSING, ['foo' => 'bar']);
+        $client->postJobResult(
+            $createdJob->getId(),
+            JobFactory::STATUS_PROCESSING,
+            (new JobResult())->setMessage('bar')
+        );
         $job = $client->getJob($createdJob->getId());
         self::assertEquals(JobFactory::STATUS_PROCESSING, $job->getStatus());
-        self::assertEquals(['foo' => 'bar'], $job->getResult());
+        self::assertEquals('bar', $job->getResult()['message']);
     }
 
     public function testGetJobsWithProjectId(): void
