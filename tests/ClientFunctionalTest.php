@@ -152,6 +152,16 @@ class ClientFunctionalTest extends BaseTest
         self::assertEquals([], $job->getResult());
     }
 
+    public function testGetJobNotFound(): void
+    {
+        $client = $this->getClient();
+
+        $this->expectException(ClientException::class);
+        $this->expectExceptionCode(404);
+        $this->expectExceptionMessage('Job \"12345\" not found');
+        $client->getJob('12345');
+    }
+
     public function testGetInvalidJob(): void
     {
         $client = $this->getClient();
