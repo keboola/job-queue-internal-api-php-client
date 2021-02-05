@@ -312,4 +312,26 @@ class ClientFunctionalTest extends BaseTest
         self::expectExceptionMessage('Invalid status transition of job');
         $client->updateJob($createdJob);
     }
+
+    public function testUpdateJobDesiredStatus(): void
+    {
+        $client = $this->getClient();
+        $job = $client->getJobFactory()->createNewJob([
+            '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+            'configId' => '454124290',
+            'componentId' => 'keboola.ex-db-snowflake',
+            'mode' => 'run',
+        ]);
+        $createdJob = $client->createJob($job);
+        $terminatingJob = $client->getJobFactory()->modifyJob(
+            $createdJob,
+            ['desiredStatus' => JobFactory::DESIRED_STATUS_TERMINATING]
+        );
+        $client->updateJob($terminatingJob);
+
+        $updatedJob = $client->getJob($createdJob->getId());
+
+        self::assertEquals(JobFactory::STATUS_CREATED, $updatedJob->getStatus());
+        self::assertEquals(JobFactory::DESIRED_STATUS_TERMINATING, $updatedJob->getDesiredStatus());
+    }
 }
