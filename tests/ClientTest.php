@@ -13,6 +13,7 @@ use Keboola\JobQueueInternalClient\Client;
 use Keboola\JobQueueInternalClient\Exception\ClientException;
 use Keboola\JobQueueInternalClient\JobFactory;
 use Keboola\JobQueueInternalClient\JobFactory\Job;
+use Keboola\JobQueueInternalClient\JobFactory\JobResult;
 use Keboola\JobQueueInternalClient\JobListOptions;
 use Keboola\ObjectEncryptor\ObjectEncryptorFactory;
 use Psr\Log\LoggerInterface;
@@ -363,7 +364,7 @@ class ClientTest extends BaseTest
         $client->postJobResult(
             '123',
             JobFactory::STATUS_SUCCESS,
-            ['images' => ['digests' => ['keboola.test' => ['id' => '123']]]]
+            (new JobResult())->setImages(['digests' => ['keboola.test' => ['id' => '123']]])
         );
         self::assertCount(1, $container);
         /** @var Request $request */
@@ -371,12 +372,37 @@ class ClientTest extends BaseTest
         self::assertEquals('http://example.com/jobs/123', $request->getUri()->__toString());
         self::assertEquals('PUT', $request->getMethod());
         self::assertEquals(
-            '{"status":"success","result":{"images":{"digests":{"keboola.test":{"id":"123"}}}}}',
+            '{"status":"success","result":{"message":null,"configVersion":null,' .
+            '"images":{"digests":{"keboola.test":{"id":"123"}}}}}',
             $request->getBody()->getContents()
         );
         self::assertEquals('testToken', $request->getHeader('X-InternalApi-Token')[0]);
         self::assertEquals('Internal PHP Client', $request->getHeader('User-Agent')[0]);
         self::assertEquals('application/json', $request->getHeader('Content-type')[0]);
+    }
+
+    public function testSetJobResultInvalid(): void
+    {
+        $mock = new MockHandler([
+            new Response(
+                200,
+                ['Content-Type' => 'application/json'],
+                '{}'
+            ),
+        ]);
+        // Add the history middleware to the handler stack.
+        $container = [];
+        $history = Middleware::history($container);
+        $stack = HandlerStack::create($mock);
+        $stack->push($history);
+        $client = $this->getClient(['handler' => $stack]);
+        self::expectException(ClientException::class);
+        self::expectExceptionMessage('Invalid job ID: "".');
+        $client->postJobResult(
+            '',
+            JobFactory::STATUS_SUCCESS,
+            (new JobResult())->setImages(['digests' => ['keboola.test' => ['id' => '123']]])
+        );
     }
 
     public function testCreateInvalidJob(): void
