@@ -381,6 +381,30 @@ class ClientTest extends BaseTest
         self::assertEquals('application/json', $request->getHeader('Content-type')[0]);
     }
 
+    public function testSetJobResultInvalid(): void
+    {
+        $mock = new MockHandler([
+            new Response(
+                200,
+                ['Content-Type' => 'application/json'],
+                '{}'
+            ),
+        ]);
+        // Add the history middleware to the handler stack.
+        $container = [];
+        $history = Middleware::history($container);
+        $stack = HandlerStack::create($mock);
+        $stack->push($history);
+        $client = $this->getClient(['handler' => $stack]);
+        self::expectException(ClientException::class);
+        self::expectExceptionMessage('Invalid job ID: "".');
+        $client->postJobResult(
+            '',
+            JobFactory::STATUS_SUCCESS,
+            (new JobResult())->setImages(['digests' => ['keboola.test' => ['id' => '123']]])
+        );
+    }
+
     public function testCreateInvalidJob(): void
     {
         $mock = new MockHandler([

@@ -166,6 +166,9 @@ class Client
 
     public function postJobResult(string $jobId, string $status, JobResult $result): array
     {
+        if (empty($jobId)) {
+            throw new ClientException(sprintf('Invalid job ID: "%s".', $jobId));
+        }
         /** @noinspection PhpUnhandledExceptionInspection */
         $request = new Request(
             'PUT',
