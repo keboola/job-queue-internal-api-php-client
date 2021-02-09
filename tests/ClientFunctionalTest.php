@@ -196,13 +196,53 @@ class ClientFunctionalTest extends BaseTest
         self::assertEquals($createdJob->jsonSerialize(), $listedJob->jsonSerialize());
     }
 
+    public function testListJobsByComponent(): void
+    {
+        $client = $this->getClient();
+        $job = $client->getJobFactory()->createNewJob([
+            '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+            'configId' => '12345',
+            'componentId' => 'keboola.ex-google-drive',
+            'mode' => 'run',
+        ]);
+        $createdJob = $client->createJob($job);
+        $job2 = $client->getJobFactory()->createNewJob([
+            '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+            'configId' => '56789',
+            'componentId' => 'keboola.ex-google-analytics',
+            'mode' => 'run',
+        ]);
+        $client->createJob($job2);
+
+        // list one component
+        $response = $client->listJobs(
+            (new JobListOptions())
+                ->setComponents(['keboola.ex-google-drive'])
+                ->setStatuses([JobFactory::STATUS_CREATED]),
+            true
+        );
+        self::assertCount(1, $response);
+        /** @var Job $listedJob */
+        $listedJob = $response[0];
+        self::assertEquals($createdJob->jsonSerialize(), $listedJob->jsonSerialize());
+
+        // list more components
+        $response = $client->listJobs(
+            (new JobListOptions())
+                ->setComponents(['keboola.ex-google-drive', 'keboola.ex-google-analytics'])
+                ->setStatuses([JobFactory::STATUS_CREATED]),
+            true
+        );
+        self::assertCount(2, $response);
+    }
+
     public function testListJobsEscaping(): void
     {
         $client = $this->getClient();
         $job = $client->getJobFactory()->createNewJob([
             '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
             'configId' => '(*^&^$%£  $"£)?! \'',
-            'componentId' => '[]{}=žýřčšěš',
+            'componentId' => '{}=žýřčšěš',
             'mode' => 'run',
         ]);
         $createdJob = $client->createJob($job);
@@ -211,7 +251,7 @@ class ClientFunctionalTest extends BaseTest
         $response = $client->listJobs(
             (new JobListOptions())
                 ->setConfigs(['(*^&^$%£  $"£)?! \''])
-            //                ->setComponents(['[]{}=žýřčšěš'])
+                ->setComponents(['{}=žýřčšěš'])
                 ->setStatuses([JobFactory::STATUS_CREATED]),
             true
         );
