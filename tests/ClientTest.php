@@ -15,6 +15,7 @@ use Keboola\JobQueueInternalClient\JobFactory;
 use Keboola\JobQueueInternalClient\JobFactory\Job;
 use Keboola\JobQueueInternalClient\JobFactory\JobResult;
 use Keboola\JobQueueInternalClient\JobListOptions;
+use Keboola\JobQueueInternalClient\JobPatchData;
 use Keboola\ObjectEncryptor\ObjectEncryptorFactory;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
@@ -682,5 +683,71 @@ class ClientTest extends BaseTest
         $request = $mock->getLastRequest();
         self::assertEquals('offset=1000&limit=100', $request->getUri()->getQuery());
         self::assertEquals(0, $mock->count());
+    }
+
+    public function testPatchJobStatus(): void
+    {
+        $mock = new MockHandler([
+            new Response(
+                200,
+                ['Content-Type' => 'application/json'],
+                '{}'
+            ),
+        ]);
+        // Add the history middleware to the handler stack.
+        $container = [];
+        $history = Middleware::history($container);
+        $stack = HandlerStack::create($mock);
+        $stack->push($history);
+        $client = $this->getClient(['handler' => $stack]);
+        $client->patchJob(
+            '123',
+            (new JobPatchData())->setStatus(JobFactory::STATUS_PROCESSING)
+        );
+        self::assertCount(1, $container);
+        /** @var Request $request */
+        $request = $container[0]['request'];
+        self::assertEquals('http://example.com/jobs/123', $request->getUri()->__toString());
+        self::assertEquals('PUT', $request->getMethod());
+        self::assertEquals(
+            '{"status":"processing"}',
+            $request->getBody()->getContents()
+        );
+        self::assertEquals('testToken', $request->getHeader('X-InternalApi-Token')[0]);
+        self::assertEquals('Internal PHP Client', $request->getHeader('User-Agent')[0]);
+        self::assertEquals('application/json', $request->getHeader('Content-type')[0]);
+    }
+
+    public function testPatchJobDesiredStatus(): void
+    {
+        $mock = new MockHandler([
+            new Response(
+                200,
+                ['Content-Type' => 'application/json'],
+                '{}'
+            ),
+        ]);
+        // Add the history middleware to the handler stack.
+        $container = [];
+        $history = Middleware::history($container);
+        $stack = HandlerStack::create($mock);
+        $stack->push($history);
+        $client = $this->getClient(['handler' => $stack]);
+        $client->patchJob(
+            '123',
+            (new JobPatchData())->setDesiredStatus(JobFactory::DESIRED_STATUS_TERMINATING)
+        );
+        self::assertCount(1, $container);
+        /** @var Request $request */
+        $request = $container[0]['request'];
+        self::assertEquals('http://example.com/jobs/123', $request->getUri()->__toString());
+        self::assertEquals('PUT', $request->getMethod());
+        self::assertEquals(
+            '{"desiredStatus":"terminating"}',
+            $request->getBody()->getContents()
+        );
+        self::assertEquals('testToken', $request->getHeader('X-InternalApi-Token')[0]);
+        self::assertEquals('Internal PHP Client', $request->getHeader('User-Agent')[0]);
+        self::assertEquals('application/json', $request->getHeader('Content-type')[0]);
     }
 }
