@@ -164,6 +164,18 @@ class Client
         return $this->sendRequest($request);
     }
 
+    public function patchJob(string $jobId, array $patchData): array
+    {
+        /** @noinspection PhpUnhandledExceptionInspection */
+        $request = new Request(
+            'PUT',
+            'jobs/' . $jobId,
+            [],
+            json_encode($patchData, JSON_THROW_ON_ERROR)
+        );
+        return $this->sendRequest($request);
+    }
+
     public function postJobResult(string $jobId, string $status, JobResult $result): array
     {
         if (empty($jobId)) {
