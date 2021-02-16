@@ -390,22 +390,14 @@ class ClientFunctionalTest extends BaseTest
             'componentId' => 'keboola.ex-db-snowflake',
             'mode' => 'run',
         ]);
-        $createdJob = $client->createJob($job);
-        self::assertEquals(JobFactory::STATUS_CREATED, $createdJob->getStatus());
+        $client->createJob($job);
 
-        $processingJob = $client->patchJob(
+        $client->patchJob(
             $job->getId(),
             (new JobPatchData())->setStatus(JobFactory::STATUS_PROCESSING)
         );
-        self::assertEquals(JobFactory::STATUS_PROCESSING, $processingJob['status']);
-
-        $terminatingJob = $client->patchJob(
-            $job->getId(),
-            (new JobPatchData())->setStatus(JobFactory::STATUS_TERMINATING)
-        );
-        self::assertEquals(JobFactory::STATUS_TERMINATING, $terminatingJob['status']);
-        // desiredStatus must not be affected
-        self::assertEquals(JobFactory::DESIRED_STATUS_PROCESSING, $terminatingJob['desiredStatus']);
+        $processingJob = $client->getJob($job->getId());
+        self::assertEquals(JobFactory::STATUS_PROCESSING, $processingJob->getStatus());
     }
 
     public function testPatchJobDesiredStatus(): void
@@ -417,17 +409,16 @@ class ClientFunctionalTest extends BaseTest
             'componentId' => 'keboola.ex-db-snowflake',
             'mode' => 'run',
         ]);
-        $createdJob = $client->createJob($job);
-        self::assertEquals(JobFactory::STATUS_CREATED, $createdJob->getStatus());
-        self::assertEquals(JobFactory::DESIRED_STATUS_PROCESSING, $createdJob->getDesiredStatus());
+        $client->createJob($job);
 
-        $terminatingJob = $client->patchJob(
+        $client->patchJob(
             $job->getId(),
             (new JobPatchData())->setDesiredStatus(JobFactory::DESIRED_STATUS_TERMINATING)
         );
-        self::assertEquals(JobFactory::DESIRED_STATUS_TERMINATING, $terminatingJob['desiredStatus']);
+        $terminatingJob = $client->getJob($job->getId());
+        self::assertEquals(JobFactory::DESIRED_STATUS_TERMINATING, $terminatingJob->getDesiredStatus());
         // status must not be affected
-        self::assertEquals(JobFactory::STATUS_CREATED, $terminatingJob['status']);
+        self::assertEquals(JobFactory::STATUS_CREATED, $terminatingJob->getStatus());
     }
 
     public function testPatchJobMultiple(): void
@@ -439,28 +430,28 @@ class ClientFunctionalTest extends BaseTest
             'componentId' => 'keboola.ex-db-snowflake',
             'mode' => 'run',
         ]);
-        $createdJob = $client->createJob($job);
-        self::assertEquals(JobFactory::STATUS_CREATED, $createdJob->getStatus());
-        self::assertEquals(JobFactory::DESIRED_STATUS_PROCESSING, $createdJob->getDesiredStatus());
+        $client->createJob($job);
 
-        $terminatingJob = $client->patchJob(
+        $client->patchJob(
             $job->getId(),
             (new JobPatchData())
                 ->setStatus(JobFactory::STATUS_TERMINATING)
                 ->setDesiredStatus(JobFactory::DESIRED_STATUS_TERMINATING)
         );
-        self::assertEquals(JobFactory::DESIRED_STATUS_TERMINATING, $terminatingJob['desiredStatus']);
-        self::assertEquals(JobFactory::STATUS_TERMINATING, $terminatingJob['status']);
+        $terminatingJob = $client->getJob($job->getId());
+        self::assertEquals(JobFactory::DESIRED_STATUS_TERMINATING, $terminatingJob->getDesiredStatus());
+        self::assertEquals(JobFactory::STATUS_TERMINATING, $terminatingJob->getStatus());
 
-        $terminatedJob = $client->patchJob(
+        $client->patchJob(
             $job->getId(),
             (new JobPatchData())
                 ->setStatus(JobFactory::STATUS_TERMINATED)
                 ->setResult((new JobResult())->setMessage('Terminated'))
         );
-        self::assertEquals(JobFactory::DESIRED_STATUS_TERMINATING, $terminatedJob['desiredStatus']);
-        self::assertEquals(JobFactory::STATUS_TERMINATED, $terminatedJob['status']);
-        self::assertEquals('Terminated', $terminatedJob['result']['message']);
+        $terminatedJob = $client->getJob($job->getId());
+        self::assertEquals(JobFactory::DESIRED_STATUS_TERMINATING, $terminatedJob->getDesiredStatus());
+        self::assertEquals(JobFactory::STATUS_TERMINATED, $terminatedJob->getStatus());
+        self::assertEquals('Terminated', $terminatedJob->getResult()['message']);
     }
 
     public function testPatchJobStatusRejected(): void
