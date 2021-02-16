@@ -379,4 +379,91 @@ class ClientFunctionalTest extends BaseTest
         self::assertEquals(JobFactory::STATUS_CREATED, $updatedJob->getStatus());
         self::assertEquals(JobFactory::DESIRED_STATUS_TERMINATING, $updatedJob->getDesiredStatus());
     }
+
+    public function testPatchJobStatus(): void
+    {
+        $client = $this->getClient();
+        $job = $client->getJobFactory()->createNewJob([
+            '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+            'configId' => '454124290',
+            'componentId' => 'keboola.ex-db-snowflake',
+            'mode' => 'run',
+        ]);
+        $createdJob = $client->createJob($job);
+        self::assertEquals(JobFactory::STATUS_CREATED, $createdJob->getStatus());
+
+        $processingJob = $client->patchJob($job->getId(), ['status' => JobFactory::STATUS_PROCESSING]);
+        self::assertEquals(JobFactory::STATUS_PROCESSING, $processingJob['status']);
+
+        $terminatingJob = $client->patchJob($job->getId(), ['status' => JobFactory::STATUS_TERMINATING]);
+        self::assertEquals(JobFactory::STATUS_TERMINATING, $terminatingJob['status']);
+        // desiredStatus must not be affected
+        self::assertEquals(JobFactory::DESIRED_STATUS_PROCESSING, $terminatingJob['desiredStatus']);
+    }
+
+    public function testPatchJobDesiredStatus(): void
+    {
+        $client = $this->getClient();
+        $job = $client->getJobFactory()->createNewJob([
+            '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+            'configId' => '454124290',
+            'componentId' => 'keboola.ex-db-snowflake',
+            'mode' => 'run',
+        ]);
+        $createdJob = $client->createJob($job);
+        self::assertEquals(JobFactory::STATUS_CREATED, $createdJob->getStatus());
+        self::assertEquals(JobFactory::DESIRED_STATUS_PROCESSING, $createdJob->getDesiredStatus());
+
+        $terminatingJob = $client->patchJob($job->getId(), ['desiredStatus' => JobFactory::DESIRED_STATUS_TERMINATING]);
+        self::assertEquals(JobFactory::DESIRED_STATUS_TERMINATING, $terminatingJob['desiredStatus']);
+        // status must not be affected
+        self::assertEquals(JobFactory::STATUS_CREATED, $terminatingJob['status']);
+    }
+
+    public function testPatchJobMultiple(): void
+    {
+        $client = $this->getClient();
+        $job = $client->getJobFactory()->createNewJob([
+            '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+            'configId' => '454124290',
+            'componentId' => 'keboola.ex-db-snowflake',
+            'mode' => 'run',
+        ]);
+        $createdJob = $client->createJob($job);
+        self::assertEquals(JobFactory::STATUS_CREATED, $createdJob->getStatus());
+        self::assertEquals(JobFactory::DESIRED_STATUS_PROCESSING, $createdJob->getDesiredStatus());
+
+        $terminatingJob = $client->patchJob($job->getId(), [
+            'desiredStatus' => JobFactory::DESIRED_STATUS_TERMINATING,
+            'status' => JobFactory::STATUS_TERMINATING,
+        ]);
+        self::assertEquals(JobFactory::DESIRED_STATUS_TERMINATING, $terminatingJob['desiredStatus']);
+        self::assertEquals(JobFactory::STATUS_TERMINATING, $terminatingJob['status']);
+
+        $terminatedJob = $client->patchJob($job->getId(), [
+            'status' => JobFactory::STATUS_TERMINATED,
+            'result' => (new JobResult())->setMessage('Terminated')->jsonSerialize(),
+        ]);
+        self::assertEquals(JobFactory::DESIRED_STATUS_TERMINATING, $terminatedJob['desiredStatus']);
+        self::assertEquals(JobFactory::STATUS_TERMINATED, $terminatedJob['status']);
+        self::assertEquals('Terminated', $terminatedJob['result']['message']);
+    }
+
+    public function testPatchJobStatusRejected(): void
+    {
+        $client = $this->getClient();
+        $job = $client->getJobFactory()->createNewJob([
+            '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+            'configId' => '454124290',
+            'componentId' => 'keboola.ex-db-snowflake',
+            'mode' => 'run',
+        ]);
+        $createdJob = $client->createJob($job);
+        self::expectException(StateTargetEqualsCurrentException::class);
+        self::expectExceptionMessage('Invalid status transition of job');
+        $client->patchJob($job->getId(), [
+            'status' => $createdJob->getStatus(),
+            'desiredStatus' => $createdJob->getDesiredStatus(),
+        ]);
+    }
 }
