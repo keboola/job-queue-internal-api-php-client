@@ -11,6 +11,7 @@ use Keboola\JobQueueInternalClient\JobFactory;
 use Keboola\JobQueueInternalClient\JobFactory\Job;
 use Keboola\JobQueueInternalClient\JobFactory\JobResult;
 use Keboola\JobQueueInternalClient\JobListOptions;
+use Keboola\JobQueueInternalClient\JobPatchData;
 use Keboola\ObjectEncryptor\ObjectEncryptorFactory;
 use Psr\Log\NullLogger;
 
@@ -392,10 +393,16 @@ class ClientFunctionalTest extends BaseTest
         $createdJob = $client->createJob($job);
         self::assertEquals(JobFactory::STATUS_CREATED, $createdJob->getStatus());
 
-        $processingJob = $client->patchJob($job->getId(), ['status' => JobFactory::STATUS_PROCESSING]);
+        $processingJob = $client->patchJob(
+            $job->getId(),
+            (new JobPatchData())->setStatus(JobFactory::STATUS_PROCESSING)
+        );
         self::assertEquals(JobFactory::STATUS_PROCESSING, $processingJob['status']);
 
-        $terminatingJob = $client->patchJob($job->getId(), ['status' => JobFactory::STATUS_TERMINATING]);
+        $terminatingJob = $client->patchJob(
+            $job->getId(),
+            (new JobPatchData())->setStatus(JobFactory::STATUS_TERMINATING)
+        );
         self::assertEquals(JobFactory::STATUS_TERMINATING, $terminatingJob['status']);
         // desiredStatus must not be affected
         self::assertEquals(JobFactory::DESIRED_STATUS_PROCESSING, $terminatingJob['desiredStatus']);
@@ -414,7 +421,10 @@ class ClientFunctionalTest extends BaseTest
         self::assertEquals(JobFactory::STATUS_CREATED, $createdJob->getStatus());
         self::assertEquals(JobFactory::DESIRED_STATUS_PROCESSING, $createdJob->getDesiredStatus());
 
-        $terminatingJob = $client->patchJob($job->getId(), ['desiredStatus' => JobFactory::DESIRED_STATUS_TERMINATING]);
+        $terminatingJob = $client->patchJob(
+            $job->getId(),
+            (new JobPatchData())->setDesiredStatus(JobFactory::DESIRED_STATUS_TERMINATING)
+        );
         self::assertEquals(JobFactory::DESIRED_STATUS_TERMINATING, $terminatingJob['desiredStatus']);
         // status must not be affected
         self::assertEquals(JobFactory::STATUS_CREATED, $terminatingJob['status']);
@@ -433,17 +443,21 @@ class ClientFunctionalTest extends BaseTest
         self::assertEquals(JobFactory::STATUS_CREATED, $createdJob->getStatus());
         self::assertEquals(JobFactory::DESIRED_STATUS_PROCESSING, $createdJob->getDesiredStatus());
 
-        $terminatingJob = $client->patchJob($job->getId(), [
-            'desiredStatus' => JobFactory::DESIRED_STATUS_TERMINATING,
-            'status' => JobFactory::STATUS_TERMINATING,
-        ]);
+        $terminatingJob = $client->patchJob(
+            $job->getId(),
+            (new JobPatchData())
+                ->setStatus(JobFactory::STATUS_TERMINATING)
+                ->setDesiredStatus(JobFactory::DESIRED_STATUS_TERMINATING)
+        );
         self::assertEquals(JobFactory::DESIRED_STATUS_TERMINATING, $terminatingJob['desiredStatus']);
         self::assertEquals(JobFactory::STATUS_TERMINATING, $terminatingJob['status']);
 
-        $terminatedJob = $client->patchJob($job->getId(), [
-            'status' => JobFactory::STATUS_TERMINATED,
-            'result' => (new JobResult())->setMessage('Terminated')->jsonSerialize(),
-        ]);
+        $terminatedJob = $client->patchJob(
+            $job->getId(),
+            (new JobPatchData())
+                ->setStatus(JobFactory::STATUS_TERMINATED)
+                ->setResult((new JobResult())->setMessage('Terminated'))
+        );
         self::assertEquals(JobFactory::DESIRED_STATUS_TERMINATING, $terminatedJob['desiredStatus']);
         self::assertEquals(JobFactory::STATUS_TERMINATED, $terminatedJob['status']);
         self::assertEquals('Terminated', $terminatedJob['result']['message']);
@@ -461,9 +475,11 @@ class ClientFunctionalTest extends BaseTest
         $createdJob = $client->createJob($job);
         self::expectException(StateTargetEqualsCurrentException::class);
         self::expectExceptionMessage('Invalid status transition of job');
-        $client->patchJob($job->getId(), [
-            'status' => $createdJob->getStatus(),
-            'desiredStatus' => $createdJob->getDesiredStatus(),
-        ]);
+        $client->patchJob(
+            $job->getId(),
+            (new JobPatchData())
+                ->setStatus($createdJob->getStatus())
+                ->setDesiredStatus($createdJob->getDesiredStatus())
+        );
     }
 }
