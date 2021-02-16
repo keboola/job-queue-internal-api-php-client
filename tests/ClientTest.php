@@ -750,4 +750,13 @@ class ClientTest extends BaseTest
         self::assertEquals('Internal PHP Client', $request->getHeader('User-Agent')[0]);
         self::assertEquals('application/json', $request->getHeader('Content-type')[0]);
     }
+
+    public function testPatchJobInvalidJobId(): void
+    {
+        $client = $this->getClient([]);
+
+        $this->expectException(ClientException::class);
+        $this->expectExceptionMessage('Invalid job ID: "".');
+        $client->patchJob('', new JobPatchData());
+    }
 }
