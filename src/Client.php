@@ -164,14 +164,14 @@ class Client
         return $this->sendRequest($request);
     }
 
-    public function patchJob(string $jobId, array $patchData): array
+    public function patchJob(string $jobId, JobPatchData $patchData): array
     {
         /** @noinspection PhpUnhandledExceptionInspection */
         $request = new Request(
             'PUT',
             'jobs/' . $jobId,
             [],
-            json_encode($patchData, JSON_THROW_ON_ERROR)
+            json_encode($patchData->jsonSerialize(), JSON_THROW_ON_ERROR)
         );
         return $this->sendRequest($request);
     }
