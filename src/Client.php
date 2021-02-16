@@ -164,6 +164,21 @@ class Client
         return $this->sendRequest($request);
     }
 
+    public function patchJob(string $jobId, JobPatchData $patchData): array
+    {
+        if (empty($jobId)) {
+            throw new ClientException(sprintf('Invalid job ID: "%s".', $jobId));
+        }
+        /** @noinspection PhpUnhandledExceptionInspection */
+        $request = new Request(
+            'PUT',
+            'jobs/' . $jobId,
+            [],
+            json_encode($patchData->jsonSerialize(), JSON_THROW_ON_ERROR)
+        );
+        return $this->sendRequest($request);
+    }
+
     public function postJobResult(string $jobId, string $status, JobResult $result): array
     {
         if (empty($jobId)) {
