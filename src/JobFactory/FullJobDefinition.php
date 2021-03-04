@@ -60,7 +60,7 @@ class FullJobDefinition extends NewJobDefinition
                         )
                     ->end()
                 ->end()
-                ->arrayNode('configRows')
+                ->arrayNode('configRowIds')
                     ->prototype('scalar')
                         ->beforeNormalization()->always($this->getStringNormalizer())->end()
                     ->end()

@@ -18,7 +18,7 @@ interface JobInterface
     public function getProjectId(): string;
     public function getProjectName(): string;
     public function getResult(): array;
-    public function getConfigRows(): array;
+    public function getConfigRowIds(): array;
     public function getStatus(): string;
     public function getDesiredStatus(): string;
     public function getTag(): ?string;
