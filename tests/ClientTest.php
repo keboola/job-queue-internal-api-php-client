@@ -160,7 +160,8 @@ class ClientTest extends BaseTest
         self::assertEquals([], $job->getResult());
         self::assertEquals([], $job->getUsageData());
         self::assertNull($job->getTag());
-        self::assertNull($job->getConfigRowId());
+        self::assertIsArray($job->getConfigRows());
+        self::assertEmpty($job->getConfigRows());
         self::assertFalse($job->isFinished());
         self::assertStringStartsWith('KBC::ProjectSecure::', $job->getTokenString());
         self::assertEquals(['parameters' => ['foo' => 'bar']], $job->getConfigData());

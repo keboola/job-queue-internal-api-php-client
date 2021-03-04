@@ -115,7 +115,7 @@ class ClientFunctionalTest extends BaseTest
             'configId' => '454124290',
             'componentId' => 'keboola.ex-db-snowflake',
             'mode' => 'run',
-            'configRowId' => null,
+            'configRows' => [],
             'tag' => null,
             'configData' => [],
             'status' => 'created',

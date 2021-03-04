@@ -73,9 +73,9 @@ class Job implements JsonSerializable, JobInterface
         return $this->data['result'] ?? [];
     }
 
-    public function getConfigRowId(): ?string
+    public function getConfigRows(): array
     {
-        return $this->data['configRowId'] ?? null;
+        return $this->data['configRows'] ?? [];
     }
 
     public function getStatus(): string
