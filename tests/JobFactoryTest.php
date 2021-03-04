@@ -57,8 +57,8 @@ class JobFactoryTest extends BaseTest
         self::assertEquals([], $job->getConfigData());
         self::assertEquals(getenv('TEST_STORAGE_API_TOKEN'), $job->getTokenDecrypted());
         self::assertEquals([], $job->getConfigDataDecrypted());
-        self::assertIsArray($job->getConfigRows());
-        self::assertEmpty($job->getConfigRows());
+        self::assertIsArray($job->getConfigRowIds());
+        self::assertEmpty($job->getConfigRowIds());
         self::assertNull($job->getTag());
         self::assertEquals($job->getId(), $job->getRunId());
         // check that the object encryptor factory is initialized (if it is not, there are no wrappers)
@@ -77,7 +77,7 @@ class JobFactoryTest extends BaseTest
             'componentId' => 123,
             'mode' => 'run',
             'tag' => 123,
-            'configRows' => [123, 456],
+            'configRowIds' => [123, 456],
             'parentRunId' => 1234.567,
         ];
         $job = $factory->createNewJob($data);
@@ -87,12 +87,12 @@ class JobFactoryTest extends BaseTest
         self::assertSame(getenv('TEST_STORAGE_API_TOKEN'), $job->getTokenDecrypted());
         self::assertSame([], $job->getConfigDataDecrypted());
         self::assertSame('123', $job->getConfigId());
-        self::assertSame(['123', '456'], $job->getConfigRows());
+        self::assertSame(['123', '456'], $job->getConfigRowIds());
         self::assertSame('123', $job->getTag());
         self::assertSame('1234.567.' . $job->getId(), $job->getRunId());
         self::assertSame('1234.567', $job->getParentRunId());
         self::assertSame('123', $job->jsonSerialize()['componentId']);
-        self::assertSame(['123', '456'], $job->jsonSerialize()['configRows']);
+        self::assertSame(['123', '456'], $job->jsonSerialize()['configRowIds']);
         self::assertSame('123', $job->jsonSerialize()['tag']);
         self::assertSame('1234.567.' . $job->getId(), $job->jsonSerialize()['runId']);
     }
@@ -126,7 +126,7 @@ class JobFactoryTest extends BaseTest
             'configId' => '123',
             'componentId' => 'keboola.test',
             'mode' => 'run',
-            'configRows' => ['234'],
+            'configRowIds' => ['234'],
             'configData' => [
                 'parameters' => [
                     'foo' => 'bar',
@@ -138,7 +138,7 @@ class JobFactoryTest extends BaseTest
         self::assertNotEmpty($job->getId());
         self::assertEquals('123', $job->getConfigId());
         self::assertStringStartsWith('KBC::ProjectSecure::', $job->getTokenString());
-        self::assertEquals(['234'], $job->getConfigRows());
+        self::assertEquals(['234'], $job->getConfigRowIds());
         self::assertEquals(['parameters' => ['foo' => 'bar']], $job->getConfigData());
         self::assertEquals('latest', $job->getTag());
         self::assertEquals('2345.' . $job->getId(), $job->getRunId());
@@ -192,8 +192,8 @@ class JobFactoryTest extends BaseTest
         self::assertEquals('waiting', $newJob->getStatus());
         self::assertEquals('created', $job->getStatus());
         self::assertStringStartsWith('KBC::ProjectSecure::', $job->getTokenString());
-        self::assertIsArray($job->getConfigRows());
-        self::assertEmpty($job->getConfigRows());
+        self::assertIsArray($job->getConfigRowIds());
+        self::assertEmpty($job->getConfigRowIds());
         self::assertEquals(['parameters' => ['foo' => 'bar']], $job->getConfigData());
         self::assertEquals('latest', $job->getTag());
     }

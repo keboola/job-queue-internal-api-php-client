@@ -41,7 +41,7 @@ class NewJobDefinition implements ConfigurationInterface
                         ->thenInvalid('Mode must be one of "run" or "debug".')
                     ->end()
                 ->end()
-                ->arrayNode('configRows')
+                ->arrayNode('configRowIds')
                     ->prototype('scalar')
                     ->end()
                 ->end()

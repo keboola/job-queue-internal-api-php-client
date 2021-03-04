@@ -24,7 +24,7 @@ class NewJobDefinitionTest extends BaseTest
             array_merge($data, [
                 'mode' => 'run',
                 'result' => [],
-                'configRows' => [],
+                'configRowIds' => [],
             ]),
             $processed
         );
@@ -38,7 +38,7 @@ class NewJobDefinitionTest extends BaseTest
             'configId' => '123',
             'componentId' => 'keboola.test',
             'mode' => 'run',
-            'configRows' => ['234'],
+            'configRowIds' => ['234'],
             'configData' => [
                 'parameters' => [
                     'foo' => 'bar',
@@ -95,9 +95,9 @@ class NewJobDefinitionTest extends BaseTest
                     'configId' => '123',
                     'componentId' => 'keboola.test',
                     'mode' => 'run',
-                    'configRows' => '123',
+                    'configRowIds' => '123',
                 ],
-                'Invalid type for path "job.configRows". Expected array, but got string',
+                'Invalid type for path "job.configRowIds". Expected array, but got string',
             ],
             'Invalid tag' => [
                 [
