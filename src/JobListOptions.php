@@ -10,6 +10,15 @@ class JobListOptions
     private $ids;
 
     /** @var array */
+    private $runIds;
+
+    /** @var array */
+    private $tokenIds;
+
+    /** @var array */
+    private $tokenDescriptions;
+
+    /** @var array */
     private $components;
 
     /** @var array */
@@ -50,11 +59,27 @@ class JobListOptions
 
     public function getQueryParameters(): array
     {
-        $arrayableProps = ['ids' => 'id', 'components' => 'componentId', 'configs' => 'configId', 'modes' => 'mode',
-            'projects' => 'projectId', 'statuses' => 'status'];
-        $scalarProps = ['startTimeFrom' => 'startTimeFrom', 'startTimeTo' => 'startTimeTo',
-            'createdTimeFrom' => 'createdTimeFrom', 'createdTimeTo' => 'createdTimeTo', 'endTimeFrom' => 'endTimeFrom',
-            'endTimeTo' => 'endTimeTo', 'offset' => 'offset', 'limit' => 'limit'];
+        $arrayableProps = [
+            'ids' => 'id',
+            'runIds' => 'runId',
+            'tokenIds' => 'tokenId',
+            'tokenDescriptions' => 'tokenDescription',
+            'components' => 'componentId',
+            'configs' => 'configId',
+            'modes' => 'mode',
+            'projects' => 'projectId',
+            'statuses' => 'status'
+        ];
+        $scalarProps = [
+            'startTimeFrom' => 'startTimeFrom',
+            'startTimeTo' => 'startTimeTo',
+            'createdTimeFrom' => 'createdTimeFrom',
+            'createdTimeTo' => 'createdTimeTo',
+            'endTimeFrom' => 'endTimeFrom',
+            'endTimeTo' => 'endTimeTo',
+            'offset' => 'offset',
+            'limit' => 'limit'
+        ];
         $parameters = [];
         foreach ($arrayableProps as $propName => $paramName) {
             if (!empty($this->$propName)) {
@@ -79,6 +104,39 @@ class JobListOptions
     public function setIds(array $values): JobListOptions
     {
         $this->ids = $values;
+        return $this;
+    }
+
+    public function getRunIds(): array
+    {
+        return $this->runIds;
+    }
+
+    public function setRunIds(array $values): JobListOptions
+    {
+        $this->runIds = $values;
+        return $this;
+    }
+
+    public function getTokenIds(): array
+    {
+        return $this->tokenIds;
+    }
+
+    public function setTokenIds(array $values): JobListOptions
+    {
+        $this->tokenIds = $values;
+        return $this;
+    }
+
+    public function getTokenDescriptions(): array
+    {
+        return $this->tokenDescriptions;
+    }
+
+    public function setTokenDescriptions(array $values): JobListOptions
+    {
+        $this->tokenDescriptions = $values;
         return $this;
     }
 
