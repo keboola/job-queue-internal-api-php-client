@@ -68,7 +68,7 @@ class JobListOptions
             'configs' => 'configId',
             'modes' => 'mode',
             'projects' => 'projectId',
-            'statuses' => 'status'
+            'statuses' => 'status',
         ];
         $scalarProps = [
             'startTimeFrom' => 'startTimeFrom',
@@ -78,7 +78,7 @@ class JobListOptions
             'endTimeFrom' => 'endTimeFrom',
             'endTimeTo' => 'endTimeTo',
             'offset' => 'offset',
-            'limit' => 'limit'
+            'limit' => 'limit',
         ];
         $parameters = [];
         foreach ($arrayableProps as $propName => $paramName) {
