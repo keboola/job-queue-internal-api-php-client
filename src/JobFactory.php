@@ -139,7 +139,7 @@ class JobFactory
                 'componentId' => $data['componentId'],
                 'configId' => $data['configId'] ?? null,
                 'configData' => $data['configData'] ?? null,
-                'configRowId' => $data['configRowId'] ?? null,
+                'configRowIds' => $data['configRowIds'] ?? null,
                 'tag' => $data['tag'] ?? null,
                 'result' => [],
                 'usageData' => [],

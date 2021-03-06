@@ -88,13 +88,14 @@ class JobTest extends BaseTest
         self::assertEquals([], $this->getJob()->getResult());
     }
 
-    public function testGetRowId(): void
+    public function testGetconfigRowIds(): void
     {
-        self::assertNull($this->getJob()->getConfigRowId());
+        self::assertIsArray($this->getJob()->getConfigRowIds());
+        self::assertEmpty($this->getJob()->getConfigRowIds());
 
         $jobDataWithRowId = $this->jobData;
-        $jobDataWithRowId['configRowId'] = '123456789';
-        self::assertSame('123456789', $this->getJob($jobDataWithRowId)->getConfigRowId());
+        $jobDataWithRowId['configRowIds'] = ['123456789'];
+        self::assertSame(['123456789'], $this->getJob($jobDataWithRowId)->getConfigRowIds());
     }
 
     public function testGetStatus(): void
