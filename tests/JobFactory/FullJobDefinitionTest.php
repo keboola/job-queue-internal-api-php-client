@@ -33,7 +33,7 @@ class FullJobDefinitionTest extends BaseTest
         ];
         $definition = new FullJobDefinition();
         $processedData = $definition->processData($expectedData);
-        $expectedData['configRowId'] = null;
+        $expectedData['configRowIds'] = [];
         $expectedData['tag'] = null;
         $expectedData['isFinished'] = false;
         self::assertEquals($expectedData, $processedData);
@@ -48,7 +48,7 @@ class FullJobDefinitionTest extends BaseTest
             'configId' => '123',
             'componentId' => 'keboola.test',
             'mode' => 'run',
-            'configRowId' => '234',
+            'configRowIds' => ['234'],
             'configData' => [
                 'parameters' => [
                     'foo' => 'bar',
@@ -107,7 +107,7 @@ class FullJobDefinitionTest extends BaseTest
         ];
         $definition = new FullJobDefinition();
         $processedData = $definition->processData($expectedData);
-        $expectedData['params']['configRowId'] = null;
+        $expectedData['params']['configRowIds'] = [];
         $expectedData['params']['tag'] = null;
         self::assertEquals($expectedData, $processedData);
     }
@@ -193,7 +193,7 @@ class FullJobDefinitionTest extends BaseTest
                 ],
                 'Invalid type for path "job.configData". Expected array, but got string',
             ],
-            'Invalid configRowId' => [
+            'Invalid configRowIds' => [
                 [
                     '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
                     'tokenId' => '1234',
@@ -203,9 +203,9 @@ class FullJobDefinitionTest extends BaseTest
                     'configId' => '123',
                     'componentId' => 'keboola.test',
                     'mode' => 'run',
-                    'configRowId' => ['123'],
+                    'configRowIds' => '123',
                 ],
-                'Invalid type for path "job.configRowId". Expected scalar, but got array.',
+                'Invalid type for path "job.configRowIds". Expected array, but got string',
             ],
             'Invalid tag' => [
                 [

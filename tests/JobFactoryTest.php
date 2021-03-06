@@ -57,7 +57,8 @@ class JobFactoryTest extends BaseTest
         self::assertEquals([], $job->getConfigData());
         self::assertEquals(getenv('TEST_STORAGE_API_TOKEN'), $job->getTokenDecrypted());
         self::assertEquals([], $job->getConfigDataDecrypted());
-        self::assertNull($job->getConfigRowId());
+        self::assertIsArray($job->getConfigRowIds());
+        self::assertEmpty($job->getConfigRowIds());
         self::assertNull($job->getTag());
         self::assertEquals($job->getId(), $job->getRunId());
         // check that the object encryptor factory is initialized (if it is not, there are no wrappers)
@@ -76,7 +77,7 @@ class JobFactoryTest extends BaseTest
             'componentId' => 123,
             'mode' => 'run',
             'tag' => 123,
-            'configRowId' => 123,
+            'configRowIds' => [123, 456],
             'parentRunId' => 1234.567,
         ];
         $job = $factory->createNewJob($data);
@@ -86,12 +87,12 @@ class JobFactoryTest extends BaseTest
         self::assertSame(getenv('TEST_STORAGE_API_TOKEN'), $job->getTokenDecrypted());
         self::assertSame([], $job->getConfigDataDecrypted());
         self::assertSame('123', $job->getConfigId());
-        self::assertSame('123', $job->getConfigRowId());
+        self::assertSame(['123', '456'], $job->getConfigRowIds());
         self::assertSame('123', $job->getTag());
         self::assertSame('1234.567.' . $job->getId(), $job->getRunId());
         self::assertSame('1234.567', $job->getParentRunId());
         self::assertSame('123', $job->jsonSerialize()['componentId']);
-        self::assertSame('123', $job->jsonSerialize()['configRowId']);
+        self::assertSame(['123', '456'], $job->jsonSerialize()['configRowIds']);
         self::assertSame('123', $job->jsonSerialize()['tag']);
         self::assertSame('1234.567.' . $job->getId(), $job->jsonSerialize()['runId']);
     }
@@ -125,7 +126,7 @@ class JobFactoryTest extends BaseTest
             'configId' => '123',
             'componentId' => 'keboola.test',
             'mode' => 'run',
-            'configRowId' => '234',
+            'configRowIds' => ['234'],
             'configData' => [
                 'parameters' => [
                     'foo' => 'bar',
@@ -137,47 +138,10 @@ class JobFactoryTest extends BaseTest
         self::assertNotEmpty($job->getId());
         self::assertEquals('123', $job->getConfigId());
         self::assertStringStartsWith('KBC::ProjectSecure::', $job->getTokenString());
-        self::assertEquals('234', $job->getConfigRowId());
+        self::assertEquals(['234'], $job->getConfigRowIds());
         self::assertEquals(['parameters' => ['foo' => 'bar']], $job->getConfigData());
         self::assertEquals('latest', $job->getTag());
         self::assertEquals('2345.' . $job->getId(), $job->getRunId());
-    }
-
-    public function testLoadLegacyOrchestratorJob(): void
-    {
-        //@todo deal with legacy jobs
-        $this->markTestSkipped('orchestrator legacy job');
-
-        $factory = $this->getJobFactory();
-        $data = [
-            'id' => '664651692',
-            'runId' => '664651695',
-            'lockName' => 'orchestrator-12345',
-            'project' => [
-                'id' => '219',
-            ],
-            'token' => [
-                'id' => '12345',
-                'token' => getenv('TEST_STORAGE_API_TOKEN'),
-            ],
-            'componentId' => 'orchestrator',
-            'command' => 'run',
-            'params' => [
-                'configId' => 456789,
-                'mode' => 'run',
-                'row' => null,
-                'tag' => null,
-            ],
-            'status' => 'waiting',
-            'createdTime' => '2020-01-09T12:46:08.164Z',
-        ];
-        $job = $factory->loadFromExistingJobData($data);
-        self::assertNotEmpty($job->getId());
-        self::assertSame('456789', $job->getConfigId());
-        self::assertSame(null, $job->getConfigRowId());
-        self::assertSame([], $job->getConfigData());
-        self::assertSame(null, $job->getTag());
-        self::assertSame('orchestrator', $job->getComponentId());
     }
 
     public function testLoadInvalidJob(): void
@@ -195,58 +159,6 @@ class JobFactoryTest extends BaseTest
         self::expectException(ClientException::class);
         self::expectExceptionMessage('The child node "componentId" at path "job" must be configured.');
         $this->getJobFactory()->loadFromExistingJobData($jobData);
-    }
-
-    public function testLoadLegacyTransformationsJob(): void
-    {
-        //@todo deal with legacy jobs
-        $this->markTestSkipped('orchestrator legacy job');
-
-        $jobData = [
-            'id' => 138361,
-            'runId' => '138362',
-            'lockName' => 'transformation-21-137869-run',
-            'project' => [
-                'id' => 21,
-                'name' => 'Odin - Queue',
-            ],
-            'token' => [
-                'id' => '127',
-                'description' => 'john.doe@keboola.com',
-                'token' => getenv('TEST_STORAGE_API_TOKEN'),
-            ],
-            'componentId' => 'transformation',
-            'command' => 'run',
-            'params' => [
-                'call' => 'run',
-                'mode' => 'full',
-                'phases' => [],
-                'transformations' => [],
-                'configId' => '137869',
-                'configBucketId' => '137869',
-            ],
-            'result' => [],
-            'status' => 'waiting',
-            'process' => [
-                'host' => 'ip-10-0-41-225.us-east-2.compute.internal',
-                'pid' => 96,
-            ],
-            'createdTime' => '2020-01-17T10:21:14+01:00',
-            'startTime' => null,
-            'endTime' => null,
-            'durationSeconds' => null,
-            'waitSeconds' => null,
-            'nestingLevel' => 0,
-            'isFinished' => false,
-            '_index' => null,
-            '_type' => null,
-            'url' => 'https://queue.east-us-2.azure.keboola.com/jobs/138361',
-        ];
-        $job = $this->getJobFactory()->loadFromExistingJobData($jobData);
-        $jobData['params']['componentId'] = 'transformation';
-        $jobData['params']['row'] = null;
-        $jobData['params']['tag'] = null;
-        self::assertEquals($jobData, $job->jsonSerialize());
     }
 
     public function testStaticGetters(): void
@@ -280,7 +192,8 @@ class JobFactoryTest extends BaseTest
         self::assertEquals('waiting', $newJob->getStatus());
         self::assertEquals('created', $job->getStatus());
         self::assertStringStartsWith('KBC::ProjectSecure::', $job->getTokenString());
-        self::assertNull($job->getConfigRowId());
+        self::assertIsArray($job->getConfigRowIds());
+        self::assertEmpty($job->getConfigRowIds());
         self::assertEquals(['parameters' => ['foo' => 'bar']], $job->getConfigData());
         self::assertEquals('latest', $job->getTag());
     }
