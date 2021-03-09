@@ -296,7 +296,7 @@ class ClientFunctionalTest extends BaseTest
             'mode' => 'run',
         ]);
         $job = $jobFactory->modifyJob($job, [
-            'createdTime' => '-5 months'
+            'createdTime' => '-5 months',
         ]);
         $client->createJob($job);
 
@@ -307,7 +307,7 @@ class ClientFunctionalTest extends BaseTest
             'mode' => 'run',
         ]);
         $job2 = $jobFactory->modifyJob($job2, [
-            'createdTime' => '-3 months'
+            'createdTime' => '-3 months',
         ]);
         $createdJob2 = $client->createJob($job2);
         $job3 = $client->getJobFactory()->createNewJob([
@@ -317,7 +317,7 @@ class ClientFunctionalTest extends BaseTest
             'mode' => 'run',
         ]);
         $job3 = $jobFactory->modifyJob($job3, [
-            'createdTime' => '-3 months'
+            'createdTime' => '-3 months',
         ]);
         $createdJob3 = $client->createJob($job3);
 
