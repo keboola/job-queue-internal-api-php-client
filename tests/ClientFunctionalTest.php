@@ -284,37 +284,48 @@ class ClientFunctionalTest extends BaseTest
         self::assertSame($jobIds, $resIds);
     }
 
-    public function testListJobsByCreatedDate(): void
+    public function testListJobsByCreatedTime(): void
     {
+        $configId = rand(0, 99999);
         $client = $this->getClient();
-        $job = $client->getJobFactory()->createNewJob([
+        $jobFactory = $client->getJobFactory();
+        $job = $jobFactory->createNewJob([
             '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
-            'configId' => '12345',
+            'configId' => $configId,
             'componentId' => 'keboola.ex-google-drive',
             'mode' => 'run',
         ]);
+        $job = $jobFactory->modifyJob($job, [
+            'createdTime' => '-5 months'
+        ]);
         $client->createJob($job);
 
-        sleep(3);
-
-        $job2 = $client->getJobFactory()->createNewJob([
+        $job2 = $jobFactory->createNewJob([
             '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
-            'configId' => '56789',
+            'configId' => $configId,
             'componentId' => 'keboola.ex-google-drive',
             'mode' => 'run',
+        ]);
+        $job2 = $jobFactory->modifyJob($job2, [
+            'createdTime' => '-3 months'
         ]);
         $createdJob2 = $client->createJob($job2);
         $job3 = $client->getJobFactory()->createNewJob([
             '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
-            'configId' => '99999',
+            'configId' => $configId,
             'componentId' => 'keboola.ex-google-drive',
             'mode' => 'run',
+        ]);
+        $job3 = $jobFactory->modifyJob($job3, [
+            'createdTime' => '-3 months'
         ]);
         $createdJob3 = $client->createJob($job3);
 
         $response = $client->listJobs(
             (new JobListOptions())
-                ->setCreatedTimeFrom((new \DateTime('-3 seconds'))->format('c'))
+                ->setConfigs([$configId])
+                ->setCreatedTimeFrom((new \DateTime('-4 months'))->format('c'))
+                ->setCreatedTimeTo((new \DateTime('-2 months'))->format('c'))
                 ->setSortOrder(JobListOptions::SORT_ORDER_ASC)
                 ->setSortBy('id'),
             true
