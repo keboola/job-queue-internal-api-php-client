@@ -26,27 +26,57 @@ class JobListOptionsTest extends TestCase
         $jobListOptions->setModes(['run', 'debug']);
         $jobListOptions->setStatuses([JobFactory::STATUS_SUCCESS, JobFactory::STATUS_PROCESSING]);
 
-        $dtStartFrom = new \DateTime('-7 days 8:00');
-        $dtStartTo = new \DateTime('-1 day 8:00');
-        $dtCreatedFrom = new \DateTime('-7 days 8:00');
-        $dtCreatedTo = new \DateTime('-1 day 8:00');
-        $dtEndFrom = new \DateTime('-7 days 8:00');
-        $dtEndTo = new \DateTime('-1 day 8:00');
+        $from = (new \DateTime('-7 days 8:00'))->format('c');
+        $to = (new \DateTime('-1 day 8:00'))->format('c');
 
-        $jobListOptions->setStartTimeFrom('-7 days 8:00');
-        $jobListOptions->setStartTimeTo('-1 day 8:00');
-        $jobListOptions->setCreatedTimeFrom('-7 days 8:00');
-        $jobListOptions->setCreatedTimeTo('-1 day 8:00');
-        $jobListOptions->setEndTimeTo('-7 days 8:00');
-        $jobListOptions->setEndTimeFrom('-1 day 8:00');
+        $jobListOptions->setStartTimeFrom($from);
+        $jobListOptions->setStartTimeTo($to);
+        $jobListOptions->setCreatedTimeFrom($from);
+        $jobListOptions->setCreatedTimeTo($to);
+        $jobListOptions->setEndTimeFrom($from);
+        $jobListOptions->setEndTimeTo($to);
         $jobListOptions->setOffset(20);
         $jobListOptions->setLimit(100);
         $jobListOptions->setSortBy('id');
         $jobListOptions->setSortOrder(JobListOptions::SORT_ORDER_DESC);
 
-        $expected = $jobListOptions->getQueryParameters();
+        $expected = [
+            'id[]=1',
+            'id[]=2',
+            'id[]=3',
+            'runId[]=1',
+            'runId[]=2',
+            'runId[]=3',
+            'tokenId[]=1',
+            'tokenId[]=2',
+            'tokenId[]=3',
+            'tokenDescription[]=new+token',
+            'tokenDescription[]=old+token',
+            'tokenDescription[]=bad+token',
+            'tokenDescription[]=good+token',
+            'componentId[]=writer',
+            'componentId[]=extractor',
+            'componentId[]=orchestrator',
+            'configId[]=1',
+            'configId[]=2',
+            'configId[]=3',
+            'mode[]=run',
+            'mode[]=debug',
+            'status[]=success',
+            'status[]=processing',
+            'startTimeFrom=' . urlencode($from),
+            'startTimeTo=' . urlencode($to),
+            'createdTimeFrom=' . urlencode($from),
+            'createdTimeTo=' . urlencode($to),
+            'endTimeFrom=' . urlencode($from) ,
+            'endTimeTo=' . urlencode($to) ,
+            'offset=20',
+            'limit=100',
+            'sortBy=id',
+            'sortOrder=desc',
+        ];
 
-        var_dump($expected);
+        self::assertSame($expected, $jobListOptions->getQueryParameters());
     }
 
     public function testSetSortOrderWrong(): void
