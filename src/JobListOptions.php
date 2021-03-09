@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Keboola\JobQueueInternalClient;
 
+use Keboola\JobQueueInternalClient\Exception\ClientException;
+
 class JobListOptions
 {
     /** @var array */
@@ -57,6 +59,18 @@ class JobListOptions
     /** @var int */
     private $limit = 100;
 
+    /** @var string */
+    private $sortBy;
+
+    /** @var string */
+    private $sortOrder;
+
+    /** @var string */
+    public const SORT_ORDER_ASC = 'asc';
+
+    /** @var string */
+    public const SORT_ORDER_DESC = 'desc';
+
     public function getQueryParameters(): array
     {
         $arrayableProps = [
@@ -79,6 +93,8 @@ class JobListOptions
             'endTimeTo' => 'endTimeTo',
             'offset' => 'offset',
             'limit' => 'limit',
+            'sortBy' => 'sortBy',
+            'sortOrder' => 'sortOrder',
         ];
         $parameters = [];
         foreach ($arrayableProps as $propName => $paramName) {
@@ -280,6 +296,34 @@ class JobListOptions
     public function setCreatedTimeTo(string $value): JobListOptions
     {
         $this->createdTimeTo = $value;
+        return $this;
+    }
+
+    public function getSortBy(): string
+    {
+        return $this->sortBy;
+    }
+
+    public function setSortBy(string $value): JobListOptions
+    {
+        $this->sortBy = $value;
+        return $this;
+    }
+
+    public function getSortOrder(): string
+    {
+        return $this->sortOrder;
+    }
+
+    public function setSortOrder(string $value): JobListOptions
+    {
+        $allowedValues = [self::SORT_ORDER_ASC, self::SORT_ORDER_DESC];
+        if (!in_array($value, $allowedValues)) {
+            throw new ClientException(
+                sprintf('Allowed values for "sortOrder" are [%s].', implode(',', $allowedValues))
+            );
+        }
+        $this->sortOrder = $value;
         return $this;
     }
 }
