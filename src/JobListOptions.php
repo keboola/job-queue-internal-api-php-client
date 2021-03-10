@@ -4,10 +4,21 @@ declare(strict_types=1);
 
 namespace Keboola\JobQueueInternalClient;
 
+use Keboola\JobQueueInternalClient\Exception\ClientException;
+
 class JobListOptions
 {
     /** @var array */
     private $ids;
+
+    /** @var array */
+    private $runIds;
+
+    /** @var array */
+    private $tokenIds;
+
+    /** @var array */
+    private $tokenDescriptions;
 
     /** @var array */
     private $components;
@@ -48,13 +59,43 @@ class JobListOptions
     /** @var int */
     private $limit = 100;
 
+    /** @var string */
+    private $sortBy;
+
+    /** @var string */
+    private $sortOrder;
+
+    /** @var string */
+    public const SORT_ORDER_ASC = 'asc';
+
+    /** @var string */
+    public const SORT_ORDER_DESC = 'desc';
+
     public function getQueryParameters(): array
     {
-        $arrayableProps = ['ids' => 'id', 'components' => 'componentId', 'configs' => 'configId', 'modes' => 'mode',
-            'projects' => 'projectId', 'statuses' => 'status'];
-        $scalarProps = ['startTimeFrom' => 'startTimeFrom', 'startTimeTo' => 'startTimeTo',
-            'createdTimeFrom' => 'createdTimeFrom', 'createdTimeTo' => 'createdTimeTo', 'endTimeFrom' => 'endTimeFrom',
-            'endTimeTo' => 'endTimeTo', 'offset' => 'offset', 'limit' => 'limit'];
+        $arrayableProps = [
+            'ids' => 'id',
+            'runIds' => 'runId',
+            'tokenIds' => 'tokenId',
+            'tokenDescriptions' => 'tokenDescription',
+            'components' => 'componentId',
+            'configs' => 'configId',
+            'modes' => 'mode',
+            'projects' => 'projectId',
+            'statuses' => 'status',
+        ];
+        $scalarProps = [
+            'startTimeFrom' => 'startTimeFrom',
+            'startTimeTo' => 'startTimeTo',
+            'createdTimeFrom' => 'createdTimeFrom',
+            'createdTimeTo' => 'createdTimeTo',
+            'endTimeFrom' => 'endTimeFrom',
+            'endTimeTo' => 'endTimeTo',
+            'offset' => 'offset',
+            'limit' => 'limit',
+            'sortBy' => 'sortBy',
+            'sortOrder' => 'sortOrder',
+        ];
         $parameters = [];
         foreach ($arrayableProps as $propName => $paramName) {
             if (!empty($this->$propName)) {
@@ -79,6 +120,39 @@ class JobListOptions
     public function setIds(array $values): JobListOptions
     {
         $this->ids = $values;
+        return $this;
+    }
+
+    public function getRunIds(): array
+    {
+        return $this->runIds;
+    }
+
+    public function setRunIds(array $values): JobListOptions
+    {
+        $this->runIds = $values;
+        return $this;
+    }
+
+    public function getTokenIds(): array
+    {
+        return $this->tokenIds;
+    }
+
+    public function setTokenIds(array $values): JobListOptions
+    {
+        $this->tokenIds = $values;
+        return $this;
+    }
+
+    public function getTokenDescriptions(): array
+    {
+        return $this->tokenDescriptions;
+    }
+
+    public function setTokenDescriptions(array $values): JobListOptions
+    {
+        $this->tokenDescriptions = $values;
         return $this;
     }
 
@@ -222,6 +296,34 @@ class JobListOptions
     public function setCreatedTimeTo(string $value): JobListOptions
     {
         $this->createdTimeTo = $value;
+        return $this;
+    }
+
+    public function getSortBy(): string
+    {
+        return $this->sortBy;
+    }
+
+    public function setSortBy(string $value): JobListOptions
+    {
+        $this->sortBy = $value;
+        return $this;
+    }
+
+    public function getSortOrder(): string
+    {
+        return $this->sortOrder;
+    }
+
+    public function setSortOrder(string $value): JobListOptions
+    {
+        $allowedValues = [self::SORT_ORDER_ASC, self::SORT_ORDER_DESC];
+        if (!in_array($value, $allowedValues)) {
+            throw new ClientException(
+                sprintf('Allowed values for "sortOrder" are [%s].', implode(', ', $allowedValues))
+            );
+        }
+        $this->sortOrder = $value;
         return $this;
     }
 }

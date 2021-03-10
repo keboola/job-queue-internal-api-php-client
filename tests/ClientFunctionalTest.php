@@ -237,6 +237,118 @@ class ClientFunctionalTest extends BaseTest
         self::assertCount(2, $response);
     }
 
+    public function testListJobsSort(): void
+    {
+        $client = $this->getClient();
+
+        $job = $client->getJobFactory()->createNewJob([
+            '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+            'configId' => '12345',
+            'componentId' => 'keboola.ex-google-drive',
+            'mode' => 'run',
+        ]);
+        $createdJob = $client->createJob($job);
+        $job2 = $client->getJobFactory()->createNewJob([
+            '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+            'configId' => '56789',
+            'componentId' => 'keboola.ex-google-drive',
+            'mode' => 'run',
+        ]);
+        $createdJob2 = $client->createJob($job2);
+        $job3 = $client->getJobFactory()->createNewJob([
+            '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+            'configId' => '99999',
+            'componentId' => 'keboola.ex-google-drive',
+            'mode' => 'run',
+        ]);
+        $createdJob3 = $client->createJob($job3);
+
+        $jobIds = array_map(function (Job $job) {
+            return $job->getId();
+        }, [$createdJob, $createdJob2, $createdJob3]);
+
+        $response = $client->listJobs(
+            (new JobListOptions())
+                ->setIds($jobIds)
+                ->setSortBy('id')
+                ->setSortOrder(JobListOptions::SORT_ORDER_DESC),
+            true
+        );
+        self::assertCount(3, $response);
+
+        $resIds = array_map(function (Job $job) {
+            return $job->getId();
+        }, $response);
+        rsort($jobIds);
+
+        self::assertSame($jobIds, $resIds);
+    }
+
+    public function testListJobsByCreatedTime(): void
+    {
+        $configId = rand(0, 99999);
+        $client = $this->getClient();
+        $jobFactory = $client->getJobFactory();
+        $job = $jobFactory->createNewJob([
+            '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+            'configId' => $configId,
+            'componentId' => 'keboola.ex-google-drive',
+            'mode' => 'run',
+        ]);
+        $job = $jobFactory->modifyJob($job, [
+            'createdTime' => '-5 months',
+        ]);
+        $client->createJob($job);
+
+        $job2 = $jobFactory->createNewJob([
+            '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+            'configId' => $configId,
+            'componentId' => 'keboola.ex-google-drive',
+            'mode' => 'run',
+        ]);
+        $job2 = $jobFactory->modifyJob($job2, [
+            'createdTime' => '-3 months',
+        ]);
+        $createdJob2 = $client->createJob($job2);
+        $job3 = $client->getJobFactory()->createNewJob([
+            '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+            'configId' => $configId,
+            'componentId' => 'keboola.ex-google-drive',
+            'mode' => 'run',
+        ]);
+        $job3 = $jobFactory->modifyJob($job3, [
+            'createdTime' => '-3 months',
+        ]);
+        $createdJob3 = $client->createJob($job3);
+
+        $response = $client->listJobs(
+            (new JobListOptions())
+                ->setConfigs([$configId])
+                ->setCreatedTimeFrom((new \DateTime('-4 months'))->format('c'))
+                ->setCreatedTimeTo((new \DateTime('-2 months'))->format('c'))
+                ->setSortOrder(JobListOptions::SORT_ORDER_ASC)
+                ->setSortBy('id'),
+            true
+        );
+        self::assertCount(2, $response);
+
+        /** @var Job $resJob2 */
+        $resJob2 = $response[0];
+        /** @var Job $resJob3 */
+        $resJob3 = $response[1];
+
+        self::assertEquals($createdJob2->getId(), $resJob2->getId());
+        self::assertEquals(
+            $createdJob2->jsonSerialize()['dateTimeCreated'],
+            $resJob2->jsonSerialize()['dateTimeCreated']
+        );
+        self::assertEquals($createdJob3->getId(), $resJob3->getId());
+        self::assertEquals(
+            $createdJob3->jsonSerialize()['dateTimeCreated'],
+            $resJob3->jsonSerialize()['dateTimeCreated']
+        );
+    }
+
     public function testListJobsEscaping(): void
     {
         $client = $this->getClient();
