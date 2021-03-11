@@ -99,6 +99,10 @@ class Client
 
     public function getJob(string $jobId): JobInterface
     {
+        if (empty($jobId)) {
+            throw new ClientException(sprintf('Invalid job ID: "%s".', $jobId));
+        }
+
         $request = new Request('GET', 'jobs/' . $jobId);
         $result = $this->sendRequest($request);
         return $this->jobFactory->loadFromExistingJobData($result);
@@ -148,6 +152,10 @@ class Client
 
     public function updateJob(JobInterface $newJob): array
     {
+        if (empty($newJob->getId())) {
+            throw new ClientException(sprintf('Invalid job ID: "%s".', $newJob->getId()));
+        }
+
         /** @noinspection PhpUnhandledExceptionInspection */
         $request = new Request(
             'PUT',

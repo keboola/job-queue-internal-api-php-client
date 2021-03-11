@@ -463,6 +463,15 @@ class ClientTest extends BaseTest
         ));
     }
 
+    public function testClientGetJobWithEmptyIdThrowsException(): void
+    {
+        $client = $this->getClient([]);
+
+        $this->expectException(ClientException::class);
+        $this->expectExceptionMessage('Invalid job ID: "".');
+        $client->getJob('');
+    }
+
     public function testClientGetJobsWithProjectIdDefaults(): void
     {
         $mock = new MockHandler([
@@ -759,5 +768,20 @@ class ClientTest extends BaseTest
         $this->expectException(ClientException::class);
         $this->expectExceptionMessage('Invalid job ID: "".');
         $client->patchJob('', new JobPatchData());
+    }
+
+    public function testClientUpdateJobWithEmptyIdThrowsException(): void
+    {
+        $objectEncryptorFactory = new ObjectEncryptorFactory('alias/some-key', 'us-east-1', '', '', '');
+        $job = new Job($objectEncryptorFactory, [
+            'status' => JobFactory::STATUS_SUCCESS,
+            'projectId' => 'test',
+            'id' => '',
+        ]);
+        $client = $this->getClient([]);
+
+        $this->expectException(ClientException::class);
+        $this->expectExceptionMessage('Invalid job ID: "".');
+        $client->updateJob($job);
     }
 }
