@@ -610,11 +610,11 @@ class ClientTest extends BaseTest
                 ))
             );
         });
-        $queue[] = new Response(
-            200,
-            ['Content-Type' => 'application/json'],
+            $queue[] = new Response(
+                200,
+                ['Content-Type' => 'application/json'],
             (string) json_encode([$jobData])
-        );
+            );
         $mock = new MockHandler($queue);
 
         $requestHistory = [];
@@ -634,8 +634,35 @@ class ClientTest extends BaseTest
         self::assertEquals('123', $job->getId());
         self::assertEquals('456', $job->getProjectId());
 
-        $request = $mock->getLastRequest();
         self::assertEquals(0, $mock->count());
+        $params = [];
+        foreach ($requestHistory as $request) {
+            $requestUri = $request['request']->getUri()->getQuery();
+            if (preg_match('#offset=([0-9]+)#', $requestUri, $matches)) {
+                $offset = $matches[1];
+            } else {
+                $offset = '';
+            }
+            preg_match('#limit=([0-9]+)#', $requestUri, $matches);
+            $params[] = ['offset' => $offset, 'limit' => $matches[1]];
+        }
+        self::assertEquals(
+            [
+                ['offset' => '', 'limit' => '100'],
+                ['offset' => '', 'limit' => '100'],
+                ['offset' => '', 'limit' => '100'],
+                ['offset' => '', 'limit' => '100'],
+                ['offset' => '', 'limit' => '100'],
+                ['offset' => '', 'limit' => '100'],
+                ['offset' => '', 'limit' => '100'],
+                ['offset' => '', 'limit' => '100'],
+                ['offset' => '', 'limit' => '100'],
+                ['offset' => '', 'limit' => '100'],
+                ['offset' => '', 'limit' => '100'],
+            ],
+            $params
+        );
+        $request = $mock->getLastRequest();
         self::assertStringStartsWith('id%5B%5D=1001000', $request->getUri()->getQuery());
         self::assertLessThan(2000, strlen($request->getUri()->getQuery()));
     }
