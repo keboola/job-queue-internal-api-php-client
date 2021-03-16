@@ -610,11 +610,11 @@ class ClientTest extends BaseTest
                 ))
             );
         });
-            $queue[] = new Response(
-                200,
-                ['Content-Type' => 'application/json'],
+        $queue[] = new Response(
+            200,
+            ['Content-Type' => 'application/json'],
             (string) json_encode([$jobData])
-            );
+        );
         $mock = new MockHandler($queue);
 
         $requestHistory = [];
