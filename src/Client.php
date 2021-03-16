@@ -112,6 +112,7 @@ class Client
     {
         $jobs = [];
         $i = 1;
+        $listOptions = clone $listOptions;
         do {
             $request = new Request('GET', 'jobs?' . implode('&', $listOptions->getQueryParameters()));
             $result = $this->sendRequest($request);
