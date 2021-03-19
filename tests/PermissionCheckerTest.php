@@ -127,7 +127,7 @@ class PermissionCheckerTest extends TestCase
         PermissionChecker::verifyJobRunPermissions($job, $tokenInfo);
     }
 
-    public function forbiddenJobsProvider()
+    public function forbiddenJobsProvider(): array
     {
         return [
             'componentNotMatching' => [
