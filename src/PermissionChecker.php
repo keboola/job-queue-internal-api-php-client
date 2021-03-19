@@ -19,7 +19,9 @@ class PermissionChecker
                 sprintf('You do not have permission to run jobs of "%s" component.', $job->getComponentId())
             );
         }
-        if (!empty($tokenInfo['admin']['role']) && $tokenInfo['admin']['role'] === 'readOnly') { //@todo verify case
+        if (!empty($tokenInfo['admin']['role']) &&
+            (strcasecmp($tokenInfo['admin']['role'], 'readOnly') === 0)
+        ) {
             throw new PermissionsException('You have read only access to the project, you cannot run any jobs.');
         }
     }
