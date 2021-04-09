@@ -157,7 +157,9 @@ class JobFactoryTest extends BaseTest
         ];
 
         self::expectException(ClientException::class);
-        self::expectExceptionMessage('The child node "componentId" at path "job" must be configured.');
+        self::expectExceptionMessageMatches(
+            '#The child (node|config) "componentId" (at path|under) "job" must be configured.#'
+        );
         $this->getJobFactory()->loadFromExistingJobData($jobData);
     }
 
@@ -206,7 +208,9 @@ class JobFactoryTest extends BaseTest
             'mode' => 'run',
         ];
         self::expectException(ClientException::class);
-        self::expectExceptionMessage('The child node "#tokenString" at path "job" must be configured.');
+        self::expectExceptionMessageMatches(
+            '#The child (node|config) "\#tokenString" (at path|under) "job" must be configured.#'
+        );
         $this->getJobFactory()->createNewJob($jobData);
     }
 
