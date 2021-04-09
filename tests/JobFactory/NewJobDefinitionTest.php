@@ -60,7 +60,7 @@ class NewJobDefinitionTest extends BaseTest
                     'componentId' => 'keboola.test',
                     'mode' => 'run',
                 ],
-                'The child node "#tokenString" at path "job" must be configured.',
+                '#The child (node|config) "\#tokenString" (at path|under) "job" must be configured.#',
             ],
             'Missing componentId' => [
                 [
@@ -68,7 +68,7 @@ class NewJobDefinitionTest extends BaseTest
                     'configId' => '123',
                     'mode' => 'run',
                 ],
-                'The child node "componentId" at path "job" must be configured.',
+                '#The child (node|config) "componentId" (at path|under) "job" must be configured.#',
             ],
             'Invalid mode' => [
                 [
@@ -77,7 +77,7 @@ class NewJobDefinitionTest extends BaseTest
                     'componentId' => 'keboola.test',
                     'mode' => 'invalid',
                 ],
-                'Invalid configuration for path "job.mode": Mode must be one of "run" or "debug".',
+                '#Invalid configuration for path "job.mode": Mode must be one of "run" or "debug".#',
             ],
             'Invalid configData' => [
                 [
@@ -87,7 +87,7 @@ class NewJobDefinitionTest extends BaseTest
                     'componentId' => 'keboola.test',
                     'mode' => 'run',
                 ],
-                'Invalid type for path "job.configData". Expected array, but got string',
+                '#Invalid type for path "job.configData". Expected "?array"?, but got "?string"?#',
             ],
             'Invalid row' => [
                 [
@@ -97,7 +97,7 @@ class NewJobDefinitionTest extends BaseTest
                     'mode' => 'run',
                     'configRowIds' => '123',
                 ],
-                'Invalid type for path "job.configRowIds". Expected array, but got string',
+                '#Invalid type for path "job.configRowIds". Expected "?array"?, but got "?string"?#',
             ],
             'Invalid tag' => [
                 [
@@ -107,7 +107,7 @@ class NewJobDefinitionTest extends BaseTest
                     'mode' => 'run',
                     'tag' => ['234'],
                 ],
-                'Invalid type for path "job.tag". Expected scalar, but got array.',
+                '#Invalid type for path "job.tag". Expected "?scalar"?, but got "?array"?.#',
             ],
             'Invalid result' => [
                 [
@@ -118,7 +118,7 @@ class NewJobDefinitionTest extends BaseTest
                     'tag' => '234',
                     'result' => 'invalid',
                 ],
-                'Invalid type for path "job.result". Expected array, but got string',
+                '#Invalid type for path "job.result". Expected "?array"?, but got "?string"?#',
             ],
             'Invalid run id' => [
                 [
@@ -129,7 +129,7 @@ class NewJobDefinitionTest extends BaseTest
                     'mode' => 'run',
                     'tag' => ['234'],
                 ],
-                'Invalid type for path "job.parentRunId". Expected scalar, but got array.',
+                '#Invalid type for path "job.parentRunId". Expected "?scalar"?, but got "?array"?.#',
             ],
         ];
     }
@@ -142,7 +142,7 @@ class NewJobDefinitionTest extends BaseTest
     public function testInvalidJob(array $jobData, string $message): void
     {
         self::expectException(InvalidConfigurationException::class);
-        self::expectExceptionMessage($message);
+        self::expectExceptionMessageMatches($message);
         $definition = new NewJobDefinition();
         $definition->processData($jobData);
     }

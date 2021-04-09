@@ -459,7 +459,7 @@ class ClientTest extends BaseTest
         $jobs = $client->getJobsWithIds(['123']);
         self::assertCount(0, $jobs);
         self::assertTrue($logger->hasErrorThatContains(
-            'Failed to parse Job data: The child node "id" at path "job" must be configured.'
+            'Failed to parse Job data: The child'
         ));
     }
 
