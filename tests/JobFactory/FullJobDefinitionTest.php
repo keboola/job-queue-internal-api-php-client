@@ -125,7 +125,7 @@ class FullJobDefinitionTest extends BaseTest
                     'componentId' => 'keboola.test',
                     'mode' => 'run',
                 ],
-                'The child node "#tokenString" at path "job" must be configured.',
+                '#The child (node|config) "\#tokenString" (at path|under) "job" must be configured.#',
             ],
             /*
             'Missing componentId' => [
@@ -176,8 +176,8 @@ class FullJobDefinitionTest extends BaseTest
                     'componentId' => 'keboola.test',
                     'mode' => 'invalid',
                 ],
-                'Invalid configuration for path "job.mode": Mode must be one of "run" ' .
-                'or "debug" (or "dry-run","prepare","input","full","single").',
+                '#Invalid configuration for path "job.mode": Mode must be one of "run" ' .
+                'or "debug" \(or "dry-run","prepare","input","full","single"\).#',
             ],
             'Invalid configData' => [
                 [
@@ -191,7 +191,7 @@ class FullJobDefinitionTest extends BaseTest
                     'componentId' => 'keboola.test',
                     'mode' => 'run',
                 ],
-                'Invalid type for path "job.configData". Expected array, but got string',
+                '#Invalid type for path "job.configData". Expected "?array"?, but got "?string"?#',
             ],
             'Invalid configRowIds' => [
                 [
@@ -205,7 +205,7 @@ class FullJobDefinitionTest extends BaseTest
                     'mode' => 'run',
                     'configRowIds' => '123',
                 ],
-                'Invalid type for path "job.configRowIds". Expected array, but got string',
+                '#Invalid type for path "job.configRowIds". Expected "?array"?, but got "?string"?#',
             ],
             'Invalid tag' => [
                 [
@@ -219,7 +219,7 @@ class FullJobDefinitionTest extends BaseTest
                     'mode' => 'run',
                     'tag' => ['234'],
                 ],
-                'Invalid type for path "job.tag". Expected scalar, but got array.',
+                '#Invalid type for path "job.tag". Expected "?scalar"?, but got "?array"?.#',
             ],
             'Missing id' => [
                 [
@@ -231,7 +231,7 @@ class FullJobDefinitionTest extends BaseTest
                     'componentId' => 'keboola.test',
                     'mode' => 'run',
                 ],
-                'The child node "id" at path "job" must be configured.',
+                '#The child (node|config) "id" (at path|under) "job" must be configured.#',
             ],
             'Missing status' => [
                 [
@@ -243,7 +243,7 @@ class FullJobDefinitionTest extends BaseTest
                     'componentId' => 'keboola.test',
                     'mode' => 'run',
                 ],
-                'The child node "status" at path "job" must be configured.',
+                '#The child (node|config) "status" (at path|under) "job" must be configured.#',
             ],
             'Invalid status' => [
                 [
@@ -256,8 +256,8 @@ class FullJobDefinitionTest extends BaseTest
                     'componentId' => 'keboola.test',
                     'mode' => 'run',
                 ],
-                'Invalid configuration for path "job.status": Status must be one of cancelled, created, error, ' .
-                    'processing, success, terminated, terminating, waiting, warning.',
+                '#Invalid configuration for path "job.status": Status must be one of cancelled, created, error, ' .
+                    'processing, success, terminated, terminating, waiting, warning.#',
             ],
             'Missing project id' => [
                 [
@@ -269,7 +269,7 @@ class FullJobDefinitionTest extends BaseTest
                     'componentId' => 'keboola.test',
                     'mode' => 'run',
                 ],
-                'The child node "projectId" at path "job" must be configured.',
+                '#The child (node|config) "projectId" (at path|under) "job" must be configured.#',
             ],
             'Missing token id' => [
                 [
@@ -281,7 +281,7 @@ class FullJobDefinitionTest extends BaseTest
                     'componentId' => 'keboola.test',
                     'mode' => 'run',
                 ],
-                'The child node "tokenId" at path "job" must be configured.',
+                '#The child (node|config) "tokenId" (at path|under) "job" must be configured.#',
             ],
         ];
     }
@@ -294,7 +294,7 @@ class FullJobDefinitionTest extends BaseTest
     public function testInvalidJob(array $jobData, string $message): void
     {
         self::expectException(InvalidConfigurationException::class);
-        self::expectExceptionMessage($message);
+        self::expectExceptionMessageMatches($message);
         $definition = new FullJobDefinition();
         $definition->processData($jobData);
     }

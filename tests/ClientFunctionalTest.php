@@ -339,13 +339,13 @@ class ClientFunctionalTest extends BaseTest
 
         self::assertEquals($createdJob2->getId(), $resJob2->getId());
         self::assertEquals(
-            $createdJob2->jsonSerialize()['dateTimeCreated'],
-            $resJob2->jsonSerialize()['dateTimeCreated']
+            $createdJob2->jsonSerialize()['createdTime'],
+            $resJob2->jsonSerialize()['createdTime']
         );
         self::assertEquals($createdJob3->getId(), $resJob3->getId());
         self::assertEquals(
-            $createdJob3->jsonSerialize()['dateTimeCreated'],
-            $resJob3->jsonSerialize()['dateTimeCreated']
+            $createdJob3->jsonSerialize()['createdTime'],
+            $resJob3->jsonSerialize()['createdTime']
         );
     }
 
