@@ -19,11 +19,6 @@ class Job implements JsonSerializable, JobInterface
     public function __construct(ObjectEncryptorFactory $objectEncryptorFactory, array $data)
     {
         $this->data = $data;
-        /* FullJobDefinition should have runId required, but it doesn't have because some jobs don't have it in Elastic
-        - i.e. it's optional, but to the outside always present. */
-        if (empty($this->data['runId'])) {
-            $this->data['runId'] = $this->data['id'];
-        }
         $this->data['isFinished'] = (bool) in_array($this->getStatus(), JobFactory::getFinishedStatuses());
         // it's important to clone here because we change state of the factory!
         // this is tested by JobFactoryTest::testEncryptionMultipleJobs()
@@ -153,5 +148,10 @@ class Job implements JsonSerializable, JobInterface
     public function getEncryptorFactory(): ObjectEncryptorFactory
     {
         return $this->objectEncryptorFactory;
+    }
+
+    public function getBranchId(): ?string
+    {
+        return $this->data['branchId'];
     }
 }
