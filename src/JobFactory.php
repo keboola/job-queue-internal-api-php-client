@@ -100,8 +100,7 @@ class JobFactory
         try {
             /** @var FullJobDefinition|NewJobDefinition $jobDefinition */
             $jobDefinition = new $validatorClass();
-            $data = $jobDefinition->processData($data);
-            return $data;
+            return $jobDefinition->processData($data);
         } catch (InvalidConfigurationException $e) {
             throw new ClientException($e->getMessage(), $e->getCode(), $e);
         }
@@ -144,6 +143,7 @@ class JobFactory
                 'result' => [],
                 'usageData' => [],
                 'isFinished' => false,
+                'branchId' => $data['branchId'] ?? null,
             ],
             $this->objectEncryptorFactory->getEncryptor()->getRegisteredProjectWrapperClass()
         );

@@ -16,12 +16,16 @@ class FullJobDefinition extends NewJobDefinition
         $rootNode = $treeBuilder->getRootNode();
         // @formatter:off
         $rootNode
+            /* Whatever strange properties make it to the internal API, let's ignore them here and remove, because
+                we don't understand them. */
+            ->ignoreExtraKeys(true)
             ->children()
                 ->scalarNode('id')
                     ->isRequired()->cannotBeEmpty()
                     ->beforeNormalization()->always($this->getStringNormalizer())->end()
                 ->end()
                 ->scalarNode('runId')
+                    ->isRequired()->cannotBeEmpty()
                     ->beforeNormalization()->always($this->getStringNormalizer())->end()
                 ->end()
                 ->scalarNode('projectId')
@@ -92,6 +96,9 @@ class FullJobDefinition extends NewJobDefinition
                     ->defaultFalse()
                 ->end()
                 ->scalarNode('url')->end()
+                ->scalarNode('branchId')
+                    ->beforeNormalization()->always($this->getStringNormalizer())->end()
+                ->end()
             ->end();
         // @formatter:on
 

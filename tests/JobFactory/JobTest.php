@@ -13,6 +13,7 @@ class JobTest extends BaseTest
     /** @var array */
     private $jobData = [
         'id' => '123456456',
+        'runId' => '123456456',
         'configId' => '454124290',
         'componentId' => 'keboola.ex-db-snowflake',
         'mode' => 'run',
