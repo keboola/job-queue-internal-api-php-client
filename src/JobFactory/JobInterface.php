@@ -34,4 +34,5 @@ interface JobInterface
     public function getConfigDataDecrypted(): array;
     public function isLegacyComponent(): bool;
     public function getEncryptorFactory(): ObjectEncryptorFactory;
+    public function getBranchId(): ?string;
 }

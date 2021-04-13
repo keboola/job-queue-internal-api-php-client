@@ -130,6 +130,7 @@ class ClientFunctionalTest extends BaseTest
             'startTime' => null,
             'endTime' => null,
             'durationSeconds' => 0,
+            'branchId' => null,
         ];
         self::assertEquals($expected, $response);
     }
