@@ -19,6 +19,7 @@ class JobListOptionsTest extends TestCase
 
         $jobListOptions->setIds(['1', '2', '3']);
         $jobListOptions->setRunIds(['1', '2', '3']);
+        $jobListOptions->setBranchIds(['branch1', 'branch2', 'branch3']);
         $jobListOptions->setTokenIds(['1', '2', '3']);
         $jobListOptions->setTokenDescriptions(['new token', 'old token', 'bad token', 'good token']);
         $jobListOptions->setComponents(['writer', 'extractor', 'orchestrator']);
@@ -47,6 +48,9 @@ class JobListOptionsTest extends TestCase
             'runId[]=1',
             'runId[]=2',
             'runId[]=3',
+            'branchId[]=branch1',
+            'branchId[]=branch2',
+            'branchId[]=branch3',
             'tokenId[]=1',
             'tokenId[]=2',
             'tokenId[]=3',
