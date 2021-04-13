@@ -60,7 +60,9 @@ class FullJobDefinitionTest extends BaseTest
             'runId' => '1234',
             'status' => JobFactory::STATUS_CREATED,
             'desiredStatus' => JobFactory::DESIRED_STATUS_PROCESSING,
+            'extraKey' => 'ignored',
         ];
+        unset($data['extraKey']);
         $definition = new FullJobDefinition();
         self::assertEquals(array_merge($data, [
             'isFinished' => false,
