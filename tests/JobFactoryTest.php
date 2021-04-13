@@ -61,6 +61,7 @@ class JobFactoryTest extends BaseTest
         self::assertEmpty($job->getConfigRowIds());
         self::assertNull($job->getTag());
         self::assertEquals($job->getId(), $job->getRunId());
+        self::assertSame(null, $job->getBranchId());
         // check that the object encryptor factory is initialized (if it is not, there are no wrappers)
         self::assertStringStartsWith(
             'Keboola\\ObjectEncryptor\\Wrapper\\',
@@ -79,6 +80,7 @@ class JobFactoryTest extends BaseTest
             'tag' => 123,
             'configRowIds' => [123, 456],
             'parentRunId' => 1234.567,
+            'branchId' => 1234,
         ];
         $job = $factory->createNewJob($data);
         self::assertNotEmpty($job->getId());
@@ -95,6 +97,7 @@ class JobFactoryTest extends BaseTest
         self::assertSame(['123', '456'], $job->jsonSerialize()['configRowIds']);
         self::assertSame('123', $job->jsonSerialize()['tag']);
         self::assertSame('1234.567.' . $job->getId(), $job->jsonSerialize()['runId']);
+        self::assertSame('1234', $job->getBranchId());
     }
 
     public function testGetTokenLegacyDecrypted(): void
@@ -148,6 +151,7 @@ class JobFactoryTest extends BaseTest
     {
         $jobData = [
             'id' => '664651692',
+            'runId' => '664651692',
             'status' => 'waiting',
             'desiredStatus' => 'processing',
             'mode' => 'run',
@@ -313,6 +317,7 @@ class JobFactoryTest extends BaseTest
         $factory = $this->getJobFactory();
         $data = [
             'id' => '123',
+            'runId' => '123',
             'projectId' => $tokenInfo['owner']['id'],
             'tokenId' => '1234',
             'status' => JobFactory::STATUS_CREATED,

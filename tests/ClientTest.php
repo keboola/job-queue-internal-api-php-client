@@ -122,6 +122,7 @@ class ClientTest extends BaseTest
                 ['Content-Type' => 'application/json'],
                 '{
                     "id": "123",
+                    "runId": "123",
                     "projectId": "456",
                     "projectName": "Test project",
                     "tokenId": "789",
@@ -139,7 +140,8 @@ class ClientTest extends BaseTest
                     },
                     "result": {},
                     "usageData": {},
-                    "isFinished": false
+                    "isFinished": false,
+                    "branchId": "1234"
                 }'
             ),
         ]);
@@ -157,6 +159,7 @@ class ClientTest extends BaseTest
         self::assertEquals('Test project', $job->getProjectName());
         self::assertEquals('run', $job->getMode());
         self::assertEquals('created', $job->getStatus());
+        self::assertEquals('1234', $job->getBranchId());
         self::assertEquals([], $job->getResult());
         self::assertEquals([], $job->getUsageData());
         self::assertNull($job->getTag());
@@ -203,6 +206,7 @@ class ClientTest extends BaseTest
                 ['Content-Type' => 'application/json'],
                 '{
                     "id": "123",
+                    "runId": "123",
                     "projectId": "456",
                     "projectName": "Test project",
                     "tokenId": "789",
@@ -220,7 +224,8 @@ class ClientTest extends BaseTest
                     },
                     "result": {},
                     "usageData": {},
-                    "isFinished": false
+                    "isFinished": false,
+                    "branchId": null
                 }'
             ),
         ]);
@@ -257,6 +262,7 @@ class ClientTest extends BaseTest
                 ['Content-Type' => 'application/json'],
                 '{
                     "id": "123",
+                    "runId": "123",
                     "projectId": "456",
                     "projectName": "Test project",
                     "tokenId": "789",
@@ -274,7 +280,8 @@ class ClientTest extends BaseTest
                     },
                     "result": {},
                     "usageData": {},
-                    "isFinished": false
+                    "isFinished": false,
+                    "branchId": null
                 }'
             ),
         ]);
@@ -480,6 +487,7 @@ class ClientTest extends BaseTest
                 ['Content-Type' => 'application/json'],
                 '[{
                     "id": "123",
+                    "runId": "123",
                     "projectId": "456",
                     "projectName": "Test project",
                     "tokenId": "789",
@@ -497,7 +505,8 @@ class ClientTest extends BaseTest
                     },
                     "result": {},
                     "usageData": {},
-                    "isFinished": false
+                    "isFinished": false,
+                    "branchId": null
                 }]'
             ),
         ]);
@@ -515,6 +524,7 @@ class ClientTest extends BaseTest
         $job = $jobs[0];
         self::assertEquals('123', $job->getId());
         self::assertEquals('456', $job->getProjectId());
+        self::assertEquals('', $job->getBranchId());
 
         $request = $mock->getLastRequest();
         self::assertEquals('projectId%5B%5D=456&limit=100', $request->getUri()->getQuery());
@@ -528,6 +538,7 @@ class ClientTest extends BaseTest
                 ['Content-Type' => 'application/json'],
                 '[{
                     "id": "123",
+                    "runId": "1234",
                     "projectId": "šěřč!@#%^$&",
                     "projectName": "Test project",
                     "tokenId": "789",
@@ -545,7 +556,8 @@ class ClientTest extends BaseTest
                     },
                     "result": {},
                     "usageData": {},
-                    "isFinished": false
+                    "isFinished": false,
+                    "branchId": null
                 }]'
             ),
         ]);
@@ -580,6 +592,7 @@ class ClientTest extends BaseTest
         $count = 1001;
         $jobData = [
             'id'=> '123',
+            'runId' => '123',
             'projectId'=> '456',
             'projectName'=> 'Test project',
             'tokenId'=> '789',
@@ -598,6 +611,7 @@ class ClientTest extends BaseTest
             'result'=> [],
             'usageData'=> [],
             'isFinished'=> false,
+            'branchId' => '1234',
         ];
         $queue = array_fill(0, 10, function () use ($jobData): Response {
             return new Response(
@@ -672,6 +686,7 @@ class ClientTest extends BaseTest
     {
         $jobData = [
             'id'=> '123',
+            'runId' => '123',
             'projectId'=> '456',
             'projectName'=> 'Test project',
             'tokenId'=> '789',
@@ -690,6 +705,7 @@ class ClientTest extends BaseTest
             'result'=> [],
             'usageData'=> [],
             'isFinished'=> false,
+            'branchId' => null,
         ];
         $queue = array_fill(0, 10, function () use ($jobData): Response {
             return new Response(
