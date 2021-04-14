@@ -15,6 +15,9 @@ class JobListOptions
     private $runIds;
 
     /** @var array */
+    private $branchIds;
+
+    /** @var array */
     private $tokenIds;
 
     /** @var array */
@@ -76,6 +79,7 @@ class JobListOptions
         $arrayableProps = [
             'ids' => 'id',
             'runIds' => 'runId',
+            'branchIds' => 'branchId',
             'tokenIds' => 'tokenId',
             'tokenDescriptions' => 'tokenDescription',
             'components' => 'componentId',
@@ -131,6 +135,17 @@ class JobListOptions
     public function setRunIds(array $values): JobListOptions
     {
         $this->runIds = $values;
+        return $this;
+    }
+
+    public function getBranchIds(): array
+    {
+        return $this->branchIds;
+    }
+
+    public function setBranchIds(array $values): JobListOptions
+    {
+        $this->branchIds = $values;
         return $this;
     }
 
