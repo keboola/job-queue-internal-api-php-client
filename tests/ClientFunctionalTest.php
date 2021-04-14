@@ -377,10 +377,11 @@ class ClientFunctionalTest extends BaseTest
 
     public function testListJobsBranchId(): void
     {
+        $branchId = 'branch-' . rand(0, 9999);
         $client = $this->getClient();
         $job = $client->getJobFactory()->createNewJob([
             '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
-            'branchId' => 'branch1',
+            'branchId' => $branchId,
             'configId' => '12345',
             'componentId' => 'keboola.ex-google-drive',
             'mode' => 'run',
@@ -388,14 +389,14 @@ class ClientFunctionalTest extends BaseTest
         $createdJob = $client->createJob($job);
 
         $response = $client->listJobs(
-            (new JobListOptions())->setBranchIds(['branch1']),
+            (new JobListOptions())->setBranchIds([$branchId]),
             true
         );
         self::assertCount(1, $response);
         /** @var Job $listedJob */
         $listedJob = $response[0];
         self::assertEquals($createdJob->jsonSerialize(), $listedJob->jsonSerialize());
-        self::assertEquals('branch1', $listedJob->jsonSerialize()['branchId']);
+        self::assertEquals($branchId, $listedJob->jsonSerialize()['branchId']);
     }
 
     public function testGetJobsWithNoIds(): void
