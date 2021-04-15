@@ -388,8 +388,27 @@ class ClientFunctionalTest extends BaseTest
         ]);
         $createdJob = $client->createJob($job);
 
+        $job2 = $client->getJobFactory()->createNewJob([
+            '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+            'configId' => '12345',
+            'componentId' => 'keboola.ex-google-drive',
+            'mode' => 'run',
+        ]);
+        $createdJob2 = $client->createJob($job2);
+
+        // all jobs
         $response = $client->listJobs(
-            (new JobListOptions())->setBranchIds([$branchId]),
+            (new JobListOptions())
+                ->setStatuses([JobFactory::STATUS_CREATED]),
+            true
+        );
+        self::assertCount(2, $response);
+
+        // job with branch
+        $response = $client->listJobs(
+            (new JobListOptions())
+                ->setStatuses([JobFactory::STATUS_CREATED])
+                ->setBranchIds([$branchId]),
             true
         );
         self::assertCount(1, $response);
@@ -397,6 +416,21 @@ class ClientFunctionalTest extends BaseTest
         $listedJob = $response[0];
         self::assertEquals($createdJob->jsonSerialize(), $listedJob->jsonSerialize());
         self::assertEquals($branchId, $listedJob->jsonSerialize()['branchId']);
+
+        // job without branch
+        $response = $client->listJobs(
+            (new JobListOptions())
+                ->setStatuses([JobFactory::STATUS_CREATED])
+                ->setBranchIds(['null']),
+            true
+        );
+
+        self::assertCount(1, $response);
+        /** @var Job $listedJob */
+        $listedJob = $response[0];
+
+        self::assertEquals($createdJob2->jsonSerialize(), $listedJob->jsonSerialize());
+        self::assertNull($listedJob->jsonSerialize()['branchId']);
     }
 
     public function testGetJobsWithNoIds(): void
