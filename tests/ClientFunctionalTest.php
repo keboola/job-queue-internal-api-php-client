@@ -433,6 +433,77 @@ class ClientFunctionalTest extends BaseTest
         self::assertNull($listedJob->jsonSerialize()['branchId']);
     }
 
+    public function testListJobsConfigRowIds(): void
+    {
+        $client = $this->getClient();
+        $job = $client->getJobFactory()->createNewJob([
+            '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+            'configId' => '12345',
+            'configRowIds' => ['123'],
+            'componentId' => 'keboola.ex-google-drive',
+            'mode' => 'run',
+        ]);
+        $createdJob = $client->createJob($job);
+
+        $job2 = $client->getJobFactory()->createNewJob([
+            '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+            'configId' => '456789',
+            'configRowIds' => ['123', '456'],
+            'componentId' => 'keboola.ex-google-drive',
+            'mode' => 'run',
+        ]);
+        $createdJob2 = $client->createJob($job2);
+
+        $job3 = $client->getJobFactory()->createNewJob([
+            '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+            'configId' => '12345',
+            'componentId' => 'keboola.ex-google-drive',
+            'mode' => 'run',
+        ]);
+        $client->createJob($job3);
+
+        // jobs with configRowId 123
+        $response = $client->listJobs(
+            (new JobListOptions())
+                ->setStatuses([JobFactory::STATUS_CREATED])
+                ->setConfigRowIds(['123']),
+            true
+        );
+        self::assertCount(2, $response);
+        /** @var Job $listedJob1 */
+        $listedJob1 = $response[1];
+        self::assertEquals($createdJob->jsonSerialize(), $listedJob1->jsonSerialize());
+        self::assertContains('123', $listedJob1->jsonSerialize()['configRowIds']);
+        /** @var Job $listedJob2 */
+        $listedJob2 = $response[0];
+        self::assertEquals($createdJob2->jsonSerialize(), $listedJob2->jsonSerialize());
+        self::assertContains('123', $listedJob2->jsonSerialize()['configRowIds']);
+
+        // jobs with configRowId 123 and config 456789
+        $response = $client->listJobs(
+            (new JobListOptions())
+                ->setStatuses([JobFactory::STATUS_CREATED])
+                ->setConfigs(['456789'])
+                ->setConfigRowIds(['123']),
+            true
+        );
+        self::assertCount(1, $response);
+        /** @var Job $listedJob */
+        $listedJob = $response[0];
+        self::assertEquals($createdJob2->jsonSerialize(), $listedJob->jsonSerialize());
+        self::assertNull($listedJob->jsonSerialize()['branchId']);
+
+        // no jobs
+        $response = $client->listJobs(
+            (new JobListOptions())
+                ->setStatuses([JobFactory::STATUS_CREATED])
+                ->setConfigs(['12345'])
+                ->setConfigRowIds(['456']),
+            true
+        );
+        self::assertEmpty($response);
+    }
+
     public function testGetJobsWithNoIds(): void
     {
         $client = $this->getClient();
