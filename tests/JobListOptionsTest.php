@@ -24,6 +24,7 @@ class JobListOptionsTest extends TestCase
         $jobListOptions->setTokenDescriptions(['new token', 'old token', 'bad token', 'good token']);
         $jobListOptions->setComponents(['writer', 'extractor', 'orchestrator']);
         $jobListOptions->setConfigs(['1', '2', '3']);
+        $jobListOptions->setConfigRowIds(['1', '2', '3']);
         $jobListOptions->setModes(['run', 'debug']);
         $jobListOptions->setStatuses([JobFactory::STATUS_SUCCESS, JobFactory::STATUS_PROCESSING]);
 
@@ -64,6 +65,9 @@ class JobListOptionsTest extends TestCase
             'configId[]=1',
             'configId[]=2',
             'configId[]=3',
+            'configRowIds[]=1',
+            'configRowIds[]=2',
+            'configRowIds[]=3',
             'mode[]=run',
             'mode[]=debug',
             'status[]=success',
