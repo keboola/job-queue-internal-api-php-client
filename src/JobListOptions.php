@@ -30,6 +30,9 @@ class JobListOptions
     private $configs;
 
     /** @var array */
+    private $configRowIds;
+
+    /** @var array */
     private $modes;
 
     /** @var array */
@@ -84,6 +87,7 @@ class JobListOptions
             'tokenDescriptions' => 'tokenDescription',
             'components' => 'componentId',
             'configs' => 'configId',
+            'configRowIds' => 'configRowIds',
             'modes' => 'mode',
             'projects' => 'projectId',
             'statuses' => 'status',
@@ -190,6 +194,17 @@ class JobListOptions
     public function setConfigs(array $values): JobListOptions
     {
         $this->configs = $values;
+        return $this;
+    }
+
+    public function getConfigRowIds(): array
+    {
+        return $this->configRowIds;
+    }
+
+    public function setConfigRowIds(array $values): JobListOptions
+    {
+        $this->configRowIds = $values;
         return $this;
     }
 
