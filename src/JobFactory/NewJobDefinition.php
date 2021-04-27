@@ -49,6 +49,19 @@ class NewJobDefinition implements ConfigurationInterface
                 ->scalarNode('parentRunId')->end()
                 ->arrayNode('configData')->ignoreExtraKeys(false)->end()
                 ->scalarNode('branchId')->end()
+                ->scalarNode('variableValuesId')->end()
+                ->arrayNode('variableValuesData')
+                    ->children()
+                        ->arrayNode('values')
+                            ->prototype('array')
+                                ->children()
+                                    ->scalarNode('name')->isRequired()->cannotBeEmpty()->end()
+                                    ->scalarNode('value')->isRequired()->cannotBeEmpty()->end()
+                                ->end()
+                            ->end()
+                        ->end()
+                    ->end()
+                ->end()
             ->end();
         // @formatter:on
         return $rootNode;
