@@ -37,6 +37,8 @@ class JobListOptionsTest extends TestCase
         $jobListOptions->setCreatedTimeTo($to);
         $jobListOptions->setEndTimeFrom($from);
         $jobListOptions->setEndTimeTo($to);
+        $jobListOptions->setDurationSecondsFrom(5);
+        $jobListOptions->setDurationSecondsTo(7200);
         $jobListOptions->setOffset(20);
         $jobListOptions->setLimit(100);
         $jobListOptions->setSortBy('id');
@@ -78,6 +80,8 @@ class JobListOptionsTest extends TestCase
             'createdTimeTo=' . urlencode($to),
             'endTimeFrom=' . urlencode($from) ,
             'endTimeTo=' . urlencode($to) ,
+            'durationSecondsFrom=5',
+            'durationSecondsTo=7200',
             'offset=20',
             'limit=100',
             'sortBy=id',

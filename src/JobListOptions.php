@@ -60,6 +60,12 @@ class JobListOptions
     private $endTimeTo;
 
     /** @var int */
+    private $durationSecondsFrom;
+
+    /** @var int */
+    private $durationSecondsTo;
+
+    /** @var int */
     private $offset = 0;
 
     /** @var int */
@@ -99,6 +105,8 @@ class JobListOptions
             'createdTimeTo' => 'createdTimeTo',
             'endTimeFrom' => 'endTimeFrom',
             'endTimeTo' => 'endTimeTo',
+            'durationSecondsFrom' => 'durationSecondsFrom',
+            'durationSecondsTo' => 'durationSecondsTo',
             'offset' => 'offset',
             'limit' => 'limit',
             'sortBy' => 'sortBy',
@@ -250,6 +258,28 @@ class JobListOptions
     {
         $this->startTimeFrom = $value;
         return $this;
+    }
+
+    public function setDurationSecondsFrom(int $value): JobListOptions
+    {
+        $this->durationSecondsFrom = $value;
+        return $this;
+    }
+
+    public function getDurationSecondsFrom(): int
+    {
+        return $this->durationSecondsFrom;
+    }
+
+    public function setDurationSecondsTo(int $value): JobListOptions
+    {
+        $this->durationSecondsTo = $value;
+        return $this;
+    }
+
+    public function getDurationSecondsTo(): int
+    {
+        return $this->durationSecondsTo;
     }
 
     public function getOffset(): int
