@@ -25,6 +25,16 @@ class JobTest extends BaseTest
         'projectId' => '123',
         'tokenId' => '456',
         '#tokenString' => 'KBC::ProjectSecure::token',
+        'branchId' => '987',
+        'variableValuesId' => '1357',
+        'variableValuesData' => [
+            'values' => [
+                [
+                    'name' => 'foo',
+                    'value' => 'bar',
+                ],
+            ],
+        ],
     ];
 
     public function setUp(): void
@@ -89,7 +99,7 @@ class JobTest extends BaseTest
         self::assertEquals([], $this->getJob()->getResult());
     }
 
-    public function testGetconfigRowIds(): void
+    public function testGetConfigRowIds(): void
     {
         self::assertIsArray($this->getJob()->getConfigRowIds());
         self::assertEmpty($this->getJob()->getConfigRowIds());
@@ -121,6 +131,31 @@ class JobTest extends BaseTest
     public function testIsFinished(): void
     {
         self::assertFalse($this->getJob()->isFinished());
+    }
+
+    public function testGetBranch(): void
+    {
+        self::assertEquals('987', $this->getJob()->getBranchId());
+    }
+
+    public function testGetVariableValuesId(): void
+    {
+        self::assertEquals('1357', $this->getJob()->getVariableValuesId());
+    }
+
+    public function testGetVariableValuesData(): void
+    {
+        self::assertEquals(
+            [
+                'values' => [
+                    [
+                        'name' => 'foo',
+                        'value' => 'bar',
+                    ],
+                ],
+            ],
+            $this->getJob()->getVariableValuesData()
+        );
     }
 
     public function testIsLegacy(): void
