@@ -157,7 +157,7 @@ class Job implements JsonSerializable, JobInterface
 
     public function getVariableValuesId(): ?string
     {
-        return $this->data['variableValuesId'];
+        return $this->data['variableValuesId'] ?? null;
     }
 
     public function getVariableValuesData(): array
