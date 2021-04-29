@@ -141,6 +141,9 @@ class JobTest extends BaseTest
     public function testGetVariableValuesId(): void
     {
         self::assertEquals('1357', $this->getJob()->getVariableValuesId());
+        $jobDataWithoutVariableValuesId = $this->jobData;
+        unset($jobDataWithoutVariableValuesId['variableValuesId']);
+        self::assertNull($this->getJob($jobDataWithoutVariableValuesId)->getVariableValuesId());
     }
 
     public function testGetVariableValuesData(): void
