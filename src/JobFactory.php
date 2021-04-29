@@ -144,6 +144,8 @@ class JobFactory
                 'usageData' => [],
                 'isFinished' => false,
                 'branchId' => $data['branchId'] ?? null,
+                'variableValuesId' => $data['variableValuesId'] ?? null,
+                'variableValuesData' => $data['variableValuesData'] ?? [],
             ],
             $this->objectEncryptorFactory->getEncryptor()->getRegisteredProjectWrapperClass()
         );
