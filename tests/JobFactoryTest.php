@@ -98,6 +98,7 @@ class JobFactoryTest extends BaseTest
         self::assertSame('123', $job->jsonSerialize()['tag']);
         self::assertSame('1234.567.' . $job->getId(), $job->jsonSerialize()['runId']);
         self::assertSame('1234', $job->getBranchId());
+        self::assertEquals(['values' => []], $job->getVariableValuesData());
     }
 
     public function testGetTokenLegacyDecrypted(): void
@@ -136,7 +137,6 @@ class JobFactoryTest extends BaseTest
                 ],
             ],
             'tag' => 'latest',
-            'variableValuesId' => '1234',
             'variableValuesData' => [
                 'values' => [
                     [
@@ -154,8 +154,31 @@ class JobFactoryTest extends BaseTest
         self::assertEquals(['parameters' => ['foo' => 'bar']], $job->getConfigData());
         self::assertEquals('latest', $job->getTag());
         self::assertEquals('2345.' . $job->getId(), $job->getRunId());
-        self::assertEquals('1234', $job->getVariableValuesId());
         self::assertEquals(['values' => [['name' => 'bar', 'value' => 'Kochba']]], $job->getVariableValuesData());
+    }
+
+    public function testCreateNewJoInvalidVariables(): void
+    {
+        $factory = $this->getJobFactory();
+        $data = [
+            '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+            'parentRunId' => '2345',
+            'configId' => '123',
+            'componentId' => 'keboola.test',
+            'mode' => 'run',
+            'variableValuesId' => '1234',
+            'variableValuesData' => [
+                'values' => [
+                    [
+                        'name' => 'bar',
+                        'value' => 'Kochba',
+                    ],
+                ],
+            ],
+        ];
+        self::expectException(ClientException::class);
+        self::expectExceptionMessage('Provide either "variableValuesId" or "variableValuesData", but not both.');
+        $factory->createNewJob($data);
     }
 
     public function testLoadInvalidJob(): void

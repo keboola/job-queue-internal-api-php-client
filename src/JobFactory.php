@@ -120,6 +120,11 @@ class JobFactory
                 $e
             );
         }
+        if (!empty($data['variableValuesId']) && !empty($data['variableValuesData']['values'])) {
+            throw new ClientException(
+                'Provide either "variableValuesId" or "variableValuesData", but not both.'
+            );
+        }
         $this->objectEncryptorFactory->setProjectId($tokenInfo['owner']['id']);
         $this->objectEncryptorFactory->setComponentId($data['componentId']);
         $this->objectEncryptorFactory->setConfigurationId($data['configId'] ?? null);
