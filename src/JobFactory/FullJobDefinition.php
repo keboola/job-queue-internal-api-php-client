@@ -99,6 +99,21 @@ class FullJobDefinition extends NewJobDefinition
                 ->scalarNode('branchId')
                     ->beforeNormalization()->always($this->getStringNormalizer())->end()
                 ->end()
+                ->scalarNode('variableValuesId')
+                    ->beforeNormalization()->always($this->getStringNormalizer())->end()
+                ->end()
+                ->arrayNode('variableValuesData')
+                    ->children()
+                        ->arrayNode('values')
+                            ->prototype('array')
+                                ->children()
+                                    ->scalarNode('name')->isRequired()->cannotBeEmpty()->end()
+                                    ->scalarNode('value')->isRequired()->cannotBeEmpty()->end()
+                                ->end()
+                            ->end()
+                        ->end()
+                    ->end()
+                ->end()
             ->end();
         // @formatter:on
 

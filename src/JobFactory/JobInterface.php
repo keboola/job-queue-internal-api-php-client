@@ -35,4 +35,6 @@ interface JobInterface
     public function isLegacyComponent(): bool;
     public function getEncryptorFactory(): ObjectEncryptorFactory;
     public function getBranchId(): ?string;
+    public function getVariableValuesId(): ?string;
+    public function getVariableValuesData(): array;
 }
