@@ -141,7 +141,14 @@ class ClientTest extends BaseTest
                     "result": {},
                     "usageData": {},
                     "isFinished": false,
-                    "branchId": "1234"
+                    "branchId": "1234",
+                    "variableValuesId": "1357",
+                    "variableValuesData": {
+                        "values": [{
+                            "name": "boo",
+                            "value": "bar"
+                        }]
+                    }
                 }'
             ),
         ]);
@@ -160,6 +167,8 @@ class ClientTest extends BaseTest
         self::assertEquals('run', $job->getMode());
         self::assertEquals('created', $job->getStatus());
         self::assertEquals('1234', $job->getBranchId());
+        self::assertEquals('1357', $job->getVariableValuesId());
+        self::assertEquals(['values' => [['name' => 'boo', 'value' => 'bar']]], $job->getVariableValuesData());
         self::assertEquals([], $job->getResult());
         self::assertEquals([], $job->getUsageData());
         self::assertNull($job->getTag());
