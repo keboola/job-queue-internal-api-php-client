@@ -157,7 +157,7 @@ class JobFactoryTest extends BaseTest
         self::assertEquals(['values' => [['name' => 'bar', 'value' => 'Kochba']]], $job->getVariableValuesData());
     }
 
-    public function testCreateNewJoInvalidVariables(): void
+    public function testCreateNewJobInvalidVariables(): void
     {
         $factory = $this->getJobFactory();
         $data = [
