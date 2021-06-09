@@ -11,9 +11,7 @@ use Keboola\JobQueueInternalClient\JobFactory\JobInterface;
 use Keboola\JobQueueInternalClient\JobFactory\NewJobDefinition;
 use Keboola\JobQueueInternalClient\JobFactory\StorageClientFactory;
 use Keboola\ObjectEncryptor\ObjectEncryptorFactory;
-use Keboola\ObjectEncryptor\Wrapper\ProjectWrapper;
 use Keboola\StorageApi\ClientException as StorageClientException;
-use Symfony\Component\Config\Definition\ConfigurationInterface;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 
 class JobFactory
@@ -145,6 +143,7 @@ class JobFactory
                 'configData' => $data['configData'] ?? null,
                 'configRowIds' => $data['configRowIds'] ?? null,
                 'tag' => $data['tag'] ?? null,
+                'backend' => $data['backend'] ?? null,
                 'result' => [],
                 'usageData' => [],
                 'isFinished' => false,

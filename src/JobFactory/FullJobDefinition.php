@@ -114,6 +114,11 @@ class FullJobDefinition extends NewJobDefinition
                         ->end()
                     ->end()
                 ->end()
+                ->arrayNode('backend')->ignoreExtraKeys(true)
+                    ->children()
+                        ->scalarNode('type')->end()
+                    ->end()
+                ->end()
             ->end();
         // @formatter:on
 

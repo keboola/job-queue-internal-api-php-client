@@ -62,6 +62,11 @@ class NewJobDefinition implements ConfigurationInterface
                         ->end()
                     ->end()
                 ->end()
+                ->arrayNode('backend')->ignoreExtraKeys(false)
+                    ->children()
+                        ->scalarNode('type')->end()
+                    ->end()
+                ->end()
             ->end();
         // @formatter:on
         return $rootNode;
