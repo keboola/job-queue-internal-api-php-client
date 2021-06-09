@@ -190,6 +190,21 @@ class JobTest extends BaseTest
         self::assertEquals($expected, $this->getJob()->jsonSerialize());
     }
 
+    public function testGetNoneBackend(): void
+    {
+        $backend = $this->getJob()->getBackend();
+        self::assertNull($backend->getType());
+    }
+
+    public function testGetCustomBackend(): void
+    {
+        $jobData = $this->jobData;
+        $jobData['backend']['type'] = 'custom';
+
+        $backend = $this->getJob($jobData)->getBackend();
+        self::assertSame('custom', $backend->getType());
+    }
+
     private function getJob(?array $jobData = null): Job
     {
         $objectEncryptorFactoryMock = self::getMockBuilder(ObjectEncryptorFactory::class)

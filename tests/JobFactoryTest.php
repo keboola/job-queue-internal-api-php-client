@@ -145,6 +145,9 @@ class JobFactoryTest extends BaseTest
                     ],
                 ],
             ],
+            'backend' => [
+                'type' => 'custom',
+            ],
         ];
         $job = $factory->createNewJob($data);
         self::assertNotEmpty($job->getId());
@@ -155,6 +158,7 @@ class JobFactoryTest extends BaseTest
         self::assertEquals('latest', $job->getTag());
         self::assertEquals('2345.' . $job->getId(), $job->getRunId());
         self::assertEquals(['values' => [['name' => 'bar', 'value' => 'Kochba']]], $job->getVariableValuesData());
+        self::assertSame('custom', $job->getBackend()->getType());
     }
 
     public function testCreateNewJobInvalidVariables(): void

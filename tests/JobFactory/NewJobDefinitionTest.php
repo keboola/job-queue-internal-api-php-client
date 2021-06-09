@@ -46,9 +46,15 @@ class NewJobDefinitionTest extends BaseTest
             ],
             'tag' => 'latest',
             'result' => ['foo' => 'bar'],
+            'backend' => [
+                'type' => 'my',
+                'foo' => 'bar',
+            ],
         ];
         $definition = new NewJobDefinition();
-        self::assertEquals($data, $definition->processData($data));
+
+        unset($data['backend']['foo']);
+        self::assertSame($data, $definition->processData($data));
     }
 
     public function invalidJobProvider(): array
