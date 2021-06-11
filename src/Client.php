@@ -108,6 +108,9 @@ class Client
         return $this->jobFactory->loadFromExistingJobData($result);
     }
 
+    /**
+     * @return array<JobInterface>
+     */
     public function listJobs(JobListOptions $listOptions, bool $fetchAllPages): array
     {
         $jobs = [];
@@ -124,6 +127,9 @@ class Client
         return $jobs;
     }
 
+    /**
+     * @return array<JobInterface>
+     */
     public function getJobsWithIds(array $jobIds): array
     {
         /* This is rather arbitrary size, we just need to make sure that the request is not too large. It would be
@@ -206,6 +212,9 @@ class Client
         return $this->sendRequest($request);
     }
 
+    /**
+     * @return array<JobInterface>
+     */
     private function mapJobsFromResponse(array $responseBody): array
     {
         $jobs = array_map(function (array $jobData): ?JobInterface {
