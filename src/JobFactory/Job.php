@@ -125,6 +125,11 @@ class Job implements JsonSerializable, JobInterface
         return $this->data['usageData'] ?? [];
     }
 
+    public function getBackend(): Backend
+    {
+        return Backend::fromDataArray($this->data['backend'] ?? []);
+    }
+
     public function jsonSerialize(): array
     {
         return $this->data;

@@ -29,6 +29,7 @@ interface JobInterface
     public function getRunId(): string;
     public function isFinished(): bool;
     public function getUsageData(): array;
+    public function getBackend(): Backend;
     public function jsonSerialize(): array;
     public function getTokenDecrypted(): string;
     public function getConfigDataDecrypted(): array;

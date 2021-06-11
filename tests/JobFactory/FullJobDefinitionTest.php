@@ -226,4 +226,36 @@ class FullJobDefinitionTest extends BaseTest
         $definition = new FullJobDefinition();
         $definition->processData($jobData);
     }
+
+    public function testBackendConfiguration(): void
+    {
+        $data = [
+            '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+            'tokenId' => '12345',
+            'projectId' => '123',
+            'configId' => '123',
+            'componentId' => 'keboola.test',
+            'mode' => 'run',
+            'configRowIds' => ['234'],
+            'configData' => [
+                'parameters' => [
+                    'foo' => 'bar',
+                ],
+            ],
+            'tag' => 'latest',
+            'id' => '1234',
+            'runId' => '1234',
+            'status' => JobFactory::STATUS_CREATED,
+            'desiredStatus' => JobFactory::DESIRED_STATUS_PROCESSING,
+            'backend' => [
+                'type' => 'my-backend',
+                'foo' => 'bar',
+            ],
+        ];
+        $definition = new FullJobDefinition();
+
+        self::assertSame([
+            'type' => 'my-backend',
+        ], $definition->processData($data)['backend']);
+    }
 }
