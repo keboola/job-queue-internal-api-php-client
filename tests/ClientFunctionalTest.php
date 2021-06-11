@@ -135,6 +135,7 @@ class ClientFunctionalTest extends BaseTest
             'variableValuesData' => [
                 'values' => [],
             ],
+            'backend' => [],
         ];
         self::assertEquals($expected, $response);
     }
