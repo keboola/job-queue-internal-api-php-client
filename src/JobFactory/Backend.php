@@ -21,6 +21,17 @@ class Backend
         );
     }
 
+    public function asDataArray(): array
+    {
+        $data = [];
+
+        if ($this->type !== null) {
+            $data['type'] = $this->type;
+        }
+
+        return $data;
+    }
+
     public function getType(): ?string
     {
         return $this->type;
