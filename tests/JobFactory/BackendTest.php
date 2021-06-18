@@ -25,12 +25,33 @@ class BackendTest extends TestCase
         self::assertSame($type, $backend->getType());
     }
 
-    public function testCreateFromArray(): void
+    /**
+     * @dataProvider provideCreateFromArrayData
+     */
+    public function testCreateFromArray(array $data, ?string $expectedType): void
     {
-        $backend = Backend::fromDataArray([
-            'type' => 'foo',
-        ]);
+        $backend = Backend::fromDataArray($data);
 
-        self::assertSame('foo', $backend->getType());
+        self::assertSame($expectedType, $backend->getType());
+    }
+
+    public function provideCreateFromArrayData(): iterable
+    {
+        yield 'empty' => [[], null];
+        yield 'with type' => [['type' => 'custom'], 'custom'];
+    }
+
+    /**
+     * @dataProvider provideExportAsDataArrayData
+     */
+    public function testExportAsDataArray(Backend $backend, array $expectedResult): void
+    {
+        self::assertSame($expectedResult, $backend->asDataArray());
+    }
+
+    public function provideExportAsDataArrayData(): iterable
+    {
+        yield 'empty' => [new Backend(null), []];
+        yield 'with type' => [new Backend('custom'), ['type' => 'custom']];
     }
 }
