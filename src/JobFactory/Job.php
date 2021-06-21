@@ -169,4 +169,9 @@ class Job implements JsonSerializable, JobInterface
     {
         return $this->data['variableValuesData'] ?? [];
     }
+
+    public function getVariableValues(): VariableValues
+    {
+        return VariableValues::fromDataArray($this->data);
+    }
 }
