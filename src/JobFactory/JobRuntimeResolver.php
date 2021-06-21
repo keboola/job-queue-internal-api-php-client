@@ -19,7 +19,6 @@ class JobRuntimeResolver
     private $logger;
     /** @var JobFactory */
     private $jobFactory;
-
     /** @var ?Client */
     private $storageClient;
     /** @var ?array */
@@ -134,5 +133,4 @@ class JobRuntimeResolver
         }
         return $this->storageClient;
     }
-
 }

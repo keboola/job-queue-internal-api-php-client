@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Keboola\JobQueueInternalClient\Tests\JobFactory;
 
 use Keboola\JobQueueInternalClient\Exception\ClientException;
@@ -54,7 +56,8 @@ class VariableValuesTest extends TestCase
     /**
      * @dataProvider dataArrayProvider
      */
-    public function testExportAsDataArray(VariableValues $values, array $expectedData): void {
+    public function testExportAsDataArray(VariableValues $values, array $expectedData): void
+    {
         self::assertSame($expectedData, $values->asDataArray());
     }
 
@@ -62,11 +65,11 @@ class VariableValuesTest extends TestCase
     {
         yield 'empty1' => [
             new VariableValues('', []),
-            []
+            [],
         ];
         yield 'empty2' => [
             new VariableValues(null, []),
-            []
+            [],
         ];
         yield 'id' => [
             new VariableValues('123', []),
@@ -74,7 +77,7 @@ class VariableValuesTest extends TestCase
         ];
         yield 'data' => [
             new VariableValues(null, ['123']),
-            ['variableValuesData' => ['123']]
+            ['variableValuesData' => ['123']],
         ];
     }
 }

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Keboola\JobQueueInternalClient\Tests\JobFactory;
 
 use Keboola\JobQueueInternalClient\Exception\ClientException;
@@ -29,8 +31,7 @@ class JobRuntimeResolverTest extends TestCase
         '#tokenString' => 'KBC::ProjectSecure::token',
     ];
 
-    /** @return ObjectEncryptorFactory&MockObject $objectEncryptorMock */
-    private function getObjectEncryptorFactoryMock()
+    private function getObjectEncryptorFactoryMock(): ObjectEncryptorFactory
     {
         /** @var ObjectEncryptor&MockObject $objectEncryptorMock */
         $objectEncryptorMock = self::createMock(ObjectEncryptor::class);
@@ -145,7 +146,7 @@ class JobRuntimeResolverTest extends TestCase
                         [
                             'name' => 'bar',
                             'value' => 'Kochba',
-                        ]
+                        ],
                     ],
                 ],
             ],
