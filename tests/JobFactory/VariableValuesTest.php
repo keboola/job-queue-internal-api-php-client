@@ -25,7 +25,7 @@ class VariableValuesTest extends TestCase
     {
         yield 'empty' => [null, [], true];
         yield 'id' => ['123', [], false];
-        yield 'data' => [null, ['123'], false];
+        yield 'data' => [null, ['values' => ['123']], false];
     }
 
     public function testConstructInvalid(): void
@@ -63,12 +63,16 @@ class VariableValuesTest extends TestCase
 
     public function dataArrayProvider(): iterable
     {
-        yield 'empty1' => [
+        yield 'empty values id' => [
             new VariableValues('', []),
             [],
         ];
-        yield 'empty2' => [
+        yield 'empty values data' => [
             new VariableValues(null, []),
+            [],
+        ];
+        yield 'empty values' => [
+            new VariableValues(null, ['values' => []]),
             [],
         ];
         yield 'id' => [
@@ -76,8 +80,8 @@ class VariableValuesTest extends TestCase
             ['variableValuesId' => '123'],
         ];
         yield 'data' => [
-            new VariableValues(null, ['123']),
-            ['variableValuesData' => ['123']],
+            new VariableValues(null, ['values' => ['123']]),
+            ['variableValuesData' => ['values' => ['123']]],
         ];
     }
 }

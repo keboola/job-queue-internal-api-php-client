@@ -39,7 +39,7 @@ class VariableValues
         if ($this->variableValuesId) {
             $data['variableValuesId'] = $this->variableValuesId;
         }
-        if ($this->variableValuesData) {
+        if (!empty($this->variableValuesData['values'])) {
             $data['variableValuesData'] = $this->variableValuesData;
         }
         return $data;
@@ -57,6 +57,7 @@ class VariableValues
 
     public function isEmpty(): bool
     {
-        return empty($this->getValuesId()) && empty($this->getValuesData());
+        return empty($this->getValuesId()) &&
+            (empty($this->getValuesData()) || empty($this->getValuesData()['values']));
     }
 }
