@@ -24,6 +24,7 @@ class VariableValuesTest extends TestCase
     public function validValuesProvider(): iterable
     {
         yield 'empty' => [null, [], true];
+        yield 'empty values' => [null, ['values' => []], true];
         yield 'id' => ['123', [], false];
         yield 'data' => [null, ['values' => ['123']], false];
     }
@@ -32,7 +33,7 @@ class VariableValuesTest extends TestCase
     {
         self::expectException(ClientException::class);
         self::expectExceptionMessage('Provide either "variableValuesId" or "variableValuesData", but not both.');
-        new VariableValues('123', ['123']);
+        new VariableValues('123', ['values' => ['123']]);
     }
 
     /**
