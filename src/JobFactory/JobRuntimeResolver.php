@@ -20,86 +20,84 @@ class JobRuntimeResolver
     /** @var JobFactory */
     private $jobFactory;
     /** @var ?Client */
-    private $storageClient;
+    private $storageClient = null;
     /** @var ?array */
-    private $configuration;
-    /** @var ?array */
-    private $configData;
+    private $configuration = null;
+    /** @var JobInterface */
+    private $job;
 
     public function __construct(
         LoggerInterface $logger,
         StorageClientFactory $storageClientFactory,
-        JobFactory $jobFactory
+        JobFactory $jobFactory,
+        JobInterface $job
     ) {
         $this->logger = $logger;
         $this->storageClientFactory = $storageClientFactory;
         $this->jobFactory = $jobFactory;
+        $this->job = $job;
     }
 
-    public function resolve(JobInterface $job): JobInterface
+    public function resolve(): JobInterface
     {
-        $this->configuration = null;
-        $this->configData = null;
-        $this->storageClient = null;
-
         try {
-            $tag = $this->resolveTag($job);
-            $variableValues = $this->resolveVariables($job);
-            $backend = $this->resolveBackend($job);
+            $tag = $this->resolveTag();
+            $variableValues = $this->resolveVariables();
+            $backend = $this->resolveBackend();
             $patchData = $variableValues->asDataArray();
             $patchData['backend'] = $backend->asDataArray();
             $patchData['tag'] = $tag;
+            $this->logger->info(sprintf('Resolved component tag to "%s".', $tag));
+            return $this->jobFactory->modifyJob($this->job, $patchData);
         } catch (InvalidConfigurationException $e) {
             throw new ClientException('Invalid configuration: ' . $e->getMessage(), 0, $e);
         }
-        $this->logger->info(sprintf('Resolved component tag to "%s".', $tag));
-        return $this->jobFactory->modifyJob($job, $patchData);
     }
 
-    private function resolveTag(JobInterface $job): string
+    private function resolveTag(): string
     {
-        if ($job->getTag()) {
-            return (string) $job->getTag();
+        if ($this->job->getTag()) {
+            return (string) $this->job->getTag();
         }
-        if (!empty($this->getConfigData($job)['runtime']['tag'])) {
-            return (string) $this->getConfigData($job)['runtime']['tag'];
+        if (!empty($this->getConfigData()['runtime']['tag'])) {
+            return (string) $this->getConfigData()['runtime']['tag'];
         }
-        $configuration = $this->getConfiguration($job);
+        $configuration = $this->getConfiguration($this->job);
         if (!empty($configuration['runtime']['tag'])) {
             return (string) $configuration['runtime']['tag'];
         }
-        $componentsApi = new Components($this->getStorageApiClient($job));
-        return $componentsApi->getComponent($job->getComponentId())['data']['definition']['tag'];
+        $componentsApi = new Components($this->getStorageApiClient($this->job));
+        return $componentsApi->getComponent($this->job->getComponentId())['data']['definition']['tag'];
     }
 
-    private function resolveVariables(JobInterface $job): VariableValues
+    private function resolveVariables(): VariableValues
     {
-        if (!$job->getVariableValues()->isEmpty()) {
-            return $job->getVariableValues();
+        if (!$this->job->getVariableValues()->isEmpty()) {
+            return $this->job->getVariableValues();
         }
-        if (!empty($this->getConfigData($job))) {
-            $variableValues = VariableValues::fromDataArray($this->getConfigData($job));
+        if (!empty($this->getConfigData())) {
+            $variableValues = VariableValues::fromDataArray($this->getConfigData());
             if (!$variableValues->isEmpty()) {
                 return $variableValues;
             }
         }
-        $configuration = $this->getConfiguration($job);
+        $configuration = $this->getConfiguration($this->job);
         // return these irrespective if they are empty, because if they are we'd create empty VariableValues anyway
         return VariableValues::fromDataArray($configuration);
     }
 
-    private function resolveBackend(JobInterface $job): Backend
+    private function resolveBackend(): Backend
     {
-        if (!$job->getBackend()->isEmpty()) {
-            return $job->getBackend();
+        if (!$this->job->getBackend()->isEmpty()) {
+            return $this->job->getBackend();
         }
-        if (!empty($this->getConfigData($job)['runtime']['backend'])) {
-            $backend = Backend::fromDataArray($this->getConfigData($job)['runtime']['backend']);
+        if (!empty($this->getConfigData()['runtime']['backend'])) {
+            $backend = Backend::fromDataArray($this->getConfigData()['runtime']['backend']);
             if (!$backend->isEmpty()) {
                 return $backend;
             }
         }
-        $configuration = $this->getConfiguration($job);
+        $configuration = $this->getConfiguration($this->job);
         if (!empty($configuration['runtime']['backend'])) {
             // return this irrespective if it is empty, because if it is we create empty Backend anyway
             return Backend::fromDataArray($configuration['runtime']['backend']);
@@ -107,13 +105,10 @@ class JobRuntimeResolver
         return new Backend(null);
     }
 
-    private function getConfigData(JobInterface $job): array
+    private function getConfigData(): array
     {
-        if ($this->configData === null) {
-            $configurationDefinition = new OverridesConfigurationDefinition();
-            $this->configData = $configurationDefinition->processData($job->getConfigData());
-        }
-        return $this->configData;
+        $configurationDefinition = new OverridesConfigurationDefinition();
+        return $configurationDefinition->processData($this->job->getConfigData());
     }
 
     private function getConfiguration(JobInterface $job): array
