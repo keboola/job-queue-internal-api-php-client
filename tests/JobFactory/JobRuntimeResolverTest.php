@@ -19,7 +19,7 @@ use Psr\Log\Test\TestLogger;
 class JobRuntimeResolverTest extends TestCase
 {
     /** @var array */
-    private $jobData = [
+    private const JOB_DATA = [
         'id' => '123456456',
         'configId' => '454124290',
         'componentId' => 'keboola.ex-db-snowflake',
@@ -33,11 +33,9 @@ class JobRuntimeResolverTest extends TestCase
 
     private function getObjectEncryptorFactoryMock(): ObjectEncryptorFactory
     {
-        /** @var ObjectEncryptor&MockObject $objectEncryptorMock */
         $objectEncryptorMock = self::createMock(ObjectEncryptor::class);
         $objectEncryptorMock->expects(self::any())->method('decrypt')->willReturnArgument(0);
 
-        /** @var ObjectEncryptorFactory&MockObject $objectEncryptorFactoryMock */
         $objectEncryptorFactoryMock = self::createMock(ObjectEncryptorFactory::class);
         $objectEncryptorFactoryMock->expects(self::any())->method('getEncryptor')
             ->willReturn($objectEncryptorMock);
@@ -46,7 +44,7 @@ class JobRuntimeResolverTest extends TestCase
 
     public function testResolveRuntimeSettingsInJob(): void
     {
-        $jobData = $this->jobData;
+        $jobData = $this::JOB_DATA;
         $jobData['tag'] = '1.2.3';
         $jobData['variableValuesData'] = [
             'values' => [
@@ -92,7 +90,7 @@ class JobRuntimeResolverTest extends TestCase
 
     public function testResolveRuntimeSettingsInConfigData(): void
     {
-        $jobData = $this->jobData;
+        $jobData = self::JOB_DATA;
         $jobData['configData'] = [
             'variableValuesId' => '123',
             'runtime' => [
@@ -129,7 +127,7 @@ class JobRuntimeResolverTest extends TestCase
 
     public function testResolveRuntimeSettingsInConfiguration(): void
     {
-        $jobData = $this->jobData;
+        $jobData = self::JOB_DATA;
         $job = new Job($this->getObjectEncryptorFactoryMock(), $jobData);
         $configuration = [
             'id' => '454124290',
@@ -188,7 +186,7 @@ class JobRuntimeResolverTest extends TestCase
 
     public function testResolveRuntimeSettingsPriority(): void
     {
-        $jobData = $this->jobData;
+        $jobData = self::JOB_DATA;
         $jobData['variableValuesId'] = '123';
         $jobData['configData'] = [
             'variableValuesId' => '456',
@@ -248,7 +246,7 @@ class JobRuntimeResolverTest extends TestCase
 
     public function testInternalCacheIsClearedForEveryCall(): void
     {
-        $jobData = $this->jobData;
+        $jobData = self::JOB_DATA;
         $job = new Job($this->getObjectEncryptorFactoryMock(), $jobData);
         $configuration = [
             'id' => '454124290',
@@ -290,7 +288,7 @@ class JobRuntimeResolverTest extends TestCase
 
     public function testResolveRuntimeSettingsNowhere(): void
     {
-        $jobData = $this->jobData;
+        $jobData = self::JOB_DATA;
         $job = new Job($this->getObjectEncryptorFactoryMock(), $jobData);
         $component = [
             'id' => 'keboola.ex-db-snowflake',
@@ -336,7 +334,7 @@ class JobRuntimeResolverTest extends TestCase
 
     public function testResolveInvalidConfigurationFailsWithClientException(): void
     {
-        $jobData = $this->jobData;
+        $jobData = self::JOB_DATA;
         $jobData['configData'] = [
             'variableValuesData' => '123',
             'parameters' => ['foo' => 'bar'],

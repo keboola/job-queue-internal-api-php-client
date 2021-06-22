@@ -36,4 +36,9 @@ class Backend
     {
         return $this->type;
     }
+
+    public function isEmpty(): bool
+    {
+        return empty($this->type);
+    }
 }
