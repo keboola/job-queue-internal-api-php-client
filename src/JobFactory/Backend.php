@@ -23,13 +23,7 @@ class Backend
 
     public function asDataArray(): array
     {
-        $data = [];
-
-        if ($this->type !== null) {
-            $data['type'] = $this->type;
-        }
-
-        return $data;
+        return ['type' => $this->type];
     }
 
     public function getType(): ?string
@@ -39,6 +33,6 @@ class Backend
 
     public function isEmpty(): bool
     {
-        return empty($this->type);
+        return $this->type === null;
     }
 }

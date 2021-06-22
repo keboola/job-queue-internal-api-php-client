@@ -66,23 +66,23 @@ class VariableValuesTest extends TestCase
     {
         yield 'empty values id' => [
             new VariableValues('', []),
-            [],
+            ['variableValuesId' => '', 'variableValuesData' => []],
         ];
         yield 'empty values data' => [
             new VariableValues(null, []),
-            [],
+            ['variableValuesId' => null, 'variableValuesData' => []],
         ];
         yield 'empty values' => [
             new VariableValues(null, ['values' => []]),
-            [],
+            ['variableValuesId' => null, 'variableValuesData' => ['values' => []]],
         ];
         yield 'id' => [
             new VariableValues('123', []),
-            ['variableValuesId' => '123'],
+            ['variableValuesId' => '123', 'variableValuesData' => []],
         ];
         yield 'data' => [
             new VariableValues(null, ['values' => ['123']]),
-            ['variableValuesData' => ['values' => ['123']]],
+            ['variableValuesId' => null, 'variableValuesData' => ['values' => ['123']]],
         ];
     }
 }

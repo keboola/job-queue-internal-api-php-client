@@ -21,26 +21,28 @@ class JobRuntimeResolver
     /** @var JobFactory */
     private $jobFactory;
     /** @var ?Client */
-    private $storageClient = null;
+    private $storageClient;
     /** @var ?array */
-    private $configuration = null;
+    private $configuration;
     /** @var JobInterface */
     private $job;
 
     public function __construct(
         LoggerInterface $logger,
         StorageClientFactory $storageClientFactory,
-        JobFactory $jobFactory,
-        JobInterface $job
+        JobFactory $jobFactory
     ) {
         $this->logger = $logger;
         $this->storageClientFactory = $storageClientFactory;
         $this->jobFactory = $jobFactory;
-        $this->job = $job;
     }
 
-    public function resolve(): JobInterface
+    public function resolve(JobInterface $job): JobInterface
     {
+        $this->configuration = null;
+        $this->storageClient = null;
+        $this->job = $job;
+
         try {
             $tag = $this->resolveTag();
             $variableValues = $this->resolveVariables();
@@ -117,13 +119,17 @@ class JobRuntimeResolver
     private function getConfiguration(JobInterface $job): array
     {
         if ($this->configuration === null) {
-            $componentsApi = new Components($this->getStorageApiClient($job));
-            $this->configuration = $componentsApi->getConfiguration(
-                $job->getComponentId(),
-                $job->getConfigId()
-            );
-            $configurationDefinition = new OverridesConfigurationDefinition();
-            $this->configuration = $configurationDefinition->processData($this->configuration['configuration']);
+            if ($job->getConfigId()) {
+                $componentsApi = new Components($this->getStorageApiClient($job));
+                $this->configuration = $componentsApi->getConfiguration(
+                    $job->getComponentId(),
+                    $job->getConfigId()
+                );
+                $configurationDefinition = new OverridesConfigurationDefinition();
+                $this->configuration = $configurationDefinition->processData($this->configuration['configuration']);
+            } else {
+                $this->configuration = [];
+            }
         }
         return $this->configuration;
     }
