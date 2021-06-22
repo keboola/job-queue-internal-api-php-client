@@ -15,14 +15,13 @@ class VariableValues
 
     public function __construct(?string $variableValuesId, array $variableValuesData)
     {
-        if (!empty($variableValuesId) && !empty($variableValuesData)) {
+        $this->variableValuesId = $variableValuesId;
+        $this->variableValuesData = $variableValuesData;
+        if (!empty($this->variableValuesId) && !$this->isValuesEmpty()) {
             throw new ClientException(
                 'Provide either "variableValuesId" or "variableValuesData", but not both.'
             );
         }
-
-        $this->variableValuesId = $variableValuesId;
-        $this->variableValuesData = $variableValuesData;
     }
 
     public static function fromDataArray(array $data): self
@@ -39,7 +38,7 @@ class VariableValues
         if ($this->variableValuesId) {
             $data['variableValuesId'] = $this->variableValuesId;
         }
-        if (!empty($this->variableValuesData['values'])) {
+        if (!$this->isValuesEmpty()) {
             $data['variableValuesData'] = $this->variableValuesData;
         }
         return $data;
@@ -57,7 +56,11 @@ class VariableValues
 
     public function isEmpty(): bool
     {
-        return empty($this->getValuesId()) &&
-            (empty($this->getValuesData()) || empty($this->getValuesData()['values']));
+        return empty($this->getValuesId()) && $this->isValuesEmpty();
+    }
+
+    private function isValuesEmpty(): bool
+    {
+        return empty($this->getValuesData()) || empty($this->getValuesData()['values']);
     }
 }
