@@ -12,7 +12,7 @@ use Keboola\JobQueueInternalClient\JobFactory\StorageClientFactory;
 use Keboola\ObjectEncryptor\ObjectEncryptor;
 use Keboola\ObjectEncryptor\ObjectEncryptorFactory;
 use Keboola\StorageApi\Client;
-use PHPUnit\Framework\MockObject\MockObject;
+use Keboola\StorageApi\ClientException as StorageClientException;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\Test\TestLogger;
 
@@ -59,10 +59,8 @@ class JobRuntimeResolverTest extends TestCase
         $job = new Job($this->getObjectEncryptorFactoryMock(), $jobData);
 
         $logger = new TestLogger();
-        /** @var StorageClientFactory&MockObject $storageClientFactoryMock */
         $storageClientFactoryMock = self::createMock(StorageClientFactory::class);
         $storageClientFactoryMock->expects(self::never())->method('getClient');
-        /** @var JobFactory&MockObject $jobFactoryMock */
         $jobFactoryMock = self::createMock(JobFactory::class);
 
         $jobFactoryMock->expects(self::once())->method('modifyJob')
@@ -103,10 +101,8 @@ class JobRuntimeResolverTest extends TestCase
         $job = new Job($this->getObjectEncryptorFactoryMock(), $jobData);
 
         $logger = new TestLogger();
-        /** @var StorageClientFactory&MockObject $storageClientFactoryMock */
         $storageClientFactoryMock = self::createMock(StorageClientFactory::class);
         $storageClientFactoryMock->expects(self::never())->method('getClient');
-        /** @var JobFactory&MockObject $jobFactoryMock */
         $jobFactoryMock = self::createMock(JobFactory::class);
 
         $jobFactoryMock->expects(self::once())->method('modifyJob')
@@ -151,14 +147,11 @@ class JobRuntimeResolverTest extends TestCase
         ];
 
         $logger = new TestLogger();
-        /** @var Client&MockObject $clientMock */
         $clientMock = self::createMock(Client::class);
-        $clientMock->expects(self::exactly(1))->method('apiGet')
+        $clientMock->expects(self::once())->method('apiGet')
             ->with('components/keboola.ex-db-snowflake/configs/454124290')->willReturn($configuration);
-        /** @var StorageClientFactory&MockObject $storageClientFactoryMock */
         $storageClientFactoryMock = self::createMock(StorageClientFactory::class);
         $storageClientFactoryMock->expects(self::once())->method('getClient')->willReturn($clientMock);
-        /** @var JobFactory&MockObject $jobFactoryMock */
         $jobFactoryMock = self::createMock(JobFactory::class);
 
         $jobFactoryMock->expects(self::once())->method('modifyJob')
@@ -218,14 +211,11 @@ class JobRuntimeResolverTest extends TestCase
         ];
 
         $logger = new TestLogger();
-        /** @var Client&MockObject $clientMock */
         $clientMock = self::createMock(Client::class);
-        $clientMock->expects(self::exactly(1))->method('apiGet')
+        $clientMock->expects(self::once())->method('apiGet')
             ->with('components/keboola.ex-db-snowflake/configs/454124290')->willReturn($configuration);
-        /** @var StorageClientFactory&MockObject $storageClientFactoryMock */
         $storageClientFactoryMock = self::createMock(StorageClientFactory::class);
         $storageClientFactoryMock->expects(self::once())->method('getClient')->willReturn($clientMock);
-        /** @var JobFactory&MockObject $jobFactoryMock */
         $jobFactoryMock = self::createMock(JobFactory::class);
 
         $jobFactoryMock->expects(self::once())->method('modifyJob')
@@ -264,17 +254,14 @@ class JobRuntimeResolverTest extends TestCase
         ];
 
         $logger = new TestLogger();
-        /** @var Client&MockObject $clientMock */
         $clientMock = self::createMock(Client::class);
         $clientMock->expects(self::exactly(2))->method('apiGet')
             ->withConsecutive(
                 ['components/keboola.ex-db-snowflake/configs/454124290'],
                 ['components/keboola.ex-db-snowflake']
             )->willReturnOnConsecutiveCalls($configuration, $component);
-        /** @var StorageClientFactory&MockObject $storageClientFactoryMock */
         $storageClientFactoryMock = self::createMock(StorageClientFactory::class);
         $storageClientFactoryMock->expects(self::once())->method('getClient')->willReturn($clientMock);
-        /** @var JobFactory&MockObject $jobFactoryMock */
         $jobFactoryMock = self::createMock(JobFactory::class);
 
         $jobFactoryMock->expects(self::once())->method('modifyJob')
@@ -300,15 +287,32 @@ class JobRuntimeResolverTest extends TestCase
         $job = new Job($this->getObjectEncryptorFactoryMock(), $jobData);
 
         $logger = new TestLogger();
-        /** @var StorageClientFactory&MockObject $storageClientFactoryMock */
         $storageClientFactoryMock = self::createMock(StorageClientFactory::class);
         $storageClientFactoryMock->expects(self::never())->method('getClient');
-        /** @var JobFactory&MockObject $jobFactoryMock */
         $jobFactoryMock = self::createMock(JobFactory::class);
 
         $jobRuntimeResolver = new JobRuntimeResolver($logger, $storageClientFactoryMock, $jobFactoryMock, $job);
         self::expectException(ClientException::class);
         self::expectExceptionMessage('Invalid configuration: Invalid type for path "overrides.variableValuesData".');
+        $jobRuntimeResolver->resolve();
+    }
+
+    public function testResolveRuntimeSettingsConfigurationNotFound(): void
+    {
+        $jobData = self::JOB_DATA;
+        $job = new Job($this->getObjectEncryptorFactoryMock(), $jobData);
+        $logger = new TestLogger();
+        $clientMock = self::createMock(Client::class);
+        $clientMock->expects(self::once())->method('apiGet')
+            ->with(
+                'components/keboola.ex-db-snowflake/configs/454124290',
+            )->willThrowException(new StorageClientException('Configuration "454124290" not found', 404));
+        $storageClientFactoryMock = self::createMock(StorageClientFactory::class);
+        $storageClientFactoryMock->expects(self::once())->method('getClient')->willReturn($clientMock);
+        $jobFactoryMock = self::createMock(JobFactory::class);
+        $jobRuntimeResolver = new JobRuntimeResolver($logger, $storageClientFactoryMock, $jobFactoryMock, $job);
+        self::expectExceptionMessage('Cannot resolve job parameters: Configuration "454124290" not found');
+        self::expectException(ClientException::class);
         $jobRuntimeResolver->resolve();
     }
 }

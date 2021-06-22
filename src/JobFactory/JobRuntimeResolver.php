@@ -7,6 +7,7 @@ namespace Keboola\JobQueueInternalClient\JobFactory;
 use Keboola\JobQueueInternalClient\Exception\ClientException;
 use Keboola\JobQueueInternalClient\JobFactory;
 use Keboola\StorageApi\Client;
+use Keboola\StorageApi\ClientException as StorageClientException;
 use Keboola\StorageApi\Components;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
@@ -51,6 +52,8 @@ class JobRuntimeResolver
             return $this->jobFactory->modifyJob($this->job, $patchData);
         } catch (InvalidConfigurationException $e) {
             throw new ClientException('Invalid configuration: ' . $e->getMessage(), 0, $e);
+        } catch (StorageClientException $e) {
+            throw new ClientException('Cannot resolve job parameters: ' . $e->getMessage(), 0, $e);
         }
     }
 
