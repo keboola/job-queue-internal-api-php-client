@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Keboola\JobQueueInternalClient\JobFactory;
 
+use Keboola\JobQueueInternalClient\Client as InternalApiClient;
 use Keboola\JobQueueInternalClient\Exception\ClientException;
 use Keboola\JobQueueInternalClient\JobFactory;
 use Keboola\StorageApi\Client;
@@ -30,11 +31,11 @@ class JobRuntimeResolver
     public function __construct(
         LoggerInterface $logger,
         StorageClientFactory $storageClientFactory,
-        JobFactory $jobFactory
+        InternalApiClient $internalApiClient
     ) {
         $this->logger = $logger;
         $this->storageClientFactory = $storageClientFactory;
-        $this->jobFactory = $jobFactory;
+        $this->jobFactory = $internalApiClient->getJobFactory();
     }
 
     public function resolve(JobInterface $job): JobInterface
