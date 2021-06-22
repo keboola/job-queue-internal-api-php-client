@@ -246,7 +246,7 @@ class JobRuntimeResolverTest extends TestCase
         $jobRuntimeResolver->resolve($job);
     }
 
-    public function testResolveRuntimeSettingsCacheMiss(): void
+    public function testInternalCacheIsClearedForEveryCall(): void
     {
         $jobData = $this->jobData;
         $job = new Job($this->getObjectEncryptorFactoryMock(), $jobData);
@@ -334,7 +334,7 @@ class JobRuntimeResolverTest extends TestCase
         $jobRuntimeResolver->resolve($job);
     }
 
-    public function testResolveRuntimeSettingsInConfigurationInvalid(): void
+    public function testResolveInvalidConfigurationFailsWithClientException(): void
     {
         $jobData = $this->jobData;
         $jobData['configData'] = [
