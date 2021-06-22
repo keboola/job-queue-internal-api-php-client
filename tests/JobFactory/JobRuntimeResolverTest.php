@@ -67,6 +67,7 @@ class JobRuntimeResolverTest extends TestCase
             ->with(
                 $job,
                 [
+                    'variableValuesId' => null,
                     'variableValuesData' => [
                         'values' => [
                             [
@@ -82,8 +83,8 @@ class JobRuntimeResolverTest extends TestCase
                 ]
             )->willReturn($job);
 
-        $jobRuntimeResolver = new JobRuntimeResolver($logger, $storageClientFactoryMock, $jobFactoryMock, $job);
-        $jobRuntimeResolver->resolve();
+        $jobRuntimeResolver = new JobRuntimeResolver($logger, $storageClientFactoryMock, $jobFactoryMock);
+        $jobRuntimeResolver->resolve($job);
     }
 
     public function testResolveRuntimeSettingsInConfigData(): void
@@ -110,6 +111,7 @@ class JobRuntimeResolverTest extends TestCase
                 $job,
                 [
                     'variableValuesId' => '123',
+                    'variableValuesData' => [],
                     'backend' => [
                         'type' => 'mass-produced',
                     ],
@@ -117,8 +119,8 @@ class JobRuntimeResolverTest extends TestCase
                 ]
             )->willReturn($job);
 
-        $jobRuntimeResolver = new JobRuntimeResolver($logger, $storageClientFactoryMock, $jobFactoryMock, $job);
-        $jobRuntimeResolver->resolve();
+        $jobRuntimeResolver = new JobRuntimeResolver($logger, $storageClientFactoryMock, $jobFactoryMock);
+        $jobRuntimeResolver->resolve($job);
     }
 
     public function testResolveRuntimeSettingsInConfiguration(): void
@@ -158,6 +160,7 @@ class JobRuntimeResolverTest extends TestCase
             ->with(
                 $job,
                 [
+                    'variableValuesId' => null,
                     'variableValuesData' => [
                         'values' => [
                             [
@@ -173,8 +176,8 @@ class JobRuntimeResolverTest extends TestCase
                 ]
             )->willReturn($job);
 
-        $jobRuntimeResolver = new JobRuntimeResolver($logger, $storageClientFactoryMock, $jobFactoryMock, $job);
-        $jobRuntimeResolver->resolve();
+        $jobRuntimeResolver = new JobRuntimeResolver($logger, $storageClientFactoryMock, $jobFactoryMock);
+        $jobRuntimeResolver->resolve($job);
     }
 
     public function testResolveRuntimeSettingsPriority(): void
@@ -223,6 +226,7 @@ class JobRuntimeResolverTest extends TestCase
                 $job,
                 [
                     'variableValuesId' => '123',
+                    'variableValuesData' => [],
                     'backend' => [
                         'type' => 'stereotyped',
                     ],
@@ -230,8 +234,8 @@ class JobRuntimeResolverTest extends TestCase
                 ]
             )->willReturn($job);
 
-        $jobRuntimeResolver = new JobRuntimeResolver($logger, $storageClientFactoryMock, $jobFactoryMock, $job);
-        $jobRuntimeResolver->resolve();
+        $jobRuntimeResolver = new JobRuntimeResolver($logger, $storageClientFactoryMock, $jobFactoryMock);
+        $jobRuntimeResolver->resolve($job);
     }
 
     public function testResolveRuntimeSettingsNowhere(): void
@@ -268,13 +272,17 @@ class JobRuntimeResolverTest extends TestCase
             ->with(
                 $job,
                 [
-                    'backend' => [],
+                    'variableValuesId' => null,
+                    'variableValuesData' => [],
+                    'backend' => [
+                        'type' => null,
+                    ],
                     'tag' => '9.9.9',
                 ]
             )->willReturn($job);
 
-        $jobRuntimeResolver = new JobRuntimeResolver($logger, $storageClientFactoryMock, $jobFactoryMock, $job);
-        $jobRuntimeResolver->resolve();
+        $jobRuntimeResolver = new JobRuntimeResolver($logger, $storageClientFactoryMock, $jobFactoryMock);
+        $jobRuntimeResolver->resolve($job);
     }
 
     public function testResolveInvalidConfigurationFailsWithClientException(): void
@@ -291,10 +299,10 @@ class JobRuntimeResolverTest extends TestCase
         $storageClientFactoryMock->expects(self::never())->method('getClient');
         $jobFactoryMock = self::createMock(JobFactory::class);
 
-        $jobRuntimeResolver = new JobRuntimeResolver($logger, $storageClientFactoryMock, $jobFactoryMock, $job);
+        $jobRuntimeResolver = new JobRuntimeResolver($logger, $storageClientFactoryMock, $jobFactoryMock);
         self::expectException(ClientException::class);
         self::expectExceptionMessage('Invalid configuration: Invalid type for path "overrides.variableValuesData".');
-        $jobRuntimeResolver->resolve();
+        $jobRuntimeResolver->resolve($job);
     }
 
     public function testResolveRuntimeSettingsConfigurationNotFound(): void
@@ -310,9 +318,86 @@ class JobRuntimeResolverTest extends TestCase
         $storageClientFactoryMock = self::createMock(StorageClientFactory::class);
         $storageClientFactoryMock->expects(self::once())->method('getClient')->willReturn($clientMock);
         $jobFactoryMock = self::createMock(JobFactory::class);
-        $jobRuntimeResolver = new JobRuntimeResolver($logger, $storageClientFactoryMock, $jobFactoryMock, $job);
+        $jobRuntimeResolver = new JobRuntimeResolver($logger, $storageClientFactoryMock, $jobFactoryMock);
         self::expectExceptionMessage('Cannot resolve job parameters: Configuration "454124290" not found');
         self::expectException(ClientException::class);
-        $jobRuntimeResolver->resolve();
+        $jobRuntimeResolver->resolve($job);
+    }
+
+    public function testResolveNoConfiguration(): void
+    {
+        $jobData = self::JOB_DATA;
+        unset($jobData['configId']);
+        $job = new Job($this->getObjectEncryptorFactoryMock(), $jobData);
+        $logger = new TestLogger();
+        $component = [
+            'id' => 'keboola.ex-db-snowflake',
+            'data' => [
+                'definition' => [
+                    'tag' => '9.9.9',
+                ],
+            ],
+        ];
+
+        $clientMock = self::createMock(Client::class);
+        $clientMock->expects(self::once())->method('apiGet')
+            ->with('components/keboola.ex-db-snowflake')->willReturn($component);
+        $storageClientFactoryMock = self::createMock(StorageClientFactory::class);
+        $storageClientFactoryMock->expects(self::once())->method('getClient')->willReturn($clientMock);
+        $jobFactoryMock = self::createMock(JobFactory::class);
+        $jobFactoryMock->expects(self::once())->method('modifyJob')
+            ->with(
+                $job,
+                [
+                    'variableValuesId' => null,
+                    'variableValuesData' => [],
+                    'backend' => [
+                        'type' => null,
+                    ],
+                    'tag' => '9.9.9',
+                ]
+            )->willReturn($job);
+
+        $jobRuntimeResolver = new JobRuntimeResolver($logger, $storageClientFactoryMock, $jobFactoryMock);
+        $jobRuntimeResolver->resolve($job);
+    }
+
+    public function testInternalCacheIsClearedForEveryCall(): void
+    {
+        $jobData = self::JOB_DATA;
+        $job = new Job($this->getObjectEncryptorFactoryMock(), $jobData);
+        $configuration = [
+            'id' => '454124290',
+            'configuration' => [
+                'runtime' => [
+                    'backend' => [
+                        'type' => 'stereotyped',
+                    ],
+                    'tag' => '4.5.6',
+                ],
+                'parameters' => ['foo' => 'bar'],
+                'variableValuesData' => [
+                    'values' => [
+                        [
+                            'name' => 'bar',
+                            'value' => 'Kochba',
+                        ],
+                    ],
+                ],
+            ],
+        ];
+
+        $logger = new TestLogger();
+        $clientMock = self::createMock(Client::class);
+        $clientMock->expects(self::exactly(2))->method('apiGet')
+            ->with()->willReturn($configuration);
+        $storageClientFactoryMock = self::createMock(StorageClientFactory::class);
+        $storageClientFactoryMock->expects(self::exactly(2))->method('getClient')->willReturn($clientMock);
+        $jobFactoryMock = self::createMock(JobFactory::class);
+        $jobFactoryMock->expects(self::exactly(2))->method('modifyJob')->willReturn($job);
+
+        $jobRuntimeResolver = new JobRuntimeResolver($logger, $storageClientFactoryMock, $jobFactoryMock);
+        $jobRuntimeResolver->resolve($job);
+        $jobRuntimeResolver->resolve($job);
     }
 }

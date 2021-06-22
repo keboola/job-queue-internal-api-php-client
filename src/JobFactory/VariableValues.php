@@ -34,14 +34,10 @@ class VariableValues
 
     public function asDataArray(): array
     {
-        $data = [];
-        if ($this->variableValuesId) {
-            $data['variableValuesId'] = $this->variableValuesId;
-        }
-        if (!$this->isValuesEmpty()) {
-            $data['variableValuesData'] = $this->variableValuesData;
-        }
-        return $data;
+        return [
+            'variableValuesId' => $this->variableValuesId,
+            'variableValuesData' => $this->variableValuesData,
+        ];
     }
 
     public function getValuesId(): ?string

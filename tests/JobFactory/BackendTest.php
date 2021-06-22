@@ -52,7 +52,7 @@ class BackendTest extends TestCase
 
     public function provideExportAsDataArrayData(): iterable
     {
-        yield 'empty' => [new Backend(null), []];
+        yield 'empty' => [new Backend(null), ['type' => null]];
         yield 'with type' => [new Backend('custom'), ['type' => 'custom']];
     }
 }
