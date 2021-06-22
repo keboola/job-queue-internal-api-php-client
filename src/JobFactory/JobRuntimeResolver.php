@@ -47,7 +47,7 @@ class JobRuntimeResolver
             $variableValues = $this->resolveVariables($job);
             $backend = $this->resolveBackend($job);
             $patchData = $variableValues->asDataArray();
-            $patchData = array_merge($patchData, ['backend' => $backend->asDataArray()]);
+            $patchData['backend'] = $backend->asDataArray();
             $patchData['tag'] = $tag;
         } catch (InvalidConfigurationException $e) {
             throw new ClientException('Invalid configuration: ' . $e->getMessage(), 0, $e);
@@ -90,14 +90,18 @@ class JobRuntimeResolver
 
     private function resolveBackend(JobInterface $job): Backend
     {
-        if ($job->getBackend()->getType()) {
+        if (!$job->getBackend()->isEmpty()) {
             return $job->getBackend();
         }
-        if (!empty($this->getConfigData($job)['runtime']['backend']['type'])) {
-            return Backend::fromDataArray($this->getConfigData($job)['runtime']['backend']);
+        if (!empty($this->getConfigData($job)['runtime']['backend'])) {
+            $backend = Backend::fromDataArray($this->getConfigData($job)['runtime']['backend']);
+            if (!$backend->isEmpty()) {
+                return $backend;
+            }
         }
         $configuration = $this->getConfiguration($job);
-        if (!empty($configuration['runtime']['backend']['type'])) {
+        if (!empty($configuration['runtime']['backend'])) {
+            // return this irrespective if it is empty, because if it is we create empty Backend anyway
             return Backend::fromDataArray($configuration['runtime']['backend']);
         }
         return new Backend(null);
