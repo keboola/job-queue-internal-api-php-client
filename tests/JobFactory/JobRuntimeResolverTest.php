@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Keboola\JobQueueInternalClient\Tests\JobFactory;
 
+use Keboola\JobQueueInternalClient\Client as InternalApiClient;
 use Keboola\JobQueueInternalClient\Exception\ClientException;
 use Keboola\JobQueueInternalClient\JobFactory;
 use Keboola\JobQueueInternalClient\JobFactory\Job;
@@ -62,7 +63,6 @@ class JobRuntimeResolverTest extends TestCase
         $storageClientFactoryMock = self::createMock(StorageClientFactory::class);
         $storageClientFactoryMock->expects(self::never())->method('getClient');
         $jobFactoryMock = self::createMock(JobFactory::class);
-
         $jobFactoryMock->expects(self::once())->method('modifyJob')
             ->with(
                 $job,
@@ -82,8 +82,10 @@ class JobRuntimeResolverTest extends TestCase
                     'tag' => '1.2.3',
                 ]
             )->willReturn($job);
+        $internalApiClientMock = self::createMock(InternalApiClient::class);
+        $internalApiClientMock->method('getJobFactory')->willReturn($jobFactoryMock);
 
-        $jobRuntimeResolver = new JobRuntimeResolver($logger, $storageClientFactoryMock, $jobFactoryMock);
+        $jobRuntimeResolver = new JobRuntimeResolver($logger, $storageClientFactoryMock, $internalApiClientMock);
         $jobRuntimeResolver->resolve($job);
     }
 
@@ -119,7 +121,9 @@ class JobRuntimeResolverTest extends TestCase
                 ]
             )->willReturn($job);
 
-        $jobRuntimeResolver = new JobRuntimeResolver($logger, $storageClientFactoryMock, $jobFactoryMock);
+        $internalApiClientMock = self::createMock(InternalApiClient::class);
+        $internalApiClientMock->method('getJobFactory')->willReturn($jobFactoryMock);
+        $jobRuntimeResolver = new JobRuntimeResolver($logger, $storageClientFactoryMock, $internalApiClientMock);
         $jobRuntimeResolver->resolve($job);
     }
 
@@ -176,7 +180,9 @@ class JobRuntimeResolverTest extends TestCase
                 ]
             )->willReturn($job);
 
-        $jobRuntimeResolver = new JobRuntimeResolver($logger, $storageClientFactoryMock, $jobFactoryMock);
+        $internalApiClientMock = self::createMock(InternalApiClient::class);
+        $internalApiClientMock->method('getJobFactory')->willReturn($jobFactoryMock);
+        $jobRuntimeResolver = new JobRuntimeResolver($logger, $storageClientFactoryMock, $internalApiClientMock);
         $jobRuntimeResolver->resolve($job);
     }
 
@@ -234,7 +240,9 @@ class JobRuntimeResolverTest extends TestCase
                 ]
             )->willReturn($job);
 
-        $jobRuntimeResolver = new JobRuntimeResolver($logger, $storageClientFactoryMock, $jobFactoryMock);
+        $internalApiClientMock = self::createMock(InternalApiClient::class);
+        $internalApiClientMock->method('getJobFactory')->willReturn($jobFactoryMock);
+        $jobRuntimeResolver = new JobRuntimeResolver($logger, $storageClientFactoryMock, $internalApiClientMock);
         $jobRuntimeResolver->resolve($job);
     }
 
@@ -281,7 +289,9 @@ class JobRuntimeResolverTest extends TestCase
                 ]
             )->willReturn($job);
 
-        $jobRuntimeResolver = new JobRuntimeResolver($logger, $storageClientFactoryMock, $jobFactoryMock);
+        $internalApiClientMock = self::createMock(InternalApiClient::class);
+        $internalApiClientMock->method('getJobFactory')->willReturn($jobFactoryMock);
+        $jobRuntimeResolver = new JobRuntimeResolver($logger, $storageClientFactoryMock, $internalApiClientMock);
         $jobRuntimeResolver->resolve($job);
     }
 
@@ -299,7 +309,9 @@ class JobRuntimeResolverTest extends TestCase
         $storageClientFactoryMock->expects(self::never())->method('getClient');
         $jobFactoryMock = self::createMock(JobFactory::class);
 
-        $jobRuntimeResolver = new JobRuntimeResolver($logger, $storageClientFactoryMock, $jobFactoryMock);
+        $internalApiClientMock = self::createMock(InternalApiClient::class);
+        $internalApiClientMock->method('getJobFactory')->willReturn($jobFactoryMock);
+        $jobRuntimeResolver = new JobRuntimeResolver($logger, $storageClientFactoryMock, $internalApiClientMock);
         self::expectException(ClientException::class);
         self::expectExceptionMessage('Invalid configuration: Invalid type for path "overrides.variableValuesData".');
         $jobRuntimeResolver->resolve($job);
@@ -318,7 +330,9 @@ class JobRuntimeResolverTest extends TestCase
         $storageClientFactoryMock = self::createMock(StorageClientFactory::class);
         $storageClientFactoryMock->expects(self::once())->method('getClient')->willReturn($clientMock);
         $jobFactoryMock = self::createMock(JobFactory::class);
-        $jobRuntimeResolver = new JobRuntimeResolver($logger, $storageClientFactoryMock, $jobFactoryMock);
+        $internalApiClientMock = self::createMock(InternalApiClient::class);
+        $internalApiClientMock->method('getJobFactory')->willReturn($jobFactoryMock);
+        $jobRuntimeResolver = new JobRuntimeResolver($logger, $storageClientFactoryMock, $internalApiClientMock);
         self::expectExceptionMessage('Cannot resolve job parameters: Configuration "454124290" not found');
         self::expectException(ClientException::class);
         $jobRuntimeResolver->resolve($job);
@@ -358,7 +372,9 @@ class JobRuntimeResolverTest extends TestCase
                 ]
             )->willReturn($job);
 
-        $jobRuntimeResolver = new JobRuntimeResolver($logger, $storageClientFactoryMock, $jobFactoryMock);
+        $internalApiClientMock = self::createMock(InternalApiClient::class);
+        $internalApiClientMock->method('getJobFactory')->willReturn($jobFactoryMock);
+        $jobRuntimeResolver = new JobRuntimeResolver($logger, $storageClientFactoryMock, $internalApiClientMock);
         $jobRuntimeResolver->resolve($job);
     }
 
@@ -396,7 +412,9 @@ class JobRuntimeResolverTest extends TestCase
         $jobFactoryMock = self::createMock(JobFactory::class);
         $jobFactoryMock->expects(self::exactly(2))->method('modifyJob')->willReturn($job);
 
-        $jobRuntimeResolver = new JobRuntimeResolver($logger, $storageClientFactoryMock, $jobFactoryMock);
+        $internalApiClientMock = self::createMock(InternalApiClient::class);
+        $internalApiClientMock->method('getJobFactory')->willReturn($jobFactoryMock);
+        $jobRuntimeResolver = new JobRuntimeResolver($logger, $storageClientFactoryMock, $internalApiClientMock);
         $jobRuntimeResolver->resolve($job);
         $jobRuntimeResolver->resolve($job);
     }
