@@ -186,6 +186,66 @@ class JobRuntimeResolverTest extends TestCase
         $jobRuntimeResolver->resolve($job);
     }
 
+    public function testResolveRuntimeSettingsPriority(): void
+    {
+        $jobData = $this->jobData;
+        $jobData['variableValuesId'] = '123';
+        $jobData['configData'] = [
+            'variableValuesId' => '456',
+            'runtime' => [
+                'tag' => '4.5.6',
+            ],
+            'parameters' => ['foo' => 'bar'],
+        ];
+        $job = new Job($this->getObjectEncryptorFactoryMock(), $jobData);
+        $configuration = [
+            'id' => '454124290',
+            'configuration' => [
+                'runtime' => [
+                    'backend' => [
+                        'type' => 'stereotyped',
+                    ],
+                    'tag' => '7.8.9',
+                ],
+                'parameters' => ['foo' => 'bar'],
+                'variableValuesData' => [
+                    'values' => [
+                        [
+                            'name' => 'bar',
+                            'value' => 'Kochba',
+                        ],
+                    ],
+                ],
+            ],
+        ];
+
+        $logger = new TestLogger();
+        /** @var Client&MockObject $clientMock */
+        $clientMock = self::createMock(Client::class);
+        $clientMock->expects(self::exactly(1))->method('apiGet')
+            ->with('components/keboola.ex-db-snowflake/configs/454124290')->willReturn($configuration);
+        /** @var StorageClientFactory&MockObject $storageClientFactoryMock */
+        $storageClientFactoryMock = self::createMock(StorageClientFactory::class);
+        $storageClientFactoryMock->expects(self::once())->method('getClient')->willReturn($clientMock);
+        /** @var JobFactory&MockObject $jobFactoryMock */
+        $jobFactoryMock = self::createMock(JobFactory::class);
+
+        $jobFactoryMock->expects(self::once())->method('modifyJob')
+            ->with(
+                $job,
+                [
+                    'variableValuesId' => '123',
+                    'backend' => [
+                        'type' => 'stereotyped',
+                    ],
+                    'tag' => '4.5.6',
+                ]
+            )->willReturn($job);
+
+        $jobRuntimeResolver = new JobRuntimeResolver($logger, $storageClientFactoryMock, $jobFactoryMock);
+        $jobRuntimeResolver->resolve($job);
+    }
+
     public function testResolveRuntimeSettingsCacheMiss(): void
     {
         $jobData = $this->jobData;
