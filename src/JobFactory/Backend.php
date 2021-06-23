@@ -23,17 +23,16 @@ class Backend
 
     public function asDataArray(): array
     {
-        $data = [];
-
-        if ($this->type !== null) {
-            $data['type'] = $this->type;
-        }
-
-        return $data;
+        return ['type' => $this->type];
     }
 
     public function getType(): ?string
     {
         return $this->type;
+    }
+
+    public function isEmpty(): bool
+    {
+        return $this->type === null;
     }
 }

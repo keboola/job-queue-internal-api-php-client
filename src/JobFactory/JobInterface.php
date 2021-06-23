@@ -38,4 +38,5 @@ interface JobInterface
     public function getBranchId(): ?string;
     public function getVariableValuesId(): ?string;
     public function getVariableValuesData(): array;
+    public function getVariableValues(): VariableValues;
 }

@@ -52,8 +52,8 @@ class NewJobDefinitionTest extends BaseTest
             ],
         ];
         $definition = new NewJobDefinition();
-
-        unset($data['backend']['foo']);
+        $expected = $data;
+        unset($expected['backend']['foo']);
         self::assertSame($data, $definition->processData($data));
     }
 

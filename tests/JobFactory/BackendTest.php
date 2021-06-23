@@ -28,17 +28,18 @@ class BackendTest extends TestCase
     /**
      * @dataProvider provideCreateFromArrayData
      */
-    public function testCreateFromArray(array $data, ?string $expectedType): void
+    public function testCreateFromArray(array $data, ?string $expectedType, bool $expectedEmpty): void
     {
         $backend = Backend::fromDataArray($data);
 
         self::assertSame($expectedType, $backend->getType());
+        self::assertSame($expectedEmpty, $backend->isEmpty());
     }
 
     public function provideCreateFromArrayData(): iterable
     {
-        yield 'empty' => [[], null];
-        yield 'with type' => [['type' => 'custom'], 'custom'];
+        yield 'empty' => [[], null, true];
+        yield 'with type' => [['type' => 'custom'], 'custom', false];
     }
 
     /**
@@ -51,7 +52,7 @@ class BackendTest extends TestCase
 
     public function provideExportAsDataArrayData(): iterable
     {
-        yield 'empty' => [new Backend(null), []];
+        yield 'empty' => [new Backend(null), ['type' => null]];
         yield 'with type' => [new Backend('custom'), ['type' => 'custom']];
     }
 }
