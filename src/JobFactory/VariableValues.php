@@ -57,6 +57,6 @@ class VariableValues
 
     private function isValuesEmpty(): bool
     {
-        return empty($this->getValuesData()) || empty($this->getValuesData()['values']);
+        return empty($this->getValuesData()['values']);
     }
 }

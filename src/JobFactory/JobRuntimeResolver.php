@@ -7,7 +7,6 @@ namespace Keboola\JobQueueInternalClient\JobFactory;
 use Keboola\JobQueueInternalClient\Client as InternalApiClient;
 use Keboola\JobQueueInternalClient\Exception\ClientException;
 use Keboola\JobQueueInternalClient\JobFactory;
-use Keboola\StorageApi\Client;
 use Keboola\StorageApi\ClientException as StorageClientException;
 use Keboola\StorageApi\Components;
 use Psr\Log\LoggerInterface;
@@ -21,8 +20,8 @@ class JobRuntimeResolver
     private $logger;
     /** @var JobFactory */
     private $jobFactory;
-    /** @var ?Client */
-    private $storageClient;
+    /** @var ?Components */
+    private $componentsApiClient;
     /** @var ?array */
     private $configuration;
     /** @var JobInterface */
@@ -41,7 +40,7 @@ class JobRuntimeResolver
     public function resolve(JobInterface $job): JobInterface
     {
         $this->configuration = null;
-        $this->storageClient = null;
+        $this->componentsApiClient = null;
         $this->job = $job;
 
         try {
@@ -68,11 +67,11 @@ class JobRuntimeResolver
         if (!empty($this->getConfigData()['runtime']['tag'])) {
             return (string) $this->getConfigData()['runtime']['tag'];
         }
-        $configuration = $this->getConfiguration($this->job);
+        $configuration = $this->getConfiguration();
         if (!empty($configuration['runtime']['tag'])) {
             return (string) $configuration['runtime']['tag'];
         }
-        $componentsApi = new Components($this->getStorageApiClient($this->job));
+        $componentsApi = $this->getComponentsApiClient();
         return $componentsApi->getComponent($this->job->getComponentId())['data']['definition']['tag'];
     }
 
@@ -87,7 +86,7 @@ class JobRuntimeResolver
                 return $variableValues;
             }
         }
-        $configuration = $this->getConfiguration($this->job);
+        $configuration = $this->getConfiguration();
         // return these irrespective if they are empty, because if they are we'd create empty VariableValues anyway
         return VariableValues::fromDataArray($configuration);
     }
@@ -103,7 +102,7 @@ class JobRuntimeResolver
                 return $backend;
             }
         }
-        $configuration = $this->getConfiguration($this->job);
+        $configuration = $this->getConfiguration();
         if (!empty($configuration['runtime']['backend'])) {
             // return this irrespective if it is empty, because if it is we create empty Backend anyway
             return Backend::fromDataArray($configuration['runtime']['backend']);
@@ -117,14 +116,14 @@ class JobRuntimeResolver
         return $configurationDefinition->processData($this->job->getConfigData());
     }
 
-    private function getConfiguration(JobInterface $job): array
+    private function getConfiguration(): array
     {
         if ($this->configuration === null) {
-            if ($job->getConfigId()) {
-                $componentsApi = new Components($this->getStorageApiClient($job));
+            if ($this->job->getConfigId()) {
+                $componentsApi = $this->getComponentsApiClient();
                 $this->configuration = $componentsApi->getConfiguration(
-                    $job->getComponentId(),
-                    $job->getConfigId()
+                    $this->job->getComponentId(),
+                    $this->job->getConfigId()
                 );
                 $configurationDefinition = new OverridesConfigurationDefinition();
                 $this->configuration = $configurationDefinition->processData($this->configuration['configuration']);
@@ -135,11 +134,13 @@ class JobRuntimeResolver
         return $this->configuration;
     }
 
-    private function getStorageApiClient(JobInterface $job): Client
+    private function getComponentsApiClient(): Components
     {
-        if ($this->storageClient === null) {
-            $this->storageClient = $this->storageClientFactory->getClient($job->getTokenDecrypted());
+        if ($this->componentsApiClient === null) {
+            $this->componentsApiClient = new Components(
+                $this->storageClientFactory->getClient($this->job->getTokenDecrypted())
+            );
         }
-        return $this->storageClient;
+        return $this->componentsApiClient;
     }
 }
