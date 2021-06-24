@@ -53,6 +53,10 @@ class OverridesConfigurationDefinition implements ConfigurationInterface
                         ->scalarNode('tag')
                             ->beforeNormalization()->always($this->getStringNormalizer())->end()
                         ->end()
+                        // for backwards compatibility with legacy transformation configurations
+                        ->scalarNode('image_tag')
+                            ->beforeNormalization()->always($this->getStringNormalizer())->end()
+                        ->end()
                         ->arrayNode('backend')->ignoreExtraKeys(true)
                             ->children()
                                 ->scalarNode('type')

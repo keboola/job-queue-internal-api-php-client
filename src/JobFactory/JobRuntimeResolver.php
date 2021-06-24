@@ -71,8 +71,16 @@ class JobRuntimeResolver
         if (!empty($configuration['runtime']['tag'])) {
             return (string) $configuration['runtime']['tag'];
         }
+        if (!empty($configuration['runtime']['image_tag'])) {
+            return (string) $configuration['runtime']['image_tag'];
+        }
         $componentsApi = $this->getComponentsApiClient();
-        return $componentsApi->getComponent($this->job->getComponentId())['data']['definition']['tag'];
+        $componentData = $componentsApi->getComponent($this->job->getComponentId());
+        if (!empty($componentData['data']['definition']['tag'])) {
+            return $componentData['data']['definition']['tag'];
+        } else {
+            throw new ClientException(sprintf('The component "%s" is not runnable.', $this->job->getComponentId()));
+        }
     }
 
     private function resolveVariables(): VariableValues
