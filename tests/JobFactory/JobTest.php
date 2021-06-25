@@ -161,6 +161,28 @@ class JobTest extends BaseTest
         );
     }
 
+    public function testHasVariables(): void
+    {
+        $job = $this->getJob();
+        self::assertSame(true, $job->hasVariables());
+
+        $jobDataWithoutVariableValuesId = $this->jobData;
+        unset($jobDataWithoutVariableValuesId['variableValuesId']);
+        $job = $this->getJob($jobDataWithoutVariableValuesId);
+        self::assertSame(true, $job->hasVariables());
+
+        $jobDataWithoutVariableValuesData = $this->jobData;
+        unset($jobDataWithoutVariableValuesData['variableValuesData']);
+        $job = $this->getJob($jobDataWithoutVariableValuesData);
+        self::assertSame(true, $job->hasVariables());
+
+        $jobDataWithoutVariables = $this->jobData;
+        unset($jobDataWithoutVariables['variableValuesData']);
+        unset($jobDataWithoutVariables['variableValuesId']);
+        $job = $this->getJob($jobDataWithoutVariables);
+        self::assertSame(false, $job->hasVariables());
+    }
+
     public function testIsLegacy(): void
     {
         self::assertFalse($this->getJob()->isLegacyComponent());

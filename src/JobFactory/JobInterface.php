@@ -39,4 +39,5 @@ interface JobInterface
     public function getVariableValuesId(): ?string;
     public function getVariableValuesData(): array;
     public function getVariableValues(): VariableValues;
+    public function hasVariables(): bool;
 }
