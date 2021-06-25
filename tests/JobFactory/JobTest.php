@@ -165,14 +165,17 @@ class JobTest extends BaseTest
     {
         $job = $this->getJob();
         self::assertSame(true, $job->hasVariables());
+
         $jobDataWithoutVariableValuesId = $this->jobData;
         unset($jobDataWithoutVariableValuesId['variableValuesId']);
         $job = $this->getJob($jobDataWithoutVariableValuesId);
         self::assertSame(true, $job->hasVariables());
+
         $jobDataWithoutVariableValuesData = $this->jobData;
         unset($jobDataWithoutVariableValuesData['variableValuesData']);
         $job = $this->getJob($jobDataWithoutVariableValuesData);
         self::assertSame(true, $job->hasVariables());
+
         $jobDataWithoutVariables = $this->jobData;
         unset($jobDataWithoutVariables['variableValuesData']);
         unset($jobDataWithoutVariables['variableValuesId']);
