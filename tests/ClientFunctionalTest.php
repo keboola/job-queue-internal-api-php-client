@@ -75,7 +75,7 @@ class ClientFunctionalTest extends BaseTest
             new NullLogger(),
             $this->getJobFactory($kmsKeyId, $keyVaultUrl),
             (string) getenv('TEST_QUEUE_API_URL'),
-            'dummy'
+            (string) getenv('TEST_QUEUE_API_TOKEN'),
         );
     }
 

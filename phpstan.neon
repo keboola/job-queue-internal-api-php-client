@@ -8,8 +8,5 @@ parameters:
         - '#Cannot call method scalarNode\(\) on Symfony\\Component\\Config\\Definition\\Builder\\NodeParentInterface\|null\.#'
         - '#Cannot call method arrayNode\(\) on Symfony\\Component\\Config\\Definition\\Builder\\NodeParentInterface\|null\.#'
         -
-            message: '#Parameter \#1 \$message of class Keboola\\StorageApi\\ClientException constructor expects null, string given\.#'
-            path: tests/JobFactory/JobRuntimeResolverTest.php
-        -
         	message: '#Cannot call method getBody\(\) on Psr\\Http\\Message\\ResponseInterface\|null\.#'
         	path:  src/Client.php

@@ -264,7 +264,7 @@ class Client
             function (RequestInterface $request) use ($token, $options) {
                 return $request
                     ->withHeader('User-Agent', $options['userAgent'])
-                    ->withHeader('X-InternalApi-Token', $token)
+                    ->withHeader('X-JobQueue-InternalApi-Token', $token)
                     ->withHeader('Content-type', 'application/json');
             }
         ));
