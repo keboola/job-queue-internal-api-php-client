@@ -182,7 +182,7 @@ class ClientTest extends BaseTest
         $request = $requestHistory[0]['request'];
         self::assertEquals('http://example.com/jobs/123', $request->getUri()->__toString());
         self::assertEquals('GET', $request->getMethod());
-        self::assertEquals('testToken', $request->getHeader('X-InternalApi-Token')[0]);
+        self::assertEquals('testToken', $request->getHeader('X-JobQueue-InternalApi-Token')[0]);
         self::assertEquals('Internal PHP Client', $request->getHeader('User-Agent')[0]);
         self::assertEquals('application/json', $request->getHeader('Content-type')[0]);
     }
@@ -394,7 +394,7 @@ class ClientTest extends BaseTest
             '"images":{"digests":{"keboola.test":{"id":"123"}}}}}',
             $request->getBody()->getContents()
         );
-        self::assertEquals('testToken', $request->getHeader('X-InternalApi-Token')[0]);
+        self::assertEquals('testToken', $request->getHeader('X-JobQueue-InternalApi-Token')[0]);
         self::assertEquals('Internal PHP Client', $request->getHeader('User-Agent')[0]);
         self::assertEquals('application/json', $request->getHeader('Content-type')[0]);
     }
@@ -775,7 +775,7 @@ class ClientTest extends BaseTest
             '{"status":"processing"}',
             $request->getBody()->getContents()
         );
-        self::assertEquals('testToken', $request->getHeader('X-InternalApi-Token')[0]);
+        self::assertEquals('testToken', $request->getHeader('X-JobQueue-InternalApi-Token')[0]);
         self::assertEquals('Internal PHP Client', $request->getHeader('User-Agent')[0]);
         self::assertEquals('application/json', $request->getHeader('Content-type')[0]);
     }
@@ -808,7 +808,7 @@ class ClientTest extends BaseTest
             '{"desiredStatus":"terminating"}',
             $request->getBody()->getContents()
         );
-        self::assertEquals('testToken', $request->getHeader('X-InternalApi-Token')[0]);
+        self::assertEquals('testToken', $request->getHeader('X-JobQueue-InternalApi-Token')[0]);
         self::assertEquals('Internal PHP Client', $request->getHeader('User-Agent')[0]);
         self::assertEquals('application/json', $request->getHeader('Content-type')[0]);
     }
