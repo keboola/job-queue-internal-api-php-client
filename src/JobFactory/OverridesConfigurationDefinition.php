@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Keboola\JobQueueInternalClient\JobFactory;
 
+use Closure;
 use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
@@ -71,7 +72,7 @@ class OverridesConfigurationDefinition implements ConfigurationInterface
         return $rootNode;
     }
 
-    private function getStringNormalizer(): \Closure
+    private function getStringNormalizer(): Closure
     {
         return function ($v) {
             if (is_scalar($v)) {

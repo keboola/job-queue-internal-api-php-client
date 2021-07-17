@@ -6,6 +6,7 @@ namespace Keboola\JobQueueInternalClient;
 
 use Closure;
 use GuzzleHttp\Client as GuzzleClient;
+use GuzzleHttp\Exception\ClientException as GuzzleClientException;
 use GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\MessageFormatter;
@@ -288,7 +289,7 @@ class Client
             $response = $this->guzzle->send($request);
             $data = json_decode($response->getBody()->getContents(), true, self::JSON_DEPTH, JSON_THROW_ON_ERROR);
             return $data ?: [];
-        } catch (\GuzzleHttp\Exception\ClientException $e) {
+        } catch (GuzzleClientException $e) {
             try {
                 $body = json_decode(
                     $e->getResponse()->getBody()->getContents(),

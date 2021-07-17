@@ -9,6 +9,7 @@ use DateTimeZone;
 use JsonSerializable;
 use Keboola\JobQueueInternalClient\JobFactory;
 use Keboola\ObjectEncryptor\ObjectEncryptorFactory;
+use Throwable;
 
 class Job implements JsonSerializable, JobInterface
 {
@@ -38,12 +39,16 @@ class Job implements JsonSerializable, JobInterface
             if (!empty($this->data['startTime'])) {
                 $this->startTime = new DateTimeImmutable($this->data['startTime'], new DateTimeZone('utc'));
             }
-        } catch (\Exception $e) {}
+        } catch (Throwable $e) {
+            // intentionally empty
+        }
         try {
             if (!empty($this->data['endTime'])) {
                 $this->endTime = new DateTimeImmutable($this->data['endTime'], new DateTimeZone('utc'));
             }
-        } catch (\Exception $e) {}
+        } catch (Throwable $e) {
+            // intentionally empty
+        }
     }
 
     public function getId(): string

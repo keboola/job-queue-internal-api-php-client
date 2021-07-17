@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Keboola\JobQueueInternalClient\Tests;
 
+use DateTime;
 use DateTimeImmutable;
 use Keboola\JobQueueInternalClient\Client;
 use Keboola\JobQueueInternalClient\Exception\ClientException;
@@ -14,6 +15,7 @@ use Keboola\JobQueueInternalClient\JobFactory\JobResult;
 use Keboola\JobQueueInternalClient\JobListOptions;
 use Keboola\JobQueueInternalClient\JobPatchData;
 use Keboola\ObjectEncryptor\ObjectEncryptorFactory;
+use Keboola\StorageApi\Client as StorageClient;
 use Psr\Log\NullLogger;
 
 class ClientFunctionalTest extends BaseTest
@@ -101,7 +103,7 @@ class ClientFunctionalTest extends BaseTest
         unset($response['id']);
         self::assertNotEmpty($response['createdTime']);
         unset($response['createdTime']);
-        $storageClient = new \Keboola\StorageApi\Client(
+        $storageClient = new StorageClient(
             [
                 'url' => getenv('TEST_STORAGE_API_URL'),
                 'token' => getenv('TEST_STORAGE_API_TOKEN'),
@@ -359,8 +361,8 @@ class ClientFunctionalTest extends BaseTest
         $response = $client->listJobs(
             (new JobListOptions())
                 ->setConfigs([$configId])
-                ->setCreatedTimeFrom((new \DateTime('-4 months'))->format('c'))
-                ->setCreatedTimeTo((new \DateTime('-2 months'))->format('c'))
+                ->setCreatedTimeFrom((new DateTime('-4 months'))->format('c'))
+                ->setCreatedTimeTo((new DateTime('-2 months'))->format('c'))
                 ->setSortOrder(JobListOptions::SORT_ORDER_ASC)
                 ->setSortBy('id'),
             true

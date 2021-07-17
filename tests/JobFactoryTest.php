@@ -7,9 +7,11 @@ namespace Keboola\JobQueueInternalClient\Tests;
 use Keboola\JobQueueInternalClient\Exception\ClientException;
 use Keboola\JobQueueInternalClient\JobFactory;
 use Keboola\JobQueueInternalClient\JobFactory\Job;
+use Keboola\JobQueueInternalClient\JobFactory\StorageClientFactory;
 use Keboola\ObjectEncryptor\Legacy\Encryptor;
 use Keboola\ObjectEncryptor\ObjectEncryptorFactory;
 use Keboola\StorageApi\Client;
+use ReflectionProperty;
 
 class JobFactoryTest extends BaseTest
 {
@@ -25,7 +27,7 @@ class JobFactoryTest extends BaseTest
 
     private function getJobFactory(): JobFactory
     {
-        $storageClientFactory = new JobFactory\StorageClientFactory((string) getenv('TEST_STORAGE_API_URL'));
+        $storageClientFactory = new StorageClientFactory((string) getenv('TEST_STORAGE_API_URL'));
         $objectEncryptorFactory = new ObjectEncryptorFactory(
             (string) getenv('TEST_KMS_KEY_ID'),
             (string) getenv('TEST_KMS_REGION'),
@@ -111,7 +113,7 @@ class JobFactoryTest extends BaseTest
             'mode' => 'run',
         ];
         $job = $factory->createNewJob($data);
-        $reflection = new \ReflectionProperty(Job::class, 'data');
+        $reflection = new ReflectionProperty(Job::class, 'data');
         $reflection->setAccessible(true);
         $data = $reflection->getValue($job);
         $encryptor = new Encryptor('123456789012345678901234567890ab');
@@ -406,7 +408,7 @@ class JobFactoryTest extends BaseTest
             '',
             (string) getenv('TEST_AZURE_KEY_VAULT_URL'),
         );
-        $storageClientFactory = new JobFactory\StorageClientFactory((string) getenv('TEST_STORAGE_API_URL'));
+        $storageClientFactory = new StorageClientFactory((string) getenv('TEST_STORAGE_API_URL'));
         $client = new Client(
             [
                 'url' => getenv('TEST_STORAGE_API_URL'),
@@ -524,7 +526,7 @@ class JobFactoryTest extends BaseTest
             'bar',
             $objectEncryptorFactory->getEncryptor()->getRegisteredProjectWrapperClass()
         );
-        $storageClientFactory = new JobFactory\StorageClientFactory((string) getenv('TEST_STORAGE_API_URL'));
+        $storageClientFactory = new StorageClientFactory((string) getenv('TEST_STORAGE_API_URL'));
         $jobFactory = new JobFactory($storageClientFactory, $objectEncryptorFactory);
         $data = [
             '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
