@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Keboola\JobQueueInternalClient\JobFactory;
 
+use DateTimeImmutable;
 use Keboola\ObjectEncryptor\ObjectEncryptorFactory;
 
 interface JobInterface
@@ -40,4 +41,6 @@ interface JobInterface
     public function getVariableValuesData(): array;
     public function getVariableValues(): VariableValues;
     public function hasVariables(): bool;
+    public function getStartTime(): ?DateTimeImmutable;
+    public function getEndTime(): ?DateTimeImmutable;
 }
