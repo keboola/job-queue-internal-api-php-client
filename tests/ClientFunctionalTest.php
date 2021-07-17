@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Keboola\JobQueueInternalClient\Tests;
 
+use DateTimeImmutable;
 use Keboola\JobQueueInternalClient\Client;
 use Keboola\JobQueueInternalClient\Exception\ClientException;
 use Keboola\JobQueueInternalClient\Exception\StateTargetEqualsCurrentException;
@@ -158,6 +159,33 @@ class ClientFunctionalTest extends BaseTest
         self::assertEquals($createdJob->getConfigId(), $job->getConfigId());
         self::assertEquals($createdJob->getMode(), $job->getMode());
         self::assertEquals([], $job->getResult());
+        self::assertNull($job->getStartTime());
+        self::assertNull($job->getEndTime());
+    }
+
+    public function testGetJobStartTimeEndTime(): void
+    {
+        $client = $this->getClient();
+        $job = $client->getJobFactory()->createNewJob([
+            '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+            'configId' => '454124290',
+            'componentId' => 'keboola.ex-db-snowflake',
+            'mode' => 'run',
+        ]);
+        $createdJob = $client->createJob($job);
+        $client = $this->getClient();
+        $job = $client->getJob($createdJob->getId());
+        self::assertNull($job->getStartTime());
+        self::assertNull($job->getEndTime());
+        $runningJob = $client->getJobFactory()->modifyJob($job, ['status' => JobFactory::STATUS_PROCESSING]);
+        $client->updateJob($runningJob);
+        $job = $client->getJob($createdJob->getId());
+        self::assertInstanceOf(DateTimeImmutable::class, $job->getStartTime());
+        self::assertNull($job->getEndTime());
+        $client->postJobResult($job->getId(), JobFactory::STATUS_SUCCESS, new JobResult());
+        $job = $client->getJob($createdJob->getId());
+        self::assertInstanceOf(DateTimeImmutable::class, $job->getStartTime());
+        self::assertInstanceOf(DateTimeImmutable::class, $job->getEndTime());
     }
 
     public function testGetInvalidJob(): void
