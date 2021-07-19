@@ -4,10 +4,11 @@ declare(strict_types=1);
 
 namespace Keboola\JobQueueInternalClient;
 
+use JsonSerializable;
 use Keboola\JobQueueInternalClient\Exception\ClientException;
 use Keboola\JobQueueInternalClient\JobFactory\JobResult;
 
-class JobPatchData implements \JsonSerializable
+class JobPatchData implements JsonSerializable
 {
     /** @var string */
     private $status;

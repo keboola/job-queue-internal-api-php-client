@@ -370,7 +370,16 @@ class ClientTest extends BaseTest
             new Response(
                 200,
                 ['Content-Type' => 'application/json'],
-                '{}'
+                '{
+                    "id": "123",
+                    "runId": "123",
+                    "projectId": "123",
+                    "tokenId": "123",
+                    "#tokenString": "KBC::XXX",
+                    "componentId": "my-component",
+                    "status": "processing",
+                    "desiredStatus": "processing"
+                }'
             ),
         ]);
         // Add the history middleware to the handler stack.
@@ -379,11 +388,12 @@ class ClientTest extends BaseTest
         $stack = HandlerStack::create($mock);
         $stack->push($history);
         $client = $this->getClient(['handler' => $stack]);
-        $client->postJobResult(
+        $result = $client->postJobResult(
             '123',
             JobFactory::STATUS_SUCCESS,
             (new JobResult())->setImages(['digests' => ['keboola.test' => ['id' => '123']]])
         );
+        self::assertInstanceOf(Job::class, $result);
         self::assertCount(1, $container);
         /** @var Request $request */
         $request = $container[0]['request'];
@@ -753,7 +763,16 @@ class ClientTest extends BaseTest
             new Response(
                 200,
                 ['Content-Type' => 'application/json'],
-                '{}'
+                '{
+                    "id": "123",
+                    "runId": "123",
+                    "projectId": "123",
+                    "tokenId": "123",
+                    "#tokenString": "KBC::XXX",
+                    "componentId": "my-component",
+                    "status": "processing",
+                    "desiredStatus": "processing"    
+                }'
             ),
         ]);
         // Add the history middleware to the handler stack.
@@ -762,10 +781,11 @@ class ClientTest extends BaseTest
         $stack = HandlerStack::create($mock);
         $stack->push($history);
         $client = $this->getClient(['handler' => $stack]);
-        $client->patchJob(
+        $result = $client->patchJob(
             '123',
             (new JobPatchData())->setStatus(JobFactory::STATUS_PROCESSING)
         );
+        self::assertInstanceOf(Job::class, $result);
         self::assertCount(1, $container);
         /** @var Request $request */
         $request = $container[0]['request'];
@@ -786,7 +806,16 @@ class ClientTest extends BaseTest
             new Response(
                 200,
                 ['Content-Type' => 'application/json'],
-                '{}'
+                '{
+                    "id": "123",
+                    "runId": "123",
+                    "projectId": "123",
+                    "tokenId": "123",
+                    "#tokenString": "KBC::XXX",
+                    "componentId": "my-component",
+                    "status": "processing",
+                    "desiredStatus": "processing"   
+                }'
             ),
         ]);
         // Add the history middleware to the handler stack.
@@ -795,10 +824,11 @@ class ClientTest extends BaseTest
         $stack = HandlerStack::create($mock);
         $stack->push($history);
         $client = $this->getClient(['handler' => $stack]);
-        $client->patchJob(
+        $result = $client->patchJob(
             '123',
             (new JobPatchData())->setDesiredStatus(JobFactory::DESIRED_STATUS_TERMINATING)
         );
+        self::assertInstanceOf(Job::class, $result);
         self::assertCount(1, $container);
         /** @var Request $request */
         $request = $container[0]['request'];
