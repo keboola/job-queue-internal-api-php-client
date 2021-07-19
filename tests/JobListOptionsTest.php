@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Keboola\JobQueueInternalClient\Tests;
 
+use DateTime;
 use Keboola\JobQueueInternalClient\Exception\ClientException;
 use Keboola\JobQueueInternalClient\JobFactory;
 use Keboola\JobQueueInternalClient\JobFactory\JobResult;
@@ -28,8 +29,8 @@ class JobListOptionsTest extends TestCase
         $jobListOptions->setModes(['run', 'debug']);
         $jobListOptions->setStatuses([JobFactory::STATUS_SUCCESS, JobFactory::STATUS_PROCESSING]);
 
-        $from = (new \DateTime('-7 days 8:00'))->format('c');
-        $to = (new \DateTime('-1 day 8:00'))->format('c');
+        $from = (new DateTime('-7 days 8:00'))->format('c');
+        $to = (new DateTime('-1 day 8:00'))->format('c');
 
         $jobListOptions->setStartTimeFrom($from);
         $jobListOptions->setStartTimeTo($to);

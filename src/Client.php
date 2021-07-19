@@ -6,6 +6,7 @@ namespace Keboola\JobQueueInternalClient;
 
 use Closure;
 use GuzzleHttp\Client as GuzzleClient;
+use GuzzleHttp\Exception\ClientException as GuzzleClientException;
 use GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\MessageFormatter;
@@ -179,7 +180,7 @@ class Client
         return $this->sendRequest($request);
     }
 
-    public function patchJob(string $jobId, JobPatchData $patchData): array
+    public function patchJob(string $jobId, JobPatchData $patchData): JobInterface
     {
         if (empty($jobId)) {
             throw new ClientException(sprintf('Invalid job ID: "%s".', $jobId));
@@ -191,10 +192,10 @@ class Client
             [],
             json_encode($patchData->jsonSerialize(), JSON_THROW_ON_ERROR)
         );
-        return $this->sendRequest($request);
+        return $this->jobFactory->loadFromExistingJobData($this->sendRequest($request));
     }
 
-    public function postJobResult(string $jobId, string $status, JobResult $result): array
+    public function postJobResult(string $jobId, string $status, JobResult $result): JobInterface
     {
         if (empty($jobId)) {
             throw new ClientException(sprintf('Invalid job ID: "%s".', $jobId));
@@ -209,7 +210,7 @@ class Client
                 JSON_THROW_ON_ERROR
             )
         );
-        return $this->sendRequest($request);
+        return $this->jobFactory->loadFromExistingJobData($this->sendRequest($request));
     }
 
     /**
@@ -288,7 +289,7 @@ class Client
             $response = $this->guzzle->send($request);
             $data = json_decode($response->getBody()->getContents(), true, self::JSON_DEPTH, JSON_THROW_ON_ERROR);
             return $data ?: [];
-        } catch (\GuzzleHttp\Exception\ClientException $e) {
+        } catch (GuzzleClientException $e) {
             try {
                 $body = json_decode(
                     $e->getResponse()->getBody()->getContents(),

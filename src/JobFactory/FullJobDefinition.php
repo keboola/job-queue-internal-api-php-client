@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Keboola\JobQueueInternalClient\JobFactory;
 
+use Closure;
 use Keboola\JobQueueInternalClient\JobFactory;
 use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
@@ -125,7 +126,7 @@ class FullJobDefinition extends NewJobDefinition
         return $rootNode;
     }
 
-    private function getStringNormalizer(): \Closure
+    private function getStringNormalizer(): Closure
     {
         return function ($v) {
             if (is_scalar($v)) {

@@ -4,9 +4,12 @@ declare(strict_types=1);
 
 namespace Keboola\JobQueueInternalClient\JobFactory;
 
+use DateTimeImmutable;
+use DateTimeZone;
 use JsonSerializable;
 use Keboola\JobQueueInternalClient\JobFactory;
 use Keboola\ObjectEncryptor\ObjectEncryptorFactory;
+use Throwable;
 
 class Job implements JsonSerializable, JobInterface
 {
@@ -15,6 +18,10 @@ class Job implements JsonSerializable, JobInterface
 
     /** @var ObjectEncryptorFactory */
     private $objectEncryptorFactory;
+    /** @var DateTimeImmutable|null */
+    private $endTime;
+    /** @var DateTimeImmutable|null */
+    private $startTime;
 
     public function __construct(ObjectEncryptorFactory $objectEncryptorFactory, array $data)
     {
@@ -26,6 +33,22 @@ class Job implements JsonSerializable, JobInterface
         $this->objectEncryptorFactory->setProjectId($this->getProjectId());
         $this->objectEncryptorFactory->setComponentId($this->getComponentId());
         $this->objectEncryptorFactory->setConfigurationId($this->getConfigId());
+        $this->startTime = null;
+        $this->endTime = null;
+        try {
+            if (!empty($this->data['startTime'])) {
+                $this->startTime = new DateTimeImmutable($this->data['startTime'], new DateTimeZone('utc'));
+            }
+        } catch (Throwable $e) {
+            // intentionally empty
+        }
+        try {
+            if (!empty($this->data['endTime'])) {
+                $this->endTime = new DateTimeImmutable($this->data['endTime'], new DateTimeZone('utc'));
+            }
+        } catch (Throwable $e) {
+            // intentionally empty
+        }
     }
 
     public function getId(): string
@@ -178,5 +201,15 @@ class Job implements JsonSerializable, JobInterface
     public function hasVariables(): bool
     {
         return $this->getVariableValuesId() || !$this->getVariableValues()->isEmpty();
+    }
+
+    public function getStartTime(): ?DateTimeImmutable
+    {
+        return $this->startTime;
+    }
+
+    public function getEndTime(): ?DateTimeImmutable
+    {
+        return $this->endTime;
     }
 }
