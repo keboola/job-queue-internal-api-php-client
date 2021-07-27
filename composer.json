@@ -26,7 +26,7 @@
         }
     },
     "require": {
-        "php": "^7.3",
+        "php": "^7.4",
         "ext-json": "*",
         "guzzlehttp/guzzle": "^6.3",
         "keboola/object-encryptor": "^0.3",

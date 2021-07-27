@@ -216,6 +216,27 @@ class Client
     /**
      * @return array<JobInterface>
      */
+    public function listConfigurationsJobs(
+        ListConfigurationsJobsOptions $options,
+        bool $fetchFollowingPages = false
+    ): array {
+        $jobs = [];
+        $i = 1;
+        $options = clone $options;
+        do {
+            $request = new Request('GET', 'configurations-jobs?' . http_build_query($options->getQueryParameters()));
+            $result = $this->sendRequest($request);
+            $chunk = $this->mapJobsFromResponse($result);
+            $jobs = array_merge($jobs, $chunk);
+            $options->setOffset($i * $options->getLimit());
+            $i++;
+        } while ($fetchFollowingPages && count($chunk) === $options->getLimit());
+        return $jobs;
+    }
+
+    /**
+     * @return array<JobInterface>
+     */
     private function mapJobsFromResponse(array $responseBody): array
     {
         $jobs = array_map(function (array $jobData): ?JobInterface {
