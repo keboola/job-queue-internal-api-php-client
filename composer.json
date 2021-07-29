@@ -26,7 +26,7 @@
         }
     },
     "require": {
-        "php": "^7.3",
+        "php": "^7.4",
         "ext-json": "*",
         "guzzlehttp/guzzle": "^6.3",
         "keboola/object-encryptor": "^0.3",
@@ -37,7 +37,7 @@
     },
     "require-dev": {
         "infection/infection": "^0.18.2",
-        "keboola/coding-standard": ">=7.0.2",
+        "keboola/coding-standard": ">=7.0.2,<13.0.0",
         "php-parallel-lint/php-parallel-lint": "^1.2",
         "phpstan/phpstan": "^0.12.51",
         "phpstan/phpstan-phpunit": "^0.12",
