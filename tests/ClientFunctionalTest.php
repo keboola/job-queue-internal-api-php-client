@@ -94,6 +94,81 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
         self::assertEquals($expected, $response);
     }
 
+    /**
+     * @param string $kmsKeyId
+     * @param string $keyVaultUrl
+     * @param string $cipherPrefix
+     * @dataProvider cipherProvider
+     */
+    public function testCreateJobsBatch(string $kmsKeyId, string $keyVaultUrl, string $cipherPrefix): void
+    {
+        $client = $this->getClient($kmsKeyId, $keyVaultUrl);
+        $job1 = $client->getJobFactory()->createNewJob([
+            '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+            'configId' => '454124290',
+            'componentId' => 'keboola.ex-db-snowflake',
+            'mode' => 'run',
+        ]);
+        $job2 = $client->getJobFactory()->createNewJob([
+            '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+            'configId' => '454124290',
+            'componentId' => 'keboola.ex-db-snowflake',
+            'mode' => 'run',
+        ]);
+        $job3 = $client->getJobFactory()->createNewJob([
+            '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+            'configId' => '454124290',
+            'componentId' => 'keboola.ex-db-snowflake',
+            'mode' => 'run',
+        ]);
+        $responseJobs = $client->createJobsBatch([
+            $job1,
+            $job2,
+            $job3,
+        ]);
+        self::assertNotEmpty($responseJobs);
+
+        foreach ($responseJobs as $responseJob) {
+            self::assertNotEmpty($responseJob['id']);
+            unset($responseJob['id']);
+            self::assertNotEmpty($responseJob['createdTime']);
+            unset($responseJob['createdTime']);
+            $storageClient = new \Keboola\StorageApi\Client(
+                [
+                    'url' => getenv('TEST_STORAGE_API_URL'),
+                    'token' => getenv('TEST_STORAGE_API_TOKEN'),
+                ]
+            );
+            $tokenInfo = $storageClient->verifyToken();
+            self::assertStringStartsWith($cipherPrefix, $responseJob['#tokenString']);
+            unset($responseJob['#tokenString']);
+            self::assertNotEmpty($responseJob['runId']);
+            unset($responseJob['runId']);
+            $expected = [
+                'configId' => '454124290',
+                'componentId' => 'keboola.ex-db-snowflake',
+                'mode' => 'run',
+                'configRowIds' => [],
+                'tag' => null,
+                'configData' => [],
+                'status' => 'created',
+                'desiredStatus' => 'processing',
+                'projectId' => (string) $tokenInfo['owner']['id'],
+                'projectName' => (string) $tokenInfo['owner']['name'],
+                'tokenId' => $tokenInfo['id'],
+                'tokenDescription' => $tokenInfo['description'],
+                'result' => [],
+                'usageData' => [],
+                'isFinished' => false,
+                'startTime' => null,
+                'endTime' => null,
+                'durationSeconds' => 0,
+                'branchId' => null,
+            ];
+            self::assertEquals($expected, $responseJob);
+        }
+    }
+
     public function testGetJob(): void
     {
         $client = $this->getClient();

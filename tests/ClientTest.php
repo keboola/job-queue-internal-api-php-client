@@ -601,7 +601,7 @@ class ClientTest extends BaseTest
         $request = $mock->getLastRequest();
         self::assertEquals(
             'componentId%5B%5D=th%21%24+%7C%26+n%C2%B0t+valid&' .
-                'projectId%5B%5D=%C5%A1%C4%9B%C5%99%C4%8D%21%40%23%25%5E%24%26&limit=100',
+            'projectId%5B%5D=%C5%A1%C4%9B%C5%99%C4%8D%21%40%23%25%5E%24%26&limit=100',
             $request->getUri()->getQuery()
         );
     }
@@ -610,33 +610,33 @@ class ClientTest extends BaseTest
     {
         $count = 1001;
         $jobData = [
-            'id'=> '123',
+            'id' => '123',
             'runId' => '123',
-            'projectId'=> '456',
-            'projectName'=> 'Test project',
-            'tokenId'=> '789',
-            '#tokenString'=> 'KBC=>=>ProjectSecure=>=>aSdF',
-            'tokenDescription'=> 'my token',
-            'status'=> 'created',
-            'desiredStatus'=> 'processing',
-            'mode'=> 'run',
-            'componentId'=> 'keboola.test',
-            'configId'=> '123456',
-            'configData'=> [
-                'parameters'=> [
-                    'foo'=> 'bar',
+            'projectId' => '456',
+            'projectName' => 'Test project',
+            'tokenId' => '789',
+            '#tokenString' => 'KBC=>=>ProjectSecure=>=>aSdF',
+            'tokenDescription' => 'my token',
+            'status' => 'created',
+            'desiredStatus' => 'processing',
+            'mode' => 'run',
+            'componentId' => 'keboola.test',
+            'configId' => '123456',
+            'configData' => [
+                'parameters' => [
+                    'foo' => 'bar',
                 ],
             ],
-            'result'=> [],
-            'usageData'=> [],
-            'isFinished'=> false,
+            'result' => [],
+            'usageData' => [],
+            'isFinished' => false,
             'branchId' => '1234',
         ];
         $queue = array_fill(0, 10, function () use ($jobData): Response {
             return new Response(
                 200,
                 ['Content-Type' => 'application/json'],
-                (string) json_encode(array_fill(
+                (string)json_encode(array_fill(
                     0,
                     100,
                     $jobData
@@ -646,7 +646,7 @@ class ClientTest extends BaseTest
         $queue[] = new Response(
             200,
             ['Content-Type' => 'application/json'],
-            (string) json_encode([$jobData])
+            (string)json_encode([$jobData])
         );
         $mock = new MockHandler($queue);
 
@@ -704,33 +704,33 @@ class ClientTest extends BaseTest
     public function testClientGetJobsPaging(): void
     {
         $jobData = [
-            'id'=> '123',
+            'id' => '123',
             'runId' => '123',
-            'projectId'=> '456',
-            'projectName'=> 'Test project',
-            'tokenId'=> '789',
-            '#tokenString'=> 'KBC=>=>ProjectSecure=>=>aSdF',
-            'tokenDescription'=> 'my token',
-            'status'=> 'created',
-            'desiredStatus'=> 'processing',
-            'mode'=> 'run',
-            'componentId'=> 'keboola.test',
-            'configId'=> '123456',
-            'configData'=> [
-                'parameters'=> [
-                    'foo'=> 'bar',
+            'projectId' => '456',
+            'projectName' => 'Test project',
+            'tokenId' => '789',
+            '#tokenString' => 'KBC=>=>ProjectSecure=>=>aSdF',
+            'tokenDescription' => 'my token',
+            'status' => 'created',
+            'desiredStatus' => 'processing',
+            'mode' => 'run',
+            'componentId' => 'keboola.test',
+            'configId' => '123456',
+            'configData' => [
+                'parameters' => [
+                    'foo' => 'bar',
                 ],
             ],
-            'result'=> [],
-            'usageData'=> [],
-            'isFinished'=> false,
+            'result' => [],
+            'usageData' => [],
+            'isFinished' => false,
             'branchId' => null,
         ];
         $queue = array_fill(0, 10, function () use ($jobData): Response {
             return new Response(
                 200,
                 ['Content-Type' => 'application/json'],
-                (string) json_encode(array_fill(
+                (string)json_encode(array_fill(
                     0,
                     100,
                     $jobData
@@ -740,7 +740,7 @@ class ClientTest extends BaseTest
         $queue[] = new Response(
             200,
             ['Content-Type' => 'application/json'],
-            (string) json_encode([$jobData])
+            (string)json_encode([$jobData])
         );
         $mock = new MockHandler($queue);
 

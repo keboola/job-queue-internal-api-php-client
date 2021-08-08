@@ -93,6 +93,21 @@ class Client
         return $this->jobFactory->loadFromExistingJobData($result);
     }
 
+    public function createJobsBatch(array $jobs): array
+    {
+        try {
+            $jobsData = json_encode($jobs, JSON_THROW_ON_ERROR);
+            $request = new Request('POST', 'jobs/batch', [], $jobsData);
+        } catch (JsonException $e) {
+            throw new ClientException('Invalid json of jobs: ' . $e->getMessage(), $e->getCode(), $e);
+        }
+        $result = $this->sendRequest($request);
+
+        return array_map(function ($jobData) {
+            return $this->jobFactory->loadFromExistingJobData($jobData);
+        }, $result);
+    }
+
     public function getJobFactory(): JobFactory
     {
         return $this->jobFactory;
