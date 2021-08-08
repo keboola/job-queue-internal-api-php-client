@@ -636,7 +636,7 @@ class ClientTest extends BaseTest
             return new Response(
                 200,
                 ['Content-Type' => 'application/json'],
-                (string)json_encode(array_fill(
+                (string) json_encode(array_fill(
                     0,
                     100,
                     $jobData
@@ -646,7 +646,7 @@ class ClientTest extends BaseTest
         $queue[] = new Response(
             200,
             ['Content-Type' => 'application/json'],
-            (string)json_encode([$jobData])
+            (string) json_encode([$jobData])
         );
         $mock = new MockHandler($queue);
 
@@ -730,7 +730,7 @@ class ClientTest extends BaseTest
             return new Response(
                 200,
                 ['Content-Type' => 'application/json'],
-                (string)json_encode(array_fill(
+                (string) json_encode(array_fill(
                     0,
                     100,
                     $jobData
@@ -740,7 +740,7 @@ class ClientTest extends BaseTest
         $queue[] = new Response(
             200,
             ['Content-Type' => 'application/json'],
-            (string)json_encode([$jobData])
+            (string) json_encode([$jobData])
         );
         $mock = new MockHandler($queue);
 
