@@ -17,11 +17,13 @@ class JobResultTest extends TestCase
             ->setConfigVersion('123')
             ->setMessage('test')
             ->setImages(['first', 'second'])
-            ->setErrorType('application');
+            ->setErrorType('application')
+            ->setExceptionId('exception-12345');
         self::assertSame('123', $jobResult->getConfigVersion());
         self::assertSame('test', $jobResult->getMessage());
         self::assertSame(['first', 'second'], $jobResult->getImages());
         self::assertSame('application', $jobResult->getErrorType());
+        self::assertSame('exception-12345', $jobResult->getExceptionId());
         self::assertSame(
             [
                 'message' => 'test',
