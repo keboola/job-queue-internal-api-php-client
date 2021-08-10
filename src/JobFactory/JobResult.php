@@ -10,7 +10,7 @@ use Keboola\JobQueueInternalClient\Exception\ClientException;
 class JobResult implements JsonSerializable
 {
     private ?string $message = null;
-    private array $images = [];
+    private ?array $images = null;
     private ?string $configVersion = null;
     private ?string $errorType = null;
     private ?string $exceptionId = null;
@@ -55,7 +55,7 @@ class JobResult implements JsonSerializable
         return $this;
     }
 
-    public function getImages(): array
+    public function getImages(): ?array
     {
         return $this->images;
     }

@@ -40,7 +40,7 @@ class JobResultTest extends TestCase
     public function testEmptyResult(): void
     {
         $result = new JobResult();
-        self::assertEquals([], $result->getImages());
+        self::assertNull($result->getImages());
         self::assertNull($result->getErrorType());
         self::assertNull($result->getConfigVersion());
         self::assertNull($result->getExceptionId());
