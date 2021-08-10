@@ -9,11 +9,11 @@ use Keboola\JobQueueInternalClient\Exception\ClientException;
 
 class JobResult implements JsonSerializable
 {
-    private string $message;
-    private array $images;
-    private string $configVersion;
-    private string $errorType;
-    private string $exceptionId;
+    private ?string $message = null;
+    private array $images = [];
+    private ?string $configVersion = null;
+    private ?string $errorType = null;
+    private ?string $exceptionId = null;
 
     public const ERROR_TYPE_APPLICATION = 'application';
     public const ERROR_TYPE_USER = 'user';
@@ -44,7 +44,7 @@ class JobResult implements JsonSerializable
         return $this;
     }
 
-    public function getMessage(): string
+    public function getMessage(): ?string
     {
         return $this->message;
     }
@@ -66,7 +66,7 @@ class JobResult implements JsonSerializable
         return $this;
     }
 
-    public function getConfigVersion(): string
+    public function getConfigVersion(): ?string
     {
         return $this->configVersion;
     }
@@ -78,7 +78,7 @@ class JobResult implements JsonSerializable
         return $this;
     }
 
-    public function getErrorType(): string
+    public function getErrorType(): ?string
     {
         return $this->errorType;
     }
@@ -89,9 +89,8 @@ class JobResult implements JsonSerializable
         return $this;
     }
 
-    public function getExceptionId(): string
+    public function getExceptionId(): ?string
     {
         return $this->exceptionId;
     }
-
 }
