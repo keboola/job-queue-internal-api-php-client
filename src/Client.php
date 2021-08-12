@@ -103,9 +103,7 @@ class Client
         }
         $result = $this->sendRequest($request);
 
-        return array_map(function ($jobData) {
-            return $this->jobFactory->loadFromExistingJobData($jobData);
-        }, $result);
+        return array_map(fn(array $jobData) => $this->jobFactory->loadFromExistingJobData($jobData), $result);
     }
 
     public function getJobFactory(): JobFactory
