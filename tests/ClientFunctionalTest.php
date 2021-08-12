@@ -127,6 +127,13 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
             $job3,
         ]);
         self::assertNotEmpty($responseJobs);
+        $storageClient = new StorageClient(
+            [
+                'url' => getenv('TEST_STORAGE_API_URL'),
+                'token' => getenv('TEST_STORAGE_API_TOKEN'),
+            ]
+        );
+        $tokenInfo = $storageClient->verifyToken();
 
         /* @var Job $responseJob */
         foreach ($responseJobs as $responseJob) {
@@ -135,13 +142,6 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
             unset($responseJobJson['id']);
             self::assertNotEmpty($responseJobJson['createdTime']);
             unset($responseJobJson['createdTime']);
-            $storageClient = new StorageClient(
-                [
-                    'url' => getenv('TEST_STORAGE_API_URL'),
-                    'token' => getenv('TEST_STORAGE_API_TOKEN'),
-                ]
-            );
-            $tokenInfo = $storageClient->verifyToken();
             self::assertStringStartsWith($cipherPrefix, $responseJobJson['#tokenString']);
             unset($responseJobJson['#tokenString']);
             self::assertNotEmpty($responseJobJson['runId']);
