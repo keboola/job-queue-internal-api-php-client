@@ -17,11 +17,13 @@ class JobResultTest extends TestCase
             ->setConfigVersion('123')
             ->setMessage('test')
             ->setImages(['first', 'second'])
-            ->setErrorType('application');
+            ->setErrorType('application')
+            ->setExceptionId('exception-12345');
         self::assertSame('123', $jobResult->getConfigVersion());
         self::assertSame('test', $jobResult->getMessage());
         self::assertSame(['first', 'second'], $jobResult->getImages());
         self::assertSame('application', $jobResult->getErrorType());
+        self::assertSame('exception-12345', $jobResult->getExceptionId());
         self::assertSame(
             [
                 'message' => 'test',
@@ -33,6 +35,16 @@ class JobResultTest extends TestCase
             ],
             $jobResult->jsonSerialize()
         );
+    }
+
+    public function testEmptyResult(): void
+    {
+        $result = new JobResult();
+        self::assertNull($result->getImages());
+        self::assertNull($result->getErrorType());
+        self::assertNull($result->getConfigVersion());
+        self::assertNull($result->getExceptionId());
+        self::assertNull($result->getMessage());
     }
 
     public function testInvalidErrorType(): void
