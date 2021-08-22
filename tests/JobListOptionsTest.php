@@ -7,9 +7,7 @@ namespace Keboola\JobQueueInternalClient\Tests;
 use DateTime;
 use Keboola\JobQueueInternalClient\Exception\ClientException;
 use Keboola\JobQueueInternalClient\JobFactory;
-use Keboola\JobQueueInternalClient\JobFactory\JobResult;
 use Keboola\JobQueueInternalClient\JobListOptions;
-use Keboola\JobQueueInternalClient\JobPatchData;
 use PHPUnit\Framework\TestCase;
 
 class JobListOptionsTest extends TestCase
@@ -99,5 +97,59 @@ class JobListOptionsTest extends TestCase
         $this->expectException(ClientException::class);
         $this->expectExceptionMessage('Allowed values for "sortOrder" are [asc, desc].');
         $jobListOptions->setSortOrder('left');
+    }
+
+    public function testStartTimeFromWrong(): void
+    {
+        $jobListOptions = new JobListOptions();
+
+        $this->expectException(ClientException::class);
+        $this->expectExceptionMessage('Invalid datetime value "left".');
+        $jobListOptions->setStartTimeFrom('left');
+    }
+
+    public function testStartTimeToWrong(): void
+    {
+        $jobListOptions = new JobListOptions();
+
+        $this->expectException(ClientException::class);
+        $this->expectExceptionMessage('Invalid datetime value "left".');
+        $jobListOptions->setStartTimeTo('left');
+    }
+
+    public function testEndTimeFromWrong(): void
+    {
+        $jobListOptions = new JobListOptions();
+
+        $this->expectException(ClientException::class);
+        $this->expectExceptionMessage('Invalid datetime value "left".');
+        $jobListOptions->setEndTimeFrom('left');
+    }
+
+    public function testEndTimeToWrong(): void
+    {
+        $jobListOptions = new JobListOptions();
+
+        $this->expectException(ClientException::class);
+        $this->expectExceptionMessage('Invalid datetime value "left".');
+        $jobListOptions->setEndTimeTo('left');
+    }
+
+    public function testCreatedTimeFromWrong(): void
+    {
+        $jobListOptions = new JobListOptions();
+
+        $this->expectException(ClientException::class);
+        $this->expectExceptionMessage('Invalid datetime value "left".');
+        $jobListOptions->setCreatedTimeFrom('left');
+    }
+
+    public function testCreatedTimeToWrong(): void
+    {
+        $jobListOptions = new JobListOptions();
+
+        $this->expectException(ClientException::class);
+        $this->expectExceptionMessage('Invalid datetime value "left".');
+        $jobListOptions->setCreatedTimeTo('left');
     }
 }
