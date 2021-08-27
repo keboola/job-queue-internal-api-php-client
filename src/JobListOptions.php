@@ -8,74 +8,29 @@ use Keboola\JobQueueInternalClient\Exception\ClientException;
 
 class JobListOptions
 {
-    /** @var array */
-    private $ids;
-
-    /** @var array */
-    private $runIds;
-
-    /** @var array */
-    private $branchIds;
-
-    /** @var array */
-    private $tokenIds;
-
-    /** @var array */
-    private $tokenDescriptions;
-
-    /** @var array */
-    private $components;
-
-    /** @var array */
-    private $configs;
-
-    /** @var array */
-    private $configRowIds;
-
-    /** @var array */
-    private $modes;
-
-    /** @var array */
-    private $projects;
-
-    /** @var array */
-    private $statuses;
-
-    /** @var string */
-    private $startTimeFrom;
-
-    /** @var string */
-    private $startTimeTo;
-
-    /** @var string */
-    private $createdTimeFrom;
-
-    /** @var string */
-    private $createdTimeTo;
-
-    /** @var string */
-    private $endTimeFrom;
-
-    /** @var string */
-    private $endTimeTo;
-
-    /** @var int */
-    private $durationSecondsFrom;
-
-    /** @var int */
-    private $durationSecondsTo;
-
-    /** @var int */
-    private $offset = 0;
-
-    /** @var int */
-    private $limit = 100;
-
-    /** @var string */
-    private $sortBy;
-
-    /** @var string */
-    private $sortOrder;
+    private array $ids;
+    private array $runIds;
+    private array $branchIds;
+    private array $tokenIds;
+    private array $tokenDescriptions;
+    private array $components;
+    private array $configs;
+    private array $configRowIds;
+    private array $modes;
+    private array $projects;
+    private array $statuses;
+    private string $startTimeFrom;
+    private string $startTimeTo;
+    private string $createdTimeFrom;
+    private string $createdTimeTo;
+    private string $endTimeFrom;
+    private string $endTimeTo;
+    private int $durationSecondsFrom;
+    private int $durationSecondsTo;
+    private int $offset = 0;
+    private int $limit = 100;
+    private string $sortBy;
+    private string $sortOrder;
 
     /** @var string */
     public const SORT_ORDER_ASC = 'asc';
@@ -256,6 +211,7 @@ class JobListOptions
 
     public function setStartTimeFrom(string $value): JobListOptions
     {
+        $this->validateDateTime($value);
         $this->startTimeFrom = $value;
         return $this;
     }
@@ -311,6 +267,7 @@ class JobListOptions
 
     public function setCreatedTimeFrom(string $value): JobListOptions
     {
+        $this->validateDateTime($value);
         $this->createdTimeFrom = $value;
         return $this;
     }
@@ -322,6 +279,7 @@ class JobListOptions
 
     public function setEndTimeTo(string $value): JobListOptions
     {
+        $this->validateDateTime($value);
         $this->endTimeTo = $value;
         return $this;
     }
@@ -333,6 +291,7 @@ class JobListOptions
 
     public function setEndTimeFrom(string $value): JobListOptions
     {
+        $this->validateDateTime($value);
         $this->endTimeFrom = $value;
         return $this;
     }
@@ -344,6 +303,7 @@ class JobListOptions
 
     public function setStartTimeTo(string $value): JobListOptions
     {
+        $this->validateDateTime($value);
         $this->startTimeTo = $value;
         return $this;
     }
@@ -355,6 +315,7 @@ class JobListOptions
 
     public function setCreatedTimeTo(string $value): JobListOptions
     {
+        $this->validateDateTime($value);
         $this->createdTimeTo = $value;
         return $this;
     }
@@ -385,5 +346,12 @@ class JobListOptions
         }
         $this->sortOrder = $value;
         return $this;
+    }
+
+    private function validateDateTime(string $value): void
+    {
+        if (strtotime($value) === false) {
+            throw new ClientException(sprintf('Invalid datetime value "%s".', $value));
+        }
     }
 }
