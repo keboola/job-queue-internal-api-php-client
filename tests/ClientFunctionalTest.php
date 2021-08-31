@@ -394,8 +394,8 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
         $response = $client->listJobs(
             (new JobListOptions())
                 ->setConfigs([$configId])
-                ->setCreatedTimeFrom((new DateTime('-4 months'))->format('c'))
-                ->setCreatedTimeTo((new DateTime('-2 months'))->format('c'))
+                ->setCreatedTimeFrom(new DateTime('-4 months'))
+                ->setCreatedTimeTo(new DateTime('-2 months'))
                 ->setSortOrder(JobListOptions::SORT_ORDER_ASC)
                 ->setSortBy('id'),
             true

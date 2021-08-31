@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Keboola\JobQueueInternalClient;
 
+use DateTimeInterface;
 use Keboola\JobQueueInternalClient\Exception\ClientException;
 
 class JobListOptions
@@ -19,12 +20,12 @@ class JobListOptions
     private array $modes;
     private array $projects;
     private array $statuses;
-    private string $startTimeFrom;
-    private string $startTimeTo;
-    private string $createdTimeFrom;
-    private string $createdTimeTo;
-    private string $endTimeFrom;
-    private string $endTimeTo;
+    private DateTimeInterface $startTimeFrom;
+    private DateTimeInterface $startTimeTo;
+    private DateTimeInterface $createdTimeFrom;
+    private DateTimeInterface $createdTimeTo;
+    private DateTimeInterface $endTimeFrom;
+    private DateTimeInterface $endTimeTo;
     private int $durationSecondsFrom;
     private int $durationSecondsTo;
     private int $offset = 0;
@@ -54,18 +55,20 @@ class JobListOptions
             'statuses' => 'status',
         ];
         $scalarProps = [
-            'startTimeFrom' => 'startTimeFrom',
-            'startTimeTo' => 'startTimeTo',
-            'createdTimeFrom' => 'createdTimeFrom',
-            'createdTimeTo' => 'createdTimeTo',
-            'endTimeFrom' => 'endTimeFrom',
-            'endTimeTo' => 'endTimeTo',
             'durationSecondsFrom' => 'durationSecondsFrom',
             'durationSecondsTo' => 'durationSecondsTo',
             'offset' => 'offset',
             'limit' => 'limit',
             'sortBy' => 'sortBy',
             'sortOrder' => 'sortOrder',
+        ];
+        $dateTimeProps = [
+            'startTimeFrom' => 'startTimeFrom',
+            'startTimeTo' => 'startTimeTo',
+            'createdTimeFrom' => 'createdTimeFrom',
+            'createdTimeTo' => 'createdTimeTo',
+            'endTimeFrom' => 'endTimeFrom',
+            'endTimeTo' => 'endTimeTo',
         ];
         $parameters = [];
         foreach ($arrayableProps as $propName => $paramName) {
@@ -80,6 +83,12 @@ class JobListOptions
                 $parameters[] = $paramName . '=' . urlencode((string) $this->$propName);
             }
         }
+        foreach ($dateTimeProps as $propName => $paramName) {
+            if (!empty($this->$propName)) {
+                $parameters[] = $paramName . '=' . urlencode((string) $this->$propName->format('c'));
+            }
+        }
+
         return $parameters;
     }
 
@@ -204,18 +213,6 @@ class JobListOptions
         return $this;
     }
 
-    public function getStartTimeFrom(): string
-    {
-        return $this->startTimeFrom;
-    }
-
-    public function setStartTimeFrom(string $value): JobListOptions
-    {
-        $this->validateDateTime($value);
-        $this->startTimeFrom = $value;
-        return $this;
-    }
-
     public function setDurationSecondsFrom(int $value): JobListOptions
     {
         $this->durationSecondsFrom = $value;
@@ -260,62 +257,68 @@ class JobListOptions
         return $this;
     }
 
-    public function getCreatedTimeFrom(): string
-    {
-        return $this->createdTimeFrom;
-    }
-
-    public function setCreatedTimeFrom(string $value): JobListOptions
-    {
-        $this->validateDateTime($value);
-        $this->createdTimeFrom = $value;
-        return $this;
-    }
-
-    public function getEndTimeTo(): string
-    {
-        return $this->endTimeTo;
-    }
-
-    public function setEndTimeTo(string $value): JobListOptions
-    {
-        $this->validateDateTime($value);
-        $this->endTimeTo = $value;
-        return $this;
-    }
-
-    public function getEndTimeFrom(): string
+    public function getEndTimeFrom(): DateTimeInterface
     {
         return $this->endTimeFrom;
     }
 
-    public function setEndTimeFrom(string $value): JobListOptions
+    public function setEndTimeFrom(DateTimeInterface $value): JobListOptions
     {
-        $this->validateDateTime($value);
         $this->endTimeFrom = $value;
         return $this;
     }
 
-    public function getStartTimeTo(): string
+    public function getEndTimeTo(): DateTimeInterface
+    {
+        return $this->endTimeTo;
+    }
+
+    public function setEndTimeTo(DateTimeInterface $value): JobListOptions
+    {
+        $this->endTimeTo = $value;
+        return $this;
+    }
+
+    public function getStartTimeFrom(): DateTimeInterface
+    {
+        return $this->startTimeFrom;
+    }
+
+    public function setStartTimeFrom(DateTimeInterface $value): JobListOptions
+    {
+        $this->startTimeFrom = $value;
+        return $this;
+    }
+
+    public function getStartTimeTo(): DateTimeInterface
     {
         return $this->startTimeTo;
     }
 
-    public function setStartTimeTo(string $value): JobListOptions
+    public function setStartTimeTo(DateTimeInterface $value): JobListOptions
     {
-        $this->validateDateTime($value);
         $this->startTimeTo = $value;
         return $this;
     }
 
-    public function getCreatedTimeTo(): string
+    public function getCreatedTimeFrom(): DateTimeInterface
+    {
+        return $this->createdTimeFrom;
+    }
+
+    public function setCreatedTimeFrom(DateTimeInterface $value): JobListOptions
+    {
+        $this->createdTimeFrom = $value;
+        return $this;
+    }
+
+    public function getCreatedTimeTo(): DateTimeInterface
     {
         return $this->createdTimeTo;
     }
 
-    public function setCreatedTimeTo(string $value): JobListOptions
+    public function setCreatedTimeTo(DateTimeInterface $value): JobListOptions
     {
-        $this->validateDateTime($value);
         $this->createdTimeTo = $value;
         return $this;
     }
@@ -346,12 +349,5 @@ class JobListOptions
         }
         $this->sortOrder = $value;
         return $this;
-    }
-
-    private function validateDateTime(string $value): void
-    {
-        if (strtotime($value) === false) {
-            throw new ClientException(sprintf('Invalid datetime value "%s".', $value));
-        }
     }
 }

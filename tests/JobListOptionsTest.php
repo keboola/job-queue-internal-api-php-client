@@ -27,8 +27,8 @@ class JobListOptionsTest extends TestCase
         $jobListOptions->setModes(['run', 'debug']);
         $jobListOptions->setStatuses([JobFactory::STATUS_SUCCESS, JobFactory::STATUS_PROCESSING]);
 
-        $from = (new DateTime('-7 days 8:00'))->format('c');
-        $to = (new DateTime('-1 day 8:00'))->format('c');
+        $from = new DateTime('-7 days 8:00');
+        $to = new DateTime('-1 day 8:00');
 
         $jobListOptions->setStartTimeFrom($from);
         $jobListOptions->setStartTimeTo($to);
@@ -73,18 +73,18 @@ class JobListOptionsTest extends TestCase
             'mode[]=debug',
             'status[]=success',
             'status[]=processing',
-            'startTimeFrom=' . urlencode($from),
-            'startTimeTo=' . urlencode($to),
-            'createdTimeFrom=' . urlencode($from),
-            'createdTimeTo=' . urlencode($to),
-            'endTimeFrom=' . urlencode($from) ,
-            'endTimeTo=' . urlencode($to) ,
             'durationSecondsFrom=5',
             'durationSecondsTo=7200',
             'offset=20',
             'limit=100',
             'sortBy=id',
             'sortOrder=desc',
+            'startTimeFrom=' . urlencode($from->format('c')),
+            'startTimeTo=' . urlencode($to->format('c')),
+            'createdTimeFrom=' . urlencode($from->format('c')),
+            'createdTimeTo=' . urlencode($to->format('c')),
+            'endTimeFrom=' . urlencode($from->format('c')),
+            'endTimeTo=' . urlencode($to->format('c')),
         ];
 
         self::assertSame($expected, $jobListOptions->getQueryParameters());
@@ -97,59 +97,5 @@ class JobListOptionsTest extends TestCase
         $this->expectException(ClientException::class);
         $this->expectExceptionMessage('Allowed values for "sortOrder" are [asc, desc].');
         $jobListOptions->setSortOrder('left');
-    }
-
-    public function testStartTimeFromWrong(): void
-    {
-        $jobListOptions = new JobListOptions();
-
-        $this->expectException(ClientException::class);
-        $this->expectExceptionMessage('Invalid datetime value "left".');
-        $jobListOptions->setStartTimeFrom('left');
-    }
-
-    public function testStartTimeToWrong(): void
-    {
-        $jobListOptions = new JobListOptions();
-
-        $this->expectException(ClientException::class);
-        $this->expectExceptionMessage('Invalid datetime value "left".');
-        $jobListOptions->setStartTimeTo('left');
-    }
-
-    public function testEndTimeFromWrong(): void
-    {
-        $jobListOptions = new JobListOptions();
-
-        $this->expectException(ClientException::class);
-        $this->expectExceptionMessage('Invalid datetime value "left".');
-        $jobListOptions->setEndTimeFrom('left');
-    }
-
-    public function testEndTimeToWrong(): void
-    {
-        $jobListOptions = new JobListOptions();
-
-        $this->expectException(ClientException::class);
-        $this->expectExceptionMessage('Invalid datetime value "left".');
-        $jobListOptions->setEndTimeTo('left');
-    }
-
-    public function testCreatedTimeFromWrong(): void
-    {
-        $jobListOptions = new JobListOptions();
-
-        $this->expectException(ClientException::class);
-        $this->expectExceptionMessage('Invalid datetime value "left".');
-        $jobListOptions->setCreatedTimeFrom('left');
-    }
-
-    public function testCreatedTimeToWrong(): void
-    {
-        $jobListOptions = new JobListOptions();
-
-        $this->expectException(ClientException::class);
-        $this->expectExceptionMessage('Invalid datetime value "left".');
-        $jobListOptions->setCreatedTimeTo('left');
     }
 }
