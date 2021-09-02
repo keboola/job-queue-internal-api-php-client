@@ -27,6 +27,7 @@ class JobTest extends BaseTest
         '#tokenString' => 'KBC::ProjectSecure::token',
         'branchId' => '987',
         'variableValuesId' => '1357',
+        'durationSeconds' => '12',
         'variableValuesData' => [
             'values' => [
                 [
@@ -234,5 +235,16 @@ class JobTest extends BaseTest
             ->getMock();
         /** @var ObjectEncryptorFactory $objectEncryptorFactoryMock */
         return new Job($objectEncryptorFactoryMock, $jobData ?? $this->jobData);
+    }
+
+    public function testGetDuration(): void
+    {
+        $jobDataWithDuration = $this->jobData;
+        $job = $this->getJob($jobDataWithDuration);
+        self::assertSame(12, $job->getDurationSeconds());
+        $jobDataWithoutDuration = $this->jobData;
+        unset($jobDataWithoutDuration['durationSeconds']);
+        $job = $this->getJob($jobDataWithoutDuration);
+        self::assertNull($job->getDurationSeconds());
     }
 }

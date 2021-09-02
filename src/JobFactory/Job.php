@@ -13,20 +13,15 @@ use Throwable;
 
 class Job implements JsonSerializable, JobInterface
 {
-    /** @var array */
-    private $data;
-
-    /** @var ObjectEncryptorFactory */
-    private $objectEncryptorFactory;
-    /** @var DateTimeImmutable|null */
-    private $endTime;
-    /** @var DateTimeImmutable|null */
-    private $startTime;
+    private array $data;
+    private ObjectEncryptorFactory $objectEncryptorFactory;
+    private ?DateTimeImmutable $endTime;
+    private ?DateTimeImmutable $startTime;
 
     public function __construct(ObjectEncryptorFactory $objectEncryptorFactory, array $data)
     {
         $this->data = $data;
-        $this->data['isFinished'] = (bool) in_array($this->getStatus(), JobFactory::getFinishedStatuses());
+        $this->data['isFinished'] = in_array($this->getStatus(), JobFactory::getFinishedStatuses());
         // it's important to clone here because we change state of the factory!
         // this is tested by JobFactoryTest::testEncryptionMultipleJobs()
         $this->objectEncryptorFactory = clone $objectEncryptorFactory;
@@ -211,5 +206,10 @@ class Job implements JsonSerializable, JobInterface
     public function getEndTime(): ?DateTimeImmutable
     {
         return $this->endTime;
+    }
+
+    public function getDurationSeconds(): ?int
+    {
+        return isset($this->data['durationSeconds']) ? (int) $this->data['durationSeconds'] : null;
     }
 }
