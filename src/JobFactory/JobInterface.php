@@ -43,4 +43,5 @@ interface JobInterface
     public function hasVariables(): bool;
     public function getStartTime(): ?DateTimeImmutable;
     public function getEndTime(): ?DateTimeImmutable;
+    public function getDurationSeconds(): ?int;
 }
