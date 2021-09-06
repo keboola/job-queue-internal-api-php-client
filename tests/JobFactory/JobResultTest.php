@@ -31,6 +31,7 @@ class JobResultTest extends TestCase
                 'images' => ['first', 'second'],
                 'error' => [
                     'type' => 'application',
+                    'exceptionId' => 'exception-12345',
                 ],
             ],
             $jobResult->jsonSerialize()
