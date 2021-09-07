@@ -247,6 +247,17 @@ class Client
         return $jobs;
     }
 
+    public function getJobsDurationSum(string $projectId): int
+    {
+        if (empty($projectId)) {
+            throw new ClientException(sprintf('Invalid project ID: "%s".', $projectId));
+        }
+
+        $request = new Request('GET', 'stats/projects/' . $projectId);
+        $response = $this->sendRequest($request);
+        return $response['stats']['durationSum'];
+    }
+
     /**
      * @return array<JobInterface>
      */

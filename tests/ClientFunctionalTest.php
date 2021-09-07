@@ -783,4 +783,33 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
                 ->setDesiredStatus($createdJob->getDesiredStatus())
         );
     }
+
+    public function testGetJobsDurationSum(): void
+    {
+        $duration = 2;
+        $client = $this->getClient();
+        $jobFactory = $client->getJobFactory();
+
+        $job = $jobFactory->createNewJob([
+            '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+            'configId' => '12345',
+            'componentId' => 'keboola.ex-google-drive',
+            'mode' => 'run',
+        ]);
+
+        $job = $client->createJob($job);
+
+        $durationSum = $client->getJobsDurationSum($job->getProjectId());
+
+        $client->updateJob($jobFactory->modifyJob(
+            $job,
+            ['status' => JobFactory::STATUS_PROCESSING]
+        ));
+
+        sleep($duration);
+
+        $client->postJobResult($job->getId(), JobFactory::STATUS_SUCCESS, new JobResult());
+
+        self::assertSame($durationSum + $duration, $client->getJobsDurationSum($job->getProjectId()));
+    }
 }
