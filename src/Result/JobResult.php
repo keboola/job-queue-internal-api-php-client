@@ -6,7 +6,7 @@ namespace Keboola\JobQueueInternalClient\Result;
 
 use JsonSerializable;
 use Keboola\JobQueueInternalClient\Exception\ClientException;
-use Keboola\JobQueueInternalClient\JobFactory\Mapping\TableCollection;
+use Keboola\JobQueueInternalClient\Result\InputOutput\TableCollection;
 
 class JobResult implements JsonSerializable
 {

@@ -2,9 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Keboola\JobQueueInternalClient\JobFactory\Mapping;
+namespace Keboola\JobQueueInternalClient\Result\InputOutput;
 
 use JsonSerializable;
+use Keboola\JobQueueInternalClient\Result\InputOutput\ColumnCollection;
 
 class Table implements JsonSerializable
 {

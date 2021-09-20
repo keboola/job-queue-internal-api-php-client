@@ -2,12 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Keboola\JobQueueInternalClient\JobFactory\Mapping;
+namespace Keboola\JobQueueInternalClient\Result\InputOutput;
 
 use Countable;
 use Generator;
 use IteratorAggregate;
 use JsonSerializable;
+use Keboola\JobQueueInternalClient\Result\InputOutput\Table;
+use function Keboola\JobQueueInternalClient\JobFactory\Mapping\count;
 
 /**
  * @implements IteratorAggregate<Table>

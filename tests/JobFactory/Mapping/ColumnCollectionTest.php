@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Keboola\JobQueueInternalClient\Tests\JobFactory\Mapping;
 
-use Keboola\JobQueueInternalClient\JobFactory\Mapping\Column;
-use Keboola\JobQueueInternalClient\JobFactory\Mapping\ColumnCollection;
+use Keboola\JobQueueInternalClient\Result\InputOutput\Column;
+use Keboola\JobQueueInternalClient\Result\InputOutput\ColumnCollection;
 use PHPUnit\Framework\TestCase;
 
 class ColumnCollectionTest extends TestCase

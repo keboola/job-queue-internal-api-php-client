@@ -6,7 +6,7 @@ namespace Keboola\JobQueueInternalClient\Tests\JobFactory\Mapping;
 
 use Generator;
 use InvalidArgumentException;
-use Keboola\JobQueueInternalClient\JobFactory\Mapping\Column;
+use Keboola\JobQueueInternalClient\Result\InputOutput\Column;
 use PHPUnit\Framework\TestCase;
 
 class ColumnTest extends TestCase

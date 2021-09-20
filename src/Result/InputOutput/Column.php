@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Keboola\JobQueueInternalClient\JobFactory\Mapping;
+namespace Keboola\JobQueueInternalClient\Result\InputOutput;
 
 use InvalidArgumentException;
 use JsonSerializable;

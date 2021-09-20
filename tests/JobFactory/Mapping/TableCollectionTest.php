@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Keboola\JobQueueInternalClient\Tests\JobFactory\Mapping;
 
-use Keboola\JobQueueInternalClient\JobFactory\Mapping\Column;
-use Keboola\JobQueueInternalClient\JobFactory\Mapping\ColumnCollection;
-use Keboola\JobQueueInternalClient\JobFactory\Mapping\Table;
-use Keboola\JobQueueInternalClient\JobFactory\Mapping\TableCollection;
+use Keboola\JobQueueInternalClient\Result\InputOutput\Column;
+use Keboola\JobQueueInternalClient\Result\InputOutput\ColumnCollection;
+use Keboola\JobQueueInternalClient\Result\InputOutput\Table;
+use Keboola\JobQueueInternalClient\Result\InputOutput\TableCollection;
 use PHPUnit\Framework\TestCase;
 
 class TableCollectionTest extends TestCase
