@@ -4,10 +4,9 @@ declare(strict_types=1);
 
 namespace Keboola\JobQueueInternalClient\JobFactory\Mapping;
 
-use Exception;
-use Traversable;
+use JsonSerializable;
 
-class Table
+class Table implements JsonSerializable
 {
     private string $id;
     private string $name;
