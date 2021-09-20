@@ -19,8 +19,8 @@ class JobResult implements JsonSerializable
     public const ERROR_TYPE_APPLICATION = 'application';
     public const ERROR_TYPE_USER = 'user';
 
-    private TableCollection $inputTables;
-    private TableCollection $ouputTables;
+    private ?TableCollection $inputTables = null;
+    private ?TableCollection $ouputTables = null;
 
     public function jsonSerialize(): array
     {
@@ -28,21 +28,20 @@ class JobResult implements JsonSerializable
             'message' => $this->message,
             'configVersion' => $this->configVersion,
             'images' => $this->images,
-            'input' => [
-                'tables' => $this->inputTables->jsonSerialize(),
-                'files' => [],
-            ],
-            'output' => [
-                'tables' => $this->ouputTables->jsonSerialize(),
-                'files' => [],
-            ],
         ];
+        if ($this->inputTables) {
+            $result['input']['tables'] = $this->inputTables->jsonSerialize();
+        }
+        if ($this->ouputTables) {
+            $result['output']['tables'] = $this->ouputTables->jsonSerialize();
+        }
         if ($this->errorType) {
             $result['error']['type'] = $this->errorType;
         }
         if ($this->exceptionId) {
             $result['error']['exceptionId'] = $this->exceptionId;
         }
+
         return $result;
     }
 
@@ -107,5 +106,27 @@ class JobResult implements JsonSerializable
     public function getExceptionId(): ?string
     {
         return $this->exceptionId;
+    }
+
+    public function setInputTables(TableCollection $collection): JobResult
+    {
+        $this->inputTables = $collection;
+        return $this;
+    }
+
+    public function getIntputTables(): ?TableCollection
+    {
+        return $this->inputTables;
+    }
+
+    public function setOutputTables(TableCollection $collection): JobResult
+    {
+        $this->ouputTables = $collection;
+        return $this;
+    }
+
+    public function getOutputTables(): ?TableCollection
+    {
+        return $this->ouputTables;
     }
 }
