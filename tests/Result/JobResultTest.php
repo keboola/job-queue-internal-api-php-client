@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace Keboola\JobQueueInternalClient\Tests\Result;
 
 use Keboola\JobQueueInternalClient\Exception\ClientException;
-use Keboola\JobQueueInternalClient\Result\JobResult;
 use Keboola\JobQueueInternalClient\Result\InputOutput\Column;
 use Keboola\JobQueueInternalClient\Result\InputOutput\ColumnCollection;
 use Keboola\JobQueueInternalClient\Result\InputOutput\Table;
 use Keboola\JobQueueInternalClient\Result\InputOutput\TableCollection;
+use Keboola\JobQueueInternalClient\Result\JobResult;
 use PHPUnit\Framework\TestCase;
 
 class JobResultTest extends TestCase

@@ -6,8 +6,8 @@ namespace Keboola\JobQueueInternalClient\Tests;
 
 use Keboola\JobQueueInternalClient\Exception\ClientException;
 use Keboola\JobQueueInternalClient\JobFactory;
-use Keboola\JobQueueInternalClient\Result\JobResult;
 use Keboola\JobQueueInternalClient\JobPatchData;
+use Keboola\JobQueueInternalClient\Result\JobResult;
 use PHPUnit\Framework\TestCase;
 
 class JobPatchDataTest extends TestCase
