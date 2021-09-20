@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Keboola\JobQueueInternalClient\Tests\JobFactory\Mapping;
+namespace Keboola\JobQueueInternalClient\Tests\Result\InputOutput;
 
 use Generator;
 use InvalidArgumentException;
