@@ -6,6 +6,7 @@ namespace Keboola\JobQueueInternalClient\JobFactory;
 
 use JsonSerializable;
 use Keboola\JobQueueInternalClient\Exception\ClientException;
+use Keboola\JobQueueInternalClient\JobFactory\Mapping\TableCollection;
 
 class JobResult implements JsonSerializable
 {
@@ -18,6 +19,9 @@ class JobResult implements JsonSerializable
     public const ERROR_TYPE_APPLICATION = 'application';
     public const ERROR_TYPE_USER = 'user';
 
+    private TableCollection $inputTables;
+    private TableCollection $ouputTables;
+
     public function jsonSerialize(): array
     {
         $result = [
@@ -25,11 +29,11 @@ class JobResult implements JsonSerializable
             'configVersion' => $this->configVersion,
             'images' => $this->images,
             'input' => [
-                'tables' => [],
+                'tables' => $this->inputTables->jsonSerialize(),
                 'files' => [],
             ],
             'output' => [
-                'tables' => [],
+                'tables' => $this->ouputTables->jsonSerialize(),
                 'files' => [],
             ],
         ];
