@@ -7,11 +7,12 @@ namespace Keboola\JobQueueInternalClient\JobFactory\Mapping;
 use Countable;
 use Generator;
 use IteratorAggregate;
+use JsonSerializable;
 
 /**
  * @implements IteratorAggregate<Column>
  */
-class ColumnCollection implements IteratorAggregate, Countable
+class ColumnCollection implements Countable, IteratorAggregate, JsonSerializable
 {
     /** @var Column[] */
     private array $items = [];

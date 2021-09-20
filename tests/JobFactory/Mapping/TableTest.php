@@ -15,9 +15,7 @@ class TableTest extends TestCase
     {
         $collection = (new ColumnCollection())->addColumn(
             Column::fromDataArray([
-                'id' => 'in.c-bucket.table.created',
                 'name' => 'created',
-                'displayName' => 'Created date',
             ])
         );
 
@@ -34,9 +32,7 @@ class TableTest extends TestCase
             'displayName' => 'Test table',
             'columns' => [
                 [
-                    'id' => 'in.c-bucket.table.created',
                     'name' => 'created',
-                    'displayName' => 'Created date',
                 ],
             ],
         ], $table->jsonSerialize());

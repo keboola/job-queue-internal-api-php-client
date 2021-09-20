@@ -13,33 +13,24 @@ class ColumnTest extends TestCase
 {
     public function testCreate(): void
     {
-        $column = new Column('in.c-bucket.table.created', 'created', 'Created date');
+        $column = new Column('created');
 
-        self::assertSame('in.c-bucket.table.created', $column->getId());
         self::assertSame('created', $column->getName());
-        self::assertSame('Created date', $column->getDisplayName());
 
         self::assertSame([
-            'id' => 'in.c-bucket.table.created',
             'name' => 'created',
-            'displayName' => 'Created date',
         ], $column->jsonSerialize());
     }
 
     public function testCreateFromArray(): void
     {
         $sourceData = [
-            'id' => 'in.c-bucket.table.created',
             'name' => 'created',
-            'displayName' => 'Created date',
         ];
 
         $column = Column::fromDataArray($sourceData);
 
-        self::assertSame('in.c-bucket.table.created', $column->getId());
         self::assertSame('created', $column->getName());
-        self::assertSame('Created date', $column->getDisplayName());
-
         self::assertSame($sourceData, $column->jsonSerialize());
     }
 
@@ -61,20 +52,13 @@ class ColumnTest extends TestCase
     {
         yield 'empty array' => [
             [],
-            'Empty value or missing data for "id".',
-        ];
-        yield 'missing name + display name' => [
-            [
-                'id' => 'test',
-            ],
             'Empty value or missing data for "name".',
         ];
-        yield 'missing display name' => [
+        yield 'missing name' => [
             [
-                'id' => 'test',
-                'name' => 'testName',
+                'test' => 'test',
             ],
-            'Empty value or missing data for "displayName".',
+            'Empty value or missing data for "name".',
         ];
     }
 }

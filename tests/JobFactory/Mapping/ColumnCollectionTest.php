@@ -17,15 +17,11 @@ class ColumnCollectionTest extends TestCase
         self::assertSame(0, $collection->count());
 
         $column1 = Column::fromDataArray([
-            'id' => 'in.c-bucket.table.created',
             'name' => 'created',
-            'displayName' => 'Created date',
         ]);
 
         $column2 = Column::fromDataArray([
-            'id' => 'in.c-bucket.table.id',
             'name' => 'id',
-            'displayName' => 'ID',
         ]);
 
         $collection
@@ -42,14 +38,10 @@ class ColumnCollectionTest extends TestCase
 
         self::assertSame([
             [
-                'id' => 'in.c-bucket.table.created',
                 'name' => 'created',
-                'displayName' => 'Created date',
             ],
             [
-                'id' => 'in.c-bucket.table.id',
                 'name' => 'id',
-                'displayName' => 'ID',
             ],
         ], $collection->jsonSerialize());
     }
