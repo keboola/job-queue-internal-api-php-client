@@ -8,8 +8,6 @@ use Countable;
 use Generator;
 use IteratorAggregate;
 use JsonSerializable;
-use Keboola\JobQueueInternalClient\Result\InputOutput\Column;
-use function Keboola\JobQueueInternalClient\JobFactory\Mapping\count;
 
 /**
  * @implements IteratorAggregate<Column>
