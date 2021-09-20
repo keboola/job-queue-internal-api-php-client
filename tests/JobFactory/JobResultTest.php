@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Keboola\JobQueueInternalClient\Tests\JobFactory;
 
 use Keboola\JobQueueInternalClient\Exception\ClientException;
-use Keboola\JobQueueInternalClient\JobFactory\JobResult;
+use Keboola\JobQueueInternalClient\Result\JobResult;
 use Keboola\JobQueueInternalClient\JobFactory\Mapping\Column;
 use Keboola\JobQueueInternalClient\JobFactory\Mapping\ColumnCollection;
 use Keboola\JobQueueInternalClient\JobFactory\Mapping\Table;

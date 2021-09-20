@@ -6,7 +6,7 @@ namespace Keboola\JobQueueInternalClient;
 
 use JsonSerializable;
 use Keboola\JobQueueInternalClient\Exception\ClientException;
-use Keboola\JobQueueInternalClient\JobFactory\JobResult;
+use Keboola\JobQueueInternalClient\Result\JobResult;
 
 class JobPatchData implements JsonSerializable
 {
