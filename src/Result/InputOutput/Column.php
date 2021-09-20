@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Keboola\JobQueueInternalClient\Result\InputOutput;
 
-use InvalidArgumentException;
 use JsonSerializable;
 
 class Column implements JsonSerializable
@@ -25,21 +24,5 @@ class Column implements JsonSerializable
         return [
             'name' => $this->name,
         ];
-    }
-
-    public static function fromDataArray(array $data): self
-    {
-        self::assertNotEmpty('name', $data);
-
-        return new self(
-            $data['name'],
-        );
-    }
-
-    private static function assertNotEmpty(string $key, array $data): void
-    {
-        if (empty($data[$key])) {
-            throw new InvalidArgumentException(sprintf('Empty value or missing data for "%s".', $key));
-        }
     }
 }

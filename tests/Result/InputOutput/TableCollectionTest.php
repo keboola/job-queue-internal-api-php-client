@@ -22,11 +22,7 @@ class TableCollectionTest extends TestCase
             'in.c-bucket.table',
             'table',
             'MyTable',
-            (new ColumnCollection())->addColumn(
-                Column::fromDataArray([
-                    'name' => 'id',
-                ])
-            )
+            (new ColumnCollection())->addColumn(new Column('id'))
         );
 
         $collection->addTable($table);

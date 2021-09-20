@@ -16,13 +16,8 @@ class ColumnCollectionTest extends TestCase
 
         self::assertSame(0, $collection->count());
 
-        $column1 = Column::fromDataArray([
-            'name' => 'created',
-        ]);
-
-        $column2 = Column::fromDataArray([
-            'name' => 'id',
-        ]);
+        $column1 = new Column('created');
+        $column2 = new Column('id');
 
         $collection
             ->addColumn($column1)

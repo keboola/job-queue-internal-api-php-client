@@ -13,12 +13,7 @@ class TableTest extends TestCase
 {
     public function testCreate(): void
     {
-        $collection = (new ColumnCollection())->addColumn(
-            Column::fromDataArray([
-                'name' => 'created',
-            ])
-        );
-
+        $collection = (new ColumnCollection())->addColumn(new Column('created'));
         $table = new Table('in.c-bucket.table', 'myTable', 'Test table', $collection);
 
         self::assertSame('in.c-bucket.table', $table->getId());
