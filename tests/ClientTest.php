@@ -401,7 +401,8 @@ class ClientTest extends BaseTest
         self::assertEquals('PUT', $request->getMethod());
         self::assertEquals(
             '{"status":"success","result":{"message":null,"configVersion":null,' .
-            '"images":{"digests":{"keboola.test":{"id":"123"}}}}}',
+            '"images":{"digests":{"keboola.test":{"id":"123"}}},"input":{"tables":[],' .
+            '"files":[]},"output":{"tables":[],"files":[]}}}',
             $request->getBody()->getContents()
         );
         self::assertEquals('testToken', $request->getHeader('X-JobQueue-InternalApi-Token')[0]);

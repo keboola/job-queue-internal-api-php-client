@@ -24,6 +24,14 @@ class JobResult implements JsonSerializable
             'message' => $this->message,
             'configVersion' => $this->configVersion,
             'images' => $this->images,
+            'input' => [
+                'tables' => [],
+                'files' => [],
+            ],
+            'output' => [
+                'tables' => [],
+                'files' => [],
+            ],
         ];
         if ($this->errorType) {
             $result['error']['type'] = $this->errorType;

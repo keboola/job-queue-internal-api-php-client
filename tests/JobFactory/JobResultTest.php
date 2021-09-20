@@ -29,6 +29,14 @@ class JobResultTest extends TestCase
                 'message' => 'test',
                 'configVersion' => '123',
                 'images' => ['first', 'second'],
+                'input' => [
+                    'tables' => [],
+                    'files' => [],
+                ],
+                'output' => [
+                    'tables' => [],
+                    'files' => [],
+                ],
                 'error' => [
                     'type' => 'application',
                     'exceptionId' => 'exception-12345',
