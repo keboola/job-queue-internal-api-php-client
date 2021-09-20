@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Keboola\JobQueueInternalClient\Tests\JobFactory;
+namespace Keboola\JobQueueInternalClient\Tests\Result;
 
 use Keboola\JobQueueInternalClient\Exception\ClientException;
 use Keboola\JobQueueInternalClient\Result\JobResult;
