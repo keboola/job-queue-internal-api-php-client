@@ -20,7 +20,7 @@ class JobResult implements JsonSerializable
     public const ERROR_TYPE_USER = 'user';
 
     private ?TableCollection $inputTables = null;
-    private ?TableCollection $ouputTables = null;
+    private ?TableCollection $outputTables = null;
 
     public function jsonSerialize(): array
     {
@@ -32,8 +32,8 @@ class JobResult implements JsonSerializable
         if ($this->inputTables) {
             $result['input']['tables'] = $this->inputTables->jsonSerialize();
         }
-        if ($this->ouputTables) {
-            $result['output']['tables'] = $this->ouputTables->jsonSerialize();
+        if ($this->outputTables) {
+            $result['output']['tables'] = $this->outputTables->jsonSerialize();
         }
         if ($this->errorType) {
             $result['error']['type'] = $this->errorType;
@@ -114,19 +114,19 @@ class JobResult implements JsonSerializable
         return $this;
     }
 
-    public function getIntputTables(): ?TableCollection
+    public function getInputTables(): ?TableCollection
     {
         return $this->inputTables;
     }
 
     public function setOutputTables(TableCollection $collection): JobResult
     {
-        $this->ouputTables = $collection;
+        $this->outputTables = $collection;
         return $this;
     }
 
     public function getOutputTables(): ?TableCollection
     {
-        return $this->ouputTables;
+        return $this->outputTables;
     }
 }

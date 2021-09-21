@@ -26,10 +26,10 @@ class ColumnCollectionTest extends TestCase
 
         self::assertSame(2, $collection->count());
 
-        $itterator = iterator_to_array($collection->getIterator());
-        self::assertSame(2, count($itterator));
-        self::assertSame($column1, $itterator[0]);
-        self::assertSame($column2, $itterator[1]);
+        $iterator = iterator_to_array($collection->getIterator());
+        self::assertSame(2, count($iterator));
+        self::assertSame($column1, $iterator[0]);
+        self::assertSame($column2, $iterator[1]);
 
         self::assertSame([
             [

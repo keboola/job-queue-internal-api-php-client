@@ -49,7 +49,7 @@ class JobResultTest extends TestCase
         self::assertSame(['first', 'second'], $jobResult->getImages());
         self::assertSame('application', $jobResult->getErrorType());
         self::assertSame('exception-12345', $jobResult->getExceptionId());
-        self::assertSame($input, $jobResult->getIntputTables());
+        self::assertSame($input, $jobResult->getInputTables());
         self::assertSame($output, $jobResult->getOutputTables());
         self::assertSame(
             [
@@ -101,7 +101,7 @@ class JobResultTest extends TestCase
         self::assertNull($result->getConfigVersion());
         self::assertNull($result->getExceptionId());
         self::assertNull($result->getMessage());
-        self::assertNull($result->getIntputTables());
+        self::assertNull($result->getInputTables());
         self::assertNull($result->getOutputTables());
 
         self::assertSame([
