@@ -28,6 +28,12 @@ class JobResult implements JsonSerializable
             'message' => $this->message,
             'configVersion' => $this->configVersion,
             'images' => $this->images,
+            'input' => [
+                'tables' => [],
+            ],
+            'output' => [
+                'tables' => [],
+            ],
         ];
         if ($this->inputTables) {
             $result['input']['tables'] = $this->inputTables->jsonSerialize();

@@ -109,6 +109,12 @@ class JobResultTest extends TestCase
             'message' => null,
             'configVersion' => null,
             'images' => [],
+            'input' => [
+                'tables' => [],
+            ],
+            'output' => [
+                'tables' => [],
+            ],
         ], $result->jsonSerialize());
     }
 
