@@ -24,7 +24,7 @@ class JobPatchDataTest extends TestCase
         $expectedResult = [
             'message' => 'processing',
             'configVersion' => null,
-            'images' => null,
+            'images' => [],
         ];
         self::assertSame(JobFactory::STATUS_PROCESSING, $jobPatchData->getStatus());
         self::assertSame(JobFactory::DESIRED_STATUS_PROCESSING, $jobPatchData->getDesiredStatus());

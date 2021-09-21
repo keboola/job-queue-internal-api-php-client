@@ -96,7 +96,8 @@ class JobResultTest extends TestCase
     public function testEmptyResult(): void
     {
         $result = new JobResult();
-        self::assertNull($result->getImages());
+        self::assertIsArray($result->getImages());
+        self::assertEmpty($result->getImages());
         self::assertNull($result->getErrorType());
         self::assertNull($result->getConfigVersion());
         self::assertNull($result->getExceptionId());
@@ -107,7 +108,7 @@ class JobResultTest extends TestCase
         self::assertSame([
             'message' => null,
             'configVersion' => null,
-            'images' => null,
+            'images' => [],
         ], $result->jsonSerialize());
     }
 
