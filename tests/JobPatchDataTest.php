@@ -6,8 +6,8 @@ namespace Keboola\JobQueueInternalClient\Tests;
 
 use Keboola\JobQueueInternalClient\Exception\ClientException;
 use Keboola\JobQueueInternalClient\JobFactory;
-use Keboola\JobQueueInternalClient\JobFactory\JobResult;
 use Keboola\JobQueueInternalClient\JobPatchData;
+use Keboola\JobQueueInternalClient\Result\JobResult;
 use PHPUnit\Framework\TestCase;
 
 class JobPatchDataTest extends TestCase
@@ -24,7 +24,13 @@ class JobPatchDataTest extends TestCase
         $expectedResult = [
             'message' => 'processing',
             'configVersion' => null,
-            'images' => null,
+            'images' => [],
+            'input' => [
+                'tables' => [],
+            ],
+            'output' => [
+                'tables' => [],
+            ],
         ];
         self::assertSame(JobFactory::STATUS_PROCESSING, $jobPatchData->getStatus());
         self::assertSame(JobFactory::DESIRED_STATUS_PROCESSING, $jobPatchData->getDesiredStatus());

@@ -16,7 +16,7 @@ use JsonException;
 use Keboola\JobQueueInternalClient\Exception\ClientException;
 use Keboola\JobQueueInternalClient\Exception\StateTargetEqualsCurrentException;
 use Keboola\JobQueueInternalClient\JobFactory\JobInterface;
-use Keboola\JobQueueInternalClient\JobFactory\JobResult;
+use Keboola\JobQueueInternalClient\Result\JobResult;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Log\LoggerInterface;

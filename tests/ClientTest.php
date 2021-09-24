@@ -13,9 +13,9 @@ use Keboola\JobQueueInternalClient\Client;
 use Keboola\JobQueueInternalClient\Exception\ClientException;
 use Keboola\JobQueueInternalClient\JobFactory;
 use Keboola\JobQueueInternalClient\JobFactory\Job;
-use Keboola\JobQueueInternalClient\JobFactory\JobResult;
 use Keboola\JobQueueInternalClient\JobListOptions;
 use Keboola\JobQueueInternalClient\JobPatchData;
+use Keboola\JobQueueInternalClient\Result\JobResult;
 use Keboola\ObjectEncryptor\ObjectEncryptorFactory;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
@@ -401,7 +401,7 @@ class ClientTest extends BaseTest
         self::assertEquals('PUT', $request->getMethod());
         self::assertEquals(
             '{"status":"success","result":{"message":null,"configVersion":null,' .
-            '"images":{"digests":{"keboola.test":{"id":"123"}}}}}',
+            '"images":{"digests":{"keboola.test":{"id":"123"}}},"input":{"tables":[]},"output":{"tables":[]}}}',
             $request->getBody()->getContents()
         );
         self::assertEquals('testToken', $request->getHeader('X-JobQueue-InternalApi-Token')[0]);
