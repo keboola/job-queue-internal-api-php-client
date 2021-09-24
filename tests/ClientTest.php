@@ -410,7 +410,7 @@ class ClientTest extends BaseTest
                     'images' => [
                         'digests' => [
                             'keboola.test' => [
-                                'id' => '123'
+                                'id' => '123',
                             ],
                         ],
                     ],

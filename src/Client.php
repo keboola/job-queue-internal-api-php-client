@@ -209,8 +209,12 @@ class Client
         return $this->jobFactory->loadFromExistingJobData($this->sendRequest($request));
     }
 
-    public function postJobResult(string $jobId, string $status, JobResult $result, ?JobMetrics $metrics = null): JobInterface
-    {
+    public function postJobResult(
+        string $jobId,
+        string $status,
+        JobResult $result,
+        ?JobMetrics $metrics = null
+    ): JobInterface {
         if (empty($jobId)) {
             throw new ClientException(sprintf('Invalid job ID: "%s".', $jobId));
         }
