@@ -8,6 +8,7 @@ use DateTimeImmutable;
 use DateTimeZone;
 use JsonSerializable;
 use Keboola\JobQueueInternalClient\JobFactory;
+use Keboola\JobQueueInternalClient\Result\JobMetrics;
 use Keboola\ObjectEncryptor\ObjectEncryptorFactory;
 use Throwable;
 
@@ -211,5 +212,10 @@ class Job implements JsonSerializable, JobInterface
     public function getDurationSeconds(): ?int
     {
         return isset($this->data['durationSeconds']) ? (int) $this->data['durationSeconds'] : null;
+    }
+
+    public function getMetrics(): JobMetrics
+    {
+        return JobMetrics::fromDataArray($this->data);
     }
 }

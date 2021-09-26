@@ -29,4 +29,14 @@ class JobMetrics implements JsonSerializable
         $this->inputTablesBytesSum = $bytes;
         return $this;
     }
+
+    public static function fromDataArray(array $data): self
+    {
+        $metricsData = $data['metrics'] ?? [];
+        $metrics = new self();
+        if (isset($metricsData['storage']['inputTablesBytesSum'])) {
+            $metrics->setInputTablesBytesSum($metricsData['storage']['inputTablesBytesSum']);
+        }
+        return $metrics;
+    }
 }

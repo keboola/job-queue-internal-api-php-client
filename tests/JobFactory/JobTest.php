@@ -36,6 +36,11 @@ class JobTest extends BaseTest
                 ],
             ],
         ],
+        'metrics' => [
+            'storage' => [
+                'inputTablesBytesSum' => 567,
+            ],
+        ],
     ];
 
     public function setUp(): void
@@ -246,5 +251,19 @@ class JobTest extends BaseTest
         unset($jobDataWithoutDuration['durationSeconds']);
         $job = $this->getJob($jobDataWithoutDuration);
         self::assertNull($job->getDurationSeconds());
+    }
+
+    public function testGetMetrics(): void
+    {
+        $job = $this->getJob($this->jobData);
+        self::assertSame(567, $job->getMetrics()->getInputTablesBytesSum());
+    }
+
+    public function testGetNoMetrics(): void
+    {
+        $jobData = $this->jobData;
+        unset($jobData['metrics']);
+        $job = $this->getJob($jobData);
+        self::assertNull($job->getMetrics()->getInputTablesBytesSum());
     }
 }

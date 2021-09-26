@@ -33,4 +33,20 @@ class JobMetricsTest extends TestCase
             $metrics->jsonSerialize()
         );
     }
+
+    public function testFromArray(): void
+    {
+        $data = [
+            'metrics' => [
+                'storage' => [
+                    'inputTablesBytesSum' => 123,
+                ],
+            ],
+        ];
+        $jobMetrics = JobMetrics::fromDataArray($data);
+        self::assertSame(123, $jobMetrics->getInputTablesBytesSum());
+
+        $jobMetrics = JobMetrics::fromDataArray([]);
+        self::assertNull($jobMetrics->getInputTablesBytesSum());
+    }
 }
