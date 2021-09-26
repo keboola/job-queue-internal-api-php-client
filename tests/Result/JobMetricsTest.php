@@ -22,5 +22,15 @@ class JobMetricsTest extends TestCase
             ],
             $metrics->jsonSerialize()
         );
+
+        $metrics = new JobMetrics();
+        self::assertSame(
+            [
+                'storage' => [
+                    'inputTablesBytesSum' => null,
+                ],
+            ],
+            $metrics->jsonSerialize()
+        );
     }
 }

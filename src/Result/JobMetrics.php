@@ -8,7 +8,7 @@ use JsonSerializable;
 
 class JobMetrics implements JsonSerializable
 {
-    private ?int $inputTablesBytesSum;
+    private ?int $inputTablesBytesSum = null;
 
     public function jsonSerialize(): array
     {
