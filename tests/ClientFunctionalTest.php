@@ -12,6 +12,7 @@ use Keboola\JobQueueInternalClient\JobFactory;
 use Keboola\JobQueueInternalClient\JobFactory\Job;
 use Keboola\JobQueueInternalClient\JobListOptions;
 use Keboola\JobQueueInternalClient\JobPatchData;
+use Keboola\JobQueueInternalClient\Result\JobMetrics;
 use Keboola\JobQueueInternalClient\Result\JobResult;
 use Keboola\StorageApi\Client as StorageClient;
 
@@ -90,6 +91,7 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
                 'values' => [],
             ],
             'backend' => [],
+            'metrics' => [],
         ];
         self::assertEquals($expected, $response);
     }
@@ -171,6 +173,7 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
                     'values' => [],
                 ],
                 'backend' => [],
+                'metrics' => [],
             ];
             self::assertEquals($expected, $responseJobJson);
         }
@@ -194,6 +197,7 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
         self::assertEquals($createdJob->getConfigId(), $job->getConfigId());
         self::assertEquals($createdJob->getMode(), $job->getMode());
         self::assertEquals([], $job->getResult());
+        self::assertEquals(['storage' => ['inputTablesBytesSum' => null]], $job->getMetrics()->jsonSerialize());
         self::assertNull($job->getStartTime());
         self::assertNull($job->getEndTime());
     }
@@ -586,7 +590,7 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
         self::assertCount(0, $response);
     }
 
-    public function testPostJobResult(): void
+    public function testPostJobResultAndMetrics(): void
     {
         $client = $this->getClient();
         $job = $client->getJobFactory()->createNewJob([
@@ -603,11 +607,13 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
         $client->postJobResult(
             $createdJob->getId(),
             JobFactory::STATUS_PROCESSING,
-            (new JobResult())->setMessage('bar')
+            (new JobResult())->setMessage('bar'),
+            (new JobMetrics())->setInputTablesBytesSum(654)
         );
         $job = $client->getJob($createdJob->getId());
         self::assertEquals(JobFactory::STATUS_PROCESSING, $job->getStatus());
         self::assertEquals('bar', $job->getResult()['message']);
+        self::assertEquals(654, $job->getMetrics()->getInputTablesBytesSum());
     }
 
     public function testGetJobsWithProjectId(): void

@@ -120,6 +120,15 @@ class FullJobDefinition extends NewJobDefinition
                         ->scalarNode('type')->end()
                     ->end()
                 ->end()
+                ->arrayNode('metrics')->ignoreExtraKeys(true)
+                    ->children()
+                        ->arrayNode('storage')
+                            ->children()
+                                ->scalarNode('inputTablesBytesSum')->end()
+                            ->end()
+                        ->end()
+                    ->end()
+                ->end()
             ->end();
         // @formatter:on
 
