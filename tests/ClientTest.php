@@ -15,6 +15,7 @@ use Keboola\JobQueueInternalClient\JobFactory;
 use Keboola\JobQueueInternalClient\JobFactory\Job;
 use Keboola\JobQueueInternalClient\JobListOptions;
 use Keboola\JobQueueInternalClient\JobPatchData;
+use Keboola\JobQueueInternalClient\Result\JobMetrics;
 use Keboola\JobQueueInternalClient\Result\JobResult;
 use Keboola\ObjectEncryptor\ObjectEncryptorFactory;
 use Psr\Log\LoggerInterface;
@@ -391,22 +392,46 @@ class ClientTest extends BaseTest
         $result = $client->postJobResult(
             '123',
             JobFactory::STATUS_SUCCESS,
-            (new JobResult())->setImages(['digests' => ['keboola.test' => ['id' => '123']]])
+            (new JobResult())->setImages(['digests' => ['keboola.test' => ['id' => '123']]]),
+            (new JobMetrics())->setInputTablesBytesSum(112233445566),
         );
         self::assertInstanceOf(Job::class, $result);
         self::assertCount(1, $container);
         /** @var Request $request */
         $request = $container[0]['request'];
-        self::assertEquals('http://example.com/jobs/123', $request->getUri()->__toString());
-        self::assertEquals('PUT', $request->getMethod());
-        self::assertEquals(
-            '{"status":"success","result":{"message":null,"configVersion":null,' .
-            '"images":{"digests":{"keboola.test":{"id":"123"}}},"input":{"tables":[]},"output":{"tables":[]}}}',
-            $request->getBody()->getContents()
+        self::assertSame('http://example.com/jobs/123', $request->getUri()->__toString());
+        self::assertSame('PUT', $request->getMethod());
+        self::assertSame(
+            [
+                'status' => 'success',
+                'result' => [
+                    'message' => null,
+                    'configVersion' => null,
+                    'images' => [
+                        'digests' => [
+                            'keboola.test' => [
+                                'id' => '123',
+                            ],
+                        ],
+                    ],
+                    'input' => [
+                        'tables' => [],
+                    ],
+                    'output' => [
+                        'tables' => [],
+                    ],
+                ],
+                'metrics' => [
+                    'storage' => [
+                        'inputTablesBytesSum' => 112233445566,
+                    ],
+                ],
+            ],
+            json_decode($request->getBody()->getContents(), true)
         );
-        self::assertEquals('testToken', $request->getHeader('X-JobQueue-InternalApi-Token')[0]);
-        self::assertEquals('Internal PHP Client', $request->getHeader('User-Agent')[0]);
-        self::assertEquals('application/json', $request->getHeader('Content-type')[0]);
+        self::assertSame('testToken', $request->getHeader('X-JobQueue-InternalApi-Token')[0]);
+        self::assertSame('Internal PHP Client', $request->getHeader('User-Agent')[0]);
+        self::assertSame('application/json', $request->getHeader('Content-type')[0]);
     }
 
     public function testSetJobResultInvalid(): void

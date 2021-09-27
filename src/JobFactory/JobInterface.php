@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Keboola\JobQueueInternalClient\JobFactory;
 
 use DateTimeImmutable;
+use Keboola\JobQueueInternalClient\Result\JobMetrics;
 use Keboola\ObjectEncryptor\ObjectEncryptorFactory;
 
 interface JobInterface
@@ -44,4 +45,5 @@ interface JobInterface
     public function getStartTime(): ?DateTimeImmutable;
     public function getEndTime(): ?DateTimeImmutable;
     public function getDurationSeconds(): ?int;
+    public function getMetrics(): JobMetrics;
 }

@@ -16,6 +16,7 @@ use JsonException;
 use Keboola\JobQueueInternalClient\Exception\ClientException;
 use Keboola\JobQueueInternalClient\Exception\StateTargetEqualsCurrentException;
 use Keboola\JobQueueInternalClient\JobFactory\JobInterface;
+use Keboola\JobQueueInternalClient\Result\JobMetrics;
 use Keboola\JobQueueInternalClient\Result\JobResult;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -208,8 +209,12 @@ class Client
         return $this->jobFactory->loadFromExistingJobData($this->sendRequest($request));
     }
 
-    public function postJobResult(string $jobId, string $status, JobResult $result): JobInterface
-    {
+    public function postJobResult(
+        string $jobId,
+        string $status,
+        JobResult $result,
+        ?JobMetrics $metrics = null
+    ): JobInterface {
         if (empty($jobId)) {
             throw new ClientException(sprintf('Invalid job ID: "%s".', $jobId));
         }
@@ -219,7 +224,7 @@ class Client
             'jobs/' . $jobId,
             [],
             json_encode(
-                ['status' => $status, 'result' => $result],
+                ['status' => $status, 'result' => $result, 'metrics' => $metrics],
                 JSON_THROW_ON_ERROR
             )
         );
