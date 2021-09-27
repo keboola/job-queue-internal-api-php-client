@@ -44,12 +44,12 @@
         "phpunit/phpunit": "^9.3"
     },
     "scripts": {
-        "tests": "phpunit --coverage-clover build/logs/clover.xml --coverage-xml=build/logs/coverage-xml --log-junit=build/logs/phpunit.junit.xml",
+        "tests": "phpunit --coverage-clover /tmp/build-logs/clover.xml --coverage-xml=/tmp/build-logs/coverage-xml --log-junit=/tmp/build-logs/phpunit.junit.xml",
         "phpstan": "phpstan analyse --no-progress -c phpstan.neon",
         "phpcs": "phpcs --extensions=php src tests",
         "phpcbf": "phpcbf --extensions=php src tests",
         "phplint": "parallel-lint -j 10 --exclude vendor .",
-        "infection": "infection --threads=4 --min-covered-msi=90 --coverage=build/logs",
+        "infection": "infection --threads=4 --min-covered-msi=90 --coverage=/tmp/build-logs",
         "build": [
             "@phplint",
             "@phpcs",
@@ -64,6 +64,7 @@
     },
     "config": {
         "sort-packages": true,
-        "process-timeout": 3600
+        "process-timeout": 3600,
+        "lock": false
     }
 }
