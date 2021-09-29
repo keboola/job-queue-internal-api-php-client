@@ -32,6 +32,7 @@ class JobListOptions
     private int $limit = 100;
     private string $sortBy;
     private string $sortOrder;
+    private string $parentRunId;
 
     /** @var string */
     public const SORT_ORDER_ASC = 'asc';
@@ -61,6 +62,7 @@ class JobListOptions
             'limit' => 'limit',
             'sortBy' => 'sortBy',
             'sortOrder' => 'sortOrder',
+            'parentRunId' => 'parentRunId',
         ];
         $dateTimeProps = [
             'startTimeFrom' => 'startTimeFrom',
@@ -348,6 +350,17 @@ class JobListOptions
             );
         }
         $this->sortOrder = $value;
+        return $this;
+    }
+
+    public function getParentRunId(): string
+    {
+        return $this->parentRunId;
+    }
+
+    public function setParentRunId(string $value): JobListOptions
+    {
+        $this->parentRunId = $value;
         return $this;
     }
 }

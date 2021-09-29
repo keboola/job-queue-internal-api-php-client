@@ -26,6 +26,7 @@ class JobListOptionsTest extends TestCase
         $jobListOptions->setConfigRowIds(['1', '2', '3']);
         $jobListOptions->setModes(['run', 'debug']);
         $jobListOptions->setStatuses([JobFactory::STATUS_SUCCESS, JobFactory::STATUS_PROCESSING]);
+        $jobListOptions->setParentRunId('123');
 
         $from = new DateTime('-7 days 8:00');
         $to = new DateTime('-1 day 8:00');
@@ -79,6 +80,7 @@ class JobListOptionsTest extends TestCase
             'limit=100',
             'sortBy=id',
             'sortOrder=desc',
+            'parentRunId=123',
             'startTimeFrom=' . urlencode($from->format('c')),
             'startTimeTo=' . urlencode($to->format('c')),
             'createdTimeFrom=' . urlencode($from->format('c')),
