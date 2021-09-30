@@ -4,7 +4,7 @@ jobs:
       serviceName: ci-internal-api-php-client
       variables:
         APP_ENV: test
-        CLOUD_PROVIDER: azure
+        CLOUD_PROVIDER: aws
         STORAGE_API_URL: $(STORAGE_API_URL__AWS)
       secrets:
         STORAGE_API_TOKEN: $(INTERNAL_API_PHP_CLIENT__STORAGE_API_TOKEN__AWS)
