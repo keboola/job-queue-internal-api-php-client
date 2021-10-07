@@ -393,7 +393,7 @@ class ClientTest extends BaseTest
             '123',
             JobFactory::STATUS_SUCCESS,
             (new JobResult())->setImages(['digests' => ['keboola.test' => ['id' => '123']]]),
-            (new JobMetrics())->setInputTablesBytesSum(112233445566),
+            (new JobMetrics())->setInputTablesBytesSum(112233445566)->setBackendSize('small'),
         );
         self::assertInstanceOf(Job::class, $result);
         self::assertCount(1, $container);
@@ -424,6 +424,9 @@ class ClientTest extends BaseTest
                 'metrics' => [
                     'storage' => [
                         'inputTablesBytesSum' => 112233445566,
+                    ],
+                    'backend' => [
+                        'size' => 'small',
                     ],
                 ],
             ],
