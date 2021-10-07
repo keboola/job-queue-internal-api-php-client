@@ -61,8 +61,20 @@ class FullJobDefinitionTest extends BaseTest
             'status' => JobFactory::STATUS_CREATED,
             'desiredStatus' => JobFactory::DESIRED_STATUS_PROCESSING,
             'extraKey' => 'ignored',
+            'metrics' => [
+                'storage' => [
+                    'inputTablesBytesSum' => 123,
+                    'storageExtraKey' => 'ignored',
+                ],
+                'backend' => [
+                    'size' => 'medium',
+                    'backendExtraKey' => 'ignored',
+                ],
+            ],
         ];
         unset($data['extraKey']);
+        unset($data['metrics']['storage']['storageExtraKey']);
+        unset($data['metrics']['backend']['backendExtraKey']);
         $definition = new FullJobDefinition();
         self::assertEquals(array_merge($data, [
             'isFinished' => false,
