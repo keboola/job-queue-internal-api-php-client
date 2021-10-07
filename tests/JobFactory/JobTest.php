@@ -40,6 +40,9 @@ class JobTest extends BaseTest
             'storage' => [
                 'inputTablesBytesSum' => 567,
             ],
+            'backend' => [
+                'size' => 'medium',
+            ],
         ],
     ];
 
@@ -257,6 +260,7 @@ class JobTest extends BaseTest
     {
         $job = $this->getJob($this->jobData);
         self::assertSame(567, $job->getMetrics()->getInputTablesBytesSum());
+        self::assertSame('medium', $job->getMetrics()->getBackendSize());
     }
 
     public function testGetNoMetrics(): void
@@ -265,5 +269,6 @@ class JobTest extends BaseTest
         unset($jobData['metrics']);
         $job = $this->getJob($jobData);
         self::assertNull($job->getMetrics()->getInputTablesBytesSum());
+        self::assertNull($job->getMetrics()->getBackendSize());
     }
 }
