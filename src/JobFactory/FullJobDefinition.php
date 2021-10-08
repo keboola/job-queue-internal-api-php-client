@@ -128,6 +128,13 @@ class FullJobDefinition extends NewJobDefinition
                             ->end()
                         ->end()
                     ->end()
+                    ->children()
+                        ->arrayNode('backend')
+                            ->children()
+                                ->scalarNode('size')->end()
+                            ->end()
+                        ->end()
+                    ->end()
                 ->end()
             ->end();
         // @formatter:on

@@ -197,7 +197,14 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
         self::assertEquals($createdJob->getConfigId(), $job->getConfigId());
         self::assertEquals($createdJob->getMode(), $job->getMode());
         self::assertEquals([], $job->getResult());
-        self::assertEquals(['storage' => ['inputTablesBytesSum' => null]], $job->getMetrics()->jsonSerialize());
+        self::assertEquals([
+            'storage' => [
+                'inputTablesBytesSum' => null,
+            ],
+            'backend' => [
+                'size' => null,
+            ],
+        ], $job->getMetrics()->jsonSerialize());
         self::assertNull($job->getStartTime());
         self::assertNull($job->getEndTime());
     }
@@ -608,12 +615,13 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
             $createdJob->getId(),
             JobFactory::STATUS_PROCESSING,
             (new JobResult())->setMessage('bar'),
-            (new JobMetrics())->setInputTablesBytesSum(654)
+            (new JobMetrics())->setInputTablesBytesSum(654)->setBackendSize('medium')
         );
         $job = $client->getJob($createdJob->getId());
         self::assertEquals(JobFactory::STATUS_PROCESSING, $job->getStatus());
         self::assertEquals('bar', $job->getResult()['message']);
         self::assertEquals(654, $job->getMetrics()->getInputTablesBytesSum());
+        self::assertEquals('medium', $job->getMetrics()->getBackendSize());
     }
 
     public function testGetJobsWithProjectId(): void

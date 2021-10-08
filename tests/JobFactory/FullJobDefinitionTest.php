@@ -61,8 +61,20 @@ class FullJobDefinitionTest extends BaseTest
             'status' => JobFactory::STATUS_CREATED,
             'desiredStatus' => JobFactory::DESIRED_STATUS_PROCESSING,
             'extraKey' => 'ignored',
+            'metrics' => [
+                'storage' => [
+                    'inputTablesBytesSum' => 123,
+                    'storageExtraKey' => 'ignored',
+                ],
+                'backend' => [
+                    'size' => 'medium',
+                    'backendExtraKey' => 'ignored',
+                ],
+            ],
         ];
         unset($data['extraKey']);
+        unset($data['metrics']['storage']['storageExtraKey']);
+        unset($data['metrics']['backend']['backendExtraKey']);
         $definition = new FullJobDefinition();
         self::assertEquals(array_merge($data, [
             'isFinished' => false,
@@ -210,6 +222,94 @@ class FullJobDefinitionTest extends BaseTest
                     'mode' => 'run',
                 ],
                 '#The child (node|config) "tokenId" (at path|under) "job" must be configured.#',
+            ],
+            'Invalid metrics' => [
+                [
+                    '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+                    'tokenId' => '1234',
+                    'projectId' => '123',
+                    'id' => '12345',
+                    'runId' => '12345',
+                    'status' => 'created',
+                    'configId' => '123',
+                    'componentId' => 'keboola.test',
+                    'mode' => 'run',
+                    'metrics' => 'test',
+                ],
+                '#Invalid type for path "job.metrics". Expected "array", but got "string"#',
+            ],
+            'Invalid storage metrics' => [
+                [
+                    '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+                    'tokenId' => '1234',
+                    'projectId' => '123',
+                    'id' => '12345',
+                    'runId' => '12345',
+                    'status' => 'created',
+                    'configId' => '123',
+                    'componentId' => 'keboola.test',
+                    'mode' => 'run',
+                    'metrics' => [
+                        'storage' => 'test',
+                    ],
+                ],
+                '#Invalid type for path "job.metrics.storage". Expected "array", but got "string"#',
+            ],
+            'Invalid storage inputTablesBytesSum metrics' => [
+                [
+                    '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+                    'tokenId' => '1234',
+                    'projectId' => '123',
+                    'id' => '12345',
+                    'runId' => '12345',
+                    'status' => 'created',
+                    'configId' => '123',
+                    'componentId' => 'keboola.test',
+                    'mode' => 'run',
+                    'metrics' => [
+                        'storage' => [
+                            'inputTablesBytesSum' => [],
+                        ],
+                    ],
+                ],
+                '#Invalid type for path "job.metrics.storage.inputTablesBytesSum". Expected "scalar",' .
+                    ' but got "array".#',
+            ],
+            'Invalid backend metrics' => [
+                [
+                    '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+                    'tokenId' => '1234',
+                    'projectId' => '123',
+                    'id' => '12345',
+                    'runId' => '12345',
+                    'status' => 'created',
+                    'configId' => '123',
+                    'componentId' => 'keboola.test',
+                    'mode' => 'run',
+                    'metrics' => [
+                        'backend' => 'test',
+                    ],
+                ],
+                '#Invalid type for path "job.metrics.backend". Expected "array", but got "string"#',
+            ],
+            'Invalid backend size metrics' => [
+                [
+                    '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+                    'tokenId' => '1234',
+                    'projectId' => '123',
+                    'id' => '12345',
+                    'runId' => '12345',
+                    'status' => 'created',
+                    'configId' => '123',
+                    'componentId' => 'keboola.test',
+                    'mode' => 'run',
+                    'metrics' => [
+                        'backend' => [
+                            'size' => [],
+                        ],
+                    ],
+                ],
+                '#Invalid type for path "job.metrics.backend.size". Expected "scalar", but got "array".#',
             ],
         ];
     }
