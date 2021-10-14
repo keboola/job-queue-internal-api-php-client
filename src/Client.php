@@ -145,7 +145,7 @@ class Client
     /**
      * @return array<JobInterface>
      */
-    public function getJobsWithIds(array $jobIds): array
+    public function getJobsWithIds(array $jobIds, ?JobsSortOptions $sortOptions = null): array
     {
         /* This is rather arbitrary size, we just need to make sure that the request is not too large. It would be
         better to measure the size of the request (depends on the id length), but that's a bit more complicated. */
@@ -156,6 +156,9 @@ class Client
         $chunks = array_chunk($jobIds, $chunkSize);
         $jobs = [];
         $listOptions = (new JobListOptions())->setLimit($chunkSize);
+        if ($sortOptions) {
+            $listOptions->setSortBy($sortOptions->getSortBy())->setSortOrder($sortOptions->getSortOrder());
+        }
         foreach ($chunks as $chunk) {
             $listOptions->setIds($chunk);
             $jobs = array_merge($jobs, $this->listJobs($listOptions, false));
@@ -163,12 +166,15 @@ class Client
         return $jobs;
     }
 
-    public function getJobsWithStatus(array $statuses): array
+    public function getJobsWithStatus(array $statuses, ?JobsSortOptions $sortOptions = null): array
     {
         if (!$statuses) {
             return [];
         }
         $listOptions = (new JobListOptions())->setStatuses($statuses);
+        if ($sortOptions) {
+            $listOptions->setSortBy($sortOptions->getSortBy())->setSortOrder($sortOptions->getSortOrder());
+        }
         return $this->listJobs($listOptions, true);
     }
 

@@ -12,6 +12,7 @@ use Keboola\JobQueueInternalClient\JobFactory;
 use Keboola\JobQueueInternalClient\JobFactory\Job;
 use Keboola\JobQueueInternalClient\JobListOptions;
 use Keboola\JobQueueInternalClient\JobPatchData;
+use Keboola\JobQueueInternalClient\JobsSortOptions;
 use Keboola\JobQueueInternalClient\Result\JobMetrics;
 use Keboola\JobQueueInternalClient\Result\JobResult;
 use Keboola\StorageApi\Client as StorageClient;
@@ -245,36 +246,121 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
     public function testGetJobsWithStatuses(): void
     {
         $client = $this->getClient();
-        $job = $client->getJobFactory()->createNewJob([
+
+        $createdJob1 = $client->createJob($client->getJobFactory()->createNewJob([
             '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
             'configId' => '454124290',
             'componentId' => 'keboola.ex-db-snowflake',
             'mode' => 'run',
-        ]);
-        $createdJob = $client->createJob($job);
+        ]));
+
+        $createdJob2 = $client->createJob($client->getJobFactory()->createNewJob([
+            '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+            'configId' => '454124290',
+            'componentId' => 'keboola.ex-db-snowflake',
+            'mode' => 'run',
+        ]));
+
         $client = $this->getClient();
+
+        /** @var Job[] $response */
         $response = $client->getJobsWithStatus([JobFactory::STATUS_CREATED]);
-        self::assertCount(1, $response);
-        /** @var Job $listedJob */
-        $listedJob = $response[0];
-        self::assertEquals($createdJob->jsonSerialize(), $listedJob->jsonSerialize());
+        self::assertCount(2, $response);
+
+        $listedJob1 = $response[0];
+        self::assertEquals($createdJob2->jsonSerialize(), $listedJob1->jsonSerialize());
+
+        $listedJob2 = $response[1];
+        self::assertEquals($createdJob1->jsonSerialize(), $listedJob2->jsonSerialize());
+
+        // sort ASC tests
+        $sortOptions = (new JobsSortOptions())
+            ->setSortBy('id')
+            ->setSortOrder(JobsSortOptions::SORT_ORDER_ASC);
+
+        /** @var Job[] $response */
+        $response = $client->getJobsWithStatus([JobFactory::STATUS_CREATED], $sortOptions);
+        self::assertCount(2, $response);
+
+        $listedJob1 = $response[0];
+        self::assertEquals($createdJob1->jsonSerialize(), $listedJob1->jsonSerialize());
+
+        $listedJob2 = $response[1];
+        self::assertEquals($createdJob2->jsonSerialize(), $listedJob2->jsonSerialize());
+
+        // sort DESC tests
+        $sortOptions = (new JobsSortOptions())
+            ->setSortBy('id')
+            ->setSortOrder(JobsSortOptions::SORT_ORDER_DESC);
+
+        /** @var Job[] $response */
+        $response = $client->getJobsWithStatus([JobFactory::STATUS_CREATED], $sortOptions);
+        self::assertCount(2, $response);
+
+        $listedJob1 = $response[0];
+        self::assertEquals($createdJob2->jsonSerialize(), $listedJob1->jsonSerialize());
+
+        $listedJob2 = $response[1];
+        self::assertEquals($createdJob1->jsonSerialize(), $listedJob2->jsonSerialize());
     }
 
     public function testGetJobsWithIds(): void
     {
         $client = $this->getClient();
-        $job = $client->getJobFactory()->createNewJob([
+
+        $createdJob1 = $client->createJob($client->getJobFactory()->createNewJob([
             '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
             'configId' => '454124290',
             'componentId' => 'keboola.ex-db-snowflake',
             'mode' => 'run',
-        ]);
-        $createdJob = $client->createJob($job);
-        $response = $client->getJobsWithIds([$createdJob->getId()]);
-        self::assertCount(1, $response);
-        /** @var Job $listedJob */
-        $listedJob = $response[0];
-        self::assertEquals($createdJob->jsonSerialize(), $listedJob->jsonSerialize());
+        ]));
+
+        $createdJob2 = $client->createJob($client->getJobFactory()->createNewJob([
+            '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+            'configId' => '454124290',
+            'componentId' => 'keboola.ex-db-snowflake',
+            'mode' => 'run',
+        ]));
+
+        /** @var Job[] $response */
+        $response = $client->getJobsWithIds([$createdJob1->getId(), $createdJob2->getId()]);
+        self::assertCount(2, $response);
+
+        $listedJob1 = $response[0];
+        self::assertEquals($createdJob2->jsonSerialize(), $listedJob1->jsonSerialize());
+
+        $listedJob2 = $response[1];
+        self::assertEquals($createdJob1->jsonSerialize(), $listedJob2->jsonSerialize());
+
+        // sort ASC tests
+        $sortOptions = (new JobsSortOptions())
+            ->setSortBy('id')
+            ->setSortOrder(JobsSortOptions::SORT_ORDER_ASC);
+
+        /** @var Job[] $response */
+        $response = $client->getJobsWithIds([$createdJob1->getId(), $createdJob2->getId()], $sortOptions);
+        self::assertCount(2, $response);
+
+        $listedJob1 = $response[0];
+        self::assertEquals($createdJob1->jsonSerialize(), $listedJob1->jsonSerialize());
+
+        $listedJob2 = $response[1];
+        self::assertEquals($createdJob2->jsonSerialize(), $listedJob2->jsonSerialize());
+
+        // sort DESC tests
+        $sortOptions = (new JobsSortOptions())
+            ->setSortBy('id')
+            ->setSortOrder(JobsSortOptions::SORT_ORDER_DESC);
+
+        /** @var Job[] $response */
+        $response = $client->getJobsWithIds([$createdJob1->getId(), $createdJob2->getId()], $sortOptions);
+        self::assertCount(2, $response);
+
+        $listedJob1 = $response[0];
+        self::assertEquals($createdJob2->jsonSerialize(), $listedJob1->jsonSerialize());
+
+        $listedJob2 = $response[1];
+        self::assertEquals($createdJob1->jsonSerialize(), $listedJob2->jsonSerialize());
     }
 
     public function testListJobsByComponent(): void
