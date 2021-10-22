@@ -15,6 +15,8 @@ use GuzzleHttp\Psr7\Request;
 use JsonException;
 use Keboola\JobQueueInternalClient\Exception\ClientException;
 use Keboola\JobQueueInternalClient\Exception\StateTargetEqualsCurrentException;
+use Keboola\JobQueueInternalClient\Exception\StateTerminalException;
+use Keboola\JobQueueInternalClient\Exception\StateTransitionForbiddenException;
 use Keboola\JobQueueInternalClient\JobFactory\JobInterface;
 use Keboola\JobQueueInternalClient\Result\JobMetrics;
 use Keboola\JobQueueInternalClient\Result\JobResult;
@@ -356,10 +358,9 @@ class Client
             } catch (Throwable $e2) {
                 throw new ClientException($e->getMessage(), $e->getCode(), $e2);
             }
-            if (!empty($body['context']['stringCode']) &&
-                ($body['context']['stringCode'] === 'statusTargetEqualsCurrent')
-            ) {
-                throw new StateTargetEqualsCurrentException($e->getMessage(), $e->getCode(), $e);
+
+            if (!empty($body['context']['stringCode'])) {
+                throw $this->getExceptionByStringCode($body['context']['stringCode'], $e);
             }
             throw new ClientException($e->getMessage(), $e->getCode(), $e);
         } catch (GuzzleException $e) {
@@ -367,5 +368,23 @@ class Client
         } catch (JsonException $e) {
             throw new ClientException('Unable to parse response body into JSON: ' . $e->getMessage());
         }
+    }
+
+    private function getExceptionByStringCode(string $stringCode, Throwable $previous): Throwable
+    {
+        switch ($stringCode) {
+            case StateTargetEqualsCurrentException::STRING_CODE:
+                return new StateTargetEqualsCurrentException($previous->getMessage(), $previous->getCode(), $previous);
+            case StateTransitionForbiddenException::STRING_CODE:
+                return new StateTransitionForbiddenException($previous->getMessage(), $previous->getCode(), $previous);
+            case StateTerminalException::STRING_CODE:
+                return new StateTerminalException($previous->getMessage(), $previous->getCode(), $previous);
+        }
+
+        throw new ClientException(
+            sprintf('Unknown exception stringCode "%s"', $stringCode),
+            500,
+            $previous
+        );
     }
 }
