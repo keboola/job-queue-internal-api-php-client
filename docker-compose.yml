@@ -4,7 +4,7 @@ services:
   tests: &tests
     build: .
     environment:
-      - TEST_QUEUE_API_URL=http://internal-api:80
+      - TEST_QUEUE_API_URL=http://internal-api:8080
       - TEST_QUEUE_API_TOKEN
       - TEST_STORAGE_API_URL
       - TEST_STORAGE_API_TOKEN
@@ -30,11 +30,12 @@ services:
   internal-api:
     image: keboolapes.azurecr.io/job-queue-internal-api:latest
     ports:
-      - "81:80"
+      - "8181:8080"
     volumes:
       # to get wait-for-it
       - ./:/build-code
     environment:
+      - APP_ENV=test
       - log_abs_connection_string=
       - log_abs_container=debug-files
       - logs_s3_bucket=
