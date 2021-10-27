@@ -356,6 +356,7 @@ class Client
             );
 
             $this->throwExceptionByStringCode($body, $e);
+            throw new ClientException($e->getMessage(), $e->getCode(), $e);
         } catch (GuzzleException $e) {
             throw new ClientException($e->getMessage(), $e->getCode(), $e);
         } catch (JsonException $e) {
@@ -363,7 +364,7 @@ class Client
         }
     }
 
-    private function throwExceptionByStringCode(array $body, Throwable $previous): Throwable
+    private function throwExceptionByStringCode(array $body, Throwable $previous): void
     {
         if (!empty($body['context']['stringCode'])) {
             switch ($body['context']['stringCode']) {
@@ -387,6 +388,5 @@ class Client
                     );
             }
         }
-        throw new ClientException($e->getMessage(), $e->getCode(), $e);
     }
 }
