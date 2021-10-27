@@ -348,21 +348,14 @@ class Client
             $data = json_decode($response->getBody()->getContents(), true, self::JSON_DEPTH, JSON_THROW_ON_ERROR);
             return $data ?: [];
         } catch (GuzzleClientException $e) {
-            try {
-                $body = json_decode(
-                    $e->getResponse()->getBody()->getContents(),
-                    true,
-                    self::JSON_DEPTH,
-                    JSON_THROW_ON_ERROR
-                );
-            } catch (Throwable $e2) {
-                throw new ClientException($e->getMessage(), $e->getCode(), $e2);
-            }
+            $body = json_decode(
+                $e->getResponse()->getBody()->getContents(),
+                true,
+                self::JSON_DEPTH,
+                JSON_THROW_ON_ERROR
+            );
 
-            if (!empty($body['context']['stringCode'])) {
-                throw $this->getExceptionByStringCode($body['context']['stringCode'], $e);
-            }
-            throw new ClientException($e->getMessage(), $e->getCode(), $e);
+            $this->throwExceptionByStringCode($body, $e);
         } catch (GuzzleException $e) {
             throw new ClientException($e->getMessage(), $e->getCode(), $e);
         } catch (JsonException $e) {
@@ -370,21 +363,18 @@ class Client
         }
     }
 
-    private function getExceptionByStringCode(string $stringCode, Throwable $previous): Throwable
+    private function throwExceptionByStringCode(array $body, Throwable $previous): Throwable
     {
-        switch ($stringCode) {
-            case StateTargetEqualsCurrentException::STRING_CODE:
-                return new StateTargetEqualsCurrentException($previous->getMessage(), $previous->getCode(), $previous);
-            case StateTransitionForbiddenException::STRING_CODE:
-                return new StateTransitionForbiddenException($previous->getMessage(), $previous->getCode(), $previous);
-            case StateTerminalException::STRING_CODE:
-                return new StateTerminalException($previous->getMessage(), $previous->getCode(), $previous);
+        if (!empty($body['context']['stringCode'])) {
+            switch ($body['context']['stringCode']) {
+                case StateTargetEqualsCurrentException::STRING_CODE:
+                    throw new StateTargetEqualsCurrentException($previous->getMessage(), $previous->getCode(), $previous);
+                case StateTransitionForbiddenException::STRING_CODE:
+                    throw new StateTransitionForbiddenException($previous->getMessage(), $previous->getCode(), $previous);
+                case StateTerminalException::STRING_CODE:
+                    throw new StateTerminalException($previous->getMessage(), $previous->getCode(), $previous);
+            }
         }
-
-        throw new ClientException(
-            sprintf('Unknown exception stringCode "%s"', $stringCode),
-            500,
-            $previous
-        );
+        throw new ClientException($e->getMessage(), $e->getCode(), $e);
     }
 }
