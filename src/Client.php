@@ -368,11 +368,23 @@ class Client
         if (!empty($body['context']['stringCode'])) {
             switch ($body['context']['stringCode']) {
                 case StateTargetEqualsCurrentException::STRING_CODE:
-                    throw new StateTargetEqualsCurrentException($previous->getMessage(), $previous->getCode(), $previous);
+                    throw new StateTargetEqualsCurrentException(
+                        $previous->getMessage(),
+                        $previous->getCode(),
+                        $previous
+                    );
                 case StateTransitionForbiddenException::STRING_CODE:
-                    throw new StateTransitionForbiddenException($previous->getMessage(), $previous->getCode(), $previous);
+                    throw new StateTransitionForbiddenException(
+                        $previous->getMessage(),
+                        $previous->getCode(),
+                        $previous
+                    );
                 case StateTerminalException::STRING_CODE:
-                    throw new StateTerminalException($previous->getMessage(), $previous->getCode(), $previous);
+                    throw new StateTerminalException(
+                        $previous->getMessage(),
+                        $previous->getCode(),
+                        $previous
+                    );
             }
         }
         throw new ClientException($e->getMessage(), $e->getCode(), $e);
