@@ -350,15 +350,21 @@ class Client
         } catch (GuzzleClientException $e) {
             $body = $this->decodeRequestBody($e->getResponse());
             $this->throwExceptionByStringCode($body, $e);
+            throw new ClientException($e->getMessage(), $e->getCode(), $e);
         } catch (GuzzleException $e) {
             throw new ClientException($e->getMessage(), $e->getCode(), $e);
         }
     }
 
-    private function decodeRequestBody(ResponseInterface $response): array
+    private function decodeRequestBody(?ResponseInterface $response): array
     {
         try {
-            return json_decode($response->getBody()->getContents(), true, self::JSON_DEPTH, JSON_THROW_ON_ERROR);
+            return json_decode(
+                $response->getBody()->getContents(),
+                true,
+                self::JSON_DEPTH,
+                JSON_THROW_ON_ERROR
+            );
         } catch (Throwable $e) {
             throw new ClientException('Unable to parse response body into JSON: ' . $e->getMessage());
         }
@@ -367,7 +373,7 @@ class Client
     private function throwExceptionByStringCode(array $body, Throwable $previous): void
     {
         if (empty($body['context']['stringCode'])) {
-            throw new ClientException($previous->getMessage(), $previous->getCode(), $previous);
+            return;
         }
 
         switch ($body['context']['stringCode']) {
