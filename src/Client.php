@@ -345,48 +345,50 @@ class Client
     {
         try {
             $response = $this->guzzle->send($request);
-            $data = json_decode($response->getBody()->getContents(), true, self::JSON_DEPTH, JSON_THROW_ON_ERROR);
+            $data = $this->decodeRequestBody($response);
             return $data ?: [];
         } catch (GuzzleClientException $e) {
-            $body = json_decode(
-                $e->getResponse()->getBody()->getContents(),
-                true,
-                self::JSON_DEPTH,
-                JSON_THROW_ON_ERROR
-            );
-
+            $body = $this->decodeRequestBody($e->getResponse());
             $this->throwExceptionByStringCode($body, $e);
-            throw new ClientException($e->getMessage(), $e->getCode(), $e);
         } catch (GuzzleException $e) {
             throw new ClientException($e->getMessage(), $e->getCode(), $e);
-        } catch (JsonException $e) {
+        }
+    }
+
+    private function decodeRequestBody(ResponseInterface $response): array
+    {
+        try {
+            return json_decode($response->getBody()->getContents(), true, self::JSON_DEPTH, JSON_THROW_ON_ERROR);
+        } catch (Throwable $e) {
             throw new ClientException('Unable to parse response body into JSON: ' . $e->getMessage());
         }
     }
 
     private function throwExceptionByStringCode(array $body, Throwable $previous): void
     {
-        if (!empty($body['context']['stringCode'])) {
-            switch ($body['context']['stringCode']) {
-                case StateTargetEqualsCurrentException::STRING_CODE:
-                    throw new StateTargetEqualsCurrentException(
-                        $previous->getMessage(),
-                        $previous->getCode(),
-                        $previous
-                    );
-                case StateTransitionForbiddenException::STRING_CODE:
-                    throw new StateTransitionForbiddenException(
-                        $previous->getMessage(),
-                        $previous->getCode(),
-                        $previous
-                    );
-                case StateTerminalException::STRING_CODE:
-                    throw new StateTerminalException(
-                        $previous->getMessage(),
-                        $previous->getCode(),
-                        $previous
-                    );
-            }
+        if (empty($body['context']['stringCode'])) {
+            throw new ClientException($previous->getMessage(), $previous->getCode(), $previous);
+        }
+
+        switch ($body['context']['stringCode']) {
+            case StateTargetEqualsCurrentException::STRING_CODE:
+                throw new StateTargetEqualsCurrentException(
+                    $previous->getMessage(),
+                    $previous->getCode(),
+                    $previous
+                );
+            case StateTransitionForbiddenException::STRING_CODE:
+                throw new StateTransitionForbiddenException(
+                    $previous->getMessage(),
+                    $previous->getCode(),
+                    $previous
+                );
+            case StateTerminalException::STRING_CODE:
+                throw new StateTerminalException(
+                    $previous->getMessage(),
+                    $previous->getCode(),
+                    $previous
+                );
         }
     }
 }
