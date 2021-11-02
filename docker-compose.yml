@@ -51,9 +51,7 @@ services:
 
     command: ['sh', '-c', '/build-code/docker/wait-for-it.sh --strict --timeout=120 mysql:3306 -- php bin/console doctrine:migrations:migrate && apache2-foreground']
     networks:
-      internal-api-client:
-        aliases:
-          - internal-api.com
+      - internal-api-client
     depends_on:
       - mysql
 
