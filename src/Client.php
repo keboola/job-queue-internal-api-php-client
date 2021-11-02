@@ -15,6 +15,8 @@ use GuzzleHttp\Psr7\Request;
 use JsonException;
 use Keboola\JobQueueInternalClient\Exception\ClientException;
 use Keboola\JobQueueInternalClient\Exception\StateTargetEqualsCurrentException;
+use Keboola\JobQueueInternalClient\Exception\StateTerminalException;
+use Keboola\JobQueueInternalClient\Exception\StateTransitionForbiddenException;
 use Keboola\JobQueueInternalClient\JobFactory\JobInterface;
 use Keboola\JobQueueInternalClient\Result\JobMetrics;
 use Keboola\JobQueueInternalClient\Result\JobResult;
@@ -343,29 +345,56 @@ class Client
     {
         try {
             $response = $this->guzzle->send($request);
-            $data = json_decode($response->getBody()->getContents(), true, self::JSON_DEPTH, JSON_THROW_ON_ERROR);
+            $data = $this->decodeRequestBody($response);
             return $data ?: [];
         } catch (GuzzleClientException $e) {
-            try {
-                $body = json_decode(
-                    $e->getResponse()->getBody()->getContents(),
-                    true,
-                    self::JSON_DEPTH,
-                    JSON_THROW_ON_ERROR
-                );
-            } catch (Throwable $e2) {
-                throw new ClientException($e->getMessage(), $e->getCode(), $e2);
-            }
-            if (!empty($body['context']['stringCode']) &&
-                ($body['context']['stringCode'] === 'statusTargetEqualsCurrent')
-            ) {
-                throw new StateTargetEqualsCurrentException($e->getMessage(), $e->getCode(), $e);
-            }
+            $body = $this->decodeRequestBody($e->getResponse());
+            $this->throwExceptionByStringCode($body, $e);
             throw new ClientException($e->getMessage(), $e->getCode(), $e);
         } catch (GuzzleException $e) {
             throw new ClientException($e->getMessage(), $e->getCode(), $e);
-        } catch (JsonException $e) {
+        }
+    }
+
+    private function decodeRequestBody(?ResponseInterface $response): array
+    {
+        try {
+            return json_decode(
+                $response->getBody()->getContents(),
+                true,
+                self::JSON_DEPTH,
+                JSON_THROW_ON_ERROR
+            );
+        } catch (Throwable $e) {
             throw new ClientException('Unable to parse response body into JSON: ' . $e->getMessage());
+        }
+    }
+
+    private function throwExceptionByStringCode(array $body, Throwable $previous): void
+    {
+        if (empty($body['context']['stringCode'])) {
+            return;
+        }
+
+        switch ($body['context']['stringCode']) {
+            case StateTargetEqualsCurrentException::STRING_CODE:
+                throw new StateTargetEqualsCurrentException(
+                    $previous->getMessage(),
+                    $previous->getCode(),
+                    $previous
+                );
+            case StateTransitionForbiddenException::STRING_CODE:
+                throw new StateTransitionForbiddenException(
+                    $previous->getMessage(),
+                    $previous->getCode(),
+                    $previous
+                );
+            case StateTerminalException::STRING_CODE:
+                throw new StateTerminalException(
+                    $previous->getMessage(),
+                    $previous->getCode(),
+                    $previous
+                );
         }
     }
 }

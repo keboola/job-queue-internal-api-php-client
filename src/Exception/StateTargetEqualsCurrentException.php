@@ -6,4 +6,5 @@ namespace Keboola\JobQueueInternalClient\Exception;
 
 class StateTargetEqualsCurrentException extends ClientException
 {
+    public const STRING_CODE = 'statusTargetEqualsCurrent';
 }
