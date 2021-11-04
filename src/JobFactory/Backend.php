@@ -21,7 +21,7 @@ class Backend
         );
     }
 
-    public function asDataArray(): array
+    public function toDataArray(): array
     {
         return ['type' => $this->type];
     }
