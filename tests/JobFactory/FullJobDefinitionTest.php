@@ -31,6 +31,8 @@ class FullJobDefinitionTest extends BaseTest
             ],
             'status' => JobFactory::STATUS_CREATED,
             'desiredStatus' => JobFactory::DESIRED_STATUS_PROCESSING,
+            'parallelism' => null,
+            'type' => 'standard',
         ];
         $definition = new FullJobDefinition();
         $processedData = $definition->processData($expectedData);
@@ -60,6 +62,8 @@ class FullJobDefinitionTest extends BaseTest
             'runId' => '1234',
             'status' => JobFactory::STATUS_CREATED,
             'desiredStatus' => JobFactory::DESIRED_STATUS_PROCESSING,
+            'parallelism' => null,
+            'type' => 'standard',
             'extraKey' => 'ignored',
             'metrics' => [
                 'storage' => [
@@ -311,6 +315,22 @@ class FullJobDefinitionTest extends BaseTest
                 ],
                 '#Invalid type for path "job.metrics.backend.size". Expected "scalar", but got "array".#',
             ],
+            'Invalid type' => [
+                [
+                    '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+                    'tokenId' => '1234',
+                    'projectId' => '123',
+                    'id' => '12345',
+                    'runId' => '12345',
+                    'status' => 'created',
+                    'desiredStatus' => 'processing',
+                    'configId' => '123',
+                    'componentId' => 'keboola.test',
+                    'mode' => 'run',
+                    'type' => 'orchestration'
+                ],
+                '#Invalid configuration for path "job.type": Type must be one of standard, container.#',
+            ]
         ];
     }
 
@@ -357,5 +377,36 @@ class FullJobDefinitionTest extends BaseTest
         self::assertSame([
             'type' => 'my-backend',
         ], $definition->processData($data)['backend']);
+    }
+
+    public function testBehaviorConfiguration(): void
+    {
+        $data = [
+            '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+            'tokenId' => '12345',
+            'projectId' => '123',
+            'configId' => '123',
+            'componentId' => 'keboola.test',
+            'mode' => 'run',
+            'configRowIds' => ['234'],
+            'configData' => [
+                'parameters' => [
+                    'foo' => 'bar',
+                ],
+            ],
+            'tag' => 'latest',
+            'id' => '1234',
+            'runId' => '1234',
+            'status' => JobFactory::STATUS_CREATED,
+            'desiredStatus' => JobFactory::DESIRED_STATUS_PROCESSING,
+            'behavior' => [
+                'onError' => 'warning',
+            ],
+        ];
+        $definition = new FullJobDefinition();
+
+        self::assertSame([
+            'onError' => 'warning',
+        ], $definition->processData($data)['behavior']);
     }
 }

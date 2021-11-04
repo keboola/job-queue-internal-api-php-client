@@ -93,6 +93,72 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
             ],
             'backend' => [],
             'metrics' => [],
+            'type' => 'standard',
+            'parallelism' => null,
+        ];
+        self::assertEquals($expected, $response);
+    }
+
+    /**
+     * @param string $kmsKeyId
+     * @param string $keyVaultUrl
+     * @param string $cipherPrefix
+     * @dataProvider cipherProvider
+     */
+    public function testCreateJobWithParallelism(string $kmsKeyId, string $keyVaultUrl, string $cipherPrefix): void
+    {
+        $client = $this->getClient($kmsKeyId, $keyVaultUrl);
+        $job = $client->getJobFactory()->createNewJob([
+            '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+            'configId' => '454124290',
+            'componentId' => 'keboola.ex-db-snowflake',
+            'mode' => 'run',
+            'parallelism' => '5',
+        ]);
+        $response = $client->createJob($job)->jsonSerialize();
+        self::assertNotEmpty($response['id']);
+        unset($response['id']);
+        self::assertNotEmpty($response['createdTime']);
+        unset($response['createdTime']);
+        $storageClient = new StorageClient(
+            [
+                'url' => getenv('TEST_STORAGE_API_URL'),
+                'token' => getenv('TEST_STORAGE_API_TOKEN'),
+            ]
+        );
+        $tokenInfo = $storageClient->verifyToken();
+        self::assertStringStartsWith($cipherPrefix, $response['#tokenString']);
+        unset($response['#tokenString']);
+        self::assertNotEmpty($response['runId']);
+        unset($response['runId']);
+        $expected = [
+            'configId' => '454124290',
+            'componentId' => 'keboola.ex-db-snowflake',
+            'mode' => 'run',
+            'configRowIds' => [],
+            'tag' => null,
+            'configData' => [],
+            'status' => 'created',
+            'desiredStatus' => 'processing',
+            'projectId' => (string) $tokenInfo['owner']['id'],
+            'projectName' => (string) $tokenInfo['owner']['name'],
+            'tokenId' => $tokenInfo['id'],
+            'tokenDescription' => $tokenInfo['description'],
+            'result' => [],
+            'usageData' => [],
+            'isFinished' => false,
+            'startTime' => null,
+            'endTime' => null,
+            'durationSeconds' => 0,
+            'branchId' => null,
+            'variableValuesId' => null,
+            'variableValuesData' => [
+                'values' => [],
+            ],
+            'backend' => [],
+            'metrics' => [],
+            'type' => 'standard',
+            'parallelism' => '5',
         ];
         self::assertEquals($expected, $response);
     }
@@ -175,6 +241,8 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
                 ],
                 'backend' => [],
                 'metrics' => [],
+                'type' => 'standard',
+                'parallelism' => null,
             ];
             self::assertEquals($expected, $responseJobJson);
         }
