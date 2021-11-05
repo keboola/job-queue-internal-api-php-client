@@ -80,6 +80,15 @@ class JobFactory
         return [self::TYPE_STANDARD, self::TYPE_CONTAINER];
     }
 
+    public static function getAllowedParallelismValues(): array
+    {
+        $intValues = array_map(
+            fn ($item) => (string) $item,
+            range(2, 100)
+        );
+        return array_merge($intValues, ['infinity', null]);
+    }
+
     public static function getLegacyComponents(): array
     {
         return ['orchestrator', 'transformation', 'provisioning'];

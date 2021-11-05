@@ -151,17 +151,19 @@ class Job implements JsonSerializable, JobInterface
 
     public function getType(): string
     {
-        return $this->data['type'];
+        return $this->data['type'] ?? JobFactory::TYPE_STANDARD;
     }
 
     public function getParallelism(): ?string
     {
-        return $this->data['parallelism'];
+        return $this->data['parallelism'] ?? null;
     }
 
     public function getBehavior(): Behavior
     {
-        return Behavior::fromDataArray($this->data['behavior']);
+        return isset($this->data['behavior'])
+            ? Behavior::fromDataArray($this->data['behavior'])
+            : new Behavior();
     }
 
     public function jsonSerialize(): array

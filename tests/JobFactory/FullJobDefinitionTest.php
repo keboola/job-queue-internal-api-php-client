@@ -331,6 +331,23 @@ class FullJobDefinitionTest extends BaseTest
                 ],
                 '#Invalid configuration for path "job.type": Type must be one of standard, container.#',
             ],
+            'Invalid parallelism' => [
+                [
+                    '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+                    'tokenId' => '1234',
+                    'projectId' => '123',
+                    'id' => '12345',
+                    'runId' => '12345',
+                    'status' => 'created',
+                    'desiredStatus' => 'processing',
+                    'configId' => '123',
+                    'componentId' => 'keboola.test',
+                    'mode' => 'run',
+                    'parallelism' => 'more then a little',
+                ],
+                '#Invalid configuration for path "job.parallelism": ' .
+                'Parallelism value must be either null, an integer from range 2-100 or "infinity".#',
+            ],
         ];
     }
 
