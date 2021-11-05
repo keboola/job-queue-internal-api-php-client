@@ -327,10 +327,10 @@ class FullJobDefinitionTest extends BaseTest
                     'configId' => '123',
                     'componentId' => 'keboola.test',
                     'mode' => 'run',
-                    'type' => 'orchestration'
+                    'type' => 'orchestration',
                 ],
                 '#Invalid configuration for path "job.type": Type must be one of standard, container.#',
-            ]
+            ],
         ];
     }
 
