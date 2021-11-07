@@ -89,8 +89,36 @@ class FullJobDefinition extends NewJobDefinition
                 ->end()
                 ->scalarNode('desiredStatus')->isRequired()
                     ->validate()
-                        ->ifNotInArray(JobFactory::getAllStatuses())
-                        ->thenInvalid('Status must be one of ' . implode(', ', JobFactory::getAllStatuses()) . '.')
+                        ->ifNotInArray(JobFactory::getAllDesiredStatuses())
+                        ->thenInvalid(
+                            'DesiredStatus must be one of ' .
+                            implode(', ', JobFactory::getAllDesiredStatuses()) .
+                            '.'
+                        )
+                    ->end()
+                ->end()
+                ->scalarNode('type')
+                    ->defaultValue('standard')
+                    ->validate()
+                        ->ifNotInArray(JobFactory::getAllowedJobTypes())
+                        ->thenInvalid('Type must be one of ' . implode(', ', JobFactory::getAllowedJobTypes()) . '.')
+                    ->end()
+                ->end()
+                ->scalarNode('parallelism')
+                    ->defaultNull()
+                    ->validate()
+                        ->ifNotInArray(JobFactory::getAllowedParallelismValues())
+                        ->thenInvalid(
+                            'Parallelism value must be either null, an integer from range 2-100 or "infinity".'
+                        )
+                    ->end()
+                ->end()
+                ->arrayNode('behavior')
+                    ->ignoreExtraKeys(true)
+                    ->children()
+                        ->scalarNode('onError')
+                            ->defaultNull()
+                        ->end()
                     ->end()
                 ->end()
                 ->scalarNode('isFinished')

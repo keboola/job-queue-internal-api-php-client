@@ -32,6 +32,9 @@ interface JobInterface
     public function isFinished(): bool;
     public function getUsageData(): array;
     public function getBackend(): Backend;
+    public function getType(): string;
+    public function getParallelism(): ?string;
+    public function getBehavior(): Behavior;
     public function jsonSerialize(): array;
     public function getTokenDecrypted(): string;
     public function getConfigDataDecrypted(): array;

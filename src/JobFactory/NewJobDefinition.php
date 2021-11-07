@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Keboola\JobQueueInternalClient\JobFactory;
 
+use Keboola\JobQueueInternalClient\JobFactory;
 use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
@@ -49,6 +50,8 @@ class NewJobDefinition implements ConfigurationInterface
                 ->scalarNode('parentRunId')->end()
                 ->arrayNode('configData')->ignoreExtraKeys(false)->end()
                 ->scalarNode('branchId')->end()
+                ->scalarNode('type')->end()
+                ->scalarNode('parallelism')->end()
                 ->scalarNode('variableValuesId')->end()
                 ->arrayNode('variableValuesData')
                     ->children()
@@ -65,6 +68,11 @@ class NewJobDefinition implements ConfigurationInterface
                 ->arrayNode('backend')->ignoreExtraKeys(false)
                     ->children()
                         ->scalarNode('type')->end()
+                    ->end()
+                ->end()
+                ->arrayNode('behavior')->ignoreExtraKeys(true)
+                    ->children()
+                        ->scalarNode('onError')->end()
                     ->end()
                 ->end()
             ->end();

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Keboola\JobQueueInternalClient;
 
 use Keboola\JobQueueInternalClient\Exception\ClientException;
+use Keboola\JobQueueInternalClient\JobFactory\Behavior;
 use Keboola\JobQueueInternalClient\JobFactory\FullJobDefinition;
 use Keboola\JobQueueInternalClient\JobFactory\Job;
 use Keboola\JobQueueInternalClient\JobFactory\JobInterface;
@@ -28,6 +29,9 @@ class JobFactory
 
     public const DESIRED_STATUS_PROCESSING = 'processing';
     public const DESIRED_STATUS_TERMINATING = 'terminating';
+
+    public const TYPE_STANDARD = 'standard';
+    public const TYPE_CONTAINER = 'container';
 
     /** @var StorageClientFactory */
     private $storageClientFactory;
@@ -61,9 +65,28 @@ class JobFactory
             self::STATUS_WARNING];
     }
 
+    public static function getAllDesiredStatuses(): array
+    {
+        return [self::DESIRED_STATUS_PROCESSING, self::DESIRED_STATUS_TERMINATING];
+    }
+
     public static function getKillableStatuses(): array
     {
         return [self::STATUS_CREATED, self::STATUS_WAITING, self::STATUS_PROCESSING];
+    }
+
+    public static function getAllowedJobTypes(): array
+    {
+        return [self::TYPE_STANDARD, self::TYPE_CONTAINER];
+    }
+
+    public static function getAllowedParallelismValues(): array
+    {
+        $intValues = array_map(
+            fn ($item) => (string) $item,
+            range(2, 100)
+        );
+        return array_merge($intValues, ['infinity', null]);
     }
 
     public static function getLegacyComponents(): array
@@ -143,7 +166,10 @@ class JobFactory
                 'configData' => $data['configData'] ?? null,
                 'configRowIds' => $data['configRowIds'] ?? null,
                 'tag' => $data['tag'] ?? null,
+                'type' => $data['type'] ?? self::TYPE_STANDARD,
+                'parallelism' => $data['parallelism'] ?? null,
                 'backend' => $data['backend'] ?? null,
+                'behavior' => $data['behavior'] ?? (new Behavior())->toDataArray(),
                 'result' => [],
                 'usageData' => [],
                 'isFinished' => false,

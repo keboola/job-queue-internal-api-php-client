@@ -47,7 +47,7 @@ class BackendTest extends TestCase
      */
     public function testExportAsDataArray(Backend $backend, array $expectedResult): void
     {
-        self::assertSame($expectedResult, $backend->asDataArray());
+        self::assertSame($expectedResult, $backend->toDataArray());
     }
 
     public function provideExportAsDataArrayData(): iterable

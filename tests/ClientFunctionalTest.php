@@ -49,6 +49,11 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
             'configId' => '454124290',
             'componentId' => 'keboola.ex-db-snowflake',
             'mode' => 'run',
+            'type' => 'container',
+            'parallelism' => '5',
+            'behavior' => [
+                'onError' => 'warning',
+            ],
         ]);
         $response = $client->createJob($job)->jsonSerialize();
 
@@ -93,6 +98,11 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
             ],
             'backend' => [],
             'metrics' => [],
+            'type' => 'container',
+            'parallelism' => '5',
+            'behavior' => [
+                'onError' => 'warning',
+            ],
         ];
         self::assertEquals($expected, $response);
     }
@@ -175,6 +185,11 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
                 ],
                 'backend' => [],
                 'metrics' => [],
+                'type' => 'standard',
+                'parallelism' => null,
+                'behavior' => [
+                    'onError' => null,
+                ],
             ];
             self::assertEquals($expected, $responseJobJson);
         }

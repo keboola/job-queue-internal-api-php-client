@@ -48,7 +48,7 @@ class JobRuntimeResolver
             $variableValues = $this->resolveVariables();
             $backend = $this->resolveBackend();
             $patchData = $variableValues->asDataArray();
-            $patchData['backend'] = $backend->asDataArray();
+            $patchData['backend'] = $backend->toDataArray();
             $patchData['tag'] = $tag;
             $this->logger->info(sprintf('Resolved component tag to "%s".', $tag));
             return $this->jobFactory->modifyJob($this->job, $patchData);
