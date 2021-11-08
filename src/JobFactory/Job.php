@@ -18,6 +18,8 @@ class Job implements JsonSerializable, JobInterface
     private ObjectEncryptorFactory $objectEncryptorFactory;
     private ?DateTimeImmutable $endTime;
     private ?DateTimeImmutable $startTime;
+    private ?string $tokenDecrypted = null;
+    private ?array $configDataDecrypted = null;
 
     public function __construct(ObjectEncryptorFactory $objectEncryptorFactory, array $data)
     {
@@ -173,12 +175,18 @@ class Job implements JsonSerializable, JobInterface
 
     public function getTokenDecrypted(): string
     {
-        return $this->objectEncryptorFactory->getEncryptor(true)->decrypt($this->getTokenString());
+        if ($this->tokenDecrypted === null) {
+            $this->tokenDecrypted = $this->objectEncryptorFactory->getEncryptor(true)->decrypt($this->getTokenString());
+        }
+        return $this->tokenDecrypted;
     }
 
     public function getConfigDataDecrypted(): array
     {
-        return $this->objectEncryptorFactory->getEncryptor()->decrypt($this->getConfigData());
+        if ($this->configDataDecrypted === null) {
+            $this->configDataDecrypted = $this->objectEncryptorFactory->getEncryptor()->decrypt($this->getConfigData());
+        }
+        return $this->configDataDecrypted;
     }
 
     public function isLegacyComponent(): bool

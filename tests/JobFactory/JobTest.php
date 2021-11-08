@@ -6,6 +6,7 @@ namespace Keboola\JobQueueInternalClient\Tests\JobFactory;
 
 use Keboola\JobQueueInternalClient\JobFactory\Job;
 use Keboola\JobQueueInternalClient\Tests\BaseTest;
+use Keboola\ObjectEncryptor\ObjectEncryptor;
 use Keboola\ObjectEncryptor\ObjectEncryptorFactory;
 
 class JobTest extends BaseTest
@@ -270,5 +271,70 @@ class JobTest extends BaseTest
         $job = $this->getJob($jobData);
         self::assertNull($job->getMetrics()->getInputTablesBytesSum());
         self::assertNull($job->getMetrics()->getBackendSize());
+    }
+
+    public function testCacheDecryptedToken(): void
+    {
+        $objectEncryptorFactoryMock = self::getMockBuilder(ObjectEncryptorFactory::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $objectEncryptorMock = self::getMockBuilder(ObjectEncryptor::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $objectEncryptorFactoryMock
+            ->expects($this->exactly(1))
+            ->method('getEncryptor')
+            ->willReturn($objectEncryptorMock);
+
+        $objectEncryptorMock
+            ->expects($this->exactly(1))
+            ->method('decrypt')
+            ->willReturn('decrypted-token-123');
+
+        $job = new Job($objectEncryptorFactoryMock, $this->jobData);
+
+        // first call - calls the Encryptor API (mock)
+        $decryptedToken = $job->getTokenDecrypted();
+        self::assertEquals('decrypted-token-123', $decryptedToken);
+
+        // second call - should be cached
+        $decryptedToken = $job->getTokenDecrypted();
+        self::assertEquals('decrypted-token-123', $decryptedToken);
+    }
+
+    public function testCacheDecryptedConfigData(): void
+    {
+        $objectEncryptorFactoryMock = self::getMockBuilder(ObjectEncryptorFactory::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $objectEncryptorMock = self::getMockBuilder(ObjectEncryptor::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $objectEncryptorFactoryMock
+            ->expects($this->exactly(1))
+            ->method('getEncryptor')
+            ->willReturn($objectEncryptorMock);
+
+        $expectedConfigData = [
+            'parameters' => ['#secret-foo' => 'decrypted-bar'],
+        ];
+        $objectEncryptorMock
+            ->expects($this->exactly(1))
+            ->method('decrypt')
+            ->willReturn($expectedConfigData);
+
+        $job = new Job($objectEncryptorFactoryMock, $this->jobData);
+
+        // first call - calls the Encryptor API (mock)
+        $decryptedConfigData = $job->getConfigDataDecrypted();
+        self::assertEquals($expectedConfigData, $decryptedConfigData);
+
+        // second call - should be cached
+        $decryptedConfigData = $job->getConfigDataDecrypted();
+        self::assertEquals($expectedConfigData, $decryptedConfigData);
     }
 }
