@@ -46,6 +46,7 @@ class OverridesConfigurationDefinitionTest extends TestCase
         unset($expected['runtime']['also']);
         $expected['variableValuesId'] = '123';
         $expected['runtime']['tag'] = '1';
+        $expected['runtime']['parallelism'] = null;
         self::assertSame($expected, $definition->processData($data));
     }
 

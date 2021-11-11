@@ -47,10 +47,13 @@ class JobRuntimeResolver
             $tag = $this->resolveTag();
             $variableValues = $this->resolveVariables();
             $backend = $this->resolveBackend();
+            $parallelism = $this->resolveParallelism();
             $patchData = $variableValues->asDataArray();
             $patchData['backend'] = $backend->toDataArray();
             $patchData['tag'] = $tag;
+            $patchData['parallelism'] = $parallelism;
             $this->logger->info(sprintf('Resolved component tag to "%s".', $tag));
+            $this->logger->info(sprintf('Resolved parallelism to "%s".', $parallelism));
             return $this->jobFactory->modifyJob($this->job, $patchData);
         } catch (InvalidConfigurationException $e) {
             throw new ClientException('Invalid configuration: ' . $e->getMessage(), 0, $e);
@@ -116,6 +119,21 @@ class JobRuntimeResolver
             return Backend::fromDataArray($configuration['runtime']['backend']);
         }
         return new Backend(null);
+    }
+
+    private function resolveParallelism(): ?string
+    {
+        if (!empty($this->job->getParallelism())) {
+            return (string) $this->job->getParallelism();
+        }
+        if (!empty($this->getConfigData()['runtime']['parallelism'])) {
+            return (string) $this->getConfigData()['runtime']['parallelism'];
+        }
+        $configuration = $this->getConfiguration();
+        if (!empty($configuration['runtime']['parallelism'])) {
+            return $configuration['runtime']['parallelism'];
+        }
+        return null;
     }
 
     private function getConfigData(): array

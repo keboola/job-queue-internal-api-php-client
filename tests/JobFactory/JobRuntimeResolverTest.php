@@ -56,6 +56,7 @@ class JobRuntimeResolverTest extends TestCase
             ],
         ];
         $jobData['backend'] = ['type' => 'custom'];
+        $jobData['parallelism'] = '5';
 
         $job = new Job($this->getObjectEncryptorFactoryMock(), $jobData);
 
@@ -80,6 +81,7 @@ class JobRuntimeResolverTest extends TestCase
                         'type' => 'custom',
                     ],
                     'tag' => '1.2.3',
+                    'parallelism' => '5',
                 ]
             )->willReturn($job);
         $internalApiClientMock = self::createMock(InternalApiClient::class);
@@ -97,6 +99,7 @@ class JobRuntimeResolverTest extends TestCase
             'runtime' => [
                 'tag' => '3.2.1',
                 'backend' => ['type' => 'mass-produced'],
+                'parallelism' => '5',
             ],
             'parameters' => ['foo' => 'bar'],
         ];
@@ -118,6 +121,7 @@ class JobRuntimeResolverTest extends TestCase
                         'type' => 'mass-produced',
                     ],
                     'tag' => '3.2.1',
+                    'parallelism' => '5',
                 ]
             )->willReturn($job);
 
@@ -139,6 +143,7 @@ class JobRuntimeResolverTest extends TestCase
                         'type' => 'stereotyped',
                     ],
                     'tag' => '4.5.6',
+                    'parallelism' => '5',
                 ],
                 'parameters' => ['foo' => 'bar'],
                 'variableValuesData' => [
@@ -177,6 +182,7 @@ class JobRuntimeResolverTest extends TestCase
                         'type' => 'stereotyped',
                     ],
                     'tag' => '4.5.6',
+                    'parallelism' => '5',
                 ]
             )->willReturn($job);
 
@@ -198,6 +204,7 @@ class JobRuntimeResolverTest extends TestCase
                         'type' => 'stereotyped',
                     ],
                     'image_tag' => '4.5.6',
+                    'parallelism' => '5',
                 ],
             ],
         ];
@@ -220,6 +227,7 @@ class JobRuntimeResolverTest extends TestCase
                         'type' => 'stereotyped',
                     ],
                     'tag' => '4.5.6',
+                    'parallelism' => '5',
                 ]
             )->willReturn($job);
 
@@ -237,6 +245,7 @@ class JobRuntimeResolverTest extends TestCase
             'variableValuesId' => '456',
             'runtime' => [
                 'tag' => '4.5.6',
+                'parallelism' => '5',
             ],
             'parameters' => ['foo' => 'bar'],
         ];
@@ -249,6 +258,7 @@ class JobRuntimeResolverTest extends TestCase
                         'type' => 'stereotyped',
                     ],
                     'tag' => '7.8.9',
+                    'parallelism' => '3',
                 ],
                 'parameters' => ['foo' => 'bar'],
                 'variableValuesData' => [
@@ -280,6 +290,7 @@ class JobRuntimeResolverTest extends TestCase
                         'type' => 'stereotyped',
                     ],
                     'tag' => '4.5.6',
+                    'parallelism' => '5',
                 ]
             )->willReturn($job);
 
@@ -329,6 +340,7 @@ class JobRuntimeResolverTest extends TestCase
                         'type' => null,
                     ],
                     'tag' => '9.9.9',
+                    'parallelism' => null,
                 ]
             )->willReturn($job);
 
@@ -412,6 +424,7 @@ class JobRuntimeResolverTest extends TestCase
                         'type' => null,
                     ],
                     'tag' => '9.9.9',
+                    'parallelism' => null,
                 ]
             )->willReturn($job);
 
