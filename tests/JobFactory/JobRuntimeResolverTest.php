@@ -60,7 +60,6 @@ class JobRuntimeResolverTest extends TestCase
 
         $job = new Job($this->getObjectEncryptorFactoryMock(), $jobData);
 
-        $logger = new TestLogger();
         $storageClientFactoryMock = self::createMock(StorageClientFactory::class);
         $storageClientFactoryMock->expects(self::never())->method('getClient');
         $jobFactoryMock = self::createMock(JobFactory::class);
@@ -87,7 +86,7 @@ class JobRuntimeResolverTest extends TestCase
         $internalApiClientMock = self::createMock(InternalApiClient::class);
         $internalApiClientMock->method('getJobFactory')->willReturn($jobFactoryMock);
 
-        $jobRuntimeResolver = new JobRuntimeResolver($logger, $storageClientFactoryMock, $internalApiClientMock);
+        $jobRuntimeResolver = new JobRuntimeResolver($storageClientFactoryMock, $internalApiClientMock);
         $jobRuntimeResolver->resolve($job);
     }
 
@@ -106,7 +105,6 @@ class JobRuntimeResolverTest extends TestCase
 
         $job = new Job($this->getObjectEncryptorFactoryMock(), $jobData);
 
-        $logger = new TestLogger();
         $storageClientFactoryMock = self::createMock(StorageClientFactory::class);
         $storageClientFactoryMock->expects(self::never())->method('getClient');
         $jobFactoryMock = self::createMock(JobFactory::class);
@@ -127,7 +125,7 @@ class JobRuntimeResolverTest extends TestCase
 
         $internalApiClientMock = self::createMock(InternalApiClient::class);
         $internalApiClientMock->method('getJobFactory')->willReturn($jobFactoryMock);
-        $jobRuntimeResolver = new JobRuntimeResolver($logger, $storageClientFactoryMock, $internalApiClientMock);
+        $jobRuntimeResolver = new JobRuntimeResolver($storageClientFactoryMock, $internalApiClientMock);
         $jobRuntimeResolver->resolve($job);
     }
 
@@ -157,7 +155,6 @@ class JobRuntimeResolverTest extends TestCase
             ],
         ];
 
-        $logger = new TestLogger();
         $clientMock = self::createMock(Client::class);
         $clientMock->expects(self::once())->method('apiGet')
             ->with('components/keboola.ex-db-snowflake/configs/454124290')->willReturn($configuration);
@@ -188,7 +185,7 @@ class JobRuntimeResolverTest extends TestCase
 
         $internalApiClientMock = self::createMock(InternalApiClient::class);
         $internalApiClientMock->method('getJobFactory')->willReturn($jobFactoryMock);
-        $jobRuntimeResolver = new JobRuntimeResolver($logger, $storageClientFactoryMock, $internalApiClientMock);
+        $jobRuntimeResolver = new JobRuntimeResolver($storageClientFactoryMock, $internalApiClientMock);
         $jobRuntimeResolver->resolve($job);
     }
 
@@ -209,7 +206,6 @@ class JobRuntimeResolverTest extends TestCase
             ],
         ];
 
-        $logger = new TestLogger();
         $clientMock = self::createMock(Client::class);
         $clientMock->expects(self::once())->method('apiGet')
             ->with('components/keboola.ex-db-snowflake/configs/454124290')->willReturn($configuration);
@@ -233,7 +229,7 @@ class JobRuntimeResolverTest extends TestCase
 
         $internalApiClientMock = self::createMock(InternalApiClient::class);
         $internalApiClientMock->method('getJobFactory')->willReturn($jobFactoryMock);
-        $jobRuntimeResolver = new JobRuntimeResolver($logger, $storageClientFactoryMock, $internalApiClientMock);
+        $jobRuntimeResolver = new JobRuntimeResolver($storageClientFactoryMock, $internalApiClientMock);
         $jobRuntimeResolver->resolve($job);
     }
 
@@ -272,7 +268,6 @@ class JobRuntimeResolverTest extends TestCase
             ],
         ];
 
-        $logger = new TestLogger();
         $clientMock = self::createMock(Client::class);
         $clientMock->expects(self::once())->method('apiGet')
             ->with('components/keboola.ex-db-snowflake/configs/454124290')->willReturn($configuration);
@@ -296,7 +291,7 @@ class JobRuntimeResolverTest extends TestCase
 
         $internalApiClientMock = self::createMock(InternalApiClient::class);
         $internalApiClientMock->method('getJobFactory')->willReturn($jobFactoryMock);
-        $jobRuntimeResolver = new JobRuntimeResolver($logger, $storageClientFactoryMock, $internalApiClientMock);
+        $jobRuntimeResolver = new JobRuntimeResolver($storageClientFactoryMock, $internalApiClientMock);
         $jobRuntimeResolver->resolve($job);
     }
 
@@ -319,7 +314,6 @@ class JobRuntimeResolverTest extends TestCase
             ],
         ];
 
-        $logger = new TestLogger();
         $clientMock = self::createMock(Client::class);
         $clientMock->expects(self::exactly(2))->method('apiGet')
             ->withConsecutive(
@@ -346,7 +340,7 @@ class JobRuntimeResolverTest extends TestCase
 
         $internalApiClientMock = self::createMock(InternalApiClient::class);
         $internalApiClientMock->method('getJobFactory')->willReturn($jobFactoryMock);
-        $jobRuntimeResolver = new JobRuntimeResolver($logger, $storageClientFactoryMock, $internalApiClientMock);
+        $jobRuntimeResolver = new JobRuntimeResolver($storageClientFactoryMock, $internalApiClientMock);
         $jobRuntimeResolver->resolve($job);
     }
 
@@ -359,14 +353,13 @@ class JobRuntimeResolverTest extends TestCase
         ];
         $job = new Job($this->getObjectEncryptorFactoryMock(), $jobData);
 
-        $logger = new TestLogger();
         $storageClientFactoryMock = self::createMock(StorageClientFactory::class);
         $storageClientFactoryMock->expects(self::never())->method('getClient');
         $jobFactoryMock = self::createMock(JobFactory::class);
 
         $internalApiClientMock = self::createMock(InternalApiClient::class);
         $internalApiClientMock->method('getJobFactory')->willReturn($jobFactoryMock);
-        $jobRuntimeResolver = new JobRuntimeResolver($logger, $storageClientFactoryMock, $internalApiClientMock);
+        $jobRuntimeResolver = new JobRuntimeResolver($storageClientFactoryMock, $internalApiClientMock);
         self::expectException(ClientException::class);
         self::expectExceptionMessage('Invalid configuration: Invalid type for path "overrides.variableValuesData".');
         $jobRuntimeResolver->resolve($job);
@@ -376,7 +369,6 @@ class JobRuntimeResolverTest extends TestCase
     {
         $jobData = self::JOB_DATA;
         $job = new Job($this->getObjectEncryptorFactoryMock(), $jobData);
-        $logger = new TestLogger();
         $clientMock = self::createMock(Client::class);
         $clientMock->expects(self::once())->method('apiGet')
             ->with(
@@ -387,7 +379,7 @@ class JobRuntimeResolverTest extends TestCase
         $jobFactoryMock = self::createMock(JobFactory::class);
         $internalApiClientMock = self::createMock(InternalApiClient::class);
         $internalApiClientMock->method('getJobFactory')->willReturn($jobFactoryMock);
-        $jobRuntimeResolver = new JobRuntimeResolver($logger, $storageClientFactoryMock, $internalApiClientMock);
+        $jobRuntimeResolver = new JobRuntimeResolver($storageClientFactoryMock, $internalApiClientMock);
         self::expectExceptionMessage('Cannot resolve job parameters: Configuration "454124290" not found');
         self::expectException(ClientException::class);
         $jobRuntimeResolver->resolve($job);
@@ -398,7 +390,6 @@ class JobRuntimeResolverTest extends TestCase
         $jobData = self::JOB_DATA;
         unset($jobData['configId']);
         $job = new Job($this->getObjectEncryptorFactoryMock(), $jobData);
-        $logger = new TestLogger();
         $component = [
             'id' => 'keboola.ex-db-snowflake',
             'data' => [
@@ -430,7 +421,7 @@ class JobRuntimeResolverTest extends TestCase
 
         $internalApiClientMock = self::createMock(InternalApiClient::class);
         $internalApiClientMock->method('getJobFactory')->willReturn($jobFactoryMock);
-        $jobRuntimeResolver = new JobRuntimeResolver($logger, $storageClientFactoryMock, $internalApiClientMock);
+        $jobRuntimeResolver = new JobRuntimeResolver($storageClientFactoryMock, $internalApiClientMock);
         $jobRuntimeResolver->resolve($job);
     }
 
@@ -459,7 +450,6 @@ class JobRuntimeResolverTest extends TestCase
             ],
         ];
 
-        $logger = new TestLogger();
         $clientMock = self::createMock(Client::class);
         $clientMock->expects(self::exactly(2))->method('apiGet')
             ->with()->willReturn($configuration);
@@ -470,7 +460,7 @@ class JobRuntimeResolverTest extends TestCase
 
         $internalApiClientMock = self::createMock(InternalApiClient::class);
         $internalApiClientMock->method('getJobFactory')->willReturn($jobFactoryMock);
-        $jobRuntimeResolver = new JobRuntimeResolver($logger, $storageClientFactoryMock, $internalApiClientMock);
+        $jobRuntimeResolver = new JobRuntimeResolver($storageClientFactoryMock, $internalApiClientMock);
         $jobRuntimeResolver->resolve($job);
         $jobRuntimeResolver->resolve($job);
     }
@@ -480,7 +470,6 @@ class JobRuntimeResolverTest extends TestCase
         $jobData = self::JOB_DATA;
         unset($jobData['configId']);
         $job = new Job($this->getObjectEncryptorFactoryMock(), $jobData);
-        $logger = new TestLogger();
         $component = [
             'id' => 'keboola.ex-db-snowflake',
             'data' => [
@@ -497,7 +486,7 @@ class JobRuntimeResolverTest extends TestCase
 
         $internalApiClientMock = self::createMock(InternalApiClient::class);
         $internalApiClientMock->method('getJobFactory')->willReturn($jobFactoryMock);
-        $jobRuntimeResolver = new JobRuntimeResolver($logger, $storageClientFactoryMock, $internalApiClientMock);
+        $jobRuntimeResolver = new JobRuntimeResolver($storageClientFactoryMock, $internalApiClientMock);
         self::expectExceptionMessage('The component "keboola.ex-db-snowflake" is not runnable.');
         self::expectException(ClientException::class);
         $jobRuntimeResolver->resolve($job);
