@@ -84,7 +84,7 @@ class JobFactory
     {
         $intValues = array_map(
             fn ($item) => (string) $item,
-            range(2, 100)
+            range(0, 100)
         );
         return array_merge($intValues, ['infinity', null]);
     }

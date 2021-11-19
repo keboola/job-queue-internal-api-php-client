@@ -47,6 +47,7 @@ class JobRuntimeResolver
             $patchData['backend'] = $backend->toDataArray();
             $patchData['tag'] = $tag;
             $patchData['parallelism'] = $parallelism;
+            $patchData['type'] = $parallelism > 0 ? JobFactory::TYPE_CONTAINER : JobFactory::TYPE_STANDARD;
             return $this->jobFactory->modifyJob($this->job, $patchData);
         } catch (InvalidConfigurationException $e) {
             throw new ClientException('Invalid configuration: ' . $e->getMessage(), 0, $e);
@@ -116,10 +117,11 @@ class JobRuntimeResolver
 
     private function resolveParallelism(): ?string
     {
-        if (!empty($this->job->getParallelism())) {
+        if ($this->job->getParallelism() !== null) {
             return (string) $this->job->getParallelism();
         }
-        if (!empty($this->getConfigData()['runtime']['parallelism'])) {
+        if (isset($this->getConfigData()['runtime']['parallelism'])
+            && $this->getConfigData()['runtime']['parallelism'] !== null) {
             return (string) $this->getConfigData()['runtime']['parallelism'];
         }
         $configuration = $this->getConfiguration();

@@ -81,6 +81,7 @@ class JobRuntimeResolverTest extends TestCase
                     ],
                     'tag' => '1.2.3',
                     'parallelism' => '5',
+                    'type' => JobFactory::TYPE_CONTAINER,
                 ]
             )->willReturn($job);
         $internalApiClientMock = self::createMock(InternalApiClient::class);
@@ -120,6 +121,7 @@ class JobRuntimeResolverTest extends TestCase
                     ],
                     'tag' => '3.2.1',
                     'parallelism' => '5',
+                    'type' => JobFactory::TYPE_CONTAINER,
                 ]
             )->willReturn($job);
 
@@ -180,6 +182,7 @@ class JobRuntimeResolverTest extends TestCase
                     ],
                     'tag' => '4.5.6',
                     'parallelism' => '5',
+                    'type' => JobFactory::TYPE_CONTAINER,
                 ]
             )->willReturn($job);
 
@@ -224,6 +227,7 @@ class JobRuntimeResolverTest extends TestCase
                     ],
                     'tag' => '4.5.6',
                     'parallelism' => '5',
+                    'type' => JobFactory::TYPE_CONTAINER,
                 ]
             )->willReturn($job);
 
@@ -241,7 +245,7 @@ class JobRuntimeResolverTest extends TestCase
             'variableValuesId' => '456',
             'runtime' => [
                 'tag' => '4.5.6',
-                'parallelism' => '5',
+                'parallelism' => '0',
             ],
             'parameters' => ['foo' => 'bar'],
         ];
@@ -285,7 +289,8 @@ class JobRuntimeResolverTest extends TestCase
                         'type' => 'stereotyped',
                     ],
                     'tag' => '4.5.6',
-                    'parallelism' => '5',
+                    'parallelism' => '0',
+                    'type' => JobFactory::TYPE_STANDARD,
                 ]
             )->willReturn($job);
 
@@ -335,6 +340,7 @@ class JobRuntimeResolverTest extends TestCase
                     ],
                     'tag' => '9.9.9',
                     'parallelism' => null,
+                    'type' => JobFactory::TYPE_STANDARD,
                 ]
             )->willReturn($job);
 
@@ -416,6 +422,7 @@ class JobRuntimeResolverTest extends TestCase
                     ],
                     'tag' => '9.9.9',
                     'parallelism' => null,
+                    'type' => JobFactory::TYPE_STANDARD,
                 ]
             )->willReturn($job);
 
