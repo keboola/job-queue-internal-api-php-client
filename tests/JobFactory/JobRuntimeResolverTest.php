@@ -289,7 +289,7 @@ class JobRuntimeResolverTest extends TestCase
                         'type' => 'stereotyped',
                     ],
                     'tag' => '4.5.6',
-                    'parallelism' => null,
+                    'parallelism' => '0',
                     'type' => JobFactory::TYPE_STANDARD,
                 ]
             )->willReturn($job);

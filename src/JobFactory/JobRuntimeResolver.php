@@ -117,10 +117,11 @@ class JobRuntimeResolver
 
     private function resolveParallelism(): ?string
     {
-        if (!empty($this->job->getParallelism())) {
+        if ($this->job->getParallelism() !== null) {
             return (string) $this->job->getParallelism();
         }
-        if (!empty($this->getConfigData()['runtime']['parallelism'])) {
+        if (isset($this->getConfigData()['runtime']['parallelism'])
+            && $this->getConfigData()['runtime']['parallelism'] !== null) {
             return (string) $this->getConfigData()['runtime']['parallelism'];
         }
         $configuration = $this->getConfiguration();
