@@ -245,7 +245,7 @@ class JobRuntimeResolverTest extends TestCase
             'variableValuesId' => '456',
             'runtime' => [
                 'tag' => '4.5.6',
-                'parallelism' => null,
+                'parallelism' => '0',
             ],
             'parameters' => ['foo' => 'bar'],
         ];
