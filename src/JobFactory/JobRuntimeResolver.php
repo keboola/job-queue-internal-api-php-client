@@ -9,15 +9,12 @@ use Keboola\JobQueueInternalClient\Exception\ClientException;
 use Keboola\JobQueueInternalClient\JobFactory;
 use Keboola\StorageApi\ClientException as StorageClientException;
 use Keboola\StorageApi\Components;
-use Psr\Log\LoggerInterface;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 
 class JobRuntimeResolver
 {
     /** @var StorageClientFactory */
     private $storageClientFactory;
-    /** @var LoggerInterface */
-    private $logger;
     /** @var JobFactory */
     private $jobFactory;
     /** @var ?Components */
@@ -28,11 +25,9 @@ class JobRuntimeResolver
     private $job;
 
     public function __construct(
-        LoggerInterface $logger,
         StorageClientFactory $storageClientFactory,
         InternalApiClient $internalApiClient
     ) {
-        $this->logger = $logger;
         $this->storageClientFactory = $storageClientFactory;
         $this->jobFactory = $internalApiClient->getJobFactory();
     }
@@ -52,8 +47,6 @@ class JobRuntimeResolver
             $patchData['backend'] = $backend->toDataArray();
             $patchData['tag'] = $tag;
             $patchData['parallelism'] = $parallelism;
-            $this->logger->info(sprintf('Resolved component tag to "%s".', $tag));
-            $this->logger->info(sprintf('Resolved parallelism to "%s".', $parallelism));
             return $this->jobFactory->modifyJob($this->job, $patchData);
         } catch (InvalidConfigurationException $e) {
             throw new ClientException('Invalid configuration: ' . $e->getMessage(), 0, $e);
