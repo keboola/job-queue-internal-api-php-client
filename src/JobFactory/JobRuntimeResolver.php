@@ -48,7 +48,6 @@ class JobRuntimeResolver
             $patchData['tag'] = $tag;
             $patchData['parallelism'] = $parallelism;
             $patchData['type'] = $parallelism > 0 ? JobFactory::TYPE_CONTAINER : JobFactory::TYPE_STANDARD;
-            
             return $this->jobFactory->modifyJob($this->job, $patchData);
         } catch (InvalidConfigurationException $e) {
             throw new ClientException('Invalid configuration: ' . $e->getMessage(), 0, $e);
