@@ -218,6 +218,7 @@ class JobTest extends BaseTest
     {
         $expected = $this->jobData;
         $expected['runId'] = '123456456';
+        $expected['parentRunId'] = '';
         $expected['isFinished'] = false;
         self::assertEquals($expected, $this->getJob()->jsonSerialize());
     }

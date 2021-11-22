@@ -25,6 +25,7 @@ class Job implements JsonSerializable, JobInterface
     {
         $this->data = $data;
         $this->data['isFinished'] = in_array($this->getStatus(), JobFactory::getFinishedStatuses());
+        $this->data['parentRunId'] = $this->getParentRunId();
         // it's important to clone here because we change state of the factory!
         // this is tested by JobFactoryTest::testEncryptionMultipleJobs()
         $this->objectEncryptorFactory = clone $objectEncryptorFactory;

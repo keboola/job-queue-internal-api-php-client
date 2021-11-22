@@ -55,12 +55,13 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
                 'onError' => 'warning',
             ],
         ]);
-        $response = $client->createJob($job)->jsonSerialize();
 
-        self::assertNotEmpty($response['id']);
-        unset($response['id']);
+        $response = $client->createJob($job)->jsonSerialize();
         self::assertNotEmpty($response['createdTime']);
         unset($response['createdTime']);
+        self::assertStringStartsWith($cipherPrefix, $response['#tokenString']);
+        unset($response['#tokenString']);
+
         $storageClient = new StorageClient(
             [
                 'url' => getenv('TEST_STORAGE_API_URL'),
@@ -68,11 +69,11 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
             ]
         );
         $tokenInfo = $storageClient->verifyToken();
-        self::assertStringStartsWith($cipherPrefix, $response['#tokenString']);
-        unset($response['#tokenString']);
-        self::assertNotEmpty($response['runId']);
-        unset($response['runId']);
+
         $expected = [
+            'id' => $job->getId(),
+            'runId' => $job->getRunId(),
+            'parentRunId' => $job->getParentRunId(),
             'configId' => '454124290',
             'componentId' => 'keboola.ex-db-snowflake',
             'mode' => 'run',
@@ -139,6 +140,7 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
             $job2,
             $job3,
         ]);
+
         self::assertNotEmpty($responseJobs);
         $storageClient = new StorageClient(
             [
@@ -153,12 +155,14 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
             $responseJobJson = $responseJob->jsonSerialize();
             self::assertNotEmpty($responseJobJson['id']);
             unset($responseJobJson['id']);
+            self::assertNotEmpty($responseJobJson['runId']);
+            unset($responseJobJson['runId']);
+            self::assertArrayHasKey('parentRunId', $responseJobJson);
+            unset($responseJobJson['parentRunId']);
             self::assertNotEmpty($responseJobJson['createdTime']);
             unset($responseJobJson['createdTime']);
             self::assertStringStartsWith($cipherPrefix, $responseJobJson['#tokenString']);
             unset($responseJobJson['#tokenString']);
-            self::assertNotEmpty($responseJobJson['runId']);
-            unset($responseJobJson['runId']);
             $expected = [
                 'configId' => '454124290',
                 'componentId' => 'keboola.ex-db-snowflake',
@@ -223,6 +227,24 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
         ], $job->getMetrics()->jsonSerialize());
         self::assertNull($job->getStartTime());
         self::assertNull($job->getEndTime());
+    }
+
+    public function testGetJobParentRunId(): void
+    {
+        $client = $this->getClient();
+        $job = $client->getJobFactory()->createNewJob([
+            '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+            'configId' => '454124290',
+            'componentId' => 'keboola.ex-db-snowflake',
+            'mode' => 'run',
+            'parentRunId' => '123456',
+        ]);
+        $createdJob = $client->createJob($job);
+        $client = $this->getClient();
+        $getJob = $client->getJob($createdJob->getId());
+        self::assertEquals('123456', $job->getParentRunId());
+        self::assertEquals('123456', $createdJob->getParentRunId());
+        self::assertEquals('123456', $getJob->getParentRunId());
     }
 
     public function testGetJobStartTimeEndTime(): void

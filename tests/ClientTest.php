@@ -887,6 +887,7 @@ class ClientTest extends BaseTest
             'status' => JobFactory::STATUS_SUCCESS,
             'projectId' => 'test',
             'id' => '',
+            'runId' => '',
         ]);
         $client = $this->getClient([]);
 

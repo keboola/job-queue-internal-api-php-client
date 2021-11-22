@@ -17,6 +17,7 @@ class PermissionCheckerTest extends TestCase
     {
         $jobData = [
             'id' => '123456456',
+            'runId' => '123456456',
             'configId' => '454124290',
             'componentId' => 'keboola.dummy',
             'mode' => 'run',
