@@ -33,6 +33,7 @@ class JobListOptions
     private string $sortBy;
     private string $sortOrder;
     private string $parentRunId;
+    private string $type;
 
     /** @var string */
     public const SORT_ORDER_ASC = 'asc';
@@ -63,6 +64,7 @@ class JobListOptions
             'sortBy' => 'sortBy',
             'sortOrder' => 'sortOrder',
             'parentRunId' => 'parentRunId',
+            'type' => 'type',
         ];
         $dateTimeProps = [
             'startTimeFrom' => 'startTimeFrom',
@@ -361,6 +363,17 @@ class JobListOptions
     public function setParentRunId(string $value): JobListOptions
     {
         $this->parentRunId = $value;
+        return $this;
+    }
+
+    public function getType(): string
+    {
+        return $this->type;
+    }
+
+    public function setType(string $type): JobListOptions
+    {
+        $this->type = $type;
         return $this;
     }
 }
