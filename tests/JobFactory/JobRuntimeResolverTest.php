@@ -22,6 +22,7 @@ class JobRuntimeResolverTest extends TestCase
     /** @var array */
     private const JOB_DATA = [
         'id' => '123456456',
+        'runId' => '123456456',
         'configId' => '454124290',
         'componentId' => 'keboola.ex-db-snowflake',
         'mode' => 'run',
