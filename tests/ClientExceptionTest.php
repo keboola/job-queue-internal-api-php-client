@@ -18,13 +18,17 @@ use Keboola\JobQueueInternalClient\Result\JobResult;
 use Keboola\ObjectEncryptor\ObjectEncryptorFactory;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
+use Psr\Log\Test\TestLogger;
 use Throwable;
 
 class ClientExceptionTest extends BaseTest
 {
     private function getJobFactory(): JobFactory
     {
-        $storageClientFactory = new JobFactory\StorageClientFactory('http://example.com/');
+        $storageClientFactory = new JobFactory\StorageClientFactory(
+            'http://example.com/',
+            new TestLogger()
+        );
         $objectEncryptorFactory = new ObjectEncryptorFactory('alias/some-key', 'us-east-1', '', '', '');
         return new JobFactory($storageClientFactory, $objectEncryptorFactory);
     }
