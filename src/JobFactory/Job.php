@@ -202,7 +202,7 @@ class Job implements JsonSerializable, JobInterface
 
     public function getBranchId(): ?string
     {
-        return $this->data['branchId'];
+        return $this->data['branchId'] ?? null;
     }
 
     public function getVariableValuesId(): ?string
