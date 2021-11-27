@@ -535,6 +535,7 @@ class JobRuntimeResolverTest extends TestCase
         $storageClientFactoryMock
             ->expects(self::once())
             ->method('getClient')
+            // this is the important bit - branchId is passed as 2nd argument
             ->with('KBC::ProjectSecure::token', 'dev-branch')
             ->willReturn($clientMock);
         $jobFactoryMock = self::createMock(JobFactory::class);
