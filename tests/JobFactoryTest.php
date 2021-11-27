@@ -11,6 +11,7 @@ use Keboola\JobQueueInternalClient\JobFactory\StorageClientFactory;
 use Keboola\ObjectEncryptor\Legacy\Encryptor;
 use Keboola\ObjectEncryptor\ObjectEncryptorFactory;
 use Keboola\StorageApi\Client;
+use Psr\Log\Test\TestLogger;
 use ReflectionProperty;
 
 class JobFactoryTest extends BaseTest
@@ -27,7 +28,10 @@ class JobFactoryTest extends BaseTest
 
     private function getJobFactory(): JobFactory
     {
-        $storageClientFactory = new StorageClientFactory((string) getenv('TEST_STORAGE_API_URL'));
+        $storageClientFactory = new StorageClientFactory(
+            (string) getenv('TEST_STORAGE_API_URL'),
+            new TestLogger()
+        );
         $objectEncryptorFactory = new ObjectEncryptorFactory(
             (string) getenv('TEST_KMS_KEY_ID'),
             (string) getenv('TEST_KMS_REGION'),
@@ -408,7 +412,10 @@ class JobFactoryTest extends BaseTest
             '',
             (string) getenv('TEST_AZURE_KEY_VAULT_URL'),
         );
-        $storageClientFactory = new StorageClientFactory((string) getenv('TEST_STORAGE_API_URL'));
+        $storageClientFactory = new StorageClientFactory(
+            (string) getenv('TEST_STORAGE_API_URL'),
+            new TestLogger()
+        );
         $client = new Client(
             [
                 'url' => getenv('TEST_STORAGE_API_URL'),
@@ -526,7 +533,10 @@ class JobFactoryTest extends BaseTest
             'bar',
             $objectEncryptorFactory->getEncryptor()->getRegisteredProjectWrapperClass()
         );
-        $storageClientFactory = new StorageClientFactory((string) getenv('TEST_STORAGE_API_URL'));
+        $storageClientFactory = new StorageClientFactory(
+            (string) getenv('TEST_STORAGE_API_URL'),
+            new TestLogger()
+        );
         $jobFactory = new JobFactory($storageClientFactory, $objectEncryptorFactory);
         $data = [
             '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),

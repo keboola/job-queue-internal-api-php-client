@@ -12,6 +12,7 @@ use Keboola\JobQueueInternalClient\JobFactory\JobRuntimeResolver;
 use Keboola\JobQueueInternalClient\JobFactory\StorageClientFactory;
 use Keboola\ObjectEncryptor\ObjectEncryptor;
 use Keboola\ObjectEncryptor\ObjectEncryptorFactory;
+use Keboola\StorageApi\BranchAwareClient;
 use Keboola\StorageApi\Client;
 use Keboola\StorageApi\ClientException as StorageClientException;
 use PHPUnit\Framework\TestCase;
@@ -497,6 +498,73 @@ class JobRuntimeResolverTest extends TestCase
         $jobRuntimeResolver = new JobRuntimeResolver($storageClientFactoryMock, $internalApiClientMock);
         self::expectExceptionMessage('The component "keboola.ex-db-snowflake" is not runnable.');
         self::expectException(ClientException::class);
+        $jobRuntimeResolver->resolve($job);
+    }
+
+    public function testResolveBranchConfiguration(): void
+    {
+        $jobData = self::JOB_DATA;
+        $jobData['branchId'] = 'dev-branch';
+        $job = new Job($this->getObjectEncryptorFactoryMock(), $jobData);
+        $configuration = [
+            'id' => '454124290',
+            'configuration' => [
+                'runtime' => [
+                    'backend' => [
+                        'type' => 'stereotyped',
+                    ],
+                    'tag' => '4.5.6',
+                    'parallelism' => '5',
+                ],
+                'parameters' => ['foo' => 'bar'],
+                'variableValuesData' => [
+                    'values' => [
+                        [
+                            'name' => 'bar',
+                            'value' => 'Kochba',
+                        ],
+                    ],
+                ],
+            ],
+        ];
+
+        $clientMock = self::createMock(BranchAwareClient::class);
+        $clientMock->expects(self::once())->method('apiGet')
+            ->with('components/keboola.ex-db-snowflake/configs/454124290')->willReturn($configuration);
+        $storageClientFactoryMock = self::createMock(StorageClientFactory::class);
+        $storageClientFactoryMock
+            ->expects(self::once())
+            ->method('getClient')
+            // this is the important bit - branchId is passed as 2nd argument
+            ->with('KBC::ProjectSecure::token', 'dev-branch')
+            ->willReturn($clientMock);
+        $jobFactoryMock = self::createMock(JobFactory::class);
+
+        $jobFactoryMock->expects(self::once())->method('modifyJob')
+            ->with(
+                $job,
+                [
+                    'variableValuesId' => null,
+                    'variableValuesData' => [
+                        'values' => [
+                            [
+                                'name' => 'bar',
+                                'value' => 'Kochba',
+                            ],
+                        ],
+                    ],
+                    'backend' => [
+                        'type' => 'stereotyped',
+                    ],
+                    'tag' => '4.5.6',
+                    'parallelism' => '5',
+                    'type' => JobFactory::TYPE_CONTAINER,
+                ]
+            )->willReturn($job);
+
+        $internalApiClientMock = self::createMock(InternalApiClient::class);
+        $internalApiClientMock->method('getJobFactory')->willReturn($jobFactoryMock);
+        $jobRuntimeResolver = new JobRuntimeResolver($storageClientFactoryMock, $internalApiClientMock);
         $jobRuntimeResolver->resolve($job);
     }
 }

@@ -159,7 +159,10 @@ class JobRuntimeResolver
     {
         if ($this->componentsApiClient === null) {
             $this->componentsApiClient = new Components(
-                $this->storageClientFactory->getClient($this->job->getTokenDecrypted())
+                $this->storageClientFactory->getClient(
+                    $this->job->getTokenDecrypted(),
+                    $this->job->getBranchId()
+                )
             );
         }
         return $this->componentsApiClient;
