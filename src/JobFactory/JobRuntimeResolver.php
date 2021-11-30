@@ -17,8 +17,6 @@ class JobRuntimeResolver
     private $storageClientFactory;
     /** @var JobFactory */
     private $jobFactory;
-    /** @var ?Components */
-    private $componentsApiClient;
     /** @var ?array */
     private $configuration;
     /** @var JobInterface */
@@ -35,7 +33,6 @@ class JobRuntimeResolver
     public function resolve(JobInterface $job): JobInterface
     {
         $this->configuration = null;
-        $this->componentsApiClient = null;
         $this->job = $job;
 
         try {
@@ -141,7 +138,7 @@ class JobRuntimeResolver
     {
         if ($this->configuration === null) {
             if ($this->job->getConfigId()) {
-                $componentsApi = $this->getComponentsApiClient();
+                $componentsApi = $this->getComponentsApiClient($this->job->getBranchId());
                 $this->configuration = $componentsApi->getConfiguration(
                     $this->job->getComponentId(),
                     $this->job->getConfigId()
@@ -155,16 +152,13 @@ class JobRuntimeResolver
         return $this->configuration;
     }
 
-    private function getComponentsApiClient(): Components
+    private function getComponentsApiClient(?string $branchId = ''): Components
     {
-        if ($this->componentsApiClient === null) {
-            $this->componentsApiClient = new Components(
-                $this->storageClientFactory->getClient(
-                    $this->job->getTokenDecrypted(),
-                    $this->job->getBranchId()
-                )
-            );
-        }
-        return $this->componentsApiClient;
+        return new Components(
+            $this->storageClientFactory->getClient(
+                $this->job->getTokenDecrypted(),
+                $branchId
+            )
+        );
     }
 }

@@ -328,7 +328,10 @@ class JobRuntimeResolverTest extends TestCase
                 ['components/keboola.ex-db-snowflake']
             )->willReturnOnConsecutiveCalls($configuration, $component);
         $storageClientFactoryMock = self::createMock(StorageClientFactory::class);
-        $storageClientFactoryMock->expects(self::once())->method('getClient')->willReturn($clientMock);
+        $storageClientFactoryMock
+            ->expects(self::atLeast(1))
+            ->method('getClient')
+            ->willReturn($clientMock);
         $jobFactoryMock = self::createMock(JobFactory::class);
 
         $jobFactoryMock->expects(self::once())->method('modifyJob')
