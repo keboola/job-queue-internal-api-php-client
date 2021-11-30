@@ -33,7 +33,6 @@ class JobRuntimeResolver
     public function resolve(JobInterface $job): JobInterface
     {
         $this->configuration = null;
-        $this->componentsApiClient = null;
         $this->job = $job;
 
         try {
