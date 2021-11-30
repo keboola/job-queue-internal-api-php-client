@@ -17,8 +17,6 @@ class JobRuntimeResolver
     private $storageClientFactory;
     /** @var JobFactory */
     private $jobFactory;
-    /** @var ?Components */
-    private $componentsApiClient;
     /** @var ?array */
     private $configuration;
     /** @var JobInterface */
