@@ -367,7 +367,7 @@ class JobListOptions
         return $this->parentRunId;
     }
 
-    public function setParentRunId(string $value): JobListOptions
+    public function setParentRunId(?string $value): JobListOptions
     {
         $this->parentRunId = $value;
         return $this;

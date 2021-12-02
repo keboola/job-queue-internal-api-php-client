@@ -96,11 +96,13 @@ class JobListOptionsTest extends TestCase
 
     public function testGetQueryParametersForParametersWithEmptyValueAllowed(): void
     {
+        // default values
         $jobListOptions = new JobListOptions();
 
         self::assertSame(['limit=100'], $jobListOptions->getQueryParameters());
         self::assertNull($jobListOptions->getParentRunId());
 
+        // empty string
         $jobListOptions->setParentRunId('');
         self::assertSame(
             [
@@ -110,6 +112,16 @@ class JobListOptionsTest extends TestCase
             $jobListOptions->getQueryParameters()
         );
         self::assertSame('', $jobListOptions->getParentRunId());
+
+        // null
+        $jobListOptions->setParentRunId(null);
+        self::assertSame(
+            [
+                'limit=100',
+            ],
+            $jobListOptions->getQueryParameters()
+        );
+        self::assertNull($jobListOptions->getParentRunId());
     }
 
     public function testSetSortOrderWrong(): void
