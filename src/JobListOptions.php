@@ -32,7 +32,7 @@ class JobListOptions
     private int $limit = 100;
     private string $sortBy;
     private string $sortOrder;
-    private string $parentRunId;
+    private ?string $parentRunId = null;
     private string $type;
 
     /** @var string */
@@ -63,8 +63,10 @@ class JobListOptions
             'limit' => 'limit',
             'sortBy' => 'sortBy',
             'sortOrder' => 'sortOrder',
-            'parentRunId' => 'parentRunId',
             'type' => 'type',
+        ];
+        $scalarPropsWithEmptyValueAllowed = [
+            'parentRunId' => 'parentRunId',
         ];
         $dateTimeProps = [
             'startTimeFrom' => 'startTimeFrom',
@@ -84,6 +86,11 @@ class JobListOptions
         }
         foreach ($scalarProps as $propName => $paramName) {
             if (!empty($this->$propName)) {
+                $parameters[] = $paramName . '=' . urlencode((string) $this->$propName);
+            }
+        }
+        foreach ($scalarPropsWithEmptyValueAllowed as $propName => $paramName) {
+            if (isset($this->$propName)) {
                 $parameters[] = $paramName . '=' . urlencode((string) $this->$propName);
             }
         }
@@ -355,12 +362,12 @@ class JobListOptions
         return $this;
     }
 
-    public function getParentRunId(): string
+    public function getParentRunId(): ?string
     {
         return $this->parentRunId;
     }
 
-    public function setParentRunId(string $value): JobListOptions
+    public function setParentRunId(?string $value): JobListOptions
     {
         $this->parentRunId = $value;
         return $this;

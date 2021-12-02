@@ -81,8 +81,8 @@ class JobListOptionsTest extends TestCase
             'limit=100',
             'sortBy=id',
             'sortOrder=desc',
-            'parentRunId=123',
             'type=standard',
+            'parentRunId=123',
             'startTimeFrom=' . urlencode($from->format('c')),
             'startTimeTo=' . urlencode($to->format('c')),
             'createdTimeFrom=' . urlencode($from->format('c')),
@@ -92,6 +92,36 @@ class JobListOptionsTest extends TestCase
         ];
 
         self::assertSame($expected, $jobListOptions->getQueryParameters());
+    }
+
+    public function testGetQueryParametersForParametersWithEmptyValueAllowed(): void
+    {
+        // default values
+        $jobListOptions = new JobListOptions();
+
+        self::assertSame(['limit=100'], $jobListOptions->getQueryParameters());
+        self::assertNull($jobListOptions->getParentRunId());
+
+        // empty string
+        $jobListOptions->setParentRunId('');
+        self::assertSame(
+            [
+                'limit=100',
+                'parentRunId=',
+            ],
+            $jobListOptions->getQueryParameters()
+        );
+        self::assertSame('', $jobListOptions->getParentRunId());
+
+        // null
+        $jobListOptions->setParentRunId(null);
+        self::assertSame(
+            [
+                'limit=100',
+            ],
+            $jobListOptions->getQueryParameters()
+        );
+        self::assertNull($jobListOptions->getParentRunId());
     }
 
     public function testSetSortOrderWrong(): void
