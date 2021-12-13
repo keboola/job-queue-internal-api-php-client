@@ -33,19 +33,35 @@ class ListConfigurationsJobsOptions
 
     public function getQueryParameters(): array
     {
-        $params = [
-            'configId' => $this->configIds,
-            'jobsPerConfiguration' => $this->jobsPerConfig,
-            'projectId' => $this->projectId,
-            'offset' => $this->offset,
-            'limit' => $this->limit,
-            'sortBy' => $this->sortBy,
-            'sortOrder' => $this->sortOrder,
+        $arrayableProps = [
+            'configIds' => 'configId',
+            'branchIds' => 'branchId',
         ];
 
-        return array_filter($params, function ($v) {
-            return $v !== null;
-        });
+        $scalarProps = [
+            'jobsPerConfig' => 'jobsPerConfiguration',
+            'projectId' => 'projectId',
+            'offset' => 'offset',
+            'limit' => 'limit',
+            'sortBy' => 'sortBy',
+            'sortOrder' => 'sortOrder',
+        ];
+
+        $parameters = [];
+        foreach ($arrayableProps as $propName => $paramName) {
+            if (!empty($this->$propName)) {
+                foreach ($this->$propName as $value) {
+                    $parameters[] = $paramName . '[]=' . urlencode((string) $value);
+                }
+            }
+        }
+        foreach ($scalarProps as $propName => $paramName) {
+            if (!empty($this->$propName)) {
+                $parameters[] = $paramName . '=' . urlencode((string) $this->$propName);
+            }
+        }
+
+        return $parameters;
     }
 
     public function getConfigIds(): array

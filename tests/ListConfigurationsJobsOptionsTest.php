@@ -23,7 +23,8 @@ class ListConfigurationsJobsOptionsTest extends TestCase
         self::assertNull($options->getSortOrder());
 
         self::assertSame([
-            'configId' => ['abc', 'efg'],
+            'configId[]=abc',
+            'configId[]=efg',
         ], $options->getQueryParameters());
     }
 
@@ -45,13 +46,14 @@ class ListConfigurationsJobsOptionsTest extends TestCase
         self::assertSame('asc', $options->getSortOrder());
 
         self::assertSame([
-            'configId' => ['abc', 'efg'],
-            'jobsPerConfiguration' => 5,
-            'projectId' => 'my-project',
-            'offset' => 6,
-            'limit' => 7,
-            'sortBy' => 'configId',
-            'sortOrder' => 'asc',
+            'configId[]=abc',
+            'configId[]=efg',
+            'jobsPerConfiguration=5',
+            'projectId=my-project',
+            'offset=6',
+            'limit=7',
+            'sortBy=configId',
+            'sortOrder=asc',
         ], $options->getQueryParameters());
     }
 
