@@ -21,6 +21,7 @@ class ListConfigurationsJobsOptionsTest extends TestCase
         self::assertNull($options->getLimit());
         self::assertNull($options->getSortBy());
         self::assertNull($options->getSortOrder());
+        self::assertSame([], $options->getBranchIds());
 
         self::assertSame([
             'configId[]=abc',
@@ -36,6 +37,7 @@ class ListConfigurationsJobsOptionsTest extends TestCase
         $options->setOffset(6);
         $options->setLimit(7);
         $options->setSort('configId', 'asc');
+        $options->setBranchIds(['main', 'test']);
 
         self::assertSame(['abc', 'efg'], $options->getConfigIds());
         self::assertSame('my-project', $options->getProjectId());
@@ -44,10 +46,13 @@ class ListConfigurationsJobsOptionsTest extends TestCase
         self::assertSame(7, $options->getLimit());
         self::assertSame('configId', $options->getSortBy());
         self::assertSame('asc', $options->getSortOrder());
+        self::assertSame(['main', 'test'], $options->getBranchIds());
 
         self::assertSame([
             'configId[]=abc',
             'configId[]=efg',
+            'branchId[]=main',
+            'branchId[]=test',
             'jobsPerConfiguration=5',
             'projectId=my-project',
             'offset=6',

@@ -20,6 +20,7 @@ class ListConfigurationsJobsOptions
     private ?int $limit = null;
     private ?string $sortBy = null;
     private ?string $sortOrder = null;
+    private array $branchIds = [];
 
     public function __construct(array $configIds)
     {
@@ -135,6 +136,17 @@ class ListConfigurationsJobsOptions
 
         $this->sortBy = $sortBy;
         $this->sortOrder = $sortBy === null ? null : $sortOrder;
+        return $this;
+    }
+
+    public function getBranchIds(): array
+    {
+        return $this->branchIds;
+    }
+
+    public function setBranchIds(array $values): ListConfigurationsJobsOptions
+    {
+        $this->branchIds = $values;
         return $this;
     }
 }
