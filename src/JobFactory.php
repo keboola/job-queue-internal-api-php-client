@@ -33,9 +33,13 @@ class JobFactory
     public const DESIRED_STATUS_TERMINATING = 'terminating';
 
     public const TYPE_STANDARD = 'standard';
-    public const TYPE_CONTAINER = 'container';
+    public const TYPE_ROW_CONTAINER = 'container';
+    public const TYPE_PHASE_CONTAINER = 'phaseContainer';
+    public const TYPE_ORCHESTRATION_CONTAINER = 'orchestrationContainer';
 
     public const PARALLELISM_INFINITY = 'infinity';
+    public const ORCHESTRATOR_COMPONENT = 'keboola.orchestrator';
+    public const CONTAINER_ORCHESTRATOR_FEATURE = 'container-orchestrator';
 
     private StorageClientFactory $storageClientFactory;
     private ObjectEncryptorFactory $objectEncryptorFactory;
@@ -78,7 +82,9 @@ class JobFactory
 
     public static function getAllowedJobTypes(): array
     {
-        return [self::TYPE_STANDARD, self::TYPE_CONTAINER];
+        return [self::TYPE_STANDARD, self::TYPE_ROW_CONTAINER,
+            self::TYPE_PHASE_CONTAINER, self::TYPE_ORCHESTRATION_CONTAINER,
+        ];
     }
 
     public static function getAllowedParallelismValues(): array
@@ -183,17 +189,27 @@ class JobFactory
         $resolver = new JobRuntimeResolver($this->storageClientFactory);
         $jobData = $resolver->resolveJobData($jobData);
         // set type after resolving parallelism
-        $jobData['type'] = $this->getJobType($jobData);
+        $jobData['type'] = $this->getJobType($jobData, $tokenInfo);
         return $this->objectEncryptorFactory->getEncryptor()->encrypt(
             $jobData,
             $this->objectEncryptorFactory->getEncryptor()->getRegisteredProjectWrapperClass()
         );
     }
 
-    private function getJobType(array $data): string
+    private function getJobType(array $data, array $tokenInfo): string
     {
         if ((intval($data['parallelism']) > 0) || $data['parallelism'] === self::PARALLELISM_INFINITY) {
-            return self::TYPE_CONTAINER;
+            return self::TYPE_ROW_CONTAINER;
+        } else {
+            if (in_array(self::CONTAINER_ORCHESTRATOR_FEATURE, $tokenInfo['owner']['features'])) {
+                if ($data['componentId'] === self::ORCHESTRATOR_COMPONENT) {
+                    if (!empty($data['configData']['phaseId'])) {
+                        return self::TYPE_PHASE_CONTAINER;
+                    } else {
+                        return self::TYPE_ORCHESTRATION_CONTAINER;
+                    }
+                }
+            }
         }
         return self::TYPE_STANDARD;
     }
