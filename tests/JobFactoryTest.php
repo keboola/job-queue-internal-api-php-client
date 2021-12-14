@@ -230,6 +230,82 @@ class JobFactoryTest extends BaseTest
         self::assertEquals('2345.' . $job->getId(), $job->getRunId());
         self::assertEquals(['values' => [['name' => 'bar', 'value' => 'Kochba']]], $job->getVariableValuesData());
         self::assertSame('custom', $job->getBackend()->getType());
+        self::assertSame('standard', $job->getType());
+    }
+
+    public function testCreateNewJobParallelismNumeric(): void
+    {
+        $factory = $this->getJobFactory();
+        $data = [
+            '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+            'parentRunId' => '2345',
+            'componentId' => 'keboola.runner-config-test',
+            'tag' => 'latest',
+            'mode' => 'run',
+            'configData' => [],
+            'parallelism' => '5',
+        ];
+        $job = $factory->createNewJob($data);
+        self::assertNotEmpty($job->getId());
+        self::assertNull($job->getConfigId());
+        self::assertStringStartsWith('KBC::ProjectSecure::', $job->getTokenString());
+        self::assertEquals([], $job->getConfigRowIds());
+        self::assertEquals([], $job->getConfigData());
+        self::assertEquals('latest', $job->getTag());
+        self::assertEquals('2345.' . $job->getId(), $job->getRunId());
+        self::assertEquals(['values' => []], $job->getVariableValuesData());
+        self::assertSame(null, $job->getBackend()->getType());
+        self::assertSame('container', $job->getType());
+    }
+
+    public function testCreateNewJobParallelismInfinity(): void
+    {
+        $factory = $this->getJobFactory();
+        $data = [
+            '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+            'parentRunId' => '2345',
+            'componentId' => 'keboola.runner-config-test',
+            'tag' => 'latest',
+            'mode' => 'run',
+            'configData' => [],
+            'parallelism' => 'infinity',
+        ];
+        $job = $factory->createNewJob($data);
+        self::assertNotEmpty($job->getId());
+        self::assertNull($job->getConfigId());
+        self::assertStringStartsWith('KBC::ProjectSecure::', $job->getTokenString());
+        self::assertEquals([], $job->getConfigRowIds());
+        self::assertEquals([], $job->getConfigData());
+        self::assertEquals('latest', $job->getTag());
+        self::assertEquals('2345.' . $job->getId(), $job->getRunId());
+        self::assertEquals(['values' => []], $job->getVariableValuesData());
+        self::assertSame(null, $job->getBackend()->getType());
+        self::assertSame('container', $job->getType());
+    }
+
+    public function testCreateNewJobParallelismZero(): void
+    {
+        $factory = $this->getJobFactory();
+        $data = [
+            '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+            'parentRunId' => '2345',
+            'componentId' => 'keboola.runner-config-test',
+            'tag' => 'latest',
+            'mode' => 'run',
+            'configData' => [],
+            'parallelism' => '0',
+        ];
+        $job = $factory->createNewJob($data);
+        self::assertNotEmpty($job->getId());
+        self::assertNull($job->getConfigId());
+        self::assertStringStartsWith('KBC::ProjectSecure::', $job->getTokenString());
+        self::assertEquals([], $job->getConfigRowIds());
+        self::assertEquals([], $job->getConfigData());
+        self::assertEquals('latest', $job->getTag());
+        self::assertEquals('2345.' . $job->getId(), $job->getRunId());
+        self::assertEquals(['values' => []], $job->getVariableValuesData());
+        self::assertSame(null, $job->getBackend()->getType());
+        self::assertSame('standard', $job->getType());
     }
 
     public function testCreateNewJobInvalidVariables(): void

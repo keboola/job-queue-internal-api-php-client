@@ -35,7 +35,7 @@ class ClientListConfigurationsJobsFunctionalTest extends BaseClientFunctionalTes
         self::$configId2 = $componentsApi->addConfiguration($configuration)['id'];
         $configuration->setConfigurationId(self::$configId1);
         $configuration->setComponentId(self::COMPONENT_ID_2);
-        $componentsApi->addConfiguration($configuration)['id'];
+        $componentsApi->addConfiguration($configuration);
     }
 
     public static function tearDownAfterClass(): void
