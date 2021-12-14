@@ -13,11 +13,8 @@ use Symfony\Component\Validator\Validation;
 
 class StorageClientFactory
 {
-    /** @var string */
-    private $storageApiUrl;
-
-    /** @var LoggerInterface */
-    private $logger;
+    private string $storageApiUrl;
+    private LoggerInterface $logger;
 
     public function __construct(string $storageApiUrl, LoggerInterface $logger)
     {
@@ -32,9 +29,9 @@ class StorageClientFactory
         $this->logger = $logger;
     }
 
-    public function getClient(string $token, ?string $branch = ''): StorageApiClient
+    public function getClientWrapper(string $token, ?string $branch): StorageClientWrapper
     {
-        $clientWrapper = new StorageClientWrapper(
+        return new StorageClientWrapper(
             new StorageApiClient(
                 [
                     'url' => $this->storageApiUrl,
@@ -43,10 +40,8 @@ class StorageClientFactory
             ),
             null,
             $this->logger,
-            (string) $branch
+            is_null($branch) ? StorageClientWrapper::BRANCH_MAIN : $branch
         );
-
-        return $clientWrapper->getBranchClientIfAvailable();
     }
 
     public function getStorageApiUrl(): string
