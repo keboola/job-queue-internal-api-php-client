@@ -20,7 +20,7 @@ class ListConfigurationsJobsOptions
     private ?int $limit = null;
     private ?string $sortBy = null;
     private ?string $sortOrder = null;
-    private array $branchIds = [];
+    private ?string $branchId = null;
 
     public function __construct(array $configIds)
     {
@@ -36,7 +36,6 @@ class ListConfigurationsJobsOptions
     {
         $arrayableProps = [
             'configIds' => 'configId',
-            'branchIds' => 'branchId',
         ];
 
         $scalarProps = [
@@ -46,6 +45,7 @@ class ListConfigurationsJobsOptions
             'limit' => 'limit',
             'sortBy' => 'sortBy',
             'sortOrder' => 'sortOrder',
+            'branchId' => 'branchId',
         ];
 
         $parameters = [];
@@ -139,14 +139,14 @@ class ListConfigurationsJobsOptions
         return $this;
     }
 
-    public function getBranchIds(): array
+    public function getBranchId(): ?string
     {
-        return $this->branchIds;
+        return $this->branchId;
     }
 
-    public function setBranchIds(array $values): ListConfigurationsJobsOptions
+    public function setBranchId(?string $branchId): ListConfigurationsJobsOptions
     {
-        $this->branchIds = $values;
+        $this->branchId = $branchId;
         return $this;
     }
 }

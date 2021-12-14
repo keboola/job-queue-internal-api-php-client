@@ -56,8 +56,9 @@ class ClientListConfigurationsJobsFunctionalTest extends BaseClientFunctionalTes
         $client = $this->getClient();
         $job = $client->getJobFactory()->createNewJob([
             '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
-            'configId' => self::$configId1,
-            'componentId' => self::COMPONENT_ID_1,
+            'configId' => '12345',
+            'branchId' => 'branch-jobs-test',
+            'componentId' => 'keboola.ex-google-drive',
             'mode' => 'run',
         ]);
         $expectedJob = $client->createJob($job);
@@ -232,5 +233,63 @@ class ClientListConfigurationsJobsFunctionalTest extends BaseClientFunctionalTes
 
         self::assertCount(1, $response);
         self::assertEquals($expectedJob->jsonSerialize(), $response[0]->jsonSerialize());
+    }
+
+    public function testBranchJobsAreListed(): void
+    {
+        $client = $this->getClient();
+        $job1 = $client->getJobFactory()->createNewJob([
+            '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+            'configId' => '12345',
+            'branchId' => 'branch-jobs-test',
+            'componentId' => 'keboola.ex-google-drive',
+            'mode' => 'run',
+        ]);
+        $createdJob1 = $client->createJob($job1);
+        $job2 = $client->getJobFactory()->createNewJob([
+            '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+            'configId' => '12345',
+            'componentId' => 'keboola.ex-google-analytics',
+            'mode' => 'run',
+        ]);
+        $createdJob2 = $client->createJob($job2);
+
+        $response = $client->listConfigurationsJobs(
+            (new ListConfigurationsJobsOptions(['12345']))
+                ->setJobsPerConfig(1)
+                ->setBranchId('branch-jobs-test')
+        );
+
+        self::assertCount(1, $response);
+        self::assertEquals($createdJob1->jsonSerialize(), $response[0]->jsonSerialize());
+    }
+
+    public function testJobsWithoutBranchAreListed(): void
+    {
+        $client = $this->getClient();
+        $job1 = $client->getJobFactory()->createNewJob([
+            '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+            'configId' => '12345',
+            'branchId' => 'branch-jobs-test',
+            'componentId' => 'keboola.ex-google-drive',
+            'mode' => 'run',
+        ]);
+        $createdJob1 = $client->createJob($job1);
+        $job2 = $client->getJobFactory()->createNewJob([
+            '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+            'configId' => '12345',
+            'componentId' => 'keboola.ex-google-analytics',
+            'mode' => 'run',
+        ]);
+        $createdJob2 = $client->createJob($job2);
+
+        $response = $client->listConfigurationsJobs(
+            (new ListConfigurationsJobsOptions(['12345']))
+                ->setJobsPerConfig(1)
+                ->setBranchId('null')
+        );
+
+        self::assertCount(1, $response);
+        self::assertEquals($createdJob2->jsonSerialize(), $response[0]->jsonSerialize());
     }
 }
