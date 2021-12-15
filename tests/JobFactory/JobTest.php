@@ -25,6 +25,7 @@ class JobTest extends BaseTest
         'desiredStatus' => 'processing',
         'projectId' => '123',
         'tokenId' => '456',
+        'tokenDescription' => 'My token',
         '#tokenString' => 'KBC::ProjectSecure::token',
         'branchId' => '987',
         'variableValuesId' => '1357',
@@ -136,6 +137,8 @@ class JobTest extends BaseTest
     public function testGetToken(): void
     {
         self::assertStringStartsWith('KBC::ProjectSecure::', $this->getJob()->getTokenString());
+        self::assertEquals('456', $this->getJob()->getTokenId());
+        self::assertEquals('My token', $this->getJob()->getTokenDescription());
     }
 
     public function testIsFinished(): void
@@ -272,6 +275,46 @@ class JobTest extends BaseTest
         $job = $this->getJob($jobData);
         self::assertNull($job->getMetrics()->getInputTablesBytesSum());
         self::assertNull($job->getMetrics()->getBackendSize());
+    }
+
+    public function testGetNoBehavior(): void
+    {
+        $jobData = $this->jobData;
+
+        $behavior = $this->getJob($jobData)->getBehavior();
+        self::assertSame(['onError' => null], $behavior->toDataArray());
+    }
+
+    public function testGetEmptyBehavior(): void
+    {
+        $jobData = $this->jobData;
+        $jobData['behavior'] = [];
+        $behavior = $this->getJob($jobData)->getBehavior();
+        self::assertSame(['onError' => null], $behavior->toDataArray());
+    }
+
+    public function testGetNonEmptyBehavior(): void
+    {
+        $jobData = $this->jobData;
+        $jobData['behavior'] = ['onError' => 'warning'];
+        $behavior = $this->getJob($jobData)->getBehavior();
+        self::assertSame(['onError' => 'warning'], $behavior->toDataArray());
+    }
+
+    public function testParallelismInfinity(): void
+    {
+        $jobData = $this->jobData;
+        $jobData['parallelism'] = 'infinity';
+        $job = $this->getJob($jobData);
+        self::assertSame('infinity', $job->getParallelism());
+    }
+
+    public function testParallelismNumeric(): void
+    {
+        $jobData = $this->jobData;
+        $jobData['parallelism'] = '3';
+        $job = $this->getJob($jobData);
+        self::assertSame('3', $job->getParallelism());
     }
 
     public function testCacheDecryptedToken(): void

@@ -9,15 +9,13 @@ use Keboola\JobQueueInternalClient\JobFactory\StorageClientFactory;
 use Keboola\JobQueueInternalClient\Tests\BaseTest;
 use Keboola\StorageApi\BranchAwareClient;
 use Keboola\StorageApi\Client;
+use Keboola\StorageApiBranch\ClientWrapper;
 use Psr\Log\Test\TestLogger;
 
 class StorageClientFactoryTest extends BaseTest
 {
-    /** @var string */
-    private $storageApiUrl;
-
-    /** @var string */
-    private $storageApiToken;
+    private string $storageApiUrl;
+    private string $storageApiToken;
 
     public function setUp(): void
     {
@@ -29,7 +27,10 @@ class StorageClientFactoryTest extends BaseTest
     public function testGetClient(): void
     {
         $storageClientFactory = new StorageClientFactory($this->storageApiUrl, new TestLogger());
-        $client = $storageClientFactory->getClient((string) getenv('TEST_STORAGE_API_TOKEN'));
+        $client = $storageClientFactory->getClientWrapper(
+            (string) getenv('TEST_STORAGE_API_TOKEN'),
+            ClientWrapper::BRANCH_MAIN
+        )->getBranchClientIfAvailable();
 
         $this->assertInstanceOf(Client::class, $client);
         $this->assertEquals($this->storageApiUrl, $client->getApiUrl());
@@ -40,10 +41,10 @@ class StorageClientFactoryTest extends BaseTest
     {
         $storageClientFactory = new StorageClientFactory($this->storageApiUrl, new TestLogger());
         /** @var BranchAwareClient $client */
-        $client = $storageClientFactory->getClient(
+        $client = $storageClientFactory->getClientWrapper(
             (string) getenv('TEST_STORAGE_API_TOKEN'),
             'dev-branch'
-        );
+        )->getBranchClientIfAvailable();
 
         $this->assertInstanceOf(BranchAwareClient::class, $client);
         $this->assertEquals($this->storageApiUrl, $client->getApiUrl());

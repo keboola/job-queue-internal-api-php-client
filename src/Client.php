@@ -36,14 +36,9 @@ class Client
     private const DEFAULT_BACKOFF_RETRIES = 10;
     private const JSON_DEPTH = 512;
 
-    /** @var GuzzleClient */
-    protected $guzzle;
-
-    /** @var JobFactory */
-    private $jobFactory;
-
-    /** @var LoggerInterface */
-    private $logger;
+    protected GuzzleClient $guzzle;
+    private JobFactory $jobFactory;
+    private LoggerInterface $logger;
 
     public function __construct(
         LoggerInterface $logger,

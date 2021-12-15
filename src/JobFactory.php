@@ -9,10 +9,12 @@ use Keboola\JobQueueInternalClient\JobFactory\Behavior;
 use Keboola\JobQueueInternalClient\JobFactory\FullJobDefinition;
 use Keboola\JobQueueInternalClient\JobFactory\Job;
 use Keboola\JobQueueInternalClient\JobFactory\JobInterface;
+use Keboola\JobQueueInternalClient\JobFactory\JobRuntimeResolver;
 use Keboola\JobQueueInternalClient\JobFactory\NewJobDefinition;
 use Keboola\JobQueueInternalClient\JobFactory\StorageClientFactory;
 use Keboola\ObjectEncryptor\ObjectEncryptorFactory;
 use Keboola\StorageApi\ClientException as StorageClientException;
+use Keboola\StorageApiBranch\ClientWrapper;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 
 class JobFactory
@@ -33,11 +35,10 @@ class JobFactory
     public const TYPE_STANDARD = 'standard';
     public const TYPE_CONTAINER = 'container';
 
-    /** @var StorageClientFactory */
-    private $storageClientFactory;
+    public const PARALLELISM_INFINITY = 'infinity';
 
-    /** @var ObjectEncryptorFactory */
-    private $objectEncryptorFactory;
+    private StorageClientFactory $storageClientFactory;
+    private ObjectEncryptorFactory $objectEncryptorFactory;
 
     public function __construct(
         StorageClientFactory $storageClientFactory,
@@ -130,10 +131,14 @@ class JobFactory
     private function initializeNewJobData(array $data): array
     {
         try {
-            $client = $this->storageClientFactory->getClient($data['#tokenString']);
+            $client = $this->storageClientFactory->getClientWrapper(
+                $data['#tokenString'],
+                ClientWrapper::BRANCH_MAIN
+            )->getBasicClient();
             $tokenInfo = $client->verifyToken();
             $jobId = $client->generateId();
-            $runId = empty($data['parentRunId']) ? $jobId : $data['parentRunId'] . Job::RUN_ID_DELIMITER . $jobId;
+            $runId = empty($data['parentRunId']) ? $jobId :
+                $data['parentRunId'] . JobInterface::RUN_ID_DELIMITER . $jobId;
         } catch (StorageClientException $e) {
             throw new ClientException(
                 'Cannot create job: "' . $e->getMessage() . '".',
@@ -149,35 +154,47 @@ class JobFactory
         $this->objectEncryptorFactory->setProjectId($tokenInfo['owner']['id']);
         $this->objectEncryptorFactory->setComponentId($data['componentId']);
         $this->objectEncryptorFactory->setConfigurationId($data['configId'] ?? null);
+        $jobData = [
+            'id' => $jobId,
+            'runId' => $runId,
+            'projectId' => $tokenInfo['owner']['id'],
+            'projectName' => $tokenInfo['owner']['name'],
+            'tokenId' => $tokenInfo['id'],
+            '#tokenString' => $data['#tokenString'],
+            'tokenDescription' => $tokenInfo['description'],
+            'status' => self::STATUS_CREATED,
+            'desiredStatus' => self::DESIRED_STATUS_PROCESSING,
+            'mode' => $data['mode'],
+            'componentId' => $data['componentId'],
+            'configId' => $data['configId'] ?? null,
+            'configData' => $data['configData'] ?? null,
+            'configRowIds' => $data['configRowIds'] ?? null,
+            'tag' => $data['tag'] ?? null,
+            'parallelism' => $data['parallelism'] ?? null,
+            'backend' => $data['backend'] ?? null,
+            'behavior' => $data['behavior'] ?? (new Behavior())->toDataArray(),
+            'result' => [],
+            'usageData' => [],
+            'isFinished' => false,
+            'branchId' => $data['branchId'] ?? null,
+            'variableValuesId' => $data['variableValuesId'] ?? null,
+            'variableValuesData' => $data['variableValuesData'] ?? [],
+        ];
+        $resolver = new JobRuntimeResolver($this->storageClientFactory);
+        $jobData = $resolver->resolveJobData($jobData);
+        // set type after resolving parallelism
+        $jobData['type'] = $this->getJobType($jobData);
         return $this->objectEncryptorFactory->getEncryptor()->encrypt(
-            [
-                'id' => $jobId,
-                'runId' => $runId,
-                'projectId' => $tokenInfo['owner']['id'],
-                'projectName' => $tokenInfo['owner']['name'],
-                'tokenId' => $tokenInfo['id'],
-                '#tokenString' => $data['#tokenString'],
-                'tokenDescription' => $tokenInfo['description'],
-                'status' => self::STATUS_CREATED,
-                'desiredStatus' => self::DESIRED_STATUS_PROCESSING,
-                'mode' => $data['mode'],
-                'componentId' => $data['componentId'],
-                'configId' => $data['configId'] ?? null,
-                'configData' => $data['configData'] ?? null,
-                'configRowIds' => $data['configRowIds'] ?? null,
-                'tag' => $data['tag'] ?? null,
-                'type' => $data['type'] ?? self::TYPE_STANDARD,
-                'parallelism' => $data['parallelism'] ?? null,
-                'backend' => $data['backend'] ?? null,
-                'behavior' => $data['behavior'] ?? (new Behavior())->toDataArray(),
-                'result' => [],
-                'usageData' => [],
-                'isFinished' => false,
-                'branchId' => $data['branchId'] ?? null,
-                'variableValuesId' => $data['variableValuesId'] ?? null,
-                'variableValuesData' => $data['variableValuesData'] ?? [],
-            ],
+            $jobData,
             $this->objectEncryptorFactory->getEncryptor()->getRegisteredProjectWrapperClass()
         );
+    }
+
+    private function getJobType(array $data): string
+    {
+        if ((intval($data['parallelism']) > 0) || $data['parallelism'] === self::PARALLELISM_INFINITY) {
+            return self::TYPE_CONTAINER;
+        }
+        return self::TYPE_STANDARD;
     }
 }

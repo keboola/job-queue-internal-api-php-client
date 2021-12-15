@@ -4,48 +4,43 @@ declare(strict_types=1);
 
 namespace Keboola\JobQueueInternalClient\JobFactory;
 
-use Keboola\JobQueueInternalClient\Client as InternalApiClient;
 use Keboola\JobQueueInternalClient\Exception\ClientException;
-use Keboola\JobQueueInternalClient\JobFactory;
 use Keboola\StorageApi\ClientException as StorageClientException;
 use Keboola\StorageApi\Components;
+use Keboola\StorageApiBranch\ClientWrapper;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 
+/**
+ * @internal
+ */
 class JobRuntimeResolver
 {
-    /** @var StorageClientFactory */
-    private $storageClientFactory;
-    /** @var JobFactory */
-    private $jobFactory;
-    /** @var ?array */
-    private $configuration;
-    /** @var JobInterface */
-    private $job;
+    private StorageClientFactory $storageClientFactory;
+    private ?array $configuration;
+    private array $jobData;
 
-    public function __construct(
-        StorageClientFactory $storageClientFactory,
-        InternalApiClient $internalApiClient
-    ) {
+    public function __construct(StorageClientFactory $storageClientFactory)
+    {
         $this->storageClientFactory = $storageClientFactory;
-        $this->jobFactory = $internalApiClient->getJobFactory();
     }
 
-    public function resolve(JobInterface $job): JobInterface
+    public function resolveJobData(array $jobData): array
     {
         $this->configuration = null;
-        $this->job = $job;
+        $this->jobData = $jobData;
 
         try {
             $tag = $this->resolveTag();
             $variableValues = $this->resolveVariables();
             $backend = $this->resolveBackend();
             $parallelism = $this->resolveParallelism();
-            $patchData = $variableValues->asDataArray();
-            $patchData['backend'] = $backend->toDataArray();
-            $patchData['tag'] = $tag;
-            $patchData['parallelism'] = $parallelism;
-            $patchData['type'] = $parallelism > 0 ? JobFactory::TYPE_CONTAINER : JobFactory::TYPE_STANDARD;
-            return $this->jobFactory->modifyJob($this->job, $patchData);
+            foreach ($variableValues->asDataArray() as $key => $value) {
+                $jobData[$key] = $value;
+            }
+            $jobData['backend'] = $backend->toDataArray();
+            $jobData['tag'] = $tag;
+            $jobData['parallelism'] = $parallelism;
+            return $jobData;
         } catch (InvalidConfigurationException $e) {
             throw new ClientException('Invalid configuration: ' . $e->getMessage(), 0, $e);
         } catch (StorageClientException $e) {
@@ -55,8 +50,8 @@ class JobRuntimeResolver
 
     private function resolveTag(): string
     {
-        if ($this->job->getTag()) {
-            return (string) $this->job->getTag();
+        if (!empty($this->jobData['tag'])) {
+            return (string) $this->jobData['tag'];
         }
         if (!empty($this->getConfigData()['runtime']['tag'])) {
             return (string) $this->getConfigData()['runtime']['tag'];
@@ -68,19 +63,20 @@ class JobRuntimeResolver
         if (!empty($configuration['runtime']['image_tag'])) {
             return (string) $configuration['runtime']['image_tag'];
         }
-        $componentsApi = $this->getComponentsApiClient();
-        $componentData = $componentsApi->getComponent($this->job->getComponentId());
+        $componentsApi = $this->getComponentsApiClient(ClientWrapper::BRANCH_MAIN);
+        $componentData = $componentsApi->getComponent($this->jobData['componentId']);
         if (!empty($componentData['data']['definition']['tag'])) {
             return $componentData['data']['definition']['tag'];
         } else {
-            throw new ClientException(sprintf('The component "%s" is not runnable.', $this->job->getComponentId()));
+            throw new ClientException(sprintf('The component "%s" is not runnable.', $this->jobData['componentId']));
         }
     }
 
     private function resolveVariables(): VariableValues
     {
-        if (!$this->job->getVariableValues()->isEmpty()) {
-            return $this->job->getVariableValues();
+        $variableValues = VariableValues::fromDataArray($this->jobData);
+        if (!$variableValues->isEmpty()) {
+            return $variableValues;
         }
         if (!empty($this->getConfigData())) {
             $variableValues = VariableValues::fromDataArray($this->getConfigData());
@@ -95,8 +91,11 @@ class JobRuntimeResolver
 
     private function resolveBackend(): Backend
     {
-        if (!$this->job->getBackend()->isEmpty()) {
-            return $this->job->getBackend();
+        if (!empty($this->jobData['backend'])) {
+            $backend = Backend::fromDataArray($this->jobData['backend']);
+            if (!$backend->isEmpty()) {
+                return $backend;
+            }
         }
         if (!empty($this->getConfigData()['runtime']['backend'])) {
             $backend = Backend::fromDataArray($this->getConfigData()['runtime']['backend']);
@@ -114,8 +113,8 @@ class JobRuntimeResolver
 
     private function resolveParallelism(): ?string
     {
-        if ($this->job->getParallelism() !== null) {
-            return (string) $this->job->getParallelism();
+        if (isset($this->jobData['parallelism']) && ($this->jobData['parallelism'] !== null)) {
+            return (string) $this->jobData['parallelism'];
         }
         if (isset($this->getConfigData()['runtime']['parallelism'])
             && $this->getConfigData()['runtime']['parallelism'] !== null) {
@@ -131,17 +130,22 @@ class JobRuntimeResolver
     private function getConfigData(): array
     {
         $configurationDefinition = new OverridesConfigurationDefinition();
-        return $configurationDefinition->processData($this->job->getConfigData());
+        return $configurationDefinition->processData($this->jobData['configData'] ?? []);
     }
 
     private function getConfiguration(): array
     {
         if ($this->configuration === null) {
-            if ($this->job->getConfigId()) {
-                $componentsApi = $this->getComponentsApiClient($this->job->getBranchId());
+            if (isset($this->jobData['configId']) &&
+                $this->jobData['configId'] !== null &&
+                $this->jobData['configId'] !== ''
+            ) {
+                $componentsApi = $this->getComponentsApiClient(
+                    !empty($this->jobData['branchId']) ? (string) $this->jobData['branchId'] : null
+                );
                 $this->configuration = $componentsApi->getConfiguration(
-                    $this->job->getComponentId(),
-                    $this->job->getConfigId()
+                    $this->jobData['componentId'],
+                    $this->jobData['configId']
                 );
                 $configurationDefinition = new OverridesConfigurationDefinition();
                 $this->configuration = $configurationDefinition->processData($this->configuration['configuration']);
@@ -152,13 +156,13 @@ class JobRuntimeResolver
         return $this->configuration;
     }
 
-    private function getComponentsApiClient(?string $branchId = ''): Components
+    private function getComponentsApiClient(?string $branchId): Components
     {
         return new Components(
-            $this->storageClientFactory->getClient(
-                $this->job->getTokenDecrypted(),
+            $this->storageClientFactory->getClientWrapper(
+                $this->jobData['#tokenString'],
                 $branchId
-            )
+            )->getBranchClientIfAvailable()
         );
     }
 }
