@@ -18,6 +18,7 @@ class ClientListConfigurationsJobsFunctionalTest extends BaseClientFunctionalTes
     private const COMPONENT_ID_1 = 'keboola.runner-config-test';
     private const COMPONENT_ID_2 = 'keboola.runner-workspace-test';
     private static Client $client;
+    private static Client $masterClient;
 
     public static function setUpBeforeClass(): void
     {
@@ -25,6 +26,13 @@ class ClientListConfigurationsJobsFunctionalTest extends BaseClientFunctionalTes
         self::$client = new Client(
             [
                 'token' => (string) getenv('TEST_STORAGE_API_TOKEN'),
+                'url' => (string) getenv('TEST_STORAGE_API_URL'),
+            ]
+        );
+
+        self::$masterClient = new Client(
+            [
+                'token' => (string) getenv('TEST_STORAGE_API_TOKEN_MASTER'),
                 'url' => (string) getenv('TEST_STORAGE_API_URL'),
             ]
         );
@@ -41,7 +49,7 @@ class ClientListConfigurationsJobsFunctionalTest extends BaseClientFunctionalTes
         $configuration->setComponentId(self::COMPONENT_ID_2);
         $componentsApi->addConfiguration($configuration);
 
-        $devBranch = (new DevBranches(self::$client))->createBranch('ClientListConfigurationsJobsFunctionalTest');
+        $devBranch = (new DevBranches(self::$masterClient))->createBranch('ClientListConfigurationsJobsFunctionalTest');
         self::$branchId1 = (string) $devBranch['id'];
     }
 
@@ -57,7 +65,7 @@ class ClientListConfigurationsJobsFunctionalTest extends BaseClientFunctionalTes
             $componentsApi->deleteConfiguration(self::COMPONENT_ID_1, self::$configId2);
         }
         if (self::$branchId1) {
-            $branchesApi = new DevBranches(self::$client);
+            $branchesApi = new DevBranches(self::$masterClient);
             $branchesApi->deleteBranch((int) self::$branchId1);
         }
     }
