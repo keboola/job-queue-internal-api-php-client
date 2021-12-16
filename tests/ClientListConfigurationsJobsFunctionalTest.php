@@ -7,12 +7,14 @@ namespace Keboola\JobQueueInternalClient\Tests;
 use Keboola\JobQueueInternalClient\ListConfigurationsJobsOptions;
 use Keboola\StorageApi\Client;
 use Keboola\StorageApi\Components;
+use Keboola\StorageApi\DevBranches;
 use Keboola\StorageApi\Options\Components\Configuration;
 
 class ClientListConfigurationsJobsFunctionalTest extends BaseClientFunctionalTest
 {
     private static string $configId1;
     private static string $configId2;
+    private static string $branchId1;
     private const COMPONENT_ID_1 = 'keboola.runner-config-test';
     private const COMPONENT_ID_2 = 'keboola.runner-workspace-test';
     private static Client $client;
@@ -26,16 +28,21 @@ class ClientListConfigurationsJobsFunctionalTest extends BaseClientFunctionalTes
                 'url' => (string) getenv('TEST_STORAGE_API_URL'),
             ]
         );
+
         $componentsApi = new Components(self::$client);
         $configuration = new Configuration();
         $configuration->setConfiguration([]);
         $configuration->setComponentId(self::COMPONENT_ID_1);
         $configuration->setName('ClientListConfigurationsJobsFunctionalTest');
+
         self::$configId1 = $componentsApi->addConfiguration($configuration)['id'];
         self::$configId2 = $componentsApi->addConfiguration($configuration)['id'];
         $configuration->setConfigurationId(self::$configId1);
         $configuration->setComponentId(self::COMPONENT_ID_2);
         $componentsApi->addConfiguration($configuration);
+
+        $devBranch = (new DevBranches(self::$client))->createBranch('ClientListConfigurationsJobsFunctionalTest');
+        self::$branchId1 = (string) $devBranch['id'];
     }
 
     public static function tearDownAfterClass(): void
@@ -49,6 +56,10 @@ class ClientListConfigurationsJobsFunctionalTest extends BaseClientFunctionalTes
             $componentsApi = new Components(self::$client);
             $componentsApi->deleteConfiguration(self::COMPONENT_ID_1, self::$configId2);
         }
+        if (self::$branchId1) {
+            $branchesApi = new DevBranches(self::$client);
+            $branchesApi->deleteBranch((int) self::$branchId1);
+        }
     }
 
     public function testConfigJobsAreListed(): void
@@ -56,9 +67,9 @@ class ClientListConfigurationsJobsFunctionalTest extends BaseClientFunctionalTes
         $client = $this->getClient();
         $job = $client->getJobFactory()->createNewJob([
             '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
-            'configId' => '12345',
-            'branchId' => 'branch-jobs-test',
-            'componentId' => 'keboola.ex-google-drive',
+            'configId' => self::$configId1,
+            'branchId' => self::$branchId1,
+            'componentId' => self::COMPONENT_ID_1,
             'mode' => 'run',
         ]);
         $expectedJob = $client->createJob($job);
@@ -240,24 +251,24 @@ class ClientListConfigurationsJobsFunctionalTest extends BaseClientFunctionalTes
         $client = $this->getClient();
         $job1 = $client->getJobFactory()->createNewJob([
             '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
-            'configId' => '12345',
-            'branchId' => 'branch-jobs-test',
-            'componentId' => 'keboola.ex-google-drive',
+            'configId' => self::$configId1,
+            'branchId' => self::$branchId1,
+            'componentId' => self::COMPONENT_ID_1,
             'mode' => 'run',
         ]);
         $createdJob1 = $client->createJob($job1);
         $job2 = $client->getJobFactory()->createNewJob([
             '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
-            'configId' => '12345',
-            'componentId' => 'keboola.ex-google-analytics',
+            'configId' => self::$configId1,
+            'componentId' => self::COMPONENT_ID_1,
             'mode' => 'run',
         ]);
         $createdJob2 = $client->createJob($job2);
 
         $response = $client->listConfigurationsJobs(
-            (new ListConfigurationsJobsOptions(['12345']))
+            (new ListConfigurationsJobsOptions([self::$configId1]))
                 ->setJobsPerConfig(1)
-                ->setBranchId('branch-jobs-test')
+                ->setBranchId(self::$branchId1)
         );
 
         self::assertCount(1, $response);
@@ -269,22 +280,22 @@ class ClientListConfigurationsJobsFunctionalTest extends BaseClientFunctionalTes
         $client = $this->getClient();
         $job1 = $client->getJobFactory()->createNewJob([
             '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
-            'configId' => '12345',
-            'branchId' => 'branch-jobs-test',
-            'componentId' => 'keboola.ex-google-drive',
+            'configId' => self::$configId1,
+            'branchId' => self::$branchId1,
+            'componentId' => self::COMPONENT_ID_1,
             'mode' => 'run',
         ]);
         $createdJob1 = $client->createJob($job1);
         $job2 = $client->getJobFactory()->createNewJob([
             '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
-            'configId' => '12345',
-            'componentId' => 'keboola.ex-google-analytics',
+            'configId' => self::$configId1,
+            'componentId' => self::COMPONENT_ID_1,
             'mode' => 'run',
         ]);
         $createdJob2 = $client->createJob($job2);
 
         $response = $client->listConfigurationsJobs(
-            (new ListConfigurationsJobsOptions(['12345']))
+            (new ListConfigurationsJobsOptions([self::$configId1]))
                 ->setJobsPerConfig(1)
                 ->setBranchId('null')
         );
