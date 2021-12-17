@@ -143,6 +143,7 @@ class JobRuntimeResolverTest extends TestCase
         $jobData = self::JOB_DATA;
         $configuration = [
             'id' => '454124290',
+            'isDisabled' => false,
             'configuration' => [
                 'runtime' => [
                     'backend' => [
