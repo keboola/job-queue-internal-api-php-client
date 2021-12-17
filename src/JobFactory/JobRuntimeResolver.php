@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Keboola\JobQueueInternalClient\JobFactory;
 
 use Keboola\JobQueueInternalClient\Exception\ClientException;
+use Keboola\JobQueueInternalClient\Exception\ConfigurationDisabledException;
 use Keboola\StorageApi\ClientException as StorageClientException;
 use Keboola\StorageApi\Components;
 use Keboola\StorageApiBranch\ClientWrapper;
@@ -147,6 +148,15 @@ class JobRuntimeResolver
                     $this->jobData['componentId'],
                     $this->jobData['configId']
                 );
+
+                if (!empty($this->configuration['isDisabled'])) {
+                    throw new ConfigurationDisabledException(sprintf(
+                        'Configuration "%s" of component "%s" is disabled.',
+                        $this->jobData['configId'],
+                        $this->jobData['componentId']
+                    ));
+                }
+
                 $configurationDefinition = new OverridesConfigurationDefinition();
                 $this->configuration = $configurationDefinition->processData($this->configuration['configuration']);
             } else {

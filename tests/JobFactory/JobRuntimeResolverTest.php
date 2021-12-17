@@ -6,6 +6,7 @@ namespace Keboola\JobQueueInternalClient\Tests\JobFactory;
 
 use Keboola\JobQueueInternalClient\Client as InternalApiClient;
 use Keboola\JobQueueInternalClient\Exception\ClientException;
+use Keboola\JobQueueInternalClient\Exception\ConfigurationDisabledException;
 use Keboola\JobQueueInternalClient\JobFactory;
 use Keboola\JobQueueInternalClient\JobFactory\Job;
 use Keboola\JobQueueInternalClient\JobFactory\JobRuntimeResolver;
@@ -142,6 +143,7 @@ class JobRuntimeResolverTest extends TestCase
         $jobData = self::JOB_DATA;
         $configuration = [
             'id' => '454124290',
+            'isDisabled' => false,
             'configuration' => [
                 'runtime' => [
                     'backend' => [
@@ -668,5 +670,33 @@ class JobRuntimeResolverTest extends TestCase
             ],
             $jobRuntimeResolver->resolveJobData($jobData)
         );
+    }
+
+    public function testConfigurationDisabledException(): void
+    {
+        $jobData = self::JOB_DATA;
+        $configuration = [
+            'id' => '454124290',
+            'isDisabled' => true,
+            'configuration' => [
+                'parameters' => ['foo' => 'bar'],
+            ],
+        ];
+
+        $clientMock = self::createMock(Client::class);
+        $clientMock->expects(self::once())->method('apiGet')
+            ->with('components/keboola.ex-db-snowflake/configs/454124290')->willReturn($configuration);
+        $clientWrapperMock = self::createMock(ClientWrapper::class);
+        $clientWrapperMock->method('getBranchClientIfAvailable')->willReturn($clientMock);
+        $storageClientFactoryMock = self::createMock(StorageClientFactory::class);
+        $storageClientFactoryMock
+            ->expects(self::once())
+            ->method('getClientWrapper')
+            ->willReturn($clientWrapperMock);
+        $jobRuntimeResolver = new JobRuntimeResolver($storageClientFactoryMock);
+
+        self::expectException(ConfigurationDisabledException::class);
+        self::expectExceptionMessage('Configuration "454124290" of component "keboola.ex-db-snowflake" is disabled.');
+        $jobRuntimeResolver->resolveJobData($jobData);
     }
 }
