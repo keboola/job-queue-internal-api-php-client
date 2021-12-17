@@ -189,7 +189,7 @@ class JobFactory
         $resolver = new JobRuntimeResolver($this->storageClientFactory);
         $jobData = $resolver->resolveJobData($jobData);
         // set type after resolving parallelism
-        $jobData['type'] = $this->getJobType($jobData, $tokenInfo);
+        $jobData['type'] = $data['type'] ?? $this->getJobType($jobData, $tokenInfo);
         return $this->objectEncryptorFactory->getEncryptor()->encrypt(
             $jobData,
             $this->objectEncryptorFactory->getEncryptor()->getRegisteredProjectWrapperClass()
