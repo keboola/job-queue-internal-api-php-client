@@ -275,7 +275,6 @@ class ClientListConfigurationsJobsFunctionalTest extends BaseClientFunctionalTes
 
         $response = $client->listConfigurationsJobs(
             (new ListConfigurationsJobsOptions([self::$configId1]))
-                ->setJobsPerConfig(1)
                 ->setBranchId(self::$branchId1)
         );
 
@@ -304,7 +303,6 @@ class ClientListConfigurationsJobsFunctionalTest extends BaseClientFunctionalTes
 
         $response = $client->listConfigurationsJobs(
             (new ListConfigurationsJobsOptions([self::$configId1]))
-                ->setJobsPerConfig(1)
                 ->setBranchId('null')
         );
 
