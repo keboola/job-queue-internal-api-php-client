@@ -23,6 +23,9 @@ class ClientListConfigurationsJobsFunctionalTest extends BaseClientFunctionalTes
     public static function setUpBeforeClass(): void
     {
         parent::setUpBeforeClass();
+
+        $className = substr((string) strrchr(__CLASS__, '\\'), 1);
+
         self::$client = new Client(
             [
                 'token' => (string) getenv('TEST_STORAGE_API_TOKEN'),
@@ -41,7 +44,7 @@ class ClientListConfigurationsJobsFunctionalTest extends BaseClientFunctionalTes
         $configuration = new Configuration();
         $configuration->setConfiguration([]);
         $configuration->setComponentId(self::COMPONENT_ID_1);
-        $configuration->setName('ClientListConfigurationsJobsFunctionalTest');
+        $configuration->setName($className);
 
         self::$configId1 = $componentsApi->addConfiguration($configuration)['id'];
         self::$configId2 = $componentsApi->addConfiguration($configuration)['id'];
@@ -49,7 +52,14 @@ class ClientListConfigurationsJobsFunctionalTest extends BaseClientFunctionalTes
         $configuration->setComponentId(self::COMPONENT_ID_2);
         $componentsApi->addConfiguration($configuration);
 
-        $devBranch = (new DevBranches(self::$masterClient))->createBranch('ClientListConfigurationsJobsFunctionalTest');
+        $branchesApi = new DevBranches(self::$masterClient);
+        foreach ($branchesApi->listBranches() as $devBranch) {
+            if ($devBranch['name'] === $className) {
+                $branchesApi->deleteBranch($devBranch['id']);
+            }
+        }
+
+        $devBranch = $branchesApi->createBranch($className);
         self::$branchId1 = (string) $devBranch['id'];
     }
 
@@ -63,10 +73,6 @@ class ClientListConfigurationsJobsFunctionalTest extends BaseClientFunctionalTes
         if (self::$configId2) {
             $componentsApi = new Components(self::$client);
             $componentsApi->deleteConfiguration(self::COMPONENT_ID_1, self::$configId2);
-        }
-        if (self::$branchId1) {
-            $branchesApi = new DevBranches(self::$masterClient);
-            $branchesApi->deleteBranch((int) self::$branchId1);
         }
     }
 
@@ -275,11 +281,15 @@ class ClientListConfigurationsJobsFunctionalTest extends BaseClientFunctionalTes
 
         $response = $client->listConfigurationsJobs(
             (new ListConfigurationsJobsOptions([self::$configId1]))
+                ->setJobsPerConfig(2)
                 ->setBranchId(self::$branchId1)
         );
 
-        self::assertCount(1, $response);
+        self::assertCount(2, $response);
         self::assertEquals($createdJob1->jsonSerialize(), $response[0]->jsonSerialize());
+
+        self::assertNotSame($createdJob2->getId(), $response[1]->getId());
+        self::assertSame(self::$branchId1, $response[1]->getBranchId());
     }
 
     public function testJobsWithoutBranchAreListed(): void
@@ -303,10 +313,14 @@ class ClientListConfigurationsJobsFunctionalTest extends BaseClientFunctionalTes
 
         $response = $client->listConfigurationsJobs(
             (new ListConfigurationsJobsOptions([self::$configId1]))
+                ->setJobsPerConfig(2)
                 ->setBranchId('null')
         );
 
-        self::assertCount(1, $response);
+        self::assertCount(2, $response);
         self::assertEquals($createdJob2->jsonSerialize(), $response[0]->jsonSerialize());
+
+        self::assertNotSame($createdJob1->getId(), $response[1]->getId());
+        self::assertNull($response[1]->getBranchId());
     }
 }
