@@ -294,8 +294,8 @@ class ClientListConfigurationsJobsFunctionalTest extends BaseClientFunctionalTes
         );
 
         self::assertCount(2, $response);
-        self::assertEquals($createdJob1->jsonSerialize(), $response[0]->jsonSerialize());
-        self::assertEquals($createdJob3->jsonSerialize(), $response[1]->jsonSerialize());
+        self::assertEquals($createdJob3->jsonSerialize(), $response[0]->jsonSerialize());
+        self::assertEquals($createdJob1->jsonSerialize(), $response[1]->jsonSerialize());
     }
 
     public function testJobsWithoutBranchAreListed(): void
