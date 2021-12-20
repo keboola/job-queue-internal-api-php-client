@@ -41,6 +41,11 @@ class JobRuntimeResolver
             $jobData['backend'] = $backend->toDataArray();
             $jobData['tag'] = $tag;
             $jobData['parallelism'] = $parallelism;
+
+            if ($this->resolveIsForceRunMode()) {
+                $jobData['mode'] = 'run'; // forceRun is overrided by run mode
+            }
+
             return $jobData;
         } catch (InvalidConfigurationException $e) {
             throw new ClientException('Invalid configuration: ' . $e->getMessage(), 0, $e);
@@ -149,7 +154,7 @@ class JobRuntimeResolver
                     $this->jobData['configId']
                 );
 
-                if (!empty($this->configuration['isDisabled'])) {
+                if (!empty($this->configuration['isDisabled']) && !$this->resolveIsForceRunMode()) {
                     throw new ConfigurationDisabledException(sprintf(
                         'Configuration "%s" of component "%s" is disabled.',
                         $this->jobData['configId'],
@@ -174,5 +179,10 @@ class JobRuntimeResolver
                 $branchId
             )->getBranchClientIfAvailable()
         );
+    }
+
+    private function resolveIsForceRunMode(): bool
+    {
+        return isset($this->jobData['mode']) && $this->jobData['mode'] === 'forceRun';
     }
 }

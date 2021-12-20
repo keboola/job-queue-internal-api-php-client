@@ -4,21 +4,15 @@ declare(strict_types=1);
 
 namespace Keboola\JobQueueInternalClient\Tests\JobFactory;
 
-use Keboola\JobQueueInternalClient\Client as InternalApiClient;
 use Keboola\JobQueueInternalClient\Exception\ClientException;
 use Keboola\JobQueueInternalClient\Exception\ConfigurationDisabledException;
-use Keboola\JobQueueInternalClient\JobFactory;
-use Keboola\JobQueueInternalClient\JobFactory\Job;
 use Keboola\JobQueueInternalClient\JobFactory\JobRuntimeResolver;
 use Keboola\JobQueueInternalClient\JobFactory\StorageClientFactory;
-use Keboola\ObjectEncryptor\ObjectEncryptor;
-use Keboola\ObjectEncryptor\ObjectEncryptorFactory;
 use Keboola\StorageApi\BranchAwareClient;
 use Keboola\StorageApi\Client;
 use Keboola\StorageApi\ClientException as StorageClientException;
 use Keboola\StorageApiBranch\ClientWrapper;
 use PHPUnit\Framework\TestCase;
-use Psr\Log\Test\TestLogger;
 
 class JobRuntimeResolverTest extends TestCase
 {
@@ -698,5 +692,46 @@ class JobRuntimeResolverTest extends TestCase
         self::expectException(ConfigurationDisabledException::class);
         self::expectExceptionMessage('Configuration "454124290" of component "keboola.ex-db-snowflake" is disabled.');
         $jobRuntimeResolver->resolveJobData($jobData);
+    }
+
+    public function testResolveForceRunMode(): void
+    {
+        $jobData = self::JOB_DATA;
+        $jobData['mode'] = 'forceRun';
+
+        $configuration = [
+            'id' => '454124290',
+            'isDisabled' => true,
+            'configuration' => [
+                'parameters' => ['foo' => 'bar'],
+            ],
+        ];
+
+        $clientMock = self::createMock(Client::class);
+        $clientMock->expects(self::exactly(2))->method('apiGet')
+            ->withConsecutive(
+                ['components/keboola.ex-db-snowflake/configs/454124290'],
+                ['components/keboola.ex-db-snowflake'],
+            )
+            ->willReturnOnConsecutiveCalls(
+                $configuration,
+                [
+                    'data' => [
+                        'definition' => ['tag' => '0.0.1'],
+                    ],
+                ]
+            )
+        ;
+        $clientWrapperMock = self::createMock(ClientWrapper::class);
+        $clientWrapperMock->method('getBranchClientIfAvailable')->willReturn($clientMock);
+        $storageClientFactoryMock = self::createMock(StorageClientFactory::class);
+        $storageClientFactoryMock
+            ->expects(self::exactly(2))
+            ->method('getClientWrapper')
+            ->willReturn($clientWrapperMock);
+        $jobRuntimeResolver = new JobRuntimeResolver($storageClientFactoryMock);
+
+        $resolvedJob = $jobRuntimeResolver->resolveJobData($jobData);
+        self::assertSame('run', $resolvedJob['mode']);
     }
 }
