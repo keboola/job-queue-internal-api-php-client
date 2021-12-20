@@ -7,35 +7,60 @@ namespace Keboola\JobQueueInternalClient\Tests;
 use Keboola\JobQueueInternalClient\ListConfigurationsJobsOptions;
 use Keboola\StorageApi\Client;
 use Keboola\StorageApi\Components;
+use Keboola\StorageApi\DevBranches;
 use Keboola\StorageApi\Options\Components\Configuration;
 
 class ClientListConfigurationsJobsFunctionalTest extends BaseClientFunctionalTest
 {
     private static string $configId1;
     private static string $configId2;
+    private static string $branchId1;
     private const COMPONENT_ID_1 = 'keboola.runner-config-test';
     private const COMPONENT_ID_2 = 'keboola.runner-workspace-test';
     private static Client $client;
+    private static Client $masterClient;
 
     public static function setUpBeforeClass(): void
     {
         parent::setUpBeforeClass();
+
+        $className = substr((string) strrchr(__CLASS__, '\\'), 1);
+
         self::$client = new Client(
             [
                 'token' => (string) getenv('TEST_STORAGE_API_TOKEN'),
                 'url' => (string) getenv('TEST_STORAGE_API_URL'),
             ]
         );
+
+        self::$masterClient = new Client(
+            [
+                'token' => (string) getenv('TEST_STORAGE_API_TOKEN_MASTER'),
+                'url' => (string) getenv('TEST_STORAGE_API_URL'),
+            ]
+        );
+
         $componentsApi = new Components(self::$client);
         $configuration = new Configuration();
         $configuration->setConfiguration([]);
         $configuration->setComponentId(self::COMPONENT_ID_1);
-        $configuration->setName('ClientListConfigurationsJobsFunctionalTest');
+        $configuration->setName($className);
+
         self::$configId1 = $componentsApi->addConfiguration($configuration)['id'];
         self::$configId2 = $componentsApi->addConfiguration($configuration)['id'];
         $configuration->setConfigurationId(self::$configId1);
         $configuration->setComponentId(self::COMPONENT_ID_2);
         $componentsApi->addConfiguration($configuration);
+
+        $branchesApi = new DevBranches(self::$masterClient);
+        foreach ($branchesApi->listBranches() as $devBranch) {
+            if ($devBranch['name'] === $className) {
+                $branchesApi->deleteBranch($devBranch['id']);
+            }
+        }
+
+        $devBranch = $branchesApi->createBranch($className);
+        self::$branchId1 = (string) $devBranch['id'];
     }
 
     public static function tearDownAfterClass(): void
@@ -57,6 +82,7 @@ class ClientListConfigurationsJobsFunctionalTest extends BaseClientFunctionalTes
         $job = $client->getJobFactory()->createNewJob([
             '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
             'configId' => self::$configId1,
+            'branchId' => self::$branchId1,
             'componentId' => self::COMPONENT_ID_1,
             'mode' => 'run',
         ]);
@@ -232,5 +258,69 @@ class ClientListConfigurationsJobsFunctionalTest extends BaseClientFunctionalTes
 
         self::assertCount(1, $response);
         self::assertEquals($expectedJob->jsonSerialize(), $response[0]->jsonSerialize());
+    }
+
+    public function testBranchJobsAreListed(): void
+    {
+        $client = $this->getClient();
+        $job1 = $client->getJobFactory()->createNewJob([
+            '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+            'configId' => self::$configId1,
+            'branchId' => self::$branchId1,
+            'componentId' => self::COMPONENT_ID_1,
+            'mode' => 'run',
+        ]);
+        $createdJob1 = $client->createJob($job1);
+        $job2 = $client->getJobFactory()->createNewJob([
+            '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+            'configId' => self::$configId1,
+            'componentId' => self::COMPONENT_ID_1,
+            'mode' => 'run',
+        ]);
+        $createdJob2 = $client->createJob($job2);
+
+        $response = $client->listConfigurationsJobs(
+            (new ListConfigurationsJobsOptions([self::$configId1]))
+                ->setJobsPerConfig(2)
+                ->setBranchId(self::$branchId1)
+        );
+
+        self::assertCount(2, $response);
+        self::assertEquals($createdJob1->jsonSerialize(), $response[0]->jsonSerialize());
+
+        self::assertNotSame($createdJob2->getId(), $response[1]->getId());
+        self::assertSame(self::$branchId1, $response[1]->getBranchId());
+    }
+
+    public function testJobsWithoutBranchAreListed(): void
+    {
+        $client = $this->getClient();
+        $job1 = $client->getJobFactory()->createNewJob([
+            '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+            'configId' => self::$configId1,
+            'branchId' => self::$branchId1,
+            'componentId' => self::COMPONENT_ID_1,
+            'mode' => 'run',
+        ]);
+        $createdJob1 = $client->createJob($job1);
+        $job2 = $client->getJobFactory()->createNewJob([
+            '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+            'configId' => self::$configId1,
+            'componentId' => self::COMPONENT_ID_1,
+            'mode' => 'run',
+        ]);
+        $createdJob2 = $client->createJob($job2);
+
+        $response = $client->listConfigurationsJobs(
+            (new ListConfigurationsJobsOptions([self::$configId1]))
+                ->setJobsPerConfig(2)
+                ->setBranchId('null')
+        );
+
+        self::assertCount(2, $response);
+        self::assertEquals($createdJob2->jsonSerialize(), $response[0]->jsonSerialize());
+
+        self::assertNotSame($createdJob1->getId(), $response[1]->getId());
+        self::assertNull($response[1]->getBranchId());
     }
 }

@@ -20,6 +20,7 @@ class ListConfigurationsJobsOptions
     private ?int $limit = null;
     private ?string $sortBy = null;
     private ?string $sortOrder = null;
+    private ?string $branchId = null;
 
     public function __construct(array $configIds)
     {
@@ -33,19 +34,35 @@ class ListConfigurationsJobsOptions
 
     public function getQueryParameters(): array
     {
-        $params = [
-            'configId' => $this->configIds,
-            'jobsPerConfiguration' => $this->jobsPerConfig,
-            'projectId' => $this->projectId,
-            'offset' => $this->offset,
-            'limit' => $this->limit,
-            'sortBy' => $this->sortBy,
-            'sortOrder' => $this->sortOrder,
+        $arrayableProps = [
+            'configIds' => 'configId',
         ];
 
-        return array_filter($params, function ($v) {
-            return $v !== null;
-        });
+        $scalarProps = [
+            'jobsPerConfig' => 'jobsPerConfiguration',
+            'projectId' => 'projectId',
+            'offset' => 'offset',
+            'limit' => 'limit',
+            'sortBy' => 'sortBy',
+            'sortOrder' => 'sortOrder',
+            'branchId' => 'branchId',
+        ];
+
+        $parameters = [];
+        foreach ($arrayableProps as $propName => $paramName) {
+            if (!empty($this->$propName)) {
+                foreach ($this->$propName as $value) {
+                    $parameters[] = $paramName . '[]=' . urlencode((string) $value);
+                }
+            }
+        }
+        foreach ($scalarProps as $propName => $paramName) {
+            if (!empty($this->$propName)) {
+                $parameters[] = $paramName . '=' . urlencode((string) $this->$propName);
+            }
+        }
+
+        return $parameters;
     }
 
     public function getConfigIds(): array
@@ -119,6 +136,17 @@ class ListConfigurationsJobsOptions
 
         $this->sortBy = $sortBy;
         $this->sortOrder = $sortBy === null ? null : $sortOrder;
+        return $this;
+    }
+
+    public function getBranchId(): ?string
+    {
+        return $this->branchId;
+    }
+
+    public function setBranchId(?string $branchId): ListConfigurationsJobsOptions
+    {
+        $this->branchId = $branchId;
         return $this;
     }
 }

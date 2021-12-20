@@ -245,7 +245,7 @@ class Client
         $i = 1;
         $options = clone $options;
         do {
-            $request = new Request('GET', 'configurations-jobs?' . http_build_query($options->getQueryParameters()));
+            $request = new Request('GET', 'configurations-jobs?' . implode('&', $options->getQueryParameters()));
             $result = $this->sendRequest($request);
             $chunk = $this->mapJobsFromResponse($result);
             $jobs = array_merge($jobs, $chunk);

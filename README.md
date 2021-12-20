@@ -43,6 +43,7 @@ $client->postJobResult('123', 'success', ['images' => ['digests' => []]]);
 - Set the following environment variables in `.env` file (use `.env.dist` as sample):
     - `TEST_STORAGE_API_URL` - Keboola Connection URL.
     - `TEST_STORAGE_API_TOKEN` - Token to a test project.
+    - `TEST_STORAGE_API_TOKEN_MASTER` - Master (admin) token to a test project.
   
 ### AWS Setup
 - Create a user (`JobQueueInternalApiPhpClient`) for local development using the `provisioning/aws.json` CF template. 
