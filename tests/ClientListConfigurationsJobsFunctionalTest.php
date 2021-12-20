@@ -277,7 +277,15 @@ class ClientListConfigurationsJobsFunctionalTest extends BaseClientFunctionalTes
             'componentId' => self::COMPONENT_ID_1,
             'mode' => 'run',
         ]);
-        $createdJob2 = $client->createJob($job2);
+        $client->createJob($job2);
+        $job3 = $client->getJobFactory()->createNewJob([
+            '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+            'configId' => self::$configId1,
+            'branchId' => self::$branchId1,
+            'componentId' => self::COMPONENT_ID_1,
+            'mode' => 'run',
+        ]);
+        $createdJob3 = $client->createJob($job3);
 
         $response = $client->listConfigurationsJobs(
             (new ListConfigurationsJobsOptions([self::$configId1]))
@@ -286,10 +294,8 @@ class ClientListConfigurationsJobsFunctionalTest extends BaseClientFunctionalTes
         );
 
         self::assertCount(2, $response);
-        self::assertEquals($createdJob1->jsonSerialize(), $response[0]->jsonSerialize());
-
-        self::assertNotSame($createdJob2->getId(), $response[1]->getId());
-        self::assertSame(self::$branchId1, $response[1]->getBranchId());
+        self::assertEquals($createdJob3->jsonSerialize(), $response[0]->jsonSerialize());
+        self::assertEquals($createdJob1->jsonSerialize(), $response[1]->jsonSerialize());
     }
 
     public function testJobsWithoutBranchAreListed(): void
