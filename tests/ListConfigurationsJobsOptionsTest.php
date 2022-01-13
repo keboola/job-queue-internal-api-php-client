@@ -10,11 +10,14 @@ use PHPUnit\Framework\TestCase;
 
 class ListConfigurationsJobsOptionsTest extends TestCase
 {
+    private const COMPONENT_ID = 'keboola.runner-config-test';
+
     public function testDefaultValues(): void
     {
-        $options = new ListConfigurationsJobsOptions(['abc', 'efg']);
+        $options = new ListConfigurationsJobsOptions(['abc', 'efg'], self::COMPONENT_ID);
 
         self::assertSame(['abc', 'efg'], $options->getConfigIds());
+        self::assertSame('keboola.runner-config-test', $options->getComponentId());
         self::assertNull($options->getProjectId());
         self::assertNull($options->getJobsPerConfig());
         self::assertNull($options->getOffset());
@@ -26,12 +29,13 @@ class ListConfigurationsJobsOptionsTest extends TestCase
         self::assertSame([
             'configId[]=abc',
             'configId[]=efg',
+            'componentId=keboola.runner-config-test',
         ], $options->getQueryParameters());
     }
 
     public function testAllValues(): void
     {
-        $options = new ListConfigurationsJobsOptions(['abc', 'efg']);
+        $options = new ListConfigurationsJobsOptions(['abc', 'efg'], self::COMPONENT_ID);
         $options->setProjectId('my-project');
         $options->setJobsPerConfig(5);
         $options->setOffset(6);
@@ -58,6 +62,7 @@ class ListConfigurationsJobsOptionsTest extends TestCase
             'sortBy=configId',
             'sortOrder=asc',
             'branchId=main',
+            'componentId=keboola.runner-config-test',
         ], $options->getQueryParameters());
     }
 
@@ -66,12 +71,12 @@ class ListConfigurationsJobsOptionsTest extends TestCase
         $this->expectException(ClientException::class);
         $this->expectExceptionMessage('All configuration IDs must be strings');
 
-        new ListConfigurationsJobsOptions([1]);
+        new ListConfigurationsJobsOptions([1], self::COMPONENT_ID);
     }
 
     public function testSortOrderIsValidated(): void
     {
-        $options = new ListConfigurationsJobsOptions(['123']);
+        $options = new ListConfigurationsJobsOptions(['123'], self::COMPONENT_ID);
 
         $this->expectException(ClientException::class);
         $this->expectExceptionMessage('Invalid sort order "xxx", expected one of: asc, desc');
@@ -81,7 +86,7 @@ class ListConfigurationsJobsOptionsTest extends TestCase
 
     public function testSortingReset(): void
     {
-        $options = new ListConfigurationsJobsOptions(['123']);
+        $options = new ListConfigurationsJobsOptions(['123'], self::COMPONENT_ID);
 
         $options->setSort('field');
         self::assertSame('field', $options->getSortBy());

@@ -96,7 +96,7 @@ class ClientListConfigurationsJobsFunctionalTest extends BaseClientFunctionalTes
         $client->createJob($job2);
 
         $response = $client->listConfigurationsJobs(
-            new ListConfigurationsJobsOptions([self::$configId1])
+            new ListConfigurationsJobsOptions([self::$configId1], self::COMPONENT_ID_1)
         );
 
         self::assertCount(1, $response);
@@ -116,45 +116,24 @@ class ClientListConfigurationsJobsFunctionalTest extends BaseClientFunctionalTes
         $job2 = $client->getJobFactory()->createNewJob([
             '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
             'configId' => self::$configId1,
-            'componentId' => self::COMPONENT_ID_2,
+            'componentId' => self::COMPONENT_ID_1,
             'mode' => 'run',
         ]);
         $expectedJob = $client->createJob($job2);
 
-        $response = $client->listConfigurationsJobs(
-            new ListConfigurationsJobsOptions([self::$configId1])
-        );
-
-        self::assertCount(1, $response);
-        self::assertEquals($expectedJob->jsonSerialize(), $response[0]->jsonSerialize());
-    }
-
-    public function testMultipleConfigJobsAreListed(): void
-    {
-        $client = $this->getClient();
-        $job1 = $client->getJobFactory()->createNewJob([
-            '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
-            'configId' => self::$configId1,
-            'componentId' => self::COMPONENT_ID_1,
-            'mode' => 'run',
-        ]);
-        $expectedJob1 = $client->createJob($job1);
-        $job2 = $client->getJobFactory()->createNewJob([
+        $client->createJob($client->getJobFactory()->createNewJob([
             '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
             'configId' => self::$configId1,
             'componentId' => self::COMPONENT_ID_2,
             'mode' => 'run',
-        ]);
-        $expectedJob2 = $client->createJob($job2);
+        ]));
 
         $response = $client->listConfigurationsJobs(
-            (new ListConfigurationsJobsOptions([self::$configId1]))
-                ->setJobsPerConfig(2)
+            new ListConfigurationsJobsOptions([self::$configId1], self::COMPONENT_ID_1)
         );
 
-        self::assertCount(2, $response);
-        self::assertEquals($expectedJob2->jsonSerialize(), $response[0]->jsonSerialize());
-        self::assertEquals($expectedJob1->jsonSerialize(), $response[1]->jsonSerialize());
+        self::assertCount(1, $response);
+        self::assertEquals($expectedJob->jsonSerialize(), $response[0]->jsonSerialize());
     }
 
     public function testExistingProjectFilter(): void
@@ -169,7 +148,7 @@ class ClientListConfigurationsJobsFunctionalTest extends BaseClientFunctionalTes
         $expectedJob1 = $client->createJob($job1);
 
         $response = $client->listConfigurationsJobs(
-            (new ListConfigurationsJobsOptions([self::$configId1]))
+            (new ListConfigurationsJobsOptions([self::$configId1], self::COMPONENT_ID_1))
                 ->setProjectId($job1->getProjectId())
         );
 
@@ -189,7 +168,7 @@ class ClientListConfigurationsJobsFunctionalTest extends BaseClientFunctionalTes
         $client->createJob($job1);
 
         $response = $client->listConfigurationsJobs(
-            (new ListConfigurationsJobsOptions([self::$configId1]))
+            (new ListConfigurationsJobsOptions([self::$configId1], self::COMPONENT_ID_1))
                 ->setProjectId('other-project')
         );
 
@@ -215,7 +194,7 @@ class ClientListConfigurationsJobsFunctionalTest extends BaseClientFunctionalTes
         $expectedJob2 = $client->createJob($job2);
 
         $response = $client->listConfigurationsJobs(
-            (new ListConfigurationsJobsOptions([self::$configId1, self::$configId2]))
+            (new ListConfigurationsJobsOptions([self::$configId1, self::$configId2], self::COMPONENT_ID_1))
                 ->setSort('componentId')
         );
 
@@ -237,20 +216,20 @@ class ClientListConfigurationsJobsFunctionalTest extends BaseClientFunctionalTes
         $job2 = $client->getJobFactory()->createNewJob([
             '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
             'configId' => self::$configId1,
-            'componentId' => self::COMPONENT_ID_2,
+            'componentId' => self::COMPONENT_ID_1,
             'mode' => 'run',
         ]);
         $expectedJob = $client->createJob($job2);
         $job3 = $client->getJobFactory()->createNewJob([
             '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
             'configId' => self::$configId1,
-            'componentId' => self::COMPONENT_ID_2,
+            'componentId' => self::COMPONENT_ID_1,
             'mode' => 'run',
         ]);
         $client->createJob($job3);
 
         $response = $client->listConfigurationsJobs(
-            (new ListConfigurationsJobsOptions([self::$configId1]))
+            (new ListConfigurationsJobsOptions([self::$configId1], self::COMPONENT_ID_1))
                 ->setJobsPerConfig(3)
                 ->setLimit(1)
                 ->setOffset(1)
@@ -288,7 +267,7 @@ class ClientListConfigurationsJobsFunctionalTest extends BaseClientFunctionalTes
         $createdJob3 = $client->createJob($job3);
 
         $response = $client->listConfigurationsJobs(
-            (new ListConfigurationsJobsOptions([self::$configId1]))
+            (new ListConfigurationsJobsOptions([self::$configId1], self::COMPONENT_ID_1))
                 ->setJobsPerConfig(2)
                 ->setBranchId(self::$branchId1)
         );
@@ -318,7 +297,7 @@ class ClientListConfigurationsJobsFunctionalTest extends BaseClientFunctionalTes
         $createdJob2 = $client->createJob($job2);
 
         $response = $client->listConfigurationsJobs(
-            (new ListConfigurationsJobsOptions([self::$configId1]))
+            (new ListConfigurationsJobsOptions([self::$configId1], self::COMPONENT_ID_1))
                 ->setJobsPerConfig(2)
                 ->setBranchId('null')
         );
