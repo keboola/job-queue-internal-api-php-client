@@ -14,6 +14,10 @@ use Throwable;
 
 class Job implements JsonSerializable, JobInterface
 {
+    public const MODE_RUN = 'run';
+    public const MODE_DEBUG = 'debug';
+    public const MODE_FORCE_RUN = 'forceRun';
+
     private array $data;
     private ObjectEncryptorFactory $objectEncryptorFactory;
     private ?DateTimeImmutable $endTime;
