@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Keboola\JobQueueInternalClient\JobFactory;
 
-use Keboola\JobQueueInternalClient\JobFactory;
 use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
@@ -38,8 +37,12 @@ class NewJobDefinition implements ConfigurationInterface
                 ->arrayNode('result')->ignoreExtraKeys(false)->end()
                 ->scalarNode('mode')->defaultValue('run')
                     ->validate()
-                        ->ifNotInArray(['run', 'debug'])
-                        ->thenInvalid('Mode must be one of "run" or "debug".')
+                        ->ifNotInArray([
+                            Job::MODE_RUN,
+                            Job::MODE_DEBUG,
+                            Job::MODE_FORCE_RUN,
+                        ])
+                        ->thenInvalid('Mode must be one of "run", "forceRun" or "debug".')
                     ->end()
                 ->end()
                 ->arrayNode('configRowIds')

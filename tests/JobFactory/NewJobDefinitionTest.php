@@ -4,12 +4,20 @@ declare(strict_types=1);
 
 namespace Keboola\JobQueueInternalClient\Tests\JobFactory;
 
+use Generator;
 use Keboola\JobQueueInternalClient\JobFactory\NewJobDefinition;
 use Keboola\JobQueueInternalClient\Tests\BaseTest;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 
 class NewJobDefinitionTest extends BaseTest
 {
+    public function validModeData(): Generator
+    {
+        yield 'debug mode' => ['debug'];
+        yield 'run mode' => ['run'];
+        yield 'forceRun mode' => ['forceRun'];
+    }
+
     public function testValidJobMinimal(): void
     {
         $data = [
@@ -30,14 +38,17 @@ class NewJobDefinitionTest extends BaseTest
         );
     }
 
-    public function testValidJobFull(): void
+    /**
+     * @dataProvider validModeData
+     */
+    public function testValidJobFull(string $mode): void
     {
         $data = [
             '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
             'parentRunId' => '12345',
             'configId' => '123',
             'componentId' => 'keboola.test',
-            'mode' => 'run',
+            'mode' => $mode,
             'configRowIds' => ['234'],
             'configData' => [
                 'parameters' => [
@@ -83,7 +94,7 @@ class NewJobDefinitionTest extends BaseTest
                     'componentId' => 'keboola.test',
                     'mode' => 'invalid',
                 ],
-                '#Invalid configuration for path "job.mode": Mode must be one of "run" or "debug".#',
+                '#Invalid configuration for path "job.mode": Mode must be one of "run", "forceRun" or "debug".#',
             ],
             'Invalid configData' => [
                 [

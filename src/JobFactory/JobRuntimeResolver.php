@@ -43,7 +43,7 @@ class JobRuntimeResolver
             $jobData['parallelism'] = $parallelism;
 
             if ($this->resolveIsForceRunMode()) {
-                $jobData['mode'] = 'run'; // forceRun is overrided by run mode
+                $jobData['mode'] = Job::MODE_RUN; // forceRun is overrided by run mode
             }
 
             return $jobData;
@@ -183,6 +183,6 @@ class JobRuntimeResolver
 
     private function resolveIsForceRunMode(): bool
     {
-        return isset($this->jobData['mode']) && $this->jobData['mode'] === 'forceRun';
+        return isset($this->jobData['mode']) && $this->jobData['mode'] === Job::MODE_FORCE_RUN;
     }
 }
