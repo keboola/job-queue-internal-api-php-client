@@ -21,9 +21,9 @@ class ListConfigurationsJobsOptions
     private ?string $sortBy = null;
     private ?string $sortOrder = null;
     private ?string $branchId = null;
-    private string $componentId;
+    private ?string $componentId;
 
-    public function __construct(array $configIds, string $componentId)
+    public function __construct(array $configIds, ?string $componentId = null)
     {
         $allConfigIdsAreString = array_reduce($configIds, fn($valid, $item) => $valid && is_string($item), true);
         if (!$allConfigIdsAreString) {
@@ -153,7 +153,7 @@ class ListConfigurationsJobsOptions
         return $this;
     }
 
-    public function getComponentId(): string
+    public function getComponentId(): ?string
     {
         return $this->componentId;
     }
