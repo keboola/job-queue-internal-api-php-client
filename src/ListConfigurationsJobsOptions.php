@@ -21,8 +21,9 @@ class ListConfigurationsJobsOptions
     private ?string $sortBy = null;
     private ?string $sortOrder = null;
     private ?string $branchId = null;
+    private ?string $componentId;
 
-    public function __construct(array $configIds)
+    public function __construct(array $configIds, ?string $componentId = null)
     {
         $allConfigIdsAreString = array_reduce($configIds, fn($valid, $item) => $valid && is_string($item), true);
         if (!$allConfigIdsAreString) {
@@ -30,6 +31,7 @@ class ListConfigurationsJobsOptions
         }
 
         $this->configIds = $configIds;
+        $this->componentId = $componentId;
     }
 
     public function getQueryParameters(): array
@@ -46,6 +48,7 @@ class ListConfigurationsJobsOptions
             'sortBy' => 'sortBy',
             'sortOrder' => 'sortOrder',
             'branchId' => 'branchId',
+            'componentId' => 'componentId',
         ];
 
         $parameters = [];
@@ -148,5 +151,10 @@ class ListConfigurationsJobsOptions
     {
         $this->branchId = $branchId;
         return $this;
+    }
+
+    public function getComponentId(): ?string
+    {
+        return $this->componentId;
     }
 }
