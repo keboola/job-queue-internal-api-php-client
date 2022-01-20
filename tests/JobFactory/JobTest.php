@@ -317,6 +317,24 @@ class JobTest extends BaseTest
         self::assertSame('3', $job->getParallelism());
     }
 
+    public function testIsInRunMode(): void
+    {
+        $jobData = $this->jobData;
+        $jobData['mode'] = 'run';
+        $job = $this->getJob($jobData);
+        self::assertTrue($job->isInRunMode());
+
+        $jobData = $this->jobData;
+        $jobData['mode'] = 'forceRun';
+        $job = $this->getJob($jobData);
+        self::assertTrue($job->isInRunMode());
+
+        $jobData = $this->jobData;
+        $jobData['mode'] = 'debug';
+        $job = $this->getJob($jobData);
+        self::assertFalse($job->isInRunMode());
+    }
+
     public function testCacheDecryptedToken(): void
     {
         $objectEncryptorFactoryMock = self::getMockBuilder(ObjectEncryptorFactory::class)

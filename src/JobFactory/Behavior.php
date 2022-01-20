@@ -35,4 +35,9 @@ class Behavior
     {
         return $this->onError;
     }
+
+    public static function getBehaviorTypes(): array
+    {
+        return [self::ON_ERROR_STOP, self::ON_ERROR_WARNING, self::ON_ERROR_FAIL];
+    }
 }

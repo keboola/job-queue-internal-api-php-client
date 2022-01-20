@@ -23,6 +23,7 @@ class BehaviorTest extends TestCase
     {
         $behavior = new Behavior($onError);
         self::assertSame($onError, $behavior->getOnError());
+        self::assertCount(3, $behavior::getBehaviorTypes());
     }
 
     /**
