@@ -113,7 +113,7 @@ class FullJobDefinitionTest extends BaseTest
                     'componentId' => 'keboola.test',
                     'mode' => 'invalid',
                 ],
-                '#Invalid configuration for path "job.mode": Mode must be one of "run" ' .
+                '#Invalid configuration for path "job.mode": Mode must be one of "run", "forceRun" ' .
                 'or "debug" \(or "dry-run","prepare","input","full","single"\).#',
             ],
             'Invalid configData' => [
