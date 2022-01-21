@@ -41,11 +41,6 @@ class JobRuntimeResolver
             $jobData['backend'] = $backend->toDataArray();
             $jobData['tag'] = $tag;
             $jobData['parallelism'] = $parallelism;
-
-            if ($this->resolveIsForceRunMode()) {
-                $jobData['mode'] = Job::MODE_RUN; // forceRun is overrided by run mode
-            }
-
             return $jobData;
         } catch (InvalidConfigurationException $e) {
             throw new ClientException('Invalid configuration: ' . $e->getMessage(), 0, $e);
@@ -179,10 +174,5 @@ class JobRuntimeResolver
                 $branchId
             )->getBranchClientIfAvailable()
         );
-    }
-
-    private function resolveIsForceRunMode(): bool
-    {
-        return isset($this->jobData['mode']) && $this->jobData['mode'] === Job::MODE_FORCE_RUN;
     }
 }
