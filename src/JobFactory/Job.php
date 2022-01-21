@@ -248,4 +248,9 @@ class Job implements JsonSerializable, JobInterface
     {
         return JobMetrics::fromDataArray($this->data);
     }
+
+    public function isInRunMode(): bool
+    {
+        return in_array($this->getMode(), [self::MODE_RUN, self::MODE_FORCE_RUN]);
+    }
 }

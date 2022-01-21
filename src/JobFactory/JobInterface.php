@@ -49,4 +49,5 @@ interface JobInterface
     public function getEndTime(): ?DateTimeImmutable;
     public function getDurationSeconds(): ?int;
     public function getMetrics(): JobMetrics;
+    public function isInRunMode(): bool;
 }
