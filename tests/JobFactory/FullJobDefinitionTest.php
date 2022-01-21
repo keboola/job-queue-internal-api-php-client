@@ -50,7 +50,7 @@ class FullJobDefinitionTest extends BaseTest
             'projectId' => '123',
             'configId' => '123',
             'componentId' => 'keboola.test',
-            'mode' => 'run',
+            'mode' => 'forceRun',
             'configRowIds' => ['234'],
             'configData' => [
                 'parameters' => [
