@@ -175,4 +175,9 @@ class JobRuntimeResolver
             )->getBranchClientIfAvailable()
         );
     }
+
+    private function resolveIsForceRunMode(): bool
+    {
+        return isset($this->jobData['mode']) && $this->jobData['mode'] === Job::MODE_FORCE_RUN;
+    }
 }
