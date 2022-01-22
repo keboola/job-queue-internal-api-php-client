@@ -234,6 +234,22 @@ class JobFactoryTest extends BaseTest
         self::assertSame('standard', $job->getType());
     }
 
+    public function testCreateJobForceRun(): void
+    {
+        $factory = $this->getJobFactory();
+        $data = [
+            '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+            'componentId' => 'keboola.runner-config-test',
+            'tag' => 'latest',
+            'mode' => 'forceRun',
+            'configData' => [],
+        ];
+        $job = $factory->createNewJob($data);
+        self::assertNotEmpty($job->getId());
+        self::assertSame('forceRun', $job->getMode());
+        self::assertSame('standard', $job->getType());
+    }
+
     public function testCreateNewJobParallelismNumeric(): void
     {
         $factory = $this->getJobFactory();

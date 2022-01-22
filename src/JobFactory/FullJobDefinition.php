@@ -59,12 +59,13 @@ class FullJobDefinition extends NewJobDefinition
                 ->end()
                 ->scalarNode('mode')
                     ->validate()
-                        ->ifNotInArray(['run', 'debug',
+                        ->ifNotInArray([Job::MODE_RUN, Job::MODE_FORCE_RUN, Job::MODE_DEBUG,
                             // these are only for compatibility with transformation jobs, not used on new jobs
                             'dry-run', 'prepare', 'input', 'full', 'single',
                         ])
                         ->thenInvalid(
-                            'Mode must be one of "run" or "debug" (or "dry-run","prepare","input","full","single").'
+                            'Mode must be one of "run", "forceRun" or "debug" ' .
+                            '(or "dry-run","prepare","input","full","single").'
                         )
                     ->end()
                 ->end()
