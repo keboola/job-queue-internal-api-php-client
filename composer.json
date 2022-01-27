@@ -66,6 +66,9 @@
     "config": {
         "sort-packages": true,
         "process-timeout": 3600,
-        "lock": false
+        "lock": false,
+        "allow-plugins": {
+            "infection/extension-installer": true
+        }
     }
 }
