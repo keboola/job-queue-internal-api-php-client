@@ -140,6 +140,7 @@ class PermissionCheckerTest extends TestCase
                     ],
                     'owner' => [
                         'id' => '123',
+                        'name' => 'test',
                         'features' => ['abcd', 'queuev2'],
                     ],
                     'id' => '123',
@@ -158,6 +159,7 @@ class PermissionCheckerTest extends TestCase
                     ],
                     'owner' => [
                         'id' => '123',
+                        'name' => 'test',
                         'features' => ['abcd', 'queuev2'],
                     ],
                     'id' => '123',
@@ -176,6 +178,7 @@ class PermissionCheckerTest extends TestCase
                     ],
                     'owner' => [
                         'id' => '123',
+                        'name' => 'test',
                         'features' => ['abcd', 'queuev2'],
                     ],
                     'id' => '123',
@@ -194,6 +197,7 @@ class PermissionCheckerTest extends TestCase
                     ],
                     'owner' => [
                         'id' => '123',
+                        'name' => 'test',
                         'features' => ['abcd'],
                     ],
                     'id' => '123',
@@ -201,7 +205,7 @@ class PermissionCheckerTest extends TestCase
                         'keboola.dummy', 'keboola.dummy-2',
                     ],
                 ],
-                'message' => 'Feature "queuev2" is not enabled in the project.',
+                'message' => 'Feature "queuev2" is not enabled in the project "test" (id: 123).',
             ],
         ];
     }

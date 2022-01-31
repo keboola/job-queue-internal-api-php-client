@@ -13,7 +13,7 @@ class PermissionChecker
     {
         if (empty($tokenInfo['owner']['features']) || !in_array('queuev2', $tokenInfo['owner']['features'])) {
             throw new PermissionsException(sprintf(
-                'Feature "queuev2" is not enabled in the project %s (id: %s).',
+                'Feature "queuev2" is not enabled in the project "%s" (id: %s).',
                 $tokenInfo['owner']['name'],
                 $tokenInfo['owner']['id']
             ));
