@@ -203,7 +203,7 @@ class JobFactory
         } else {
             if (in_array(self::CONTAINER_ORCHESTRATOR_FEATURE, $tokenInfo['owner']['features'])) {
                 if ($data['componentId'] === self::ORCHESTRATOR_COMPONENT) {
-                    if (!empty($data['configData']['phaseId'])) {
+                    if (isset($data['configData']['phaseId']) && (string) ($data['configData']['phaseId']) !== '') {
                         return self::TYPE_PHASE_CONTAINER;
                     } else {
                         return self::TYPE_ORCHESTRATION_CONTAINER;
