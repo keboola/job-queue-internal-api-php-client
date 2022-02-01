@@ -12,7 +12,11 @@ class PermissionChecker
     public static function verifyJobRunPermissions(JobInterface $job, array $tokenInfo): void
     {
         if (empty($tokenInfo['owner']['features']) || !in_array('queuev2', $tokenInfo['owner']['features'])) {
-            throw new PermissionsException('Feature "queuev2" is not enabled in the project.');
+            throw new PermissionsException(sprintf(
+                'Feature "queuev2" is not enabled in the project "%s" (id: %s).',
+                $tokenInfo['owner']['name'],
+                $tokenInfo['owner']['id']
+            ));
         }
         if (!empty($tokenInfo['componentAccess']) && !in_array($job->getComponentId(), $tokenInfo['componentAccess'])) {
             throw new PermissionsException(
