@@ -527,7 +527,7 @@ class JobFactoryTest extends BaseTest
         self::assertNull($job->getConfigId());
         self::assertEquals(['phaseId' => ''], $job->getConfigData());
         self::assertEquals('keboola.orchestrator', $job->getComponentId());
-        self::assertSame('orchestratorContainer', $job->getType());
+        self::assertSame('orchestrationContainer', $job->getType());
     }
 
     public function testCreateNewJobInvalidVariables(): void
