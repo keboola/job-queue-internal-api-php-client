@@ -367,74 +367,12 @@ class JobFactoryTest extends BaseTest
         self::assertStringStartsWith('KBC::ProjectSecure', $job->getTokenString());
         self::assertEquals([], $job->getConfigData());
         self::assertEquals('keboola.orchestrator', $job->getComponentId());
-        self::assertSame('standard', $job->getType());
-    }
-
-    public function testCreateNewOrchestratorJobFeature(): void
-    {
-        $client = new Client([
-            'url' => (string) getenv('TEST_STORAGE_API_URL'),
-            'token' => (string) getenv('TEST_STORAGE_API_TOKEN'),
-        ]);
-        $tokenInfo = $client->verifyToken();
-        $tokenInfo['owner']['features'][] = 'container-orchestrator';
-        $clientMock = $this->createMock(Client::class);
-        $clientMock->method('verifyToken')->willReturn($tokenInfo);
-        $clientMock->method('generateId')->willReturn(random_int(10000, 20000));
-        $clientWrapperMock = $this->createMock(ClientWrapper::class);
-        $clientWrapperMock->method('getBasicClient')->willReturn($clientMock);
-        $storageClientFactoryMock = $this->createMock(StorageClientFactory::class);
-        $storageClientFactoryMock->method('getClientWrapper')->willReturn($clientWrapperMock);
-        $storageClientFactoryMock
-            ->method('getStorageApiUrl')->willReturn((string) getenv('TEST_STORAGE_API_URL'));
-        $objectEncryptorFactory = new ObjectEncryptorFactory(
-            (string) getenv('TEST_KMS_KEY_ID'),
-            (string) getenv('TEST_KMS_REGION'),
-            '',
-            '123456789012345678901234567890ab',
-            (string) getenv('TEST_AZURE_KEY_VAULT_URL')
-        );
-        $factory = new JobFactory($storageClientFactoryMock, $objectEncryptorFactory);
-        $data = [
-            '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
-            'componentId' => 'keboola.orchestrator',
-            'tag' => 'latest',
-            'mode' => 'run',
-            'configData' => [],
-        ];
-        $job = $factory->createNewJob($data);
-        self::assertNotEmpty($job->getId());
-        self::assertNull($job->getConfigId());
-        self::assertEquals([], $job->getConfigData());
-        self::assertEquals('keboola.orchestrator', $job->getComponentId());
         self::assertSame('orchestrationContainer', $job->getType());
     }
 
-    public function testCreateNewOrchestratorPhaseJobFeature(): void
+    public function testCreateNewOrchestratorPhaseJob(): void
     {
-        $client = new Client([
-            'url' => (string) getenv('TEST_STORAGE_API_URL'),
-            'token' => (string) getenv('TEST_STORAGE_API_TOKEN'),
-        ]);
-        $tokenInfo = $client->verifyToken();
-        $tokenInfo['owner']['features'][] = 'container-orchestrator';
-        $clientMock = $this->createMock(Client::class);
-        $clientMock->method('verifyToken')->willReturn($tokenInfo);
-        $clientMock->method('generateId')->willReturn(random_int(10000, 20000));
-        $clientWrapperMock = $this->createMock(ClientWrapper::class);
-        $clientWrapperMock->method('getBasicClient')->willReturn($clientMock);
-        $storageClientFactoryMock = $this->createMock(StorageClientFactory::class);
-        $storageClientFactoryMock->method('getClientWrapper')->willReturn($clientWrapperMock);
-        $storageClientFactoryMock
-            ->method('getStorageApiUrl')->willReturn((string) getenv('TEST_STORAGE_API_URL'));
-        $objectEncryptorFactory = new ObjectEncryptorFactory(
-            (string) getenv('TEST_KMS_KEY_ID'),
-            (string) getenv('TEST_KMS_REGION'),
-            '',
-            '123456789012345678901234567890ab',
-            (string) getenv('TEST_AZURE_KEY_VAULT_URL')
-        );
-        $factory = new JobFactory($storageClientFactoryMock, $objectEncryptorFactory);
+        $factory = $this->getJobFactory();
         $data = [
             '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
             'componentId' => 'keboola.orchestrator',
@@ -450,31 +388,9 @@ class JobFactoryTest extends BaseTest
         self::assertSame('phaseContainer', $job->getType());
     }
 
-    public function testCreateNewOrchestratorPhaseJobFeatureZeroPhase(): void
+    public function testCreateNewOrchestratorPhaseJobZeroPhase(): void
     {
-        $client = new Client([
-            'url' => (string) getenv('TEST_STORAGE_API_URL'),
-            'token' => (string) getenv('TEST_STORAGE_API_TOKEN'),
-        ]);
-        $tokenInfo = $client->verifyToken();
-        $tokenInfo['owner']['features'][] = 'container-orchestrator';
-        $clientMock = $this->createMock(Client::class);
-        $clientMock->method('verifyToken')->willReturn($tokenInfo);
-        $clientMock->method('generateId')->willReturn(random_int(10000, 20000));
-        $clientWrapperMock = $this->createMock(ClientWrapper::class);
-        $clientWrapperMock->method('getBasicClient')->willReturn($clientMock);
-        $storageClientFactoryMock = $this->createMock(StorageClientFactory::class);
-        $storageClientFactoryMock->method('getClientWrapper')->willReturn($clientWrapperMock);
-        $storageClientFactoryMock
-            ->method('getStorageApiUrl')->willReturn((string) getenv('TEST_STORAGE_API_URL'));
-        $objectEncryptorFactory = new ObjectEncryptorFactory(
-            (string) getenv('TEST_KMS_KEY_ID'),
-            (string) getenv('TEST_KMS_REGION'),
-            '',
-            '123456789012345678901234567890ab',
-            (string) getenv('TEST_AZURE_KEY_VAULT_URL')
-        );
-        $factory = new JobFactory($storageClientFactoryMock, $objectEncryptorFactory);
+        $factory = $this->getJobFactory();
         $data = [
             '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
             'componentId' => 'keboola.orchestrator',
@@ -490,31 +406,9 @@ class JobFactoryTest extends BaseTest
         self::assertSame('phaseContainer', $job->getType());
     }
 
-    public function testCreateNewOrchestratorPhaseJobFeatureEmptyPhase(): void
+    public function testCreateNewOrchestratorPhaseJobEmptyPhase(): void
     {
-        $client = new Client([
-            'url' => (string) getenv('TEST_STORAGE_API_URL'),
-            'token' => (string) getenv('TEST_STORAGE_API_TOKEN'),
-        ]);
-        $tokenInfo = $client->verifyToken();
-        $tokenInfo['owner']['features'][] = 'container-orchestrator';
-        $clientMock = $this->createMock(Client::class);
-        $clientMock->method('verifyToken')->willReturn($tokenInfo);
-        $clientMock->method('generateId')->willReturn(random_int(10000, 20000));
-        $clientWrapperMock = $this->createMock(ClientWrapper::class);
-        $clientWrapperMock->method('getBasicClient')->willReturn($clientMock);
-        $storageClientFactoryMock = $this->createMock(StorageClientFactory::class);
-        $storageClientFactoryMock->method('getClientWrapper')->willReturn($clientWrapperMock);
-        $storageClientFactoryMock
-            ->method('getStorageApiUrl')->willReturn((string) getenv('TEST_STORAGE_API_URL'));
-        $objectEncryptorFactory = new ObjectEncryptorFactory(
-            (string) getenv('TEST_KMS_KEY_ID'),
-            (string) getenv('TEST_KMS_REGION'),
-            '',
-            '123456789012345678901234567890ab',
-            (string) getenv('TEST_AZURE_KEY_VAULT_URL')
-        );
-        $factory = new JobFactory($storageClientFactoryMock, $objectEncryptorFactory);
+        $factory = $this->getJobFactory();
         $data = [
             '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
             'componentId' => 'keboola.orchestrator',
