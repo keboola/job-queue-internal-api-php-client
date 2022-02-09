@@ -39,7 +39,6 @@ class JobFactory
 
     public const PARALLELISM_INFINITY = 'infinity';
     public const ORCHESTRATOR_COMPONENT = 'keboola.orchestrator';
-    public const CONTAINER_ORCHESTRATOR_FEATURE = 'container-orchestrator';
 
     private StorageClientFactory $storageClientFactory;
     private ObjectEncryptorFactory $objectEncryptorFactory;
@@ -189,25 +188,23 @@ class JobFactory
         $resolver = new JobRuntimeResolver($this->storageClientFactory);
         $jobData = $resolver->resolveJobData($jobData);
         // set type after resolving parallelism
-        $jobData['type'] = $data['type'] ?? $this->getJobType($jobData, $tokenInfo);
+        $jobData['type'] = $data['type'] ?? $this->getJobType($jobData);
         return $this->objectEncryptorFactory->getEncryptor()->encrypt(
             $jobData,
             $this->objectEncryptorFactory->getEncryptor()->getRegisteredProjectWrapperClass()
         );
     }
 
-    private function getJobType(array $data, array $tokenInfo): string
+    private function getJobType(array $data): string
     {
         if ((intval($data['parallelism']) > 0) || $data['parallelism'] === self::PARALLELISM_INFINITY) {
             return self::TYPE_ROW_CONTAINER;
         } else {
-            if (in_array(self::CONTAINER_ORCHESTRATOR_FEATURE, $tokenInfo['owner']['features'])) {
-                if ($data['componentId'] === self::ORCHESTRATOR_COMPONENT) {
-                    if (isset($data['configData']['phaseId']) && (string) ($data['configData']['phaseId']) !== '') {
-                        return self::TYPE_PHASE_CONTAINER;
-                    } else {
-                        return self::TYPE_ORCHESTRATION_CONTAINER;
-                    }
+            if ($data['componentId'] === self::ORCHESTRATOR_COMPONENT) {
+                if (isset($data['configData']['phaseId']) && (string) ($data['configData']['phaseId']) !== '') {
+                    return self::TYPE_PHASE_CONTAINER;
+                } else {
+                    return self::TYPE_ORCHESTRATION_CONTAINER;
                 }
             }
         }
