@@ -96,7 +96,7 @@ class JobFactoryTest extends BaseTest
         $job = $factory->createNewJob($data);
         self::assertNotEmpty($job->getId());
         self::assertNull($job->getConfigId());
-        self::assertStringStartsWith('KBC::ProjectSecure::', $job->getTokenString());
+        self::assertStringStartsWith('KBC::ProjectSecure', $job->getTokenString());
         self::assertEquals([], $job->getConfigData());
         self::assertEquals(getenv('TEST_STORAGE_API_TOKEN'), $job->getTokenDecrypted());
         self::assertEquals([], $job->getConfigDataDecrypted());
@@ -126,7 +126,7 @@ class JobFactoryTest extends BaseTest
         ];
         $job = $factory->createNewJob($data);
         self::assertNotEmpty($job->getId());
-        self::assertStringStartsWith('KBC::ProjectSecure::', $job->getTokenString());
+        self::assertStringStartsWith('KBC::ProjectSecure', $job->getTokenString());
         self::assertSame([], $job->getConfigData());
         self::assertSame(getenv('TEST_STORAGE_API_TOKEN'), $job->getTokenDecrypted());
         self::assertSame([], $job->getConfigDataDecrypted());
@@ -157,7 +157,7 @@ class JobFactoryTest extends BaseTest
         ];
         $job = $factory->createNewJob($data);
         self::assertNotEmpty($job->getId());
-        self::assertStringStartsWith('KBC::ProjectSecure::', $job->getTokenString());
+        self::assertStringStartsWith('KBC::ProjectSecure', $job->getTokenString());
         self::assertSame([], $job->getConfigData());
         self::assertSame(getenv('TEST_STORAGE_API_TOKEN'), $job->getTokenDecrypted());
         self::assertSame([], $job->getConfigDataDecrypted());
@@ -224,7 +224,7 @@ class JobFactoryTest extends BaseTest
         $job = $factory->createNewJob($data);
         self::assertNotEmpty($job->getId());
         self::assertNull($job->getConfigId());
-        self::assertStringStartsWith('KBC::ProjectSecure::', $job->getTokenString());
+        self::assertStringStartsWith('KBC::ProjectSecure', $job->getTokenString());
         self::assertEquals(['234'], $job->getConfigRowIds());
         self::assertEquals(['parameters' => ['foo' => 'bar']], $job->getConfigData());
         self::assertEquals('latest', $job->getTag());
@@ -265,7 +265,7 @@ class JobFactoryTest extends BaseTest
         $job = $factory->createNewJob($data);
         self::assertNotEmpty($job->getId());
         self::assertNull($job->getConfigId());
-        self::assertStringStartsWith('KBC::ProjectSecure::', $job->getTokenString());
+        self::assertStringStartsWith('KBC::ProjectSecure', $job->getTokenString());
         self::assertEquals([], $job->getConfigRowIds());
         self::assertEquals([], $job->getConfigData());
         self::assertEquals('latest', $job->getTag());
@@ -290,7 +290,7 @@ class JobFactoryTest extends BaseTest
         $job = $factory->createNewJob($data);
         self::assertNotEmpty($job->getId());
         self::assertNull($job->getConfigId());
-        self::assertStringStartsWith('KBC::ProjectSecure::', $job->getTokenString());
+        self::assertStringStartsWith('KBC::ProjectSecure', $job->getTokenString());
         self::assertEquals([], $job->getConfigRowIds());
         self::assertEquals([], $job->getConfigData());
         self::assertEquals('latest', $job->getTag());
@@ -315,7 +315,7 @@ class JobFactoryTest extends BaseTest
         $job = $factory->createNewJob($data);
         self::assertNotEmpty($job->getId());
         self::assertNull($job->getConfigId());
-        self::assertStringStartsWith('KBC::ProjectSecure::', $job->getTokenString());
+        self::assertStringStartsWith('KBC::ProjectSecure', $job->getTokenString());
         self::assertEquals([], $job->getConfigRowIds());
         self::assertEquals([], $job->getConfigData());
         self::assertEquals('latest', $job->getTag());
@@ -341,7 +341,7 @@ class JobFactoryTest extends BaseTest
         $job = $factory->createNewJob($data);
         self::assertNotEmpty($job->getId());
         self::assertNull($job->getConfigId());
-        self::assertStringStartsWith('KBC::ProjectSecure::', $job->getTokenString());
+        self::assertStringStartsWith('KBC::ProjectSecure', $job->getTokenString());
         self::assertEquals([], $job->getConfigRowIds());
         self::assertEquals([], $job->getConfigData());
         self::assertEquals('latest', $job->getTag());
@@ -364,7 +364,7 @@ class JobFactoryTest extends BaseTest
         $job = $factory->createNewJob($data);
         self::assertNotEmpty($job->getId());
         self::assertNull($job->getConfigId());
-        self::assertStringStartsWith('KBC::ProjectSecure::', $job->getTokenString());
+        self::assertStringStartsWith('KBC::ProjectSecure', $job->getTokenString());
         self::assertEquals([], $job->getConfigData());
         self::assertEquals('keboola.orchestrator', $job->getComponentId());
         self::assertSame('standard', $job->getType());
@@ -603,7 +603,7 @@ class JobFactoryTest extends BaseTest
         self::assertNull($job->getConfigId());
         self::assertEquals('waiting', $newJob->getStatus());
         self::assertEquals('created', $job->getStatus());
-        self::assertStringStartsWith('KBC::ProjectSecure::', $job->getTokenString());
+        self::assertStringStartsWith('KBC::ProjectSecure', $job->getTokenString());
         self::assertIsArray($job->getConfigRowIds());
         self::assertEmpty($job->getConfigRowIds());
         self::assertEquals(['parameters' => ['foo' => 'bar']], $job->getConfigData());
