@@ -21,6 +21,7 @@ class ListConfigurationsJobsOptions
     private ?string $sortBy = null;
     private ?string $sortOrder = null;
     private ?string $branchId = null;
+    private ?string $type = null;
     private ?string $componentId;
 
     public function __construct(array $configIds, ?string $componentId = null)
@@ -49,6 +50,7 @@ class ListConfigurationsJobsOptions
             'sortOrder' => 'sortOrder',
             'branchId' => 'branchId',
             'componentId' => 'componentId',
+            'type' => 'type',
         ];
 
         $parameters = [];
@@ -156,5 +158,16 @@ class ListConfigurationsJobsOptions
     public function getComponentId(): ?string
     {
         return $this->componentId;
+    }
+
+    public function setType(string $type): ListConfigurationsJobsOptions
+    {
+        $this->type = $type;
+        return $this;
+    }
+
+    public function getType(): ?string
+    {
+        return $this->type;
     }
 }
