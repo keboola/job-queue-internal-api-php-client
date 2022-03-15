@@ -354,7 +354,7 @@ class Client
     private function decodeRequestBody(?ResponseInterface $response): array
     {
         try {
-            return json_decode(
+            return (array) json_decode(
                 $response->getBody()->getContents(),
                 true,
                 self::JSON_DEPTH,

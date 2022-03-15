@@ -7,6 +7,7 @@ namespace Keboola\JobQueueInternalClient\JobFactory;
 use DateTimeImmutable;
 use DateTimeZone;
 use JsonSerializable;
+use Keboola\JobQueueInternalClient\Exception\ClientException;
 use Keboola\JobQueueInternalClient\JobFactory;
 use Keboola\JobQueueInternalClient\Result\JobMetrics;
 use Keboola\ObjectEncryptor\ObjectEncryptorFactory;
@@ -181,7 +182,15 @@ class Job implements JsonSerializable, JobInterface
     public function getTokenDecrypted(): string
     {
         if ($this->tokenDecrypted === null) {
-            $this->tokenDecrypted = $this->objectEncryptorFactory->getEncryptor(true)->decrypt($this->getTokenString());
+            $tokenDecrypted = $this->objectEncryptorFactory
+                ->getEncryptor(true)
+                ->decrypt($this->getTokenString());
+
+            if (!is_string($tokenDecrypted)) {
+                throw new ClientException('Decrypted token must be a string');
+            }
+
+            $this->tokenDecrypted =  $tokenDecrypted;
         }
         return $this->tokenDecrypted;
     }
@@ -189,7 +198,11 @@ class Job implements JsonSerializable, JobInterface
     public function getConfigDataDecrypted(): array
     {
         if ($this->configDataDecrypted === null) {
-            $this->configDataDecrypted = $this->objectEncryptorFactory->getEncryptor()->decrypt($this->getConfigData());
+            $configDataDecrypted = $this->objectEncryptorFactory->getEncryptor()->decrypt($this->getConfigData());
+            if (!is_array($configDataDecrypted)) {
+                throw new ClientException('Decrypted configData must be an array');
+            }
+            $this->configDataDecrypted = $configDataDecrypted;
         }
         return $this->configDataDecrypted;
     }

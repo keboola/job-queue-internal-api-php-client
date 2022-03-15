@@ -10,6 +10,7 @@ use Keboola\JobQueueInternalClient\Exception\ClientException;
 use Keboola\JobQueueInternalClient\Exception\StateTargetEqualsCurrentException;
 use Keboola\JobQueueInternalClient\JobFactory;
 use Keboola\JobQueueInternalClient\JobFactory\Job;
+use Keboola\JobQueueInternalClient\JobFactory\JobInterface;
 use Keboola\JobQueueInternalClient\JobListOptions;
 use Keboola\JobQueueInternalClient\JobPatchData;
 use Keboola\JobQueueInternalClient\JobsSortOptions;
@@ -513,9 +514,10 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
         ]);
         $createdJob3 = $client->createJob($job3);
 
-        $jobIds = array_map(function (Job $job) {
-            return $job->getId();
-        }, [$createdJob, $createdJob2, $createdJob3]);
+        $jobIds = array_map(
+            fn (JobInterface $job) => $job->getId(),
+            [$createdJob, $createdJob2, $createdJob3]
+        );
 
         $response = $client->listJobs(
             (new JobListOptions())
@@ -526,9 +528,10 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
         );
         self::assertCount(3, $response);
 
-        $resIds = array_map(function (Job $job) {
-            return $job->getId();
-        }, $response);
+        $resIds = array_map(
+            fn (JobInterface $job) => $job->getId(),
+            $response
+        );
         rsort($jobIds);
 
         self::assertSame($jobIds, $resIds);

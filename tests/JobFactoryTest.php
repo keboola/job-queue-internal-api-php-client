@@ -186,7 +186,7 @@ class JobFactoryTest extends BaseTest
         $job = $factory->createNewJob($data);
         $reflection = new ReflectionProperty(Job::class, 'data');
         $reflection->setAccessible(true);
-        $data = $reflection->getValue($job);
+        $data = (array) $reflection->getValue($job);
         $encryptor = new Encryptor('123456789012345678901234567890ab');
         $data['#tokenString'] = $encryptor->encrypt('someToken');
         $reflection->setValue($job, $data);
@@ -801,7 +801,7 @@ class JobFactoryTest extends BaseTest
             'mode' => 'run',
         ];
         $jobFactory->createNewJob($data);
-        self::assertStringStartsWith('KBC::ProjectSecure', $encrypted);
+        self::assertStringStartsWith('KBC::ProjectSecure', is_string($encrypted) ? $encrypted : '');
         self::assertEquals('bar', $objectEncryptorFactory->getEncryptor()->decrypt($encrypted));
     }
 }
