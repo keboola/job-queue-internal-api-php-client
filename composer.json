@@ -40,9 +40,9 @@
         "infection/infection": "^0.18.2",
         "keboola/coding-standard": ">=7.0.2,<13.0.0",
         "php-parallel-lint/php-parallel-lint": "^1.2",
-        "phpstan/phpstan": "^0.12.51",
-        "phpstan/phpstan-phpunit": "^0.12",
-        "phpunit/phpunit": "^9.3"
+        "phpstan/phpstan": "^1.0.0",
+        "phpstan/phpstan-phpunit": "^1.0.0",
+        "phpunit/phpunit": "^9.5"
     },
     "scripts": {
         "tests": "phpunit --coverage-clover /tmp/build-logs/clover.xml --coverage-xml=/tmp/build-logs/coverage-xml --log-junit=/tmp/build-logs/phpunit.junit.xml",
