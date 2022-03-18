@@ -198,10 +198,9 @@ class Job implements JsonSerializable, JobInterface
     public function getConfigDataDecrypted(): array
     {
         if ($this->configDataDecrypted === null) {
-            $configDataDecrypted = $this->objectEncryptorFactory->getEncryptor()->decrypt($this->getConfigData());
-            if (!is_array($configDataDecrypted)) {
-                throw new ClientException('Decrypted configData must be an array');
-            }
+            $configDataDecrypted = (array) $this->objectEncryptorFactory
+                ->getEncryptor()
+                ->decrypt($this->getConfigData());
             $this->configDataDecrypted = $configDataDecrypted;
         }
         return $this->configDataDecrypted;
