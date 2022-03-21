@@ -10,7 +10,8 @@
          processIsolation="false"
          stopOnFailure="false"
          bootstrap="vendor/autoload.php"
-         cacheResultFile="/tmp/phpunit.result.cache">
+         cacheResultFile="/tmp/phpunit.result.cache"
+         executionOrder="default">
   <coverage processUncoveredFiles="true">
     <include>
       <directory suffix=".php">src</directory>
