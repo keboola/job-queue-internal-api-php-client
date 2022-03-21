@@ -1,5 +1,6 @@
 jobs:
-  - template: ../../azure-pipelines/jobs/run-tests.yml
+  - job: tests-php80
+    template: ../../azure-pipelines/jobs/run-tests.yml
     parameters:
       serviceName: ci-internal-api-php-client
       variables:
@@ -11,7 +12,9 @@ jobs:
         AWS_SECRET_ACCESS_KEY: $(AWS_SECRET_ACCESS_KEY)
         AZURE_CLIENT_SECRET: $(AZURE_CLIENT_SECRET)
 
-  - template: ../../azure-pipelines/jobs/run-tests.yml
+  - job: tests-php74
+    dependsOn: tests-php80
+    template: ../../azure-pipelines/jobs/run-tests.yml
     parameters:
       displayName: Tests (PHP 7.4)
       serviceName: ci-internal-api-php-client74
