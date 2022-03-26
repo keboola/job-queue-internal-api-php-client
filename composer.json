@@ -30,8 +30,8 @@
         "ext-json": "*",
         "guzzlehttp/guzzle": "^6.3",
         "keboola/object-encryptor": "^0.3",
-        "keboola/storage-api-client": "^11.3|^12.0",
-        "keboola/storage-api-php-client-branch-wrapper": "^1.1",
+        "keboola/storage-api-client": "^12.0",
+        "keboola/storage-api-php-client-branch-wrapper": "dev-odin-PS-3098",
         "psr/log": "^1.1",
         "symfony/config": "^4.4|^5.0",
         "symfony/validator": "^4.4|>=5.0,<=5.3.8"

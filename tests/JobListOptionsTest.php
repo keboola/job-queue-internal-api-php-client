@@ -17,17 +17,33 @@ class JobListOptionsTest extends TestCase
         $jobListOptions = new JobListOptions();
 
         $jobListOptions->setIds(['1', '2', '3']);
-        $jobListOptions->setRunIds(['1', '2', '3']);
+        $jobListOptions->setRunIds(['5', '6', '7']);
         $jobListOptions->setBranchIds(['branch1', 'branch2', 'branch3']);
-        $jobListOptions->setTokenIds(['1', '2', '3']);
+        $jobListOptions->setTokenIds(['8', '9', '10']);
         $jobListOptions->setTokenDescriptions(['new token', 'old token', 'bad token', 'good token']);
         $jobListOptions->setComponents(['writer', 'extractor', 'orchestrator']);
-        $jobListOptions->setConfigs(['1', '2', '3']);
-        $jobListOptions->setConfigRowIds(['1', '2', '3']);
+        $jobListOptions->setConfigs(['a', 'b', 'c']);
+        $jobListOptions->setConfigRowIds(['d', 'e', 'f']);
         $jobListOptions->setModes(['run', 'debug']);
         $jobListOptions->setStatuses([JobFactory::STATUS_SUCCESS, JobFactory::STATUS_PROCESSING]);
         $jobListOptions->setParentRunId('123');
         $jobListOptions->setType(JobFactory::TYPE_STANDARD);
+
+        self::assertSame(['1', '2', '3'], $jobListOptions->getIds());
+        self::assertSame(['5', '6', '7'], $jobListOptions->getRunIds());
+        self::assertSame(['branch1', 'branch2', 'branch3'], $jobListOptions->getBranchIds());
+        self::assertSame(['8', '9', '10'], $jobListOptions->getTokenIds());
+        self::assertSame(
+            ['new token', 'old token', 'bad token', 'good token'],
+            $jobListOptions->getTokenDescriptions()
+        );
+        self::assertSame(['writer', 'extractor', 'orchestrator'], $jobListOptions->getComponents());
+        self::assertSame(['a', 'b', 'c'], $jobListOptions->getConfigs());
+        self::assertSame(['d', 'e', 'f'], $jobListOptions->getConfigRowIds());
+        self::assertSame(['run', 'debug'], $jobListOptions->getModes());
+        self::assertSame([JobFactory::STATUS_SUCCESS, JobFactory::STATUS_PROCESSING], $jobListOptions->getStatuses());
+        self::assertSame('123', $jobListOptions->getParentRunId());
+        self::assertSame(JobFactory::TYPE_STANDARD, $jobListOptions->getType());
 
         $from = new DateTime('-7 days 8:00');
         $to = new DateTime('-1 day 8:00');
@@ -49,15 +65,15 @@ class JobListOptionsTest extends TestCase
             'id[]=1',
             'id[]=2',
             'id[]=3',
-            'runId[]=1',
-            'runId[]=2',
-            'runId[]=3',
+            'runId[]=5',
+            'runId[]=6',
+            'runId[]=7',
             'branchId[]=branch1',
             'branchId[]=branch2',
             'branchId[]=branch3',
-            'tokenId[]=1',
-            'tokenId[]=2',
-            'tokenId[]=3',
+            'tokenId[]=8',
+            'tokenId[]=9',
+            'tokenId[]=10',
             'tokenDescription[]=new+token',
             'tokenDescription[]=old+token',
             'tokenDescription[]=bad+token',
@@ -65,12 +81,12 @@ class JobListOptionsTest extends TestCase
             'componentId[]=writer',
             'componentId[]=extractor',
             'componentId[]=orchestrator',
-            'configId[]=1',
-            'configId[]=2',
-            'configId[]=3',
-            'configRowIds[]=1',
-            'configRowIds[]=2',
-            'configRowIds[]=3',
+            'configId[]=a',
+            'configId[]=b',
+            'configId[]=c',
+            'configRowIds[]=d',
+            'configRowIds[]=e',
+            'configRowIds[]=f',
             'mode[]=run',
             'mode[]=debug',
             'status[]=success',

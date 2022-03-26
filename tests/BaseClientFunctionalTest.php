@@ -8,8 +8,9 @@ use Keboola\JobQueueInternalClient\Client;
 use Keboola\JobQueueInternalClient\JobFactory;
 use Keboola\JobQueueInternalClient\JobFactory\Job;
 use Keboola\ObjectEncryptor\ObjectEncryptorFactory;
+use Keboola\StorageApiBranch\Factory\ClientOptions;
+use Keboola\StorageApiBranch\Factory\StorageClientPlainFactory;
 use Psr\Log\NullLogger;
-use Psr\Log\Test\TestLogger;
 
 abstract class BaseClientFunctionalTest extends BaseTest
 {
@@ -36,10 +37,9 @@ abstract class BaseClientFunctionalTest extends BaseTest
 
     private function getJobFactory(?string $kmsKeyId = null, ?string $keyVaultUrl = null): JobFactory
     {
-        $storageClientFactory = new JobFactory\StorageClientFactory(
-            (string) getenv('TEST_STORAGE_API_URL'),
-            new TestLogger()
-        );
+        $storageClientFactory = new StorageClientPlainFactory(new ClientOptions(
+            (string) getenv('TEST_STORAGE_API_URL')
+        ));
         $objectEncryptorFactory = new ObjectEncryptorFactory(
             $kmsKeyId ?? (string) getenv('TEST_KMS_KEY_ID'),
             (string) getenv('TEST_KMS_REGION'),
