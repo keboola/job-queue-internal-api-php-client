@@ -66,7 +66,7 @@ class JobRuntimeResolver
         if (!empty($configuration['runtime']['image_tag'])) {
             return (string) $configuration['runtime']['image_tag'];
         }
-        $componentsApi = $this->getComponentsApiClient(ClientWrapper::BRANCH_DEFAULT);
+        $componentsApi = $this->getComponentsApiClient(null);
         $componentData = $componentsApi->getComponent($this->jobData['componentId']);
         if (!empty($componentData['data']['definition']['tag'])) {
             return $componentData['data']['definition']['tag'];
