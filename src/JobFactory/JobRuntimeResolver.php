@@ -9,6 +9,8 @@ use Keboola\JobQueueInternalClient\Exception\ConfigurationDisabledException;
 use Keboola\StorageApi\ClientException as StorageClientException;
 use Keboola\StorageApi\Components;
 use Keboola\StorageApiBranch\ClientWrapper;
+use Keboola\StorageApiBranch\Factory\ClientOptions;
+use Keboola\StorageApiBranch\Factory\StorageClientPlainFactory;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 
 /**
@@ -16,11 +18,11 @@ use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
  */
 class JobRuntimeResolver
 {
-    private StorageClientFactory $storageClientFactory;
+    private StorageClientPlainFactory $storageClientFactory;
     private ?array $configuration;
     private array $jobData;
 
-    public function __construct(StorageClientFactory $storageClientFactory)
+    public function __construct(StorageClientPlainFactory $storageClientFactory)
     {
         $this->storageClientFactory = $storageClientFactory;
     }
@@ -64,7 +66,7 @@ class JobRuntimeResolver
         if (!empty($configuration['runtime']['image_tag'])) {
             return (string) $configuration['runtime']['image_tag'];
         }
-        $componentsApi = $this->getComponentsApiClient(ClientWrapper::BRANCH_MAIN);
+        $componentsApi = $this->getComponentsApiClient(null);
         $componentData = $componentsApi->getComponent($this->jobData['componentId']);
         if (!empty($componentData['data']['definition']['tag'])) {
             return $componentData['data']['definition']['tag'];
@@ -169,10 +171,11 @@ class JobRuntimeResolver
     private function getComponentsApiClient(?string $branchId): Components
     {
         return new Components(
-            $this->storageClientFactory->getClientWrapper(
+            $this->storageClientFactory->createClientWrapper(new ClientOptions(
+                null,
                 $this->jobData['#tokenString'],
                 $branchId
-            )->getBranchClientIfAvailable()
+            ))->getBranchClientIfAvailable()
         );
     }
 

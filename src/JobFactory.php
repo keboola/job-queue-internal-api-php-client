@@ -11,10 +11,11 @@ use Keboola\JobQueueInternalClient\JobFactory\Job;
 use Keboola\JobQueueInternalClient\JobFactory\JobInterface;
 use Keboola\JobQueueInternalClient\JobFactory\JobRuntimeResolver;
 use Keboola\JobQueueInternalClient\JobFactory\NewJobDefinition;
-use Keboola\JobQueueInternalClient\JobFactory\StorageClientFactory;
 use Keboola\ObjectEncryptor\ObjectEncryptorFactory;
 use Keboola\StorageApi\ClientException as StorageClientException;
 use Keboola\StorageApiBranch\ClientWrapper;
+use Keboola\StorageApiBranch\Factory\ClientOptions;
+use Keboola\StorageApiBranch\Factory\StorageClientPlainFactory;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 
 class JobFactory
@@ -40,11 +41,11 @@ class JobFactory
     public const PARALLELISM_INFINITY = 'infinity';
     public const ORCHESTRATOR_COMPONENT = 'keboola.orchestrator';
 
-    private StorageClientFactory $storageClientFactory;
+    private StorageClientPlainFactory $storageClientFactory;
     private ObjectEncryptorFactory $objectEncryptorFactory;
 
     public function __construct(
-        StorageClientFactory $storageClientFactory,
+        StorageClientPlainFactory $storageClientFactory,
         ObjectEncryptorFactory $objectEncryptorFactory
     ) {
         $this->storageClientFactory = $storageClientFactory;
@@ -52,7 +53,10 @@ class JobFactory
         // this is tested by JobFactoryTest::testEncryptionFactoryIsolation()
         $this->objectEncryptorFactory = clone $objectEncryptorFactory;
         $this->objectEncryptorFactory->setStackId(
-            (string) parse_url($this->storageClientFactory->getStorageApiUrl(), PHP_URL_HOST)
+            (string) parse_url(
+                (string) $this->storageClientFactory->getClientOptionsReadOnly()->getUrl(),
+                PHP_URL_HOST
+            )
         );
     }
 
@@ -136,10 +140,10 @@ class JobFactory
     private function initializeNewJobData(array $data): array
     {
         try {
-            $client = $this->storageClientFactory->getClientWrapper(
-                $data['#tokenString'],
-                ClientWrapper::BRANCH_MAIN
-            )->getBasicClient();
+            $client = $this->storageClientFactory->createClientWrapper(new ClientOptions(
+                null,
+                $data['#tokenString']
+            ))->getBasicClient();
             $tokenInfo = $client->verifyToken();
             $jobId = $client->generateId();
             $runId = empty($data['parentRunId']) ? $jobId :
