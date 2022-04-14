@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Keboola\JobQueueInternalClient\Tests;
 
-use DateTime;
 use Keboola\JobQueueInternalClient\Exception\ClientException;
 use Keboola\JobQueueInternalClient\JobFactory;
 use Keboola\JobQueueInternalClient\JobListOptions;
 use PHPUnit\Framework\TestCase;
+use Safe\DateTime;
 
 class JobListOptionsTest extends TestCase
 {
@@ -24,10 +24,23 @@ class JobListOptionsTest extends TestCase
         $jobListOptions->setComponents(['writer', 'extractor', 'orchestrator']);
         $jobListOptions->setConfigs(['a', 'b', 'c']);
         $jobListOptions->setConfigRowIds(['d', 'e', 'f']);
+        $jobListOptions->setProjects(['12', '13']);
         $jobListOptions->setModes(['run', 'debug']);
         $jobListOptions->setStatuses([JobFactory::STATUS_SUCCESS, JobFactory::STATUS_PROCESSING]);
         $jobListOptions->setParentRunId('123');
         $jobListOptions->setType(JobFactory::TYPE_STANDARD);
+        $jobListOptions->setCreatedTimeFrom(DateTime::createFromFormat('Y-m-d H:i:s', '2022-02-02 1:12:23'));
+        $jobListOptions->setCreatedTimeTo(DateTime::createFromFormat('Y-m-d H:i:s', '2022-02-20 1:12:23'));
+        $jobListOptions->setStartTimeFrom(DateTime::createFromFormat('Y-m-d H:i:s', '2021-02-02 1:12:23'));
+        $jobListOptions->setStartTimeTo(DateTime::createFromFormat('Y-m-d H:i:s', '2021-02-20 1:12:23'));
+        $jobListOptions->setEndTimeFrom(DateTime::createFromFormat('Y-m-d H:i:s', '2020-02-02 1:12:23'));
+        $jobListOptions->setEndTimeTo(DateTime::createFromFormat('Y-m-d H:i:s', '2020-02-20 1:12:23'));
+        $jobListOptions->setDurationSecondsFrom(5);
+        $jobListOptions->setDurationSecondsTo(7200);
+        $jobListOptions->setSortOrder(JobListOptions::SORT_ORDER_DESC);
+        $jobListOptions->setSortBy('id');
+        $jobListOptions->setOffset(20);
+        $jobListOptions->setLimit(100);
 
         self::assertSame(['1', '2', '3'], $jobListOptions->getIds());
         self::assertSame(['5', '6', '7'], $jobListOptions->getRunIds());
@@ -40,26 +53,23 @@ class JobListOptionsTest extends TestCase
         self::assertSame(['writer', 'extractor', 'orchestrator'], $jobListOptions->getComponents());
         self::assertSame(['a', 'b', 'c'], $jobListOptions->getConfigs());
         self::assertSame(['d', 'e', 'f'], $jobListOptions->getConfigRowIds());
+        self::assertSame(['12', '13'], $jobListOptions->getProjects());
         self::assertSame(['run', 'debug'], $jobListOptions->getModes());
         self::assertSame([JobFactory::STATUS_SUCCESS, JobFactory::STATUS_PROCESSING], $jobListOptions->getStatuses());
         self::assertSame('123', $jobListOptions->getParentRunId());
         self::assertSame(JobFactory::TYPE_STANDARD, $jobListOptions->getType());
-
-        $from = new DateTime('-7 days 8:00');
-        $to = new DateTime('-1 day 8:00');
-
-        $jobListOptions->setStartTimeFrom($from);
-        $jobListOptions->setStartTimeTo($to);
-        $jobListOptions->setCreatedTimeFrom($from);
-        $jobListOptions->setCreatedTimeTo($to);
-        $jobListOptions->setEndTimeFrom($from);
-        $jobListOptions->setEndTimeTo($to);
-        $jobListOptions->setDurationSecondsFrom(5);
-        $jobListOptions->setDurationSecondsTo(7200);
-        $jobListOptions->setOffset(20);
-        $jobListOptions->setLimit(100);
-        $jobListOptions->setSortBy('id');
-        $jobListOptions->setSortOrder(JobListOptions::SORT_ORDER_DESC);
+        self::assertSame('2022-02-02 01:12:23', $jobListOptions->getCreatedTimeFrom()->format('Y-m-d H:i:s'));
+        self::assertSame('2022-02-20 01:12:23', $jobListOptions->getCreatedTimeTo()->format('Y-m-d H:i:s'));
+        self::assertSame('2021-02-02 01:12:23', $jobListOptions->getStartTimeFrom()->format('Y-m-d H:i:s'));
+        self::assertSame('2021-02-20 01:12:23', $jobListOptions->getStartTimeTo()->format('Y-m-d H:i:s'));
+        self::assertSame('2020-02-02 01:12:23', $jobListOptions->getEndTimeFrom()->format('Y-m-d H:i:s'));
+        self::assertSame('2020-02-20 01:12:23', $jobListOptions->getEndTimeTo()->format('Y-m-d H:i:s'));
+        self::assertSame(5, $jobListOptions->getDurationSecondsFrom());
+        self::assertSame(7200, $jobListOptions->getDurationSecondsTo());
+        self::assertSame('id', $jobListOptions->getSortBy());
+        self::assertSame(JobListOptions::SORT_ORDER_DESC, $jobListOptions->getSortOrder());
+        self::assertSame(20, $jobListOptions->getOffset());
+        self::assertSame(100, $jobListOptions->getLimit());
 
         $expected = [
             'id[]=1',
@@ -89,6 +99,8 @@ class JobListOptionsTest extends TestCase
             'configRowIds[]=f',
             'mode[]=run',
             'mode[]=debug',
+            'projectId[]=12',
+            'projectId[]=13',
             'status[]=success',
             'status[]=processing',
             'durationSecondsFrom=5',
@@ -99,12 +111,12 @@ class JobListOptionsTest extends TestCase
             'sortOrder=desc',
             'type=standard',
             'parentRunId=123',
-            'startTimeFrom=' . urlencode($from->format('c')),
-            'startTimeTo=' . urlencode($to->format('c')),
-            'createdTimeFrom=' . urlencode($from->format('c')),
-            'createdTimeTo=' . urlencode($to->format('c')),
-            'endTimeFrom=' . urlencode($from->format('c')),
-            'endTimeTo=' . urlencode($to->format('c')),
+            'startTimeFrom=' . urlencode('2021-02-02T01:12:23+00:00'),
+            'startTimeTo=' . urlencode('2021-02-20T01:12:23+00:00'),
+            'createdTimeFrom=' . urlencode('2022-02-02T01:12:23+00:00'),
+            'createdTimeTo=' . urlencode('2022-02-20T01:12:23+00:00'),
+            'endTimeFrom=' . urlencode('2020-02-02T01:12:23+00:00'),
+            'endTimeTo=' . urlencode('2020-02-20T01:12:23+00:00'),
         ];
 
         self::assertSame($expected, $jobListOptions->getQueryParameters());
