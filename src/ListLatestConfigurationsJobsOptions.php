@@ -74,7 +74,7 @@ class ListLatestConfigurationsJobsOptions
         return $this->branchId;
     }
 
-    public function setBranchId(?string $branchId): self
+    public function setBranchId(string $branchId): self
     {
         $this->branchId = $branchId;
         return $this;
