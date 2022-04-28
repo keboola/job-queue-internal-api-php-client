@@ -35,12 +35,9 @@ class ListLatestConfigurationsJobsOptionsTest extends TestCase
 
         self::assertSame([
             'projectId=12345',
+            'branchId=main',
             'offset=6',
             'limit=7',
-            'sortBy=configId',
-            'sortOrder=asc',
-            'branchId=main',
-            'type=orchestrationContainer',
         ], $options->getQueryParameters());
     }
 }

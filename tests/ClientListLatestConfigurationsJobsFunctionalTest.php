@@ -148,14 +148,14 @@ class ClientListLatestConfigurationsJobsFunctionalTest extends BaseClientFunctio
             'componentId' => self::COMPONENT_ID_1,
             'mode' => 'run',
         ]);
-        $client->createJob($job2);
+        $expectedJob = $client->createJob($job2);
         $job3 = $client->getJobFactory()->createNewJob([
             '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
             'configId' => self::$configId1,
             'componentId' => self::COMPONENT_ID_2,
             'mode' => 'run',
         ]);
-        $expectedJob = $client->createJob($job3);
+        $client->createJob($job3);
 
         $response = $client->listLatestConfigurationsJobs(
             (new ListLatestConfigurationsJobsOptions($job1->getProjectId()))
