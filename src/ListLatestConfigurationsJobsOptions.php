@@ -6,61 +6,38 @@ namespace Keboola\JobQueueInternalClient;
 
 use Keboola\JobQueueInternalClient\Exception\ClientException;
 
-class ListConfigurationsJobsOptions
+class ListLatestConfigurationsJobsOptions
 {
     public const SORT_ORDER_ASC = 'asc';
     public const SORT_ORDER_DESC = 'desc';
     private const VALID_SORT_ORDER = [self::SORT_ORDER_ASC, self::SORT_ORDER_DESC];
 
-    /** @var array<string> */
-    private array $configIds;
-    private ?int $jobsPerConfig = null;
-    private ?string $projectId = null;
+    private string $projectId;
+    private ?string $branchId = null;
+    private ?string $type = null;
     private ?int $offset = null;
     private ?int $limit = null;
     private ?string $sortBy = null;
     private ?string $sortOrder = null;
-    private ?string $branchId = null;
-    private ?string $type = null;
-    private ?string $componentId;
 
-    public function __construct(array $configIds, ?string $componentId = null)
+    public function __construct(string $projectId)
     {
-        $allConfigIdsAreString = array_reduce($configIds, fn($valid, $item) => $valid && is_string($item), true);
-        if (!$allConfigIdsAreString) {
-            throw new ClientException('All configuration IDs must be strings');
-        }
-
-        $this->configIds = $configIds;
-        $this->componentId = $componentId;
+        $this->projectId = $projectId;
     }
 
     public function getQueryParameters(): array
     {
-        $arrayableProps = [
-            'configIds' => 'configId',
-        ];
-
         $scalarProps = [
-            'jobsPerConfig' => 'jobsPerConfiguration',
             'projectId' => 'projectId',
             'offset' => 'offset',
             'limit' => 'limit',
             'sortBy' => 'sortBy',
             'sortOrder' => 'sortOrder',
             'branchId' => 'branchId',
-            'componentId' => 'componentId',
             'type' => 'type',
         ];
 
         $parameters = [];
-        foreach ($arrayableProps as $propName => $paramName) {
-            if (!empty($this->$propName)) {
-                foreach ($this->$propName as $value) {
-                    $parameters[] = $paramName . '[]=' . urlencode((string) $value);
-                }
-            }
-        }
         foreach ($scalarProps as $propName => $paramName) {
             if (!empty($this->$propName)) {
                 $parameters[] = $paramName . '=' . urlencode((string) $this->$propName);
@@ -70,28 +47,12 @@ class ListConfigurationsJobsOptions
         return $parameters;
     }
 
-    public function getConfigIds(): array
-    {
-        return $this->configIds;
-    }
-
-    public function getJobsPerConfig(): ?int
-    {
-        return $this->jobsPerConfig;
-    }
-
-    public function setJobsPerConfig(?int $jobsPerConfig): self
-    {
-        $this->jobsPerConfig = $jobsPerConfig;
-        return $this;
-    }
-
-    public function getProjectId(): ?string
+    public function getProjectId(): string
     {
         return $this->projectId;
     }
 
-    public function setProjectId(?string $projectId): self
+    public function setProjectId(string $projectId): self
     {
         $this->projectId = $projectId;
         return $this;
@@ -153,11 +114,6 @@ class ListConfigurationsJobsOptions
     {
         $this->branchId = $branchId;
         return $this;
-    }
-
-    public function getComponentId(): ?string
-    {
-        return $this->componentId;
     }
 
     public function setType(string $type): self
