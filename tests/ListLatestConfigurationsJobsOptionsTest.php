@@ -14,11 +14,14 @@ class ListLatestConfigurationsJobsOptionsTest extends TestCase
         $options = new ListLatestConfigurationsJobsOptions('12345');
 
         self::assertSame('12345', $options->getProjectId());
+        self::assertSame('default', $options->getBranchId());
         self::assertNull($options->getOffset());
         self::assertNull($options->getLimit());
-        self::assertNull($options->getBranchId());
 
-        self::assertSame(['projectId=12345'], $options->getQueryParameters());
+        self::assertSame([
+            'projectId=12345',
+            'branchId=default'
+        ], $options->getQueryParameters());
     }
 
     public function testAllValues(): void
