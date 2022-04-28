@@ -77,7 +77,7 @@ class ClientListLatestConfigurationsJobsFunctionalTest extends BaseClientFunctio
         }
     }
 
-    public function testConfigJobsAreListed(): void
+    public function testListJobs(): void
     {
         $client = $this->getClient();
         $job = $client->getJobFactory()->createNewJob([
@@ -87,10 +87,11 @@ class ClientListLatestConfigurationsJobsFunctionalTest extends BaseClientFunctio
             'componentId' => self::COMPONENT_ID_1,
             'mode' => 'run',
         ]);
-        $expectedJob = $client->createJob($job);
+        $client->createJob($job);
         $job2 = $client->getJobFactory()->createNewJob([
             '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
             'configId' => self::$configId2,
+            'branchId' => self::$branchId1,
             'componentId' => self::COMPONENT_ID_1,
             'mode' => 'run',
         ]);
@@ -102,14 +103,14 @@ class ClientListLatestConfigurationsJobsFunctionalTest extends BaseClientFunctio
             'componentId' => self::COMPONENT_ID_1,
             'mode' => 'run',
         ]);
-        $client->createJob($job3);
+        $expectedJob3 = $client->createJob($job3);
 
-        $response = $client->listConfigurationsJobs(
-            new ListLatestConfigurationsJobsOptions($job->getProjectId())
+        $response = $client->listLatestConfigurationsJobs(
+            new ListLatestConfigurationsJobsOptions($job->getProjectId(), self::$branchId1)
         );
 
         self::assertCount(2, $response);
-        self::assertEquals($expectedJob->jsonSerialize(), $response[0]->jsonSerialize());
+        self::assertEquals($expectedJob3->jsonSerialize(), $response[0]->jsonSerialize());
         self::assertEquals($expectedJob2->jsonSerialize(), $response[1]->jsonSerialize());
     }
 
@@ -124,39 +125,11 @@ class ClientListLatestConfigurationsJobsFunctionalTest extends BaseClientFunctio
         ]);
         $client->createJob($job1);
 
-        $response = $client->listConfigurationsJobs(
+        $response = $client->listLatestConfigurationsJobs(
             (new ListLatestConfigurationsJobsOptions('other-project'))
         );
 
         self::assertCount(0, $response);
-    }
-
-    public function testSorting(): void
-    {
-        $client = $this->getClient();
-        $job1 = $client->getJobFactory()->createNewJob([
-            '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
-            'configId' => self::$configId1,
-            'componentId' => self::COMPONENT_ID_1,
-            'mode' => 'run',
-        ]);
-        $expectedJob1 = $client->createJob($job1);
-        $job2 = $client->getJobFactory()->createNewJob([
-            '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
-            'configId' => self::$configId2,
-            'componentId' => self::COMPONENT_ID_1,
-            'mode' => 'run',
-        ]);
-        $expectedJob2 = $client->createJob($job2);
-
-        $response = $client->listConfigurationsJobs(
-            (new ListLatestConfigurationsJobsOptions($job1->getProjectId()))
-                ->setSort('componentId')
-        );
-
-        self::assertCount(2, $response);
-        self::assertEquals($expectedJob1->jsonSerialize(), $response[0]->jsonSerialize());
-        self::assertEquals($expectedJob2->jsonSerialize(), $response[1]->jsonSerialize());
     }
 
     public function testPagination(): void
@@ -171,20 +144,20 @@ class ClientListLatestConfigurationsJobsFunctionalTest extends BaseClientFunctio
         $client->createJob($job1);
         $job2 = $client->getJobFactory()->createNewJob([
             '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
-            'configId' => self::$configId1,
+            'configId' => self::$configId2,
             'componentId' => self::COMPONENT_ID_1,
             'mode' => 'run',
         ]);
-        $expectedJob = $client->createJob($job2);
+        $client->createJob($job2);
         $job3 = $client->getJobFactory()->createNewJob([
             '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
             'configId' => self::$configId1,
-            'componentId' => self::COMPONENT_ID_1,
+            'componentId' => self::COMPONENT_ID_2,
             'mode' => 'run',
         ]);
-        $client->createJob($job3);
+        $expectedJob = $client->createJob($job3);
 
-        $response = $client->listConfigurationsJobs(
+        $response = $client->listLatestConfigurationsJobs(
             (new ListLatestConfigurationsJobsOptions($job1->getProjectId()))
                 ->setLimit(1)
                 ->setOffset(1)
@@ -194,7 +167,7 @@ class ClientListLatestConfigurationsJobsFunctionalTest extends BaseClientFunctio
         self::assertEquals($expectedJob->jsonSerialize(), $response[0]->jsonSerialize());
     }
 
-    public function testBranchJobsAreListed(): void
+    public function testListJobsWithBranch(): void
     {
         $client = $this->getClient();
         $job1 = $client->getJobFactory()->createNewJob([
@@ -214,51 +187,19 @@ class ClientListLatestConfigurationsJobsFunctionalTest extends BaseClientFunctio
         $client->createJob($job2);
         $job3 = $client->getJobFactory()->createNewJob([
             '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
-            'configId' => self::$configId1,
+            'configId' => self::$configId2,
             'branchId' => self::$branchId1,
             'componentId' => self::COMPONENT_ID_1,
             'mode' => 'run',
         ]);
         $createdJob3 = $client->createJob($job3);
 
-        $response = $client->listConfigurationsJobs(
-            (new ListLatestConfigurationsJobsOptions($job1->getProjectId()))
-                ->setBranchId(self::$branchId1)
+        $response = $client->listLatestConfigurationsJobs(
+            (new ListLatestConfigurationsJobsOptions($job1->getProjectId(), self::$branchId1))
         );
 
         self::assertCount(2, $response);
         self::assertEquals($createdJob3->jsonSerialize(), $response[0]->jsonSerialize());
         self::assertEquals($createdJob1->jsonSerialize(), $response[1]->jsonSerialize());
-    }
-
-    public function testJobsWithoutBranchAreListed(): void
-    {
-        $client = $this->getClient();
-        $job1 = $client->getJobFactory()->createNewJob([
-            '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
-            'configId' => self::$configId1,
-            'branchId' => self::$branchId1,
-            'componentId' => self::COMPONENT_ID_1,
-            'mode' => 'run',
-        ]);
-        $createdJob1 = $client->createJob($job1);
-        $job2 = $client->getJobFactory()->createNewJob([
-            '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
-            'configId' => self::$configId1,
-            'componentId' => self::COMPONENT_ID_1,
-            'mode' => 'run',
-        ]);
-        $createdJob2 = $client->createJob($job2);
-
-        $response = $client->listConfigurationsJobs(
-            (new ListLatestConfigurationsJobsOptions($job1->getProjectId()))
-                ->setBranchId('null')
-        );
-
-        self::assertCount(2, $response);
-        self::assertEquals($createdJob2->jsonSerialize(), $response[0]->jsonSerialize());
-
-        self::assertNotSame($createdJob1->getId(), $response[1]->getId());
-        self::assertNull($response[1]->getBranchId());
     }
 }

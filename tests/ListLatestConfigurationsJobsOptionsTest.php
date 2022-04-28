@@ -6,14 +6,11 @@ namespace Keboola\JobQueueInternalClient\Tests;
 
 use Keboola\JobQueueInternalClient\Exception\ClientException;
 use Keboola\JobQueueInternalClient\JobFactory;
-use Keboola\JobQueueInternalClient\ListConfigurationsJobsOptions;
 use Keboola\JobQueueInternalClient\ListLatestConfigurationsJobsOptions;
 use PHPUnit\Framework\TestCase;
 
 class ListLatestConfigurationsJobsOptionsTest extends TestCase
 {
-    private const COMPONENT_ID = 'keboola.runner-config-test';
-
     public function testDefaultValues(): void
     {
         $options = new ListLatestConfigurationsJobsOptions('12345');
@@ -26,7 +23,7 @@ class ListLatestConfigurationsJobsOptionsTest extends TestCase
         self::assertNull($options->getBranchId());
         self::assertNull($options->getType());
 
-        self::assertSame('projectId=12345', $options->getQueryParameters());
+        self::assertSame(['projectId=12345'], $options->getQueryParameters());
     }
 
     public function testAllValues(): void

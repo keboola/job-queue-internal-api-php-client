@@ -258,7 +258,7 @@ class Client
     /**
      * @return array<JobInterface>
      */
-    public function listLastConfigurationsJobs(
+    public function listLatestConfigurationsJobs(
         ListLatestConfigurationsJobsOptions $options,
         bool $fetchFollowingPages = false
     ): array {
