@@ -11,7 +11,9 @@ class ListLatestConfigurationsJobsOptions
     private ?int $offset = null;
     private ?int $limit = null;
 
-    public function __construct(string $projectId, string $branchId = 'default')
+    public const BRANCH_DEFAULT_VALUE = 'default';
+
+    public function __construct(string $projectId, string $branchId = self::BRANCH_DEFAULT_VALUE)
     {
         $this->projectId = $projectId;
         $this->branchId = $branchId;
