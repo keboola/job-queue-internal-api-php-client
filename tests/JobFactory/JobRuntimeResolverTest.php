@@ -926,7 +926,7 @@ class JobRuntimeResolverTest extends TestCase
             'workspace-snowflake',
             1,
             'custom',
-            null
+            null,
         ];
         yield 'custom workspace-redshift' => [
             'custom',
