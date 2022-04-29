@@ -20,7 +20,7 @@ class ListLatestConfigurationsJobsOptionsTest extends TestCase
 
         self::assertSame([
             'projectId=12345',
-            'branchId=default'
+            'branchId=default',
         ], $options->getQueryParameters());
     }
 
