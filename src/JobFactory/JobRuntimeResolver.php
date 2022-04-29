@@ -8,7 +8,6 @@ use Keboola\JobQueueInternalClient\Exception\ClientException;
 use Keboola\JobQueueInternalClient\Exception\ConfigurationDisabledException;
 use Keboola\StorageApi\ClientException as StorageClientException;
 use Keboola\StorageApi\Components;
-use Keboola\StorageApiBranch\ClientWrapper;
 use Keboola\StorageApiBranch\Factory\ClientOptions;
 use Keboola\StorageApiBranch\Factory\StorageClientPlainFactory;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
@@ -92,7 +91,7 @@ class JobRuntimeResolver
         return VariableValues::fromDataArray($configuration);
     }
 
-    private function resolveBackend(): Backend
+    private function getBackend(): Backend
     {
         if (!empty($this->jobData['backend'])) {
             $backend = Backend::fromDataArray($this->jobData['backend']);
@@ -111,7 +110,32 @@ class JobRuntimeResolver
             // return this irrespective if it is empty, because if it is we create empty Backend anyway
             return Backend::fromDataArray($configuration['runtime']['backend']);
         }
-        return new Backend(null);
+        return new Backend(null, null);
+    }
+
+    private function resolveBackend(): Backend
+    {
+        $tempBackend = $this->getBackend();
+        if ($tempBackend->isEmpty()) {
+            return $tempBackend;
+        }
+        // decide whether to set "type' (aka workspaceSize) or containerType (aka containerSize)
+        $componentsApi = $this->getComponentsApiClient(null);
+        $component = $componentsApi->getComponent($this->jobData['componentId']);
+        $stagingStorage = $component['data']['staging_storage']['input'] ?? '';
+        /* Possible values of staging storage: https://github.com/keboola/docker-bundle/blob/ec9a628b614a70d0ed8a6ec36f2b6003a8e07ed4/src/Docker/Configuration/Component.php#L87
+        For the purpose of setting backend, we consider: 'local', 's3', 'abs', 'none' to use container.
+        For workspace size, we only consider 'workspace-snowflake' as it is the only backend supporting scaling.
+        During this we ignore any containerType setting received in $tempBackend, which so far is intentional.
+        We also ignore backend settings for other workspace types, as they do not make any sense at the moment.
+        */
+        if (in_array($stagingStorage, ['local', 's3', 'abs', 'none'])) {
+            return new Backend(null, $tempBackend->getType());
+        }
+        if ($stagingStorage === 'workspace-snowflake') {
+            return new Backend($tempBackend->getType(), null);
+        }
+        return new Backend(null, null);
     }
 
     private function resolveParallelism(): ?string

@@ -6,24 +6,26 @@ namespace Keboola\JobQueueInternalClient\JobFactory;
 
 class Backend
 {
-    /** @var null|string */
-    private $type;
+    private ?string $type;
+    private ?string $containerType;
 
-    public function __construct(?string $type)
+    public function __construct(?string $type, ?string $containerType)
     {
         $this->type = $type;
+        $this->containerType = $containerType;
     }
 
     public static function fromDataArray(array $data): self
     {
         return new self(
-            $data['type'] ?? null
+            $data['type'] ?? null,
+            $data['containerType'] ?? null
         );
     }
 
     public function toDataArray(): array
     {
-        return ['type' => $this->type];
+        return ['type' => $this->type, 'containerType' => $this->containerType];
     }
 
     public function getType(): ?string
@@ -31,8 +33,13 @@ class Backend
         return $this->type;
     }
 
+    public function getContainerType(): ?string
+    {
+        return $this->containerType;
+    }
+
     public function isEmpty(): bool
     {
-        return $this->type === null;
+        return $this->type === null && $this->containerType === null;
     }
 }
