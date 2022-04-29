@@ -255,6 +255,33 @@ class Client
         return $jobs;
     }
 
+    /**
+     * @return array<JobInterface>
+     */
+    public function listLatestConfigurationsJobs(
+        ListLatestConfigurationsJobsOptions $options,
+        bool $fetchFollowingPages = false
+    ): array {
+        $jobs = [];
+        $i = 1;
+        $options = clone $options;
+        do {
+            $request = new Request(
+                'GET',
+                sprintf(
+                    'latest-configurations-jobs?%s',
+                    implode('&', $options->getQueryParameters())
+                )
+            );
+            $result = $this->sendRequest($request);
+            $chunk = $this->mapJobsFromResponse($result);
+            $jobs = array_merge($jobs, $chunk);
+            $options->setOffset($i * $options->getLimit());
+            $i++;
+        } while ($fetchFollowingPages && count($chunk) === $options->getLimit());
+        return $jobs;
+    }
+
     public function getJobsDurationSum(string $projectId): int
     {
         if (empty($projectId)) {

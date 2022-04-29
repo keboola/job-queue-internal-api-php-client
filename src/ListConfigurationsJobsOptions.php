@@ -80,7 +80,7 @@ class ListConfigurationsJobsOptions
         return $this->jobsPerConfig;
     }
 
-    public function setJobsPerConfig(?int $jobsPerConfig): ListConfigurationsJobsOptions
+    public function setJobsPerConfig(?int $jobsPerConfig): self
     {
         $this->jobsPerConfig = $jobsPerConfig;
         return $this;
@@ -91,7 +91,7 @@ class ListConfigurationsJobsOptions
         return $this->projectId;
     }
 
-    public function setProjectId(?string $projectId): ListConfigurationsJobsOptions
+    public function setProjectId(?string $projectId): self
     {
         $this->projectId = $projectId;
         return $this;
@@ -102,7 +102,7 @@ class ListConfigurationsJobsOptions
         return $this->offset;
     }
 
-    public function setOffset(?int $offset): ListConfigurationsJobsOptions
+    public function setOffset(?int $offset): self
     {
         $this->offset = $offset;
         return $this;
@@ -113,7 +113,7 @@ class ListConfigurationsJobsOptions
         return $this->limit;
     }
 
-    public function setLimit(?int $limit): ListConfigurationsJobsOptions
+    public function setLimit(?int $limit): self
     {
         $this->limit = $limit;
         return $this;
@@ -129,7 +129,7 @@ class ListConfigurationsJobsOptions
         return $this->sortOrder;
     }
 
-    public function setSort(?string $sortBy, string $sortOrder = self::SORT_ORDER_ASC): ListConfigurationsJobsOptions
+    public function setSort(?string $sortBy, string $sortOrder = self::SORT_ORDER_ASC): self
     {
         if (!in_array($sortOrder, self::VALID_SORT_ORDER, true)) {
             throw new ClientException(sprintf(
@@ -149,7 +149,7 @@ class ListConfigurationsJobsOptions
         return $this->branchId;
     }
 
-    public function setBranchId(?string $branchId): ListConfigurationsJobsOptions
+    public function setBranchId(?string $branchId): self
     {
         $this->branchId = $branchId;
         return $this;
@@ -160,7 +160,7 @@ class ListConfigurationsJobsOptions
         return $this->componentId;
     }
 
-    public function setType(string $type): ListConfigurationsJobsOptions
+    public function setType(string $type): self
     {
         $this->type = $type;
         return $this;
