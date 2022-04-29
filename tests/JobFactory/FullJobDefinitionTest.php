@@ -65,6 +65,10 @@ class FullJobDefinitionTest extends BaseTest
             'parallelism' => null,
             'type' => 'standard',
             'extraKey' => 'ignored',
+            'backend' => [
+                'type' => 'large',
+                'containerType' => 'small',
+            ],
             'metrics' => [
                 'storage' => [
                     'inputTablesBytesSum' => 123,

@@ -150,6 +150,7 @@ class FullJobDefinition extends NewJobDefinition
                 ->arrayNode('backend')->ignoreExtraKeys(true)
                     ->children()
                         ->scalarNode('type')->end()
+                        ->scalarNode('containerType')->end()
                     ->end()
                 ->end()
                 ->arrayNode('metrics')->ignoreExtraKeys(true)
