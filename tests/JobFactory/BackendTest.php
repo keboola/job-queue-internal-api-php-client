@@ -9,37 +9,46 @@ use PHPUnit\Framework\TestCase;
 
 class BackendTest extends TestCase
 {
-
     public function typesProvider(): iterable
     {
-        yield 'null' => [null];
-        yield 'foo' => ['foo'];
+        yield 'null' => [null, null];
+        yield 'foo' => ['foo', null];
+        yield 'containerFoo' => [null, 'foo'];
+        yield 'FooBoo' => ['foo', 'boo'];
     }
 
     /**
      * @dataProvider typesProvider
      */
-    public function testCreate(?string $type): void
+    public function testCreate(?string $type, ?string $containerType): void
     {
-        $backend = new Backend($type);
+        $backend = new Backend($type, $containerType);
         self::assertSame($type, $backend->getType());
+        self::assertSame($containerType, $backend->getContainerType());
     }
 
     /**
      * @dataProvider provideCreateFromArrayData
      */
-    public function testCreateFromArray(array $data, ?string $expectedType, bool $expectedEmpty): void
-    {
+    public function testCreateFromArray(
+        array $data,
+        ?string $expectedType,
+        ?string $expectedContainerType,
+        bool $expectedEmpty
+    ): void {
         $backend = Backend::fromDataArray($data);
 
         self::assertSame($expectedType, $backend->getType());
+        self::assertSame($expectedContainerType, $backend->getContainerType());
         self::assertSame($expectedEmpty, $backend->isEmpty());
     }
 
     public function provideCreateFromArrayData(): iterable
     {
-        yield 'empty' => [[], null, true];
-        yield 'with type' => [['type' => 'custom'], 'custom', false];
+        yield 'empty' => [[], null, null, true];
+        yield 'with type' => [['type' => 'custom'], 'custom', null, false];
+        yield 'with container type' => [['containerType' => 'custom'], null, 'custom', false];
+        yield 'with both types' => [['type' => 'custom', 'containerType' => 'motsuc'], 'custom', 'motsuc', false];
     }
 
     /**
@@ -52,7 +61,21 @@ class BackendTest extends TestCase
 
     public function provideExportAsDataArrayData(): iterable
     {
-        yield 'empty' => [new Backend(null), ['type' => null]];
-        yield 'with type' => [new Backend('custom'), ['type' => 'custom']];
+        yield 'empty' => [
+            new Backend(null, null),
+            ['type' => null, 'containerType' => null],
+        ];
+        yield 'with type' => [
+            new Backend('custom', null),
+            ['type' => 'custom', 'containerType' => null],
+        ];
+        yield 'with container type' => [
+            new Backend(null, 'custom'),
+            ['type' => null, 'containerType' => 'custom'],
+        ];
+        yield 'with both types' => [
+            new Backend('custom', 'motsuc'),
+            ['type' => 'custom', 'containerType' => 'motsuc'],
+        ];
     }
 }

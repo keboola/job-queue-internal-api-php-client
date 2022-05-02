@@ -59,6 +59,7 @@ class NewJobDefinitionTest extends BaseTest
             'result' => ['foo' => 'bar'],
             'backend' => [
                 'type' => 'my',
+                'containerType' => 'his',
                 'foo' => 'bar',
             ],
         ];

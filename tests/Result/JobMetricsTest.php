@@ -14,6 +14,7 @@ class JobMetricsTest extends TestCase
         $metrics = new JobMetrics();
         $metrics->setInputTablesBytesSum(123);
         $metrics->setBackendSize('large');
+        $metrics->setBackendContainerSize('small');
         self::assertSame(123, $metrics->getInputTablesBytesSum());
         self::assertSame('large', $metrics->getBackendSize());
         self::assertSame(
@@ -23,6 +24,7 @@ class JobMetricsTest extends TestCase
                 ],
                 'backend' => [
                     'size' => 'large',
+                    'containerSize' => 'small',
                 ],
             ],
             $metrics->jsonSerialize()
@@ -36,6 +38,7 @@ class JobMetricsTest extends TestCase
                 ],
                 'backend' => [
                     'size' => null,
+                    'containerSize' => null,
                 ],
             ],
             $metrics->jsonSerialize()
@@ -51,15 +54,18 @@ class JobMetricsTest extends TestCase
                 ],
                 'backend' => [
                     'size' => 'medium',
+                    'containerSize' => 'large',
                 ],
             ],
         ];
         $jobMetrics = JobMetrics::fromDataArray($data);
         self::assertSame(123, $jobMetrics->getInputTablesBytesSum());
         self::assertSame('medium', $jobMetrics->getBackendSize());
+        self::assertSame('large', $jobMetrics->getBackendContainerSize());
 
         $jobMetrics = JobMetrics::fromDataArray([]);
         self::assertNull($jobMetrics->getInputTablesBytesSum());
         self::assertNull($jobMetrics->getBackendSize());
+        self::assertNull($jobMetrics->getBackendContainerSize());
     }
 }
