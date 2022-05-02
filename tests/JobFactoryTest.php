@@ -100,7 +100,7 @@ class JobFactoryTest extends BaseTest
         self::assertEquals([], $job->getConfigDataDecrypted());
         self::assertIsArray($job->getConfigRowIds());
         self::assertEmpty($job->getConfigRowIds());
-        self::assertSame('0.0.16', $job->getTag());
+        self::assertSame('0.0.20', $job->getTag());
         self::assertEquals($job->getId(), $job->getRunId());
         self::assertSame(null, $job->getBranchId());
         // check that the object encryptor factory is initialized (if it is not, there are no wrappers)
@@ -229,7 +229,7 @@ class JobFactoryTest extends BaseTest
         self::assertEquals('2345.' . $job->getId(), $job->getRunId());
         self::assertEquals(['values' => [['name' => 'bar', 'value' => 'Kochba']]], $job->getVariableValuesData());
         self::assertSame(null, $job->getBackend()->getType());
-        self::assertSame('custom', $job->getBackend()->getContainerType());
+        self::assertSame(null, $job->getBackend()->getContainerType());
         self::assertSame('standard', $job->getType());
     }
 

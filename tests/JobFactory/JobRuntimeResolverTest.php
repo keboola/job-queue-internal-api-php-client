@@ -98,7 +98,7 @@ class JobRuntimeResolverTest extends TestCase
                 'parallelism' => '5',
                 'variableValuesId' => null,
             ],
-            $jobRuntimeResolver->resolveJobData($jobData, [])
+            $jobRuntimeResolver->resolveJobData($jobData, ['owner' => ['features' => ['dynamic-backend-jobs']]])
         );
     }
 
@@ -173,7 +173,7 @@ class JobRuntimeResolverTest extends TestCase
                 'tag' => '3.2.1',
                 'parallelism' => '5',
             ],
-            $jobRuntimeResolver->resolveJobData($jobData, [])
+            $jobRuntimeResolver->resolveJobData($jobData, ['owner' => ['features' => ['dynamic-backend-jobs']]])
         );
     }
 
@@ -258,7 +258,7 @@ class JobRuntimeResolverTest extends TestCase
                 'tag' => '4.5.6',
                 'parallelism' => '5',
             ],
-            $jobRuntimeResolver->resolveJobData($jobData, [])
+            $jobRuntimeResolver->resolveJobData($jobData, ['owner' => ['features' => ['dynamic-backend-jobs']]])
         );
     }
 
@@ -325,7 +325,7 @@ class JobRuntimeResolverTest extends TestCase
                 'tag' => '4.5.6',
                 'parallelism' => '5',
             ],
-            $jobRuntimeResolver->resolveJobData($jobData, [])
+            $jobRuntimeResolver->resolveJobData($jobData, ['owner' => ['features' => ['dynamic-backend-jobs']]])
         );
     }
 
@@ -420,7 +420,7 @@ class JobRuntimeResolverTest extends TestCase
                 'tag' => '4.5.6',
                 'parallelism' => '0',
             ],
-            $jobRuntimeResolver->resolveJobData($jobData, [])
+            $jobRuntimeResolver->resolveJobData($jobData, ['owner' => ['features' => ['dynamic-backend-jobs']]])
         );
     }
 
@@ -771,7 +771,7 @@ class JobRuntimeResolverTest extends TestCase
                 'tag' => '4.5.6',
                 'parallelism' => '5',
             ],
-            $jobRuntimeResolver->resolveJobData($jobData, [])
+            $jobRuntimeResolver->resolveJobData($jobData, ['owner' => ['features' => ['dynamic-backend-jobs']]])
         );
     }
 

@@ -215,7 +215,7 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
                 'componentId' => self::COMPONENT_ID_1,
                 'mode' => 'run',
                 'configRowIds' => [],
-                'tag' => '0.0.16',
+                'tag' => '0.0.20',
                 'configData' => [],
                 'status' => 'created',
                 'desiredStatus' => 'processing',
@@ -270,6 +270,7 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
             ],
             'backend' => [
                 'size' => null,
+                'containerSize' => null,
             ],
         ], $job->getMetrics()->jsonSerialize());
         self::assertNull($job->getStartTime());

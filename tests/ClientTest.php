@@ -431,6 +431,7 @@ class ClientTest extends BaseTest
                     ],
                     'backend' => [
                         'size' => 'small',
+                        'containerSize' => null,
                     ],
                 ],
             ],
