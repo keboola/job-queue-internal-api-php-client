@@ -125,7 +125,7 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
             'componentId' => self::COMPONENT_ID_1,
             'mode' => 'run',
             'configRowIds' => [],
-            'tag' => '0.0.16',
+            'tag' => '0.0.20',
             'configData' => [],
             'status' => 'created',
             'desiredStatus' => 'processing',
