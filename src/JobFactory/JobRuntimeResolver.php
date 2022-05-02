@@ -6,6 +6,7 @@ namespace Keboola\JobQueueInternalClient\JobFactory;
 
 use Keboola\JobQueueInternalClient\Exception\ClientException;
 use Keboola\JobQueueInternalClient\Exception\ConfigurationDisabledException;
+use Keboola\JobQueueInternalClient\JobFactory;
 use Keboola\StorageApi\ClientException as StorageClientException;
 use Keboola\StorageApi\Components;
 use Keboola\StorageApiBranch\Factory\ClientOptions;
@@ -26,7 +27,7 @@ class JobRuntimeResolver
         $this->storageClientFactory = $storageClientFactory;
     }
 
-    public function resolveJobData(array $jobData): array
+    public function resolveJobData(array $jobData, array $tokenInfo): array
     {
         $this->configuration = null;
         $this->jobData = $jobData;
@@ -34,7 +35,7 @@ class JobRuntimeResolver
         try {
             $tag = $this->resolveTag();
             $variableValues = $this->resolveVariables();
-            $backend = $this->resolveBackend();
+            $backend = $this->resolveBackend($tokenInfo);
             $parallelism = $this->resolveParallelism();
             foreach ($variableValues->asDataArray() as $key => $value) {
                 $jobData[$key] = $value;
@@ -113,7 +114,7 @@ class JobRuntimeResolver
         return new Backend(null, null);
     }
 
-    private function resolveBackend(): Backend
+    private function resolveBackend(array $tokenInfo): Backend
     {
         $tempBackend = $this->getBackend();
         if ($tempBackend->isEmpty()) {
@@ -129,7 +130,9 @@ class JobRuntimeResolver
         During this we ignore any containerType setting received in $tempBackend, which so far is intentional.
         We also ignore backend settings for other workspace types, as they do not make any sense at the moment.
         */
-        if (in_array($stagingStorage, ['local', 's3', 'abs', 'none'])) {
+        if (in_array($stagingStorage, ['local', 's3', 'abs', 'none']) &&
+            in_array(JobFactory::DYNAMIC_BACKEND_JOBS_FEATURE, $tokenInfo['owner']['features'] ?? [])
+        ) {
             return new Backend(null, $tempBackend->getType());
         }
         if ($stagingStorage === 'workspace-snowflake') {

@@ -11,6 +11,7 @@ class JobMetrics implements JsonSerializable
     private ?int $inputTablesBytesSum = null;
 
     private ?string $backendSize = null;
+    private ?string $backendContainerSize = null;
 
     public function jsonSerialize(): array
     {
@@ -20,6 +21,7 @@ class JobMetrics implements JsonSerializable
             ],
             'backend' => [
                 'size' => $this->backendSize,
+                'containerSize' => $this->backendContainerSize,
             ],
         ];
     }
@@ -46,6 +48,17 @@ class JobMetrics implements JsonSerializable
         return $this;
     }
 
+    public function getBackendContainerSize(): ?string
+    {
+        return $this->backendContainerSize;
+    }
+
+    public function setBackendContainerSize(string $size): JobMetrics
+    {
+        $this->backendContainerSize = $size;
+        return $this;
+    }
+
     public static function fromDataArray(array $data): self
     {
         $metricsData = $data['metrics'] ?? [];
@@ -55,6 +68,9 @@ class JobMetrics implements JsonSerializable
         }
         if (isset($metricsData['backend']['size'])) {
             $metrics->setBackendSize($metricsData['backend']['size']);
+        }
+        if (isset($metricsData['backend']['containerSize'])) {
+            $metrics->setBackendContainerSize($metricsData['backend']['containerSize']);
         }
         return $metrics;
     }

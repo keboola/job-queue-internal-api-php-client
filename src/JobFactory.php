@@ -41,6 +41,8 @@ class JobFactory
     public const PARALLELISM_INFINITY = 'infinity';
     public const ORCHESTRATOR_COMPONENT = 'keboola.orchestrator';
 
+    public const DYNAMIC_BACKEND_JOBS_FEATURE = 'dynamic-backend-jobs';
+
     private StorageClientPlainFactory $storageClientFactory;
     private ObjectEncryptorFactory $objectEncryptorFactory;
 
@@ -190,7 +192,7 @@ class JobFactory
             'variableValuesData' => $data['variableValuesData'] ?? [],
         ];
         $resolver = new JobRuntimeResolver($this->storageClientFactory);
-        $jobData = $resolver->resolveJobData($jobData);
+        $jobData = $resolver->resolveJobData($jobData, $tokenInfo);
         // set type after resolving parallelism
         $jobData['type'] = $data['type'] ?? $this->getJobType($jobData);
         return (array) $this->objectEncryptorFactory->getEncryptor()->encrypt(
