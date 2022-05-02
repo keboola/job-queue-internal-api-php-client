@@ -76,6 +76,7 @@ class FullJobDefinitionTest extends BaseTest
                 ],
                 'backend' => [
                     'size' => 'medium',
+                    'containerSize' => 'large',
                     'backendExtraKey' => 'ignored',
                 ],
             ],

@@ -165,6 +165,7 @@ class FullJobDefinition extends NewJobDefinition
                         ->arrayNode('backend')
                             ->children()
                                 ->scalarNode('size')->end()
+                                ->scalarNode('containerSize')->end()
                             ->end()
                         ->end()
                     ->end()
