@@ -25,6 +25,7 @@ class ListConfigurationsJobsOptionsTest extends TestCase
         self::assertNull($options->getSortBy());
         self::assertNull($options->getSortOrder());
         self::assertNull($options->getBranchId());
+        self::assertNull($options->getType());
 
         self::assertSame([
             'configId[]=abc',
@@ -42,6 +43,7 @@ class ListConfigurationsJobsOptionsTest extends TestCase
         $options->setLimit(7);
         $options->setSort('configId', 'asc');
         $options->setBranchId('main');
+        $options->setType('standard');
 
         self::assertSame(['abc', 'efg'], $options->getConfigIds());
         self::assertSame('my-project', $options->getProjectId());
@@ -51,6 +53,7 @@ class ListConfigurationsJobsOptionsTest extends TestCase
         self::assertSame('configId', $options->getSortBy());
         self::assertSame('asc', $options->getSortOrder());
         self::assertSame('main', $options->getBranchId());
+        self::assertSame('standard', $options->getType());
 
         self::assertSame([
             'configId[]=abc',
@@ -63,6 +66,7 @@ class ListConfigurationsJobsOptionsTest extends TestCase
             'sortOrder=asc',
             'branchId=main',
             'componentId=keboola.runner-config-test',
+            'type=standard',
         ], $options->getQueryParameters());
     }
 

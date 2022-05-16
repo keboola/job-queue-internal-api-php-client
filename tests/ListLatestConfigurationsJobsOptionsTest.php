@@ -30,14 +30,15 @@ class ListLatestConfigurationsJobsOptionsTest extends TestCase
         $options->setOffset(6);
         $options->setLimit(7);
         $options->setBranchId('main');
+        $options->setProjectId('54321');
 
-        self::assertSame('12345', $options->getProjectId());
+        self::assertSame('54321', $options->getProjectId());
         self::assertSame(6, $options->getOffset());
         self::assertSame(7, $options->getLimit());
         self::assertSame('main', $options->getBranchId());
 
         self::assertSame([
-            'projectId=12345',
+            'projectId=54321',
             'branchId=main',
             'offset=6',
             'limit=7',
