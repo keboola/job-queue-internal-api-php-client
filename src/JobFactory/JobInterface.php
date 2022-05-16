@@ -50,4 +50,5 @@ interface JobInterface
     public function getDurationSeconds(): ?int;
     public function getMetrics(): JobMetrics;
     public function isInRunMode(): bool;
+    public function getComponentSpecification(): ComponentSpecification;
 }

@@ -13,7 +13,6 @@ use Keboola\JobQueueInternalClient\JobFactory\JobRuntimeResolver;
 use Keboola\JobQueueInternalClient\JobFactory\NewJobDefinition;
 use Keboola\ObjectEncryptor\ObjectEncryptorFactory;
 use Keboola\StorageApi\ClientException as StorageClientException;
-use Keboola\StorageApiBranch\ClientWrapper;
 use Keboola\StorageApiBranch\Factory\ClientOptions;
 use Keboola\StorageApiBranch\Factory\StorageClientPlainFactory;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
@@ -111,13 +110,13 @@ class JobFactory
         $data = $this->validateJobData($data, NewJobDefinition::class);
         $data = $this->initializeNewJobData($data);
         $data = $this->validateJobData($data, FullJobDefinition::class);
-        return new Job($this->objectEncryptorFactory, $data);
+        return new Job($this->objectEncryptorFactory, $this->storageClientFactory, $data);
     }
 
     public function loadFromExistingJobData(array $data): JobInterface
     {
         $data = $this->validateJobData($data, FullJobDefinition::class);
-        return new Job($this->objectEncryptorFactory, $data);
+        return new Job($this->objectEncryptorFactory, $this->storageClientFactory, $data);
     }
 
     public function modifyJob(JobInterface $job, array $patchData): JobInterface
@@ -125,7 +124,7 @@ class JobFactory
         $data = $job->jsonSerialize();
         $data = array_replace_recursive($data, $patchData);
         $data = $this->validateJobData($data, FullJobDefinition::class);
-        return new Job($this->objectEncryptorFactory, $data);
+        return new Job($this->objectEncryptorFactory, $this->storageClientFactory, $data);
     }
 
     private function validateJobData(array $data, string $validatorClass): array

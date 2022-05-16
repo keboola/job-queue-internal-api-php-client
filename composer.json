@@ -32,6 +32,7 @@
         "keboola/object-encryptor": "^0.3",
         "keboola/storage-api-client": "^12.0",
         "keboola/storage-api-php-client-branch-wrapper": "^2.0",
+        "monolog/monolog": "^2.6",
         "psr/log": "^1.1",
         "symfony/config": "^5.0",
         "symfony/validator": "^5.0"

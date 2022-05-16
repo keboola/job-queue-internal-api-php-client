@@ -888,12 +888,17 @@ class ClientTest extends BaseTest
     public function testClientUpdateJobWithEmptyIdThrowsException(): void
     {
         $objectEncryptorFactory = new ObjectEncryptorFactory('alias/some-key', 'us-east-1', '', '', '');
-        $job = new Job($objectEncryptorFactory, [
-            'status' => JobFactory::STATUS_SUCCESS,
-            'projectId' => 'test',
-            'id' => '',
-            'runId' => '',
-        ]);
+        $storageClientFactory = new StorageClientPlainFactory(new ClientOptions());
+        $job = new Job(
+            $objectEncryptorFactory,
+            $storageClientFactory,
+            [
+                'status' => JobFactory::STATUS_SUCCESS,
+                'projectId' => 'test',
+                'id' => '',
+                'runId' => '',
+            ]
+        );
         $client = $this->getClient([]);
 
         $this->expectException(ClientException::class);

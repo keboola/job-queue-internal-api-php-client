@@ -9,6 +9,7 @@ use Keboola\JobQueueInternalClient\JobFactory\Job;
 use Keboola\JobQueueInternalClient\JobFactory\JobInterface;
 use Keboola\JobQueueInternalClient\PermissionChecker;
 use Keboola\ObjectEncryptor\ObjectEncryptorFactory;
+use Keboola\StorageApiBranch\Factory\StorageClientPlainFactory;
 use PHPUnit\Framework\TestCase;
 
 class PermissionCheckerTest extends TestCase
@@ -30,11 +31,9 @@ class PermissionCheckerTest extends TestCase
             'tokenId' => '456',
             '#tokenString' => 'KBC::ProjectSecure::token',
         ];
-        $objectEncryptorFactoryMock = self::getMockBuilder(ObjectEncryptorFactory::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-        /** @var ObjectEncryptorFactory $objectEncryptorFactoryMock */
-        return new Job($objectEncryptorFactoryMock, $jobData);
+        $objectEncryptorFactoryMock = self::createMock(ObjectEncryptorFactory::class);
+        $storageFactoryMock = self::createMock(StorageClientPlainFactory::class);
+        return new Job($objectEncryptorFactoryMock, $storageFactoryMock, $jobData);
     }
 
     /**

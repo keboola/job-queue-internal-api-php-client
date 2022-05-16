@@ -11,6 +11,9 @@ use Keboola\JobQueueInternalClient\Exception\ClientException;
 use Keboola\JobQueueInternalClient\JobFactory;
 use Keboola\JobQueueInternalClient\Result\JobMetrics;
 use Keboola\ObjectEncryptor\ObjectEncryptorFactory;
+use Keboola\StorageApi\Components;
+use Keboola\StorageApiBranch\Factory\ClientOptions;
+use Keboola\StorageApiBranch\Factory\StorageClientPlainFactory;
 use Throwable;
 
 class Job implements JsonSerializable, JobInterface
@@ -25,9 +28,15 @@ class Job implements JsonSerializable, JobInterface
     private ?DateTimeImmutable $startTime;
     private ?string $tokenDecrypted = null;
     private ?array $configDataDecrypted = null;
+    private StorageClientPlainFactory $storageClientFactory;
+    private ?ComponentSpecification $componentSpecification;
 
-    public function __construct(ObjectEncryptorFactory $objectEncryptorFactory, array $data)
-    {
+    public function __construct(
+        ObjectEncryptorFactory $objectEncryptorFactory,
+        StorageClientPlainFactory $storageClientFactory,
+        array $data
+    ) {
+        $this->storageClientFactory = $storageClientFactory;
         $this->data = $data;
         $this->data['isFinished'] = in_array($this->getStatus(), JobFactory::getFinishedStatuses());
         $this->data['parentRunId'] = $this->getParentRunId();
@@ -264,5 +273,18 @@ class Job implements JsonSerializable, JobInterface
     public function isInRunMode(): bool
     {
         return in_array($this->getMode(), [self::MODE_RUN, self::MODE_FORCE_RUN]);
+    }
+
+    public function getComponentSpecification(): ComponentSpecification
+    {
+        if (empty($this->componentSpecification)) {
+            $client = $this->storageClientFactory->createClientWrapper(
+                new ClientOptions(null, null, $this->getBranchId())
+            );
+            $componentsApi = new Components($client->getBranchClient());
+            $data = $componentsApi->getComponent($this->getComponentId());
+            $this->componentSpecification = new ComponentSpecification($data);
+        }
+        return $this->componentSpecification;
     }
 }
