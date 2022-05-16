@@ -399,7 +399,8 @@ class JobTest extends BaseTest
         $clientMock = $this->createMock(BranchAwareClient::class);
         $clientMock->method('apiGet')->willReturn($componentData);
         $clientWrapperMock = $this->createMock(ClientWrapper::class);
-        $clientWrapperMock->expects(self::once())->method('getBranchClient')->willReturn($clientMock);
+        $clientWrapperMock
+            ->expects(self::once())->method('getBranchClientIfAvailable')->willReturn($clientMock);
         $factory = $this->createMock(StorageClientPlainFactory::class);
         $factory->expects(self::once())->method('createClientWrapper')->willReturn($clientWrapperMock);
 
