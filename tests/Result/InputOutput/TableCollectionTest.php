@@ -35,7 +35,7 @@ class TableCollectionTest extends TestCase
                     'table',
                     'MyTable',
                     (new ColumnCollection())->addColumn(new Column('id'))
-                )
+                ),
             ],
             iterator_to_array($collection->getIterator())
         );
