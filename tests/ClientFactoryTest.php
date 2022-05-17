@@ -27,6 +27,5 @@ class ClientFactoryTest extends TestCase
         );
         $client = $factory->getClient();
         self::assertInstanceOf(Client::class, $client);
-
     }
 }
