@@ -10,6 +10,7 @@ use Keboola\ObjectEncryptor\ObjectEncryptor;
 use Keboola\ObjectEncryptor\ObjectEncryptorFactory;
 use Keboola\StorageApi\BranchAwareClient;
 use Keboola\StorageApiBranch\ClientWrapper;
+use Keboola\StorageApiBranch\Factory\ClientOptions;
 use Keboola\StorageApiBranch\Factory\StorageClientPlainFactory;
 
 class JobTest extends BaseTest
@@ -402,9 +403,21 @@ class JobTest extends BaseTest
         $clientWrapperMock
             ->expects(self::once())->method('getBranchClientIfAvailable')->willReturn($clientMock);
         $factory = $this->createMock(StorageClientPlainFactory::class);
-        $factory->expects(self::once())->method('createClientWrapper')->willReturn($clientWrapperMock);
+        $factory->expects(self::once())->method('createClientWrapper')
+            ->with(new ClientOptions(null, 'token', '987'))
+            ->willReturn($clientWrapperMock);
 
         $objectEncryptorFactoryMock = self::createMock(ObjectEncryptorFactory::class);
+        $objectEncryptorMock = self::createMock(ObjectEncryptor::class);
+        $objectEncryptorFactoryMock
+            ->expects(self::once())
+            ->method('getEncryptor')
+            ->willReturn($objectEncryptorMock);
+        $objectEncryptorMock
+            ->expects(self::once())
+            ->method('decrypt')
+            ->with('KBC::ProjectSecure::token')
+            ->willReturn('token');
         $job = new Job($objectEncryptorFactoryMock, $factory, $this->jobData);
         self::assertSame('test', $job->getComponentSpecification()->getId());
         self::assertSame(256000000, $job->getComponentSpecification()->getMemoryLimitBytes());

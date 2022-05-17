@@ -279,7 +279,7 @@ class Job implements JsonSerializable, JobInterface
     {
         if (empty($this->componentSpecification)) {
             $client = $this->storageClientFactory->createClientWrapper(
-                new ClientOptions(null, null, $this->getBranchId())
+                new ClientOptions(null, $this->getTokenDecrypted(), $this->getBranchId())
             );
             $componentsApi = new Components($client->getBranchClientIfAvailable());
             $data = $componentsApi->getComponent($this->getComponentId());

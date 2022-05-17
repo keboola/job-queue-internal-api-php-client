@@ -275,6 +275,7 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
         ], $job->getMetrics()->jsonSerialize());
         self::assertNull($job->getStartTime());
         self::assertNull($job->getEndTime());
+        self::assertEquals('keboola.runner-config-test', $job->getComponentSpecification()->getId());
     }
 
     public function testGetJobParentRunId(): void
