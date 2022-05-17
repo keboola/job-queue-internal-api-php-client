@@ -180,6 +180,64 @@ class ComponentDefinitionTest extends TestCase
                 ],
             ],
         ];
+        yield 'other options' => [
+            'data' => [
+                'id' => 'test',
+                'data' => [
+                    'definition' => [
+                        'uri' => '147946154733.dkr.ecr.us-east-1.amazonaws.com/developer-portal-v2/keboola.runner-config-test',
+                        'type' => 'aws-ecr',
+                    ],
+                    'default_bucket_stage' => 'in',
+                    'logging' => [
+                        'type' => 'standard',
+                        'gelf_server_type' => 'tcp',
+                        'no_application_errors' => true,
+                    ],
+                ],
+            ],
+            'expected' => [
+                'id' => 'test',
+                'data' => [
+                    'definition' => [
+                        'uri' => '147946154733.dkr.ecr.us-east-1.amazonaws.com/developer-portal-v2/keboola.runner-config-test',
+                        'type' => 'aws-ecr',
+                        'tag' => 'latest',
+                        'digest' => '',
+                    ],
+                    'default_bucket_stage' => 'in',
+                    'logging' => [
+                        'type' => 'standard',
+                        'gelf_server_type' => 'tcp',
+                        'no_application_errors' => true,
+                        'verbosity' => [
+                            100 => 'none',
+                            200 => 'normal',
+                            250 => 'normal',
+                            300 => 'normal',
+                            400 => 'normal',
+                            500 => 'camouflage',
+                            550 => 'camouflage',
+                            600 => 'camouflage',
+                        ],
+                    ],
+                    'memory' => '256m',
+                    'configuration_format' => 'json',
+                    'process_timeout' => 3600,
+                    'forward_token' => false,
+                    'forward_token_details' => false,
+                    'default_bucket' => false,
+                    'image_parameters' => [],
+                    'network' => 'bridge',
+                    'synchronous_actions' => [],
+                    'staging_storage' => [
+                        'input' => 'local',
+                        'output' => 'local',
+                    ],
+                ],
+                'features' => [],
+            ],
+        ];
         //phpcs:enable Generic.Files.LineLength.MaxExceeded
     }
 
@@ -339,6 +397,20 @@ class ComponentDefinitionTest extends TestCase
             'expected' => 'The value "invalid" is not allowed for path "component.data.staging_storage.output". ' .
                 'Permissible values: "local", "none", "workspace-snowflake", "workspace-redshift", ' .
                 '"workspace-synapse", "workspace-abs", "workspace-exasol"',
+        ];
+        yield 'invalid process timeout too small' => [
+            'data' => [
+                'id' => 'test',
+                'data' => [
+                    'definition' => [
+                        'type' => 'aws-ecr',
+                        'uri' => 'some-uri',
+                    ],
+                    'process_timeout' => -1,
+                ],
+            ],
+            'expected' => 'The value -1 is too small for path "component.data.process_timeout". ' .
+                'Should be greater than or equal to 0',
         ];
     }
 }

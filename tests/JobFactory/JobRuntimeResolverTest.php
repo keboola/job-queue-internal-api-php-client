@@ -496,6 +496,7 @@ class JobRuntimeResolverTest extends TestCase
 
         $jobRuntimeResolver = new JobRuntimeResolver($storageClientFactoryMock);
         self::expectException(ClientException::class);
+        self::expectExceptionCode(0);
         self::expectExceptionMessage('Invalid configuration: Invalid type for path "overrides.variableValuesData".');
         $jobRuntimeResolver->resolveJobData($jobData, []);
     }
