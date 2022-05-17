@@ -26,6 +26,7 @@ class ListConfigurationsJobsOptionsTest extends TestCase
         self::assertNull($options->getSortOrder());
         self::assertNull($options->getBranchId());
         self::assertNull($options->getType());
+        self::assertNull($options->getJobsPerConfig());
 
         self::assertSame([
             'configId[]=abc',

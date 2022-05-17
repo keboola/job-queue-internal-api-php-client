@@ -51,7 +51,7 @@
         "phpcs": "phpcs --extensions=php src tests",
         "phpcbf": "phpcbf --extensions=php src tests",
         "phplint": "parallel-lint -j 10 --exclude vendor .",
-        "infection": "infection --threads=4 --min-covered-msi=90 --coverage=/tmp/build-logs",
+        "infection": "infection --threads=4 --min-covered-msi=90 --coverage=/tmp/build-logs --only-covered",
         "build": [
             "@phplint",
             "@phpcs",

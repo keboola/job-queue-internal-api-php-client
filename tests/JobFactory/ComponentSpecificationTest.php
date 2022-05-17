@@ -88,6 +88,7 @@ class ComponentSpecificationTest extends TestCase
         ];
         //phpcs:enable Generic.Files.LineLength.MaxExceeded
         $this->expectException(ComponentInvalidException::class);
+        $this->expectExceptionCode(0);
         $this->expectExceptionMessage('Component definition is invalid.');
         new ComponentSpecification($data);
     }

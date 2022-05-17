@@ -30,6 +30,7 @@ class OverridesConfigurationDefinitionTest extends TestCase
                         'value' => 'bar',
                     ],
                 ],
+                'extra' => 'removed',
             ],
             'variableValuesId' => 123,
             'runtime' => [
@@ -37,6 +38,7 @@ class OverridesConfigurationDefinitionTest extends TestCase
                 'tag' => 1,
                 'backend' => [
                     'type' => 'weird',
+                    'ignored' => 'yes',
                 ],
             ],
         ];
@@ -44,6 +46,8 @@ class OverridesConfigurationDefinitionTest extends TestCase
         $expected = $data;
         unset($expected['extra']);
         unset($expected['runtime']['also']);
+        unset($expected['runtime']['backend']['ignored']);
+        unset($expected['variableValuesData']['extra']);
         $expected['variableValuesId'] = '123';
         $expected['runtime']['tag'] = '1';
         $expected['runtime']['parallelism'] = null;

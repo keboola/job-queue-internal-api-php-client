@@ -518,6 +518,7 @@ class JobRuntimeResolverTest extends TestCase
 
         $jobRuntimeResolver = new JobRuntimeResolver($storageClientFactoryMock);
         self::expectExceptionMessage('Cannot resolve job parameters: Configuration "454124290" not found');
+        self::expectExceptionCode(0);
         self::expectException(ClientException::class);
         $jobRuntimeResolver->resolveJobData($jobData, []);
     }

@@ -28,7 +28,17 @@ class TableCollectionTest extends TestCase
         $collection->addTable($table);
 
         self::assertSame(1, $collection->count());
-
+        self::assertEquals(
+            [
+                new Table(
+                    'in.c-bucket.table',
+                    'table',
+                    'MyTable',
+                    (new ColumnCollection())->addColumn(new Column('id'))
+                )
+            ],
+            iterator_to_array($collection->getIterator())
+        );
         self::assertSame([
             [
                 'id' => 'in.c-bucket.table',
