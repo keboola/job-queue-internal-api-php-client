@@ -985,6 +985,14 @@ class JobRuntimeResolverTest extends TestCase
             null,
             ['owner' => ['features' => ['dynamic-backend-jobs']]],
         ];
+        yield 'custom workspace-teradata' => [
+            'custom',
+            'workspace-teradata',
+            1,
+            null,
+            null,
+            ['owner' => ['features' => ['dynamic-backend-jobs']]],
+        ];
         yield 'custom unknown' => [
             'custom',
             'unknown',
