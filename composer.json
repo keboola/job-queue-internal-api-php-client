@@ -29,7 +29,7 @@
         "php": "^7.4|^8.0",
         "ext-json": "*",
         "guzzlehttp/guzzle": "^6.3",
-        "keboola/object-encryptor": "^0.3",
+        "keboola/object-encryptor": "^0.4",
         "keboola/storage-api-client": "^12.0",
         "keboola/storage-api-php-client-branch-wrapper": "^2.0",
         "monolog/monolog": "^2.6",
