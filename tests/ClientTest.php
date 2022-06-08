@@ -579,6 +579,7 @@ class ClientTest extends BaseTest
         self::assertEquals('', $job->getBranchId());
 
         $request = $mock->getLastRequest();
+        self::assertNotNull($request);
         self::assertEquals('projectId%5B%5D=456&limit=100', $request->getUri()->getQuery());
     }
 
@@ -632,6 +633,7 @@ class ClientTest extends BaseTest
         self::assertEquals('šěřč!@#%^$&', $job->getProjectId());
 
         $request = $mock->getLastRequest();
+        self::assertNotNull($request);
         self::assertEquals(
             'componentId%5B%5D=th%21%24+%7C%26+n%C2%B0t+valid&' .
             'projectId%5B%5D=%C5%A1%C4%9B%C5%99%C4%8D%21%40%23%25%5E%24%26&limit=100',
@@ -729,6 +731,7 @@ class ClientTest extends BaseTest
             $params
         );
         $request = $mock->getLastRequest();
+        self::assertNotNull($request);
         self::assertStringStartsWith('id%5B%5D=1001000', $request->getUri()->getQuery());
         self::assertLessThan(2000, strlen($request->getUri()->getQuery()));
     }
@@ -786,6 +789,7 @@ class ClientTest extends BaseTest
         $jobs = $client->listJobs((new JobListOptions()), true);
         self::assertCount(1001, $jobs);
         $request = $mock->getLastRequest();
+        self::assertNotNull($request);
         self::assertEquals('offset=1000&limit=100', $request->getUri()->getQuery());
         self::assertEquals(0, $mock->count());
     }
