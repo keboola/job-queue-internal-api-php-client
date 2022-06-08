@@ -114,3 +114,7 @@ returns e.g. `https://testing-key-vault-client.vault.azure.net/`, use this to se
     docker-compose run tests-local composer install
     docker-compose run tests-local
     ```
+
+## License
+
+MIT licensed, see [LICENSE](./LICENSE) file.
