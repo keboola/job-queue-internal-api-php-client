@@ -333,7 +333,7 @@ class Client
     private function initClient(string $url, string $token, array $options = []): GuzzleClient
     {
         // Initialize handlers (start with those supplied in constructor)
-        if (isset($options['handler']) && $options['handler'] instanceof HandlerStack) {
+        if (isset($options['handler']) && is_callable($options['handler'])) {
             $handlerStack = HandlerStack::create($options['handler']);
         } else {
             $handlerStack = HandlerStack::create();
