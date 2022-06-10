@@ -98,7 +98,7 @@ class JobRuntimeResolverTest extends TestCase
                 'parallelism' => '5',
                 'variableValuesId' => null,
             ],
-            $jobRuntimeResolver->resolveJobData($jobData, ['owner' => ['features' => ['dynamic-backend-jobs']]])
+            $jobRuntimeResolver->resolveJobData($jobData, ['owner' => ['features' => []]])
         );
     }
 
@@ -173,7 +173,7 @@ class JobRuntimeResolverTest extends TestCase
                 'tag' => '3.2.1',
                 'parallelism' => '5',
             ],
-            $jobRuntimeResolver->resolveJobData($jobData, ['owner' => ['features' => ['dynamic-backend-jobs']]])
+            $jobRuntimeResolver->resolveJobData($jobData, ['owner' => ['features' => []]])
         );
     }
 
@@ -258,7 +258,7 @@ class JobRuntimeResolverTest extends TestCase
                 'tag' => '4.5.6',
                 'parallelism' => '5',
             ],
-            $jobRuntimeResolver->resolveJobData($jobData, ['owner' => ['features' => ['dynamic-backend-jobs']]])
+            $jobRuntimeResolver->resolveJobData($jobData, ['owner' => ['features' => []]])
         );
     }
 
@@ -325,7 +325,7 @@ class JobRuntimeResolverTest extends TestCase
                 'tag' => '4.5.6',
                 'parallelism' => '5',
             ],
-            $jobRuntimeResolver->resolveJobData($jobData, ['owner' => ['features' => ['dynamic-backend-jobs']]])
+            $jobRuntimeResolver->resolveJobData($jobData, ['owner' => ['features' => []]])
         );
     }
 
@@ -420,7 +420,7 @@ class JobRuntimeResolverTest extends TestCase
                 'tag' => '4.5.6',
                 'parallelism' => '0',
             ],
-            $jobRuntimeResolver->resolveJobData($jobData, ['owner' => ['features' => ['dynamic-backend-jobs']]])
+            $jobRuntimeResolver->resolveJobData($jobData, ['owner' => ['features' => []]])
         );
     }
 
@@ -773,7 +773,7 @@ class JobRuntimeResolverTest extends TestCase
                 'tag' => '4.5.6',
                 'parallelism' => '5',
             ],
-            $jobRuntimeResolver->resolveJobData($jobData, ['owner' => ['features' => ['dynamic-backend-jobs']]])
+            $jobRuntimeResolver->resolveJobData($jobData, ['owner' => ['features' => []]])
         );
     }
 
@@ -895,7 +895,7 @@ class JobRuntimeResolverTest extends TestCase
             0,
             null,
             null,
-            ['owner' => ['features' => ['dynamic-backend-jobs']]],
+            [],
         ];
         yield 'custom local' => [
             'custom',
@@ -903,7 +903,7 @@ class JobRuntimeResolverTest extends TestCase
             1,
             null,
             'custom',
-            ['owner' => ['features' => ['dynamic-backend-jobs']]],
+            [],
         ];
         yield 'custom local without feature' => [
             'custom',
@@ -911,7 +911,7 @@ class JobRuntimeResolverTest extends TestCase
             1,
             null,
             null, // no container backend is set
-            [],
+            ['owner' => ['features' => ['pay-as-you-go']]],
         ];
         yield 'custom s3' => [
             'custom',
@@ -919,7 +919,7 @@ class JobRuntimeResolverTest extends TestCase
             1,
             null,
             'custom',
-            ['owner' => ['features' => ['dynamic-backend-jobs']]],
+            ['owner' => ['features' => []]],
         ];
         yield 'custom abs' => [
             'custom',
@@ -927,7 +927,7 @@ class JobRuntimeResolverTest extends TestCase
             1,
             null,
             'custom',
-            ['owner' => ['features' => ['dynamic-backend-jobs']]],
+            ['owner' => ['features' => []]],
         ];
         yield 'custom none' => [
             'custom',
@@ -935,7 +935,7 @@ class JobRuntimeResolverTest extends TestCase
             1,
             null,
             'custom',
-            ['owner' => ['features' => ['dynamic-backend-jobs']]],
+            ['owner' => ['features' => []]],
         ];
         yield 'custom workspace-snowflake' => [
             'custom',
@@ -943,7 +943,7 @@ class JobRuntimeResolverTest extends TestCase
             1,
             'custom',
             null,
-            ['owner' => ['features' => ['dynamic-backend-jobs']]],
+            ['owner' => ['features' => []]],
         ];
         yield 'custom workspace-snowflake without feature' => [
             'custom',
@@ -951,7 +951,7 @@ class JobRuntimeResolverTest extends TestCase
             1,
             'custom',
             null,
-            [],
+            ['owner' => ['features' => ['pay-as-you-go']]],
         ];
         yield 'custom workspace-redshift' => [
             'custom',
@@ -959,7 +959,7 @@ class JobRuntimeResolverTest extends TestCase
             1,
             null,
             null,
-            ['owner' => ['features' => ['dynamic-backend-jobs']]],
+            ['owner' => ['features' => []]],
         ];
         yield 'custom workspace-synapse' => [
             'custom',
@@ -967,7 +967,7 @@ class JobRuntimeResolverTest extends TestCase
             1,
             null,
             null,
-            ['owner' => ['features' => ['dynamic-backend-jobs']]],
+            ['owner' => ['features' => []]],
         ];
         yield 'custom workspace-abs' => [
             'custom',
@@ -975,7 +975,7 @@ class JobRuntimeResolverTest extends TestCase
             1,
             null,
             null,
-            ['owner' => ['features' => ['dynamic-backend-jobs']]],
+            ['owner' => ['features' => []]],
         ];
         yield 'custom workspace-exasol' => [
             'custom',
@@ -983,7 +983,7 @@ class JobRuntimeResolverTest extends TestCase
             1,
             null,
             null,
-            ['owner' => ['features' => ['dynamic-backend-jobs']]],
+            ['owner' => ['features' => []]],
         ];
         yield 'custom workspace-teradata' => [
             'custom',
@@ -991,7 +991,7 @@ class JobRuntimeResolverTest extends TestCase
             1,
             null,
             null,
-            ['owner' => ['features' => ['dynamic-backend-jobs']]],
+            ['owner' => ['features' => []]],
         ];
         yield 'custom unknown' => [
             'custom',
@@ -999,7 +999,7 @@ class JobRuntimeResolverTest extends TestCase
             1,
             null,
             null,
-            ['owner' => ['features' => ['dynamic-backend-jobs']]],
+            ['owner' => ['features' => []]],
         ];
         yield 'custom invalid' => [
             'custom',
@@ -1007,7 +1007,7 @@ class JobRuntimeResolverTest extends TestCase
             1,
             null,
             null,
-            ['owner' => ['features' => ['dynamic-backend-jobs']]],
+            ['owner' => ['features' => []]],
         ];
     }
 }

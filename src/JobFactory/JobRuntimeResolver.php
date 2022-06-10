@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Keboola\JobQueueInternalClient\JobFactory;
 
+use Keboola\BillingApi\CreditsChecker;
 use Keboola\JobQueueInternalClient\Exception\ClientException;
 use Keboola\JobQueueInternalClient\Exception\ConfigurationDisabledException;
 use Keboola\JobQueueInternalClient\JobFactory;
@@ -131,11 +132,13 @@ class JobRuntimeResolver
         We also ignore backend settings for other workspace types, as they do not make any sense at the moment.
         */
         if (in_array($stagingStorage, ['local', 's3', 'abs', 'none']) &&
-            in_array(JobFactory::DYNAMIC_BACKEND_JOBS_FEATURE, $tokenInfo['owner']['features'] ?? [])
+            !in_array(JobFactory::PAY_AS_YOU_GO_FEATURE, $tokenInfo['owner']['features'] ?? [])
         ) {
             return new Backend(null, $tempBackend->getType());
         }
         if ($stagingStorage === 'workspace-snowflake') {
+            // dynamic workspace si hidden behind another feature `workspace-snowflake-dynamic-backend-size`
+            // that is checked in SAPI, so we don't check it here, yet
             return new Backend($tempBackend->getType(), null);
         }
         return new Backend(null, null);
