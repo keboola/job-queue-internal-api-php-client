@@ -229,7 +229,7 @@ class JobFactoryTest extends BaseTest
         self::assertEquals('2345.' . $job->getId(), $job->getRunId());
         self::assertEquals(['values' => [['name' => 'bar', 'value' => 'Kochba']]], $job->getVariableValuesData());
         self::assertSame(null, $job->getBackend()->getType());
-        self::assertSame(null, $job->getBackend()->getContainerType());
+        self::assertSame('custom', $job->getBackend()->getContainerType());
         self::assertSame('standard', $job->getType());
     }
 
