@@ -49,6 +49,7 @@ class JobTest extends BaseTest
                 'size' => 'medium',
             ],
         ],
+        'orchestrationId' => 'my-weekly-orchestration',
     ];
 
     public function testGetComponentId(): void
@@ -422,5 +423,10 @@ class JobTest extends BaseTest
         self::assertSame('test', $job->getComponentSpecification()->getId());
         self::assertSame(256000000, $job->getComponentSpecification()->getMemoryLimitBytes());
         self::assertSame('256m', $job->getComponentSpecification()->getMemoryLimit());
+    }
+
+    public function testGetOrchestrationId(): void
+    {
+        self::assertEquals('my-weekly-orchestration', $this->getJob()->getOrchestrationId());
     }
 }

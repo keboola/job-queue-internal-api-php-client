@@ -39,6 +39,7 @@ class FullJobDefinitionTest extends BaseTest
         $expectedData['configRowIds'] = [];
         $expectedData['tag'] = null;
         $expectedData['isFinished'] = false;
+        $expectedData['orchestrationId'] = null;
         self::assertEquals($expectedData, $processedData);
     }
 
@@ -80,6 +81,7 @@ class FullJobDefinitionTest extends BaseTest
                     'backendExtraKey' => 'ignored',
                 ],
             ],
+            'orchestrationId' => 'my-daily-orchestration',
         ];
         unset($data['extraKey']);
         unset($data['metrics']['storage']['storageExtraKey']);
