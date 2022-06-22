@@ -62,6 +62,7 @@ class NewJobDefinitionTest extends BaseTest
                 'containerType' => 'his',
                 'foo' => 'bar',
             ],
+            'orchestrationId' => 'my-daily-orchestration',
         ];
         $definition = new NewJobDefinition();
         $expected = $data;
