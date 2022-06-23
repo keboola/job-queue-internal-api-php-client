@@ -27,6 +27,8 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
     private static string $configId1;
     private static string $configId2;
     private static string $configId3;
+    private static string $componentId1Tag;
+
     private static StorageClient $client;
 
     public static function setUpBeforeClass(): void
@@ -47,6 +49,9 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
         self::$configId2 = $componentsApi->addConfiguration($configuration)['id'];
         $configuration->setComponentId(self::COMPONENT_ID_2);
         self::$configId3 = $componentsApi->addConfiguration($configuration)['id'];
+
+        $component = $componentsApi->getComponent(self::COMPONENT_ID_1);
+        self::$componentId1Tag = $component['data']['definition']['tag'];
     }
 
     public static function tearDownAfterClass(): void
@@ -125,7 +130,7 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
             'componentId' => self::COMPONENT_ID_1,
             'mode' => 'run',
             'configRowIds' => [],
-            'tag' => '0.0.21',
+            'tag' => self::$componentId1Tag,
             'configData' => [],
             'status' => 'created',
             'desiredStatus' => 'processing',
@@ -215,7 +220,7 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
                 'componentId' => self::COMPONENT_ID_1,
                 'mode' => 'run',
                 'configRowIds' => [],
-                'tag' => '0.0.21',
+                'tag' => self::$componentId1Tag,
                 'configData' => [],
                 'status' => 'created',
                 'desiredStatus' => 'processing',
