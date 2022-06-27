@@ -170,7 +170,7 @@ class FullJobDefinition extends NewJobDefinition
                         ->end()
                     ->end()
                 ->end()
-                ->scalarNode('orchestrationId')
+                ->scalarNode('orchestrationJobId')
                     ->defaultNull()
                     ->beforeNormalization()->always($this->getStringNormalizer())->end()
                 ->end()

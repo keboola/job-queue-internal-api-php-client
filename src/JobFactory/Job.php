@@ -288,8 +288,8 @@ class Job implements JsonSerializable, JobInterface
         return $this->componentSpecification;
     }
 
-    public function getOrchestrationId(): ?string
+    public function getOrchestrationJobId(): ?string
     {
-        return $this->data['orchestrationId'] ?? null;
+        return $this->data['orchestrationJobId'] ?? null;
     }
 }

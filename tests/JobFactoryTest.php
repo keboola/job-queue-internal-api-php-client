@@ -107,7 +107,7 @@ class JobFactoryTest extends BaseTest
         self::assertSame(self::$componentId1Tag, $job->getTag());
         self::assertEquals($job->getId(), $job->getRunId());
         self::assertNull($job->getBranchId());
-        self::assertNull($job->getOrchestrationId());
+        self::assertNull($job->getOrchestrationJobId());
         // check that the object encryptor factory is initialized (if it is not, there are no wrappers)
         self::assertStringStartsWith(
             'Keboola\\ObjectEncryptor\\Wrapper\\',
@@ -126,7 +126,7 @@ class JobFactoryTest extends BaseTest
             'tag' => 123,
             'configRowIds' => [123, 456],
             'parentRunId' => 1234.567,
-            'orchestrationId' => 123456,
+            'orchestrationJobId' => 123456789,
         ];
         $job = $factory->createNewJob($data);
         self::assertNotEmpty($job->getId());
@@ -144,7 +144,7 @@ class JobFactoryTest extends BaseTest
         self::assertSame('123', $job->jsonSerialize()['tag']);
         self::assertSame('1234.567.' . $job->getId(), $job->jsonSerialize()['runId']);
         self::assertNull($job->getBranchId());
-        self::assertSame('123456', $job->getOrchestrationId());
+        self::assertSame('123456789', $job->getOrchestrationJobId());
         self::assertEquals(['values' => []], $job->getVariableValuesData());
     }
 

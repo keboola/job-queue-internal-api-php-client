@@ -49,7 +49,7 @@ class JobTest extends BaseTest
                 'size' => 'medium',
             ],
         ],
-        'orchestrationId' => 'my-weekly-orchestration',
+        'orchestrationJobId' => '123456789',
     ];
 
     public function testGetComponentId(): void
@@ -427,6 +427,6 @@ class JobTest extends BaseTest
 
     public function testGetOrchestrationId(): void
     {
-        self::assertEquals('my-weekly-orchestration', $this->getJob()->getOrchestrationId());
+        self::assertEquals('123456789', $this->getJob()->getOrchestrationJobId());
     }
 }

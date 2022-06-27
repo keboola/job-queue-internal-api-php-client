@@ -106,7 +106,7 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
             'behavior' => [
                 'onError' => 'warning',
             ],
-            'orchestrationId' => 'my-weekly-orchestration',
+            'orchestrationJobId' => '123456789',
         ]);
 
         $response = $client->createJob($job)->jsonSerialize();
@@ -157,7 +157,7 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
             'behavior' => [
                 'onError' => 'warning',
             ],
-            'orchestrationId' => 'my-weekly-orchestration',
+            'orchestrationJobId' => '123456789',
         ];
         self::assertEquals($expected, $response);
     }
@@ -182,7 +182,7 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
             'configData' => [],
             'componentId' => self::COMPONENT_ID_1,
             'mode' => 'run',
-            'orchestrationId' => 'my-daily-orchestration',
+            'orchestrationJobId' => '123456789',
         ]);
         $job3 = $client->getJobFactory()->createNewJob([
             '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
@@ -210,7 +210,7 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
             $responseJobJson = $responseJob->jsonSerialize();
             self::assertNotEmpty($responseJobJson['id']);
 
-            $expectedOrchestraionId = ($responseJobJson['id'] === $job2->getId()) ? 'my-daily-orchestration' : null;
+            $expectedOrchestraionId = ($responseJobJson['id'] === $job2->getId()) ? '123456789' : null;
 
             unset($responseJobJson['id']);
             self::assertNotEmpty($responseJobJson['runId']);
@@ -252,7 +252,7 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
                 'behavior' => [
                     'onError' => null,
                 ],
-                'orchestrationId' => $expectedOrchestraionId,
+                'orchestrationJobId' => $expectedOrchestraionId,
             ];
             self::assertEquals($expected, $responseJobJson);
         }

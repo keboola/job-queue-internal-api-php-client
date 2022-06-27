@@ -51,5 +51,5 @@ interface JobInterface
     public function getMetrics(): JobMetrics;
     public function isInRunMode(): bool;
     public function getComponentSpecification(): ComponentSpecification;
-    public function getOrchestrationId(): ?string;
+    public function getOrchestrationJobId(): ?string;
 }
