@@ -189,6 +189,7 @@ class JobFactory
             'branchId' => $data['branchId'] ?? null,
             'variableValuesId' => $data['variableValuesId'] ?? null,
             'variableValuesData' => $data['variableValuesData'] ?? [],
+            'orchestrationJobId' => $data['orchestrationJobId'] ?? null,
         ];
         $resolver = new JobRuntimeResolver($this->storageClientFactory);
         $jobData = $resolver->resolveJobData($jobData, $tokenInfo);

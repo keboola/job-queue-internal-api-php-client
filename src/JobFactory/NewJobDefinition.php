@@ -79,6 +79,7 @@ class NewJobDefinition implements ConfigurationInterface
                         ->scalarNode('onError')->end()
                     ->end()
                 ->end()
+                ->scalarNode('orchestrationJobId')->end()
             ->end();
         // @formatter:on
         return $rootNode;

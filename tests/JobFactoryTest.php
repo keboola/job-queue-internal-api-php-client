@@ -23,6 +23,7 @@ class JobFactoryTest extends BaseTest
     private const COMPONENT_ID_1 = 'keboola.runner-config-test';
     private const COMPONENT_ID_2 = 'keboola.runner-workspace-test';
     private static Client $client;
+    private static string $componentId1Tag;
 
     public static function setUpBeforeClass(): void
     {
@@ -41,6 +42,9 @@ class JobFactoryTest extends BaseTest
         self::$configId1 = $componentsApi->addConfiguration($configuration)['id'];
         $configuration->setComponentId(self::COMPONENT_ID_2);
         self::$configId2 = $componentsApi->addConfiguration($configuration)['id'];
+
+        $component = $componentsApi->getComponent(self::COMPONENT_ID_1);
+        self::$componentId1Tag = $component['data']['definition']['tag'];
     }
 
     public static function tearDownAfterClass(): void
@@ -100,9 +104,10 @@ class JobFactoryTest extends BaseTest
         self::assertEquals([], $job->getConfigDataDecrypted());
         self::assertIsArray($job->getConfigRowIds());
         self::assertEmpty($job->getConfigRowIds());
-        self::assertSame('0.0.21', $job->getTag());
+        self::assertSame(self::$componentId1Tag, $job->getTag());
         self::assertEquals($job->getId(), $job->getRunId());
-        self::assertSame(null, $job->getBranchId());
+        self::assertNull($job->getBranchId());
+        self::assertNull($job->getOrchestrationJobId());
         // check that the object encryptor factory is initialized (if it is not, there are no wrappers)
         self::assertStringStartsWith(
             'Keboola\\ObjectEncryptor\\Wrapper\\',
@@ -121,6 +126,7 @@ class JobFactoryTest extends BaseTest
             'tag' => 123,
             'configRowIds' => [123, 456],
             'parentRunId' => 1234.567,
+            'orchestrationJobId' => 123456789,
         ];
         $job = $factory->createNewJob($data);
         self::assertNotEmpty($job->getId());
@@ -137,7 +143,8 @@ class JobFactoryTest extends BaseTest
         self::assertSame(['123', '456'], $job->jsonSerialize()['configRowIds']);
         self::assertSame('123', $job->jsonSerialize()['tag']);
         self::assertSame('1234.567.' . $job->getId(), $job->jsonSerialize()['runId']);
-        self::assertSame(null, $job->getBranchId());
+        self::assertNull($job->getBranchId());
+        self::assertSame('123456789', $job->getOrchestrationJobId());
         self::assertEquals(['values' => []], $job->getVariableValuesData());
     }
 
