@@ -316,7 +316,7 @@ class Client
             int $retries,
             RequestInterface $request,
             ?ResponseInterface $response = null,
-            $error = null,
+            $error = null
         ) use ($maxRetries) {
             if ($retries >= $maxRetries) {
                 $this->logger->notice('We have tried this {$maxRetries} times.  Giving up.');
