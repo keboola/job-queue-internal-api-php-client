@@ -313,16 +313,29 @@ class Client
     private function createDefaultDecider(int $maxRetries): Closure
     {
         return function (
-            $retries,
+            int $retries,
             RequestInterface $request,
             ?ResponseInterface $response = null,
             $error = null
         ) use ($maxRetries) {
             if ($retries >= $maxRetries) {
+                $this->logger->notice(sprintf('We have tried this %d times.  Giving up.', $maxRetries));
                 return false;
             } elseif ($response && $response->getStatusCode() >= 500) {
+                $this->logger->notice(sprintf(
+                    'Got a %s response for this reason: %s, retrying.',
+                    $response->getStatusCode(),
+                    $response->getReasonPhrase()
+                ));
                 return true;
             } elseif ($error) {
+                if ($error instanceof Throwable) {
+                    $this->logger->notice(sprintf(
+                        'Got a %s error with this message: %s, retrying.',
+                        $error->getCode(),
+                        $error->getMessage()
+                    ));
+                }
                 return true;
             } else {
                 return false;
@@ -360,7 +373,12 @@ class Client
             ));
         }
         // finally create the instance
-        return new GuzzleClient(['base_uri' => $url, 'handler' => $handlerStack]);
+        return new GuzzleClient([
+            'base_uri' => $url,
+            'handler' => $handlerStack,
+            'connect_timeout' => 10,
+            'timeout' => 120,
+        ]);
     }
 
     private function sendRequest(Request $request): array
