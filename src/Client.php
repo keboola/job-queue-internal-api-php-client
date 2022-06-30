@@ -373,7 +373,12 @@ class Client
             ));
         }
         // finally create the instance
-        return new GuzzleClient(['base_uri' => $url, 'handler' => $handlerStack]);
+        return new GuzzleClient([
+            'base_uri' => $url,
+            'handler' => $handlerStack,
+            'connect_timeout' => 10,
+            'timeout' => 120,
+        ]);
     }
 
     private function sendRequest(Request $request): array
