@@ -319,7 +319,7 @@ class Client
             $error = null
         ) use ($maxRetries) {
             if ($retries >= $maxRetries) {
-                $this->logger->notice('We have tried this {$maxRetries} times.  Giving up.');
+                $this->logger->notice(sprintf('We have tried this %d times.  Giving up.', $maxRetries));
                 return false;
             } elseif ($response && $response->getStatusCode() >= 500) {
                 $this->logger->notice(sprintf(
@@ -329,7 +329,7 @@ class Client
                 ));
                 return true;
             } elseif ($error) {
-                if ($error instanceof \Throwable) {
+                if ($error instanceof Throwable) {
                     $this->logger->notice(sprintf(
                         'Got a %s error with this message: %s, retrying.',
                         $error->getCode(),

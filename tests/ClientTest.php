@@ -319,12 +319,12 @@ class ClientTest extends BaseTest
         self::assertEquals('http://example.com/jobs/123', $request->getUri()->__toString());
 
         //phpcs:disable Generic.Files.LineLength.MaxExceeded
-        $logger->hasNoticeThatContains('Got a 500 error with this message: Server error: `GET http://example.com/jobs/123` resulted in a `500 Internal Server Error` response:
+        self::assertTrue($logger->hasNoticeThatContains('Got a 500 error with this message: Server error: `GET http://example.com/jobs/123` resulted in a `500 Internal Server Error` response:
 {"message" => "Out of order"}
-, retrying.');
-        $logger->hasNoticeThatContains('Got a 500 error with this message: Server error: `GET http://example.com/jobs/123` resulted in a `500 Internal Server Error` response:
+, retrying.'));
+        self::assertTrue($logger->hasNoticeThatContains('Got a 500 error with this message: Server error: `GET http://example.com/jobs/123` resulted in a `500 Internal Server Error` response:
 Out of order
-, retrying.');
+, retrying.'));
         //phpcs:enable Generic.Files.LineLength.MaxExceeded
     }
 
@@ -344,7 +344,8 @@ Out of order
         $history = Middleware::history($requestHistory);
         $stack = HandlerStack::create($mock);
         $stack->push($history);
-        $client = $this->getClient(['handler' => $stack, 'backoffMaxTries' => 1]);
+        $logger = new TestLogger();
+        $client = $this->getClient(['handler' => $stack, 'backoffMaxTries' => 1], $logger);
         try {
             $client->getJob('123');
             self::fail('Must throw exception');
@@ -352,6 +353,7 @@ Out of order
             self::assertStringContainsString('500 Internal Server Error', $e->getMessage());
         }
         self::assertCount(2, $requestHistory);
+        self::assertTrue($logger->hasNoticeThatContains('We have tried this 1 times.  Giving up.'));
     }
 
     public function testRetryFailureReducedBackoff(): void
