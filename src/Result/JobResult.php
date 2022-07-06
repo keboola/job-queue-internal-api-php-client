@@ -44,7 +44,7 @@ class JobResult implements JsonSerializable
             $result['output']['tables'] = $this->outputTables->jsonSerialize();
         }
         if ($this->artifacts) {
-            $result['output']['artifacts'] = $this->artifacts->jsonSerialize();
+            $result['artifacts'] = $this->artifacts->jsonSerialize();
         }
         if ($this->errorType) {
             $result['error']['type'] = $this->errorType;

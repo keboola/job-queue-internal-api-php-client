@@ -8,9 +8,9 @@ use JsonSerializable;
 
 class Artifacts implements JsonSerializable
 {
-    private ?array $uploaded;
+    private ?array $uploaded = null;
 
-    private ?array $downloaded;
+    private ?array $downloaded = null;
 
     public function setUploaded(array $uploadedFile): Artifacts
     {
