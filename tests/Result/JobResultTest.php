@@ -47,18 +47,18 @@ class JobResultTest extends TestCase
             ->setArtifacts(
                 (new Artifacts())
                     ->setUploaded([
-                        'storageFileId' => '12345'
+                        'storageFileId' => '12345',
                     ])
                     ->setDownloaded([
                         [
-                            'storageFileId' => '12345'
+                            'storageFileId' => '12345',
                         ],
                         [
-                            'storageFileId' => '12346'
+                            'storageFileId' => '12346',
                         ],
                         [
-                            'storageFileId' => '12347'
-                        ]
+                            'storageFileId' => '12347',
+                        ],
                     ])
             )
         ;
