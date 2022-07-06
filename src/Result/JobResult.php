@@ -10,17 +10,19 @@ use Keboola\JobQueueInternalClient\Result\InputOutput\TableCollection;
 
 class JobResult implements JsonSerializable
 {
+    public const ERROR_TYPE_APPLICATION = 'application';
+    public const ERROR_TYPE_USER = 'user';
+
     private ?string $message = null;
     private array $images = [];
     private ?string $configVersion = null;
     private ?string $errorType = null;
     private ?string $exceptionId = null;
 
-    public const ERROR_TYPE_APPLICATION = 'application';
-    public const ERROR_TYPE_USER = 'user';
-
     private ?TableCollection $inputTables = null;
     private ?TableCollection $outputTables = null;
+
+    private ?Artifacts $artifacts;
 
     public function jsonSerialize(): array
     {
@@ -40,6 +42,9 @@ class JobResult implements JsonSerializable
         }
         if ($this->outputTables) {
             $result['output']['tables'] = $this->outputTables->jsonSerialize();
+        }
+        if ($this->artifacts) {
+            $result['output']['artifacts'] = $this->artifacts->jsonSerialize();
         }
         if ($this->errorType) {
             $result['error']['type'] = $this->errorType;
@@ -134,5 +139,16 @@ class JobResult implements JsonSerializable
     public function getOutputTables(): ?TableCollection
     {
         return $this->outputTables;
+    }
+
+    public function setArtifacts(Artifacts $artifacts): JobResult
+    {
+        $this->artifacts = $artifacts;
+        return $this;
+    }
+
+    public function getArtifacts(): Artifacts
+    {
+        return $this->artifacts;
     }
 }
