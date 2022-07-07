@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Keboola\JobQueueInternalClient\Tests\Result;
 
 use Keboola\JobQueueInternalClient\Exception\ClientException;
+use Keboola\JobQueueInternalClient\Result\Artifacts;
 use Keboola\JobQueueInternalClient\Result\InputOutput\Column;
 use Keboola\JobQueueInternalClient\Result\InputOutput\ColumnCollection;
 use Keboola\JobQueueInternalClient\Result\InputOutput\Table;
@@ -43,6 +44,23 @@ class JobResultTest extends TestCase
             ->setExceptionId('exception-12345')
             ->setInputTables($input)
             ->setOutputTables($output)
+            ->setArtifacts(
+                (new Artifacts())
+                    ->setUploaded([
+                        'storageFileId' => '12345',
+                    ])
+                    ->setDownloaded([
+                        [
+                            'storageFileId' => '12345',
+                        ],
+                        [
+                            'storageFileId' => '12346',
+                        ],
+                        [
+                            'storageFileId' => '12347',
+                        ],
+                    ])
+            )
         ;
         self::assertSame('123', $jobResult->getConfigVersion());
         self::assertSame('test', $jobResult->getMessage());
@@ -81,6 +99,22 @@ class JobResultTest extends TestCase
                                     'name' => 'city',
                                 ],
                             ],
+                        ],
+                    ],
+                ],
+                'artifacts' => [
+                    'uploaded' => [
+                        'storageFileId' => '12345',
+                    ],
+                    'downloaded' => [
+                        [
+                            'storageFileId' => '12345',
+                        ],
+                        [
+                            'storageFileId' => '12346',
+                        ],
+                        [
+                            'storageFileId' => '12347',
                         ],
                     ],
                 ],
