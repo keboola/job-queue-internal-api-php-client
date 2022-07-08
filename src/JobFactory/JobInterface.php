@@ -19,6 +19,7 @@ interface JobInterface
     public function getMode(): string;
     public function getProjectId(): string;
     public function getProjectName(): string;
+    public function getDataPlaneId(): ?string;
     public function getResult(): array;
     public function getConfigRowIds(): array;
     public function getStatus(): string;
