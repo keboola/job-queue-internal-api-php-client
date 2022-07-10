@@ -49,7 +49,6 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
         self::$configId2 = $componentsApi->addConfiguration($configuration)['id'];
         $configuration->setComponentId(self::COMPONENT_ID_2);
         self::$configId3 = $componentsApi->addConfiguration($configuration)['id'];
-
         $component = $componentsApi->getComponent(self::COMPONENT_ID_1);
         self::$componentId1Tag = $component['data']['definition']['tag'];
     }
