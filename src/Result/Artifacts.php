@@ -12,9 +12,9 @@ class Artifacts implements JsonSerializable
 
     private ?array $downloaded = null;
 
-    public function setUploaded(array $uploadedFile): Artifacts
+    public function setUploaded(array $uploadedFiles): Artifacts
     {
-        $this->uploaded = $uploadedFile;
+        $this->uploaded = $uploadedFiles;
         return $this;
     }
 
