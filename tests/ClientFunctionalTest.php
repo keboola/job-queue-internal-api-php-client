@@ -158,6 +158,7 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
                 'onError' => 'warning',
             ],
             'orchestrationJobId' => '123456789',
+            'dataPlaneId' => null,
         ];
         self::assertEquals($expected, $response);
     }
@@ -253,6 +254,7 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
                     'onError' => null,
                 ],
                 'orchestrationJobId' => $expectedOrchestraionId,
+                'dataPlaneId' => null,
             ];
             self::assertEquals($expected, $responseJobJson);
         }

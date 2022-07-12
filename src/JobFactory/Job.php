@@ -99,6 +99,11 @@ class Job implements JsonSerializable, JobInterface
         return $this->data['projectName'];
     }
 
+    public function getDataPlaneId(): ?string
+    {
+        return $this->data['dataPlaneId'] ?? null;
+    }
+
     public function getResult(): array
     {
         return $this->data['result'] ?? [];
