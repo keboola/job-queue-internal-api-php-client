@@ -30,7 +30,7 @@ class ClientExceptionTest extends BaseTest
             'http://example.com/',
         ));
 
-        $objectEncryptor = ObjectEncryptorFactory::getAwsEncryptor('local', 'alias/some-key', 'us-east-1');
+        $objectEncryptor = ObjectEncryptorFactory::getAwsEncryptor('local', 'alias/some-key', 'us-east-1', null);
         return new JobFactory($storageClientFactory, $objectEncryptor);
     }
 

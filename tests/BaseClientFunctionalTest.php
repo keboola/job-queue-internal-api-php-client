@@ -46,6 +46,7 @@ abstract class BaseClientFunctionalTest extends BaseTest
             'local',
             $kmsKeyId ?? (string) getenv('TEST_KMS_KEY_ID'),
             (string) getenv('TEST_KMS_REGION'),
+            (string) getenv('TEST_KMS_ROLE'),
             $keyVaultUrl ?? (string) getenv('TEST_AZURE_KEY_VAULT_URL'),
         ));
 

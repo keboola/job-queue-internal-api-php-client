@@ -71,9 +71,10 @@ class JobFactoryTest extends BaseTest
         ));
 
         $objectEncryptor = ObjectEncryptorFactory::getEncryptor(new EncryptorOptions(
-            'local',
+            (string) parse_url((string) getenv('TEST_STORAGE_API_URL'), PHP_URL_HOST),
             (string) getenv('TEST_KMS_KEY_ID'),
             (string) getenv('TEST_KMS_REGION'),
+            (string) getenv('TEST_KMS_ROLE'),
             (string) getenv('TEST_AZURE_KEY_VAULT_URL'),
         ));
 
@@ -517,6 +518,7 @@ class JobFactoryTest extends BaseTest
             (string) parse_url((string) getenv('TEST_STORAGE_API_URL'), PHP_URL_HOST),
             (string) getenv('TEST_KMS_KEY_ID'),
             (string) getenv('TEST_KMS_REGION'),
+            (string) getenv('TEST_KMS_ROLE'),
             (string) getenv('TEST_AZURE_KEY_VAULT_URL')
         ));
 
@@ -533,17 +535,14 @@ class JobFactoryTest extends BaseTest
             '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
             'configId' => self::$configId1,
             'configData' => [
-                '#foo1' => $objectEncryptor->encryptForConfiguration(
+                '#foo1' => $objectEncryptor->encryptForProject(
                     'bar1',
                     self::COMPONENT_ID_1,
                     (string) $tokenInfo['owner']['id'],
-                    (string) self::$configId1
                 ),
-                '#foo2' => $objectEncryptor->encryptForConfiguration(
+                '#foo2' => $objectEncryptor->encryptForComponent(
                     'bar2',
                     self::COMPONENT_ID_1,
-                    (string) $tokenInfo['owner']['id'],
-                    (string) self::$configId1
                 ),
                 '#foo3' => $objectEncryptor->encryptForConfiguration(
                     'bar3',
@@ -551,6 +550,7 @@ class JobFactoryTest extends BaseTest
                     (string) $tokenInfo['owner']['id'],
                     (string) self::$configId1
                 ),
+                '#foo4' => 'bar4',
             ],
             'componentId' => self::COMPONENT_ID_1,
             'mode' => 'run',
@@ -580,6 +580,7 @@ class JobFactoryTest extends BaseTest
             (string) parse_url((string) getenv('TEST_STORAGE_API_URL'), PHP_URL_HOST),
             (string) getenv('TEST_KMS_KEY_ID'),
             (string) getenv('TEST_KMS_REGION'),
+            (string) getenv('TEST_KMS_ROLE'),
             (string) getenv('TEST_AZURE_KEY_VAULT_URL')
         ));
         $client = new Client(
@@ -601,17 +602,14 @@ class JobFactoryTest extends BaseTest
             '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
             'configId' => self::$configId1,
             'configData' => [
-                '#foo1' => $objectEncryptor->encryptForConfiguration(
+                '#foo1' => $objectEncryptor->encryptForProject(
                     'bar1',
                     self::COMPONENT_ID_1,
                     (string) $tokenInfo['owner']['id'],
-                    (string) self::$configId1
                 ),
-                '#foo2' => $objectEncryptor->encryptForConfiguration(
+                '#foo2' => $objectEncryptor->encryptForComponent(
                     'bar2',
                     self::COMPONENT_ID_1,
-                    (string) $tokenInfo['owner']['id'],
-                    (string) self::$configId1
                 ),
                 '#foo3' => $objectEncryptor->encryptForConfiguration(
                     'bar3',
@@ -648,6 +646,7 @@ class JobFactoryTest extends BaseTest
             (string) parse_url((string) getenv('TEST_STORAGE_API_URL'), PHP_URL_HOST),
             (string) getenv('TEST_KMS_KEY_ID'),
             (string) getenv('TEST_KMS_REGION'),
+            (string) getenv('TEST_KMS_ROLE'),
             (string) getenv('TEST_AZURE_KEY_VAULT_URL'),
         ));
 
@@ -666,17 +665,14 @@ class JobFactoryTest extends BaseTest
             '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
             'configId' => self::$configId1,
             'configData' => [
-                '#foo11' => $objectEncryptor->encryptForConfiguration(
+                '#foo11' => $objectEncryptor->encryptForProject(
                     'bar11',
                     self::COMPONENT_ID_1,
                     (string) $tokenInfo['owner']['id'],
-                    (string) self::$configId1,
                 ),
-                '#foo12' => $objectEncryptor->encryptForConfiguration(
+                '#foo12' => $objectEncryptor->encryptForComponent(
                     'bar12',
                     self::COMPONENT_ID_1,
-                    (string) $tokenInfo['owner']['id'],
-                    (string) self::$configId1,
                 ),
                 '#foo13' => $objectEncryptor->encryptForConfiguration(
                     'bar13',
@@ -695,17 +691,14 @@ class JobFactoryTest extends BaseTest
             '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
             'configId' => self::$configId2,
             'configData' => [
-                '#foo21' => $objectEncryptor->encryptForConfiguration(
+                '#foo21' => $objectEncryptor->encryptForProject(
                     'bar21',
                     self::COMPONENT_ID_2,
                     (string) $tokenInfo['owner']['id'],
-                    (string) self::$configId2,
                 ),
-                '#foo22' => $objectEncryptor->encryptForConfiguration(
+                '#foo22' => $objectEncryptor->encryptForComponent(
                     'bar22',
                     self::COMPONENT_ID_2,
-                    (string) $tokenInfo['owner']['id'],
-                    (string) self::$configId2,
                 ),
                 '#foo23' => $objectEncryptor->encryptForConfiguration(
                     'bar23',

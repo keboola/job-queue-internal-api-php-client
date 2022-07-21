@@ -7,7 +7,6 @@ namespace Keboola\JobQueueInternalClient\Tests;
 use Keboola\JobQueueInternalClient\Client;
 use Keboola\JobQueueInternalClient\ClientFactory;
 use Keboola\JobQueueInternalClient\JobFactory;
-use Keboola\ObjectEncryptor\EncryptorOptions;
 use Keboola\ObjectEncryptor\ObjectEncryptorFactory;
 use Keboola\StorageApiBranch\Factory\ClientOptions;
 use Keboola\StorageApiBranch\Factory\StorageClientPlainFactory;
@@ -24,7 +23,7 @@ class ClientFactoryTest extends TestCase
             (string) getenv('TEST_QUEUE_API_TOKEN'),
             new JobFactory(
                 new StorageClientPlainFactory(new ClientOptions((string) getenv('TEST_STORAGE_API_URL'))),
-                ObjectEncryptorFactory::getAwsEncryptor('no-used', 'alias/some-key', 'us-east-1')
+                ObjectEncryptorFactory::getAwsEncryptor('no-used', 'alias/some-key', 'us-east-1', null)
             ),
             $testLogger
         );

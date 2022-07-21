@@ -186,22 +186,11 @@ class JobFactory
         // set type after resolving parallelism
         $jobData['type'] = $data['type'] ?? $this->getJobType($jobData);
 
-        if ($data['configId'] ?? null) {
-            $encryptedJobData = $this->objectEncryptor->encryptForConfiguration(
-                $jobData,
-                (string) $data['componentId'],
-                (string) $tokenInfo['owner']['id'],
-                (string) $data['configId']
-            );
-        } else {
-            $encryptedJobData = $this->objectEncryptor->encryptForProject(
-                $jobData,
-                (string) $data['componentId'],
-                (string) $tokenInfo['owner']['id']
-            );
-        }
-
-        return (array) $encryptedJobData;
+        return $this->objectEncryptor->encryptForProject(
+            $jobData,
+            (string) $data['componentId'],
+            (string) $tokenInfo['owner']['id']
+        );
     }
 
     private function getJobType(array $data): string

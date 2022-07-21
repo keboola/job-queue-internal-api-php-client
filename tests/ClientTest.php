@@ -32,7 +32,7 @@ class ClientTest extends BaseTest
         $storageClientFactory = new StorageClientPlainFactory(new ClientOptions(
             'http://example.com/',
         ));
-        $objectEncryptor = ObjectEncryptorFactory::getAwsEncryptor('local', 'alias/some-key', 'us-east-1');
+        $objectEncryptor = ObjectEncryptorFactory::getAwsEncryptor('local', 'alias/some-key', 'us-east-1', null);
         return new JobFactory($storageClientFactory, $objectEncryptor);
     }
 
@@ -49,8 +49,8 @@ class ClientTest extends BaseTest
 
     public function testCreateClientInvalidBackoff(): void
     {
-        self::expectException(ClientException::class);
-        self::expectExceptionMessage(
+        $this->expectException(ClientException::class);
+        $this->expectExceptionMessage(
             'Invalid parameters when creating client: Value "abc" is invalid: This value should be a valid number'
         );
         new Client(
@@ -64,8 +64,8 @@ class ClientTest extends BaseTest
 
     public function testCreateClientTooLowBackoff(): void
     {
-        self::expectException(ClientException::class);
-        self::expectExceptionMessage(
+        $this->expectException(ClientException::class);
+        $this->expectExceptionMessage(
             'Invalid parameters when creating client: Value "-1" is invalid: This value should be between 0 and 100.'
         );
         new Client(
@@ -79,8 +79,8 @@ class ClientTest extends BaseTest
 
     public function testCreateClientTooHighBackoff(): void
     {
-        self::expectException(ClientException::class);
-        self::expectExceptionMessage(
+        $this->expectException(ClientException::class);
+        $this->expectExceptionMessage(
             'Invalid parameters when creating client: Value "101" is invalid: This value should be between 0 and 100.'
         );
         new Client(
@@ -94,8 +94,8 @@ class ClientTest extends BaseTest
 
     public function testCreateClientInvalidToken(): void
     {
-        self::expectException(ClientException::class);
-        self::expectExceptionMessage(
+        $this->expectException(ClientException::class);
+        $this->expectExceptionMessage(
             'Invalid parameters when creating client: Value "" is invalid: This value should not be blank.'
         );
         new Client(new NullLogger(), $this->getJobFactory(), 'http://example.com/', '');
@@ -103,8 +103,8 @@ class ClientTest extends BaseTest
 
     public function testCreateClientInvalidUrl(): void
     {
-        self::expectException(ClientException::class);
-        self::expectExceptionMessage(
+        $this->expectException(ClientException::class);
+        $this->expectExceptionMessage(
             'Invalid parameters when creating client: Value "invalid url" is invalid: This value is not a valid URL.'
         );
         new Client(new NullLogger(), $this->getJobFactory(), 'invalid url', 'testToken');
@@ -112,8 +112,8 @@ class ClientTest extends BaseTest
 
     public function testCreateClientMultipleErrors(): void
     {
-        self::expectException(ClientException::class);
-        self::expectExceptionMessage(
+        $this->expectException(ClientException::class);
+        $this->expectExceptionMessage(
             'Invalid parameters when creating client: Value "invalid url" is invalid: This value is not a valid URL.'
             . "\n" . 'Value "" is invalid: This value should not be blank.' . "\n"
         );
@@ -208,8 +208,8 @@ class ClientTest extends BaseTest
         $stack = HandlerStack::create($mock);
         $stack->push($history);
         $client = $this->getClient(['handler' => $stack]);
-        self::expectException(ClientException::class);
-        self::expectExceptionMessage('Unable to parse response body into JSON: Syntax error');
+        $this->expectException(ClientException::class);
+        $this->expectExceptionMessage('Unable to parse response body into JSON: Syntax error');
         $client->getJob('123');
     }
 
@@ -476,8 +476,8 @@ Out of order
         $stack = HandlerStack::create($mock);
         $stack->push($history);
         $client = $this->getClient(['handler' => $stack]);
-        self::expectException(ClientException::class);
-        self::expectExceptionMessage('Invalid job ID: "".');
+        $this->expectException(ClientException::class);
+        $this->expectExceptionMessage('Invalid job ID: "".');
         $client->postJobResult(
             '',
             JobFactory::STATUS_SUCCESS,
@@ -500,14 +500,14 @@ Out of order
         $stack = HandlerStack::create($mock);
         $stack->push($history);
         $client = $this->getClient(['handler' => $stack]);
-        $job = self::getMockBuilder(Job::class)
+        $job = $this->getMockBuilder(Job::class)
             ->disableOriginalConstructor()
             ->onlyMethods(['jsonSerialize'])
             ->getMock();
         $job->method('jsonSerialize')->willReturn(['foo' => fopen('php://memory', 'rw')]);
         /** @var Job $job */
-        self::expectException(ClientException::class);
-        self::expectExceptionMessage('Invalid job data: Type is not supported');
+        $this->expectException(ClientException::class);
+        $this->expectExceptionMessage('Invalid job data: Type is not supported');
         $client->createJob($job);
     }
 
@@ -914,7 +914,7 @@ Out of order
 
     public function testClientUpdateJobWithEmptyIdThrowsException(): void
     {
-        $objectEncryptor = ObjectEncryptorFactory::getAwsEncryptor('local', 'alias/some-key', 'us-east-1');
+        $objectEncryptor = ObjectEncryptorFactory::getAwsEncryptor('local', 'alias/some-key', 'us-east-1', null);
         $storageClientFactory = new StorageClientPlainFactory(new ClientOptions());
         $job = new Job(
             $objectEncryptor,
