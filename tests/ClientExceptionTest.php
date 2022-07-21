@@ -10,11 +10,15 @@ use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Middleware;
 use GuzzleHttp\Psr7\Response;
 use Keboola\JobQueueInternalClient\Client;
+use Keboola\JobQueueInternalClient\DataPlane\DataPlaneConfigRepository;
+use Keboola\JobQueueInternalClient\DataPlane\DataPlaneObjectEncryptorFactory;
 use Keboola\JobQueueInternalClient\Exception\StateTargetEqualsCurrentException;
 use Keboola\JobQueueInternalClient\Exception\StateTerminalException;
 use Keboola\JobQueueInternalClient\Exception\StateTransitionForbiddenException;
 use Keboola\JobQueueInternalClient\JobFactory;
 use Keboola\JobQueueInternalClient\Result\JobResult;
+use Keboola\ObjectEncryptor\EncryptorOptions;
+use Keboola\ObjectEncryptor\ObjectEncryptor;
 use Keboola\ObjectEncryptor\ObjectEncryptorFactory;
 use Keboola\StorageApiBranch\Factory\ClientOptions;
 use Keboola\StorageApiBranch\Factory\StorageClientPlainFactory;
@@ -24,21 +28,27 @@ use Throwable;
 
 class ClientExceptionTest extends BaseTest
 {
-    private function getJobFactory(): JobFactory
+    private function getClient(array $options): Client
     {
-        $storageClientFactory = new StorageClientPlainFactory(new ClientOptions(
-            'http://example.com/',
-        ));
+        $jobFactory = new JobFactory(
+            new StorageClientPlainFactory(new ClientOptions(
+                'http://example.com/',
+            )),
+            new ObjectEncryptor(new EncryptorOptions(
+                'stackId',
+                'kmsKeyId',
+                'kmsRegion',
+                null,
+                null
+            )),
+            $this->createMock(DataPlaneObjectEncryptorFactory::class),
+            $this->createMock(DataPlaneConfigRepository::class),
+            false
+        );
 
-        $objectEncryptor = ObjectEncryptorFactory::getAwsEncryptor('local', 'alias/some-key', 'us-east-1', null);
-        return new JobFactory($storageClientFactory, $objectEncryptor);
-    }
-
-    private function getClient(array $options, ?LoggerInterface $logger = null): Client
-    {
         return new Client(
-            $logger ?? new NullLogger(),
-            $this->getJobFactory(),
+            new NullLogger(),
+            $jobFactory,
             'http://example.com/',
             'testToken',
             $options
@@ -75,7 +85,7 @@ class ClientExceptionTest extends BaseTest
         $stack->push($history);
         $client = $this->getClient(['handler' => $stack, 'backoffMaxTries' => 1]);
 
-        self::expectException($expectedException);
+        $this->expectException($expectedException);
         $client->postJobResult('123', 'success', new JobResult());
     }
 

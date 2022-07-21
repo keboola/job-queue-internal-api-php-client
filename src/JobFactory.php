@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Keboola\JobQueueInternalClient;
 
+use Keboola\JobQueueInternalClient\DataPlane\DataPlaneConfigRepository;
+use Keboola\JobQueueInternalClient\DataPlane\DataPlaneObjectEncryptorFactory;
 use Keboola\JobQueueInternalClient\Exception\ClientException;
 use Keboola\JobQueueInternalClient\JobFactory\Behavior;
 use Keboola\JobQueueInternalClient\JobFactory\FullJobDefinition;
@@ -43,14 +45,23 @@ class JobFactory
     public const PAY_AS_YOU_GO_FEATURE = 'pay-as-you-go';
 
     private StorageClientPlainFactory $storageClientFactory;
-    private ObjectEncryptor $objectEncryptor;
+    private ObjectEncryptor $controlPlaneObjectEncryptor;
+    private DataPlaneObjectEncryptorFactory $objectEncryptorFactory;
+    private DataPlaneConfigRepository $dataPlaneConfigRepository;
+    private bool $supportsDataPlanes;
 
     public function __construct(
         StorageClientPlainFactory $storageClientFactory,
-        ObjectEncryptor $objectEncryptor
+        ObjectEncryptor $controlPlaneEncryptor,
+        DataPlaneObjectEncryptorFactory $objectEncryptorFactory,
+        DataPlaneConfigRepository $dataPlaneConfigRepository,
+        bool $supportsDataPlanes
     ) {
         $this->storageClientFactory = $storageClientFactory;
-        $this->objectEncryptor = $objectEncryptor;
+        $this->controlPlaneObjectEncryptor = $controlPlaneEncryptor;
+        $this->objectEncryptorFactory = $objectEncryptorFactory;
+        $this->dataPlaneConfigRepository = $dataPlaneConfigRepository;
+        $this->supportsDataPlanes = $supportsDataPlanes;
     }
 
     public static function getFinishedStatuses(): array
@@ -100,38 +111,7 @@ class JobFactory
     public function createNewJob(array $data): JobInterface
     {
         $data = $this->validateJobData($data, NewJobDefinition::class);
-        $data = $this->initializeNewJobData($data);
-        $data = $this->validateJobData($data, FullJobDefinition::class);
-        return new Job($this->objectEncryptor, $this->storageClientFactory, $data);
-    }
 
-    public function loadFromExistingJobData(array $data): JobInterface
-    {
-        $data = $this->validateJobData($data, FullJobDefinition::class);
-        return new Job($this->objectEncryptor, $this->storageClientFactory, $data);
-    }
-
-    public function modifyJob(JobInterface $job, array $patchData): JobInterface
-    {
-        $data = $job->jsonSerialize();
-        $data = array_replace_recursive($data, $patchData);
-        $data = $this->validateJobData($data, FullJobDefinition::class);
-        return new Job($this->objectEncryptor, $this->storageClientFactory, $data);
-    }
-
-    private function validateJobData(array $data, string $validatorClass): array
-    {
-        try {
-            /** @var FullJobDefinition|NewJobDefinition $jobDefinition */
-            $jobDefinition = new $validatorClass();
-            return $jobDefinition->processData($data);
-        } catch (InvalidConfigurationException $e) {
-            throw new ClientException($e->getMessage(), $e->getCode(), $e);
-        }
-    }
-
-    private function initializeNewJobData(array $data): array
-    {
         try {
             $client = $this->storageClientFactory->createClientWrapper(new ClientOptions(
                 null,
@@ -139,7 +119,8 @@ class JobFactory
             ))->getBasicClient();
             $tokenInfo = $client->verifyToken();
             $jobId = $client->generateId();
-            $runId = empty($data['parentRunId']) ? $jobId :
+            $runId = empty($data['parentRunId']) ?
+                $jobId :
                 $data['parentRunId'] . JobInterface::RUN_ID_DELIMITER . $jobId;
         } catch (StorageClientException $e) {
             throw new ClientException(
@@ -148,10 +129,19 @@ class JobFactory
                 $e
             );
         }
+
         if (!empty($data['variableValuesId']) && !empty($data['variableValuesData']['values'])) {
             throw new ClientException(
                 'Provide either "variableValuesId" or "variableValuesData", but not both.'
             );
+        }
+
+        if ($this->supportsDataPlanes) {
+            $dataPlaneConfig = $this->dataPlaneConfigRepository->fetchProjectDataPlane(
+                (string) $tokenInfo['owner']['id'],
+            );
+        } else {
+            $dataPlaneConfig = null;
         }
 
         $jobData = [
@@ -159,6 +149,7 @@ class JobFactory
             'runId' => $runId,
             'projectId' => $tokenInfo['owner']['id'],
             'projectName' => $tokenInfo['owner']['name'],
+            'dataPlaneId' => $dataPlaneConfig['id'] ?? null,
             'tokenId' => $tokenInfo['id'],
             '#tokenString' => $data['#tokenString'],
             'tokenDescription' => $tokenInfo['description'],
@@ -186,26 +177,81 @@ class JobFactory
         // set type after resolving parallelism
         $jobData['type'] = $data['type'] ?? $this->getJobType($jobData);
 
-        return $this->objectEncryptor->encryptForProject(
+        if ($dataPlaneConfig !== null) {
+            $objectEncryptor = $this->objectEncryptorFactory->getObjectEncryptor(
+                $dataPlaneConfig['id'],
+                $dataPlaneConfig['parameters'],
+            );
+        } else {
+            $objectEncryptor = $this->controlPlaneObjectEncryptor;
+        }
+
+        $data = $objectEncryptor->encryptForProject(
             $jobData,
             (string) $data['componentId'],
             (string) $tokenInfo['owner']['id']
         );
+
+        $data = $this->validateJobData($data, FullJobDefinition::class);
+        return new Job($objectEncryptor, $this->storageClientFactory, $data);
+    }
+
+    public function loadFromExistingJobData(array $data): JobInterface
+    {
+        $data = $this->validateJobData($data, FullJobDefinition::class);
+
+        if ($data['dataPlaneId'] ?? null) {
+            $dataPlaneConfig = $this->dataPlaneConfigRepository->fetchDataPlaneConfig($data['dataPlaneId']);
+        } else {
+            $dataPlaneConfig = null;
+        }
+
+        if ($dataPlaneConfig !== null) {
+            $objectEncryptor = $this->objectEncryptorFactory->getObjectEncryptor(
+                $data['dataPlaneId'],
+                $dataPlaneConfig,
+            );
+        } else {
+            $objectEncryptor = $this->controlPlaneObjectEncryptor;
+        }
+
+        return new Job($objectEncryptor, $this->storageClientFactory, $data);
+    }
+
+    public function modifyJob(JobInterface $job, array $patchData): JobInterface
+    {
+        $data = $job->jsonSerialize();
+        $data = array_replace_recursive($data, $patchData);
+
+        return $this->loadFromExistingJobData($data);
+    }
+
+    /**
+     * @param class-string<FullJobDefinition|NewJobDefinition> $validatorClass
+     */
+    private function validateJobData(array $data, string $validatorClass): array
+    {
+        try {
+            return (new $validatorClass())->processData($data);
+        } catch (InvalidConfigurationException $e) {
+            throw new ClientException($e->getMessage(), $e->getCode(), $e);
+        }
     }
 
     private function getJobType(array $data): string
     {
         if ((intval($data['parallelism']) > 0) || $data['parallelism'] === self::PARALLELISM_INFINITY) {
             return self::TYPE_ROW_CONTAINER;
-        } else {
-            if ($data['componentId'] === self::ORCHESTRATOR_COMPONENT) {
-                if (isset($data['configData']['phaseId']) && (string) ($data['configData']['phaseId']) !== '') {
-                    return self::TYPE_PHASE_CONTAINER;
-                } else {
-                    return self::TYPE_ORCHESTRATION_CONTAINER;
-                }
-            }
         }
-        return self::TYPE_STANDARD;
+
+        if ($data['componentId'] !== self::ORCHESTRATOR_COMPONENT) {
+            return self::TYPE_STANDARD;
+        }
+
+        if (isset($data['configData']['phaseId']) && (string) ($data['configData']['phaseId']) !== '') {
+            return self::TYPE_PHASE_CONTAINER;
+        }
+
+        return self::TYPE_ORCHESTRATION_CONTAINER;
     }
 }

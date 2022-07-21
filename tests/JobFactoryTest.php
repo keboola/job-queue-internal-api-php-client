@@ -4,8 +4,12 @@ declare(strict_types=1);
 
 namespace Keboola\JobQueueInternalClient\Tests;
 
+use Keboola\JobQueueInternalClient\DataPlane\DataPlaneConfigRepository;
+use Keboola\JobQueueInternalClient\DataPlane\DataPlaneConfigValidator;
+use Keboola\JobQueueInternalClient\DataPlane\DataPlaneObjectEncryptorFactory;
 use Keboola\JobQueueInternalClient\Exception\ClientException;
 use Keboola\JobQueueInternalClient\JobFactory;
+use Keboola\ManageApi\Client as ManageApiClient;
 use Keboola\ObjectEncryptor\EncryptorOptions;
 use Keboola\ObjectEncryptor\ObjectEncryptorFactory;
 use Keboola\StorageApi\Client;
@@ -13,13 +17,12 @@ use Keboola\StorageApi\Components;
 use Keboola\StorageApi\Options\Components\Configuration;
 use Keboola\StorageApiBranch\Factory\ClientOptions;
 use Keboola\StorageApiBranch\Factory\StorageClientPlainFactory;
+use Symfony\Component\Validator\Validation;
 
 class JobFactoryTest extends BaseTest
 {
     private static string $configId1;
-    private static string $configId2;
     private const COMPONENT_ID_1 = 'keboola.runner-config-test';
-    private const COMPONENT_ID_2 = 'keboola.runner-workspace-test';
     private static Client $client;
     private static string $componentId1Tag;
 
@@ -38,8 +41,6 @@ class JobFactoryTest extends BaseTest
         $configuration->setComponentId(self::COMPONENT_ID_1);
         $configuration->setName('ClientListConfigurationsJobsFunctionalTest');
         self::$configId1 = $componentsApi->addConfiguration($configuration)['id'];
-        $configuration->setComponentId(self::COMPONENT_ID_2);
-        self::$configId2 = $componentsApi->addConfiguration($configuration)['id'];
 
         $component = $componentsApi->getComponent(self::COMPONENT_ID_1);
         self::$componentId1Tag = $component['data']['definition']['tag'];
@@ -78,7 +79,26 @@ class JobFactoryTest extends BaseTest
             (string) getenv('TEST_AZURE_KEY_VAULT_URL'),
         ));
 
-        return new JobFactory($storageClientFactory, $objectEncryptor);
+        $objectEncryptorFactory = new DataPlaneObjectEncryptorFactory(
+            (string) parse_url((string) getenv('TEST_STORAGE_API_URL'), PHP_URL_HOST),
+            (string) getenv('TEST_KMS_REGION'),
+        );
+
+        $dataPlaneConfigRepository = new DataPlaneConfigRepository(
+            new ManageApiClient([
+                'url' => (string) getenv('STORAGE_API_URL'),
+                'token' => (string) getenv('MANAGE_API_TOKEN'),
+            ]),
+            new DataPlaneConfigValidator(Validation::createValidator()),
+        );
+
+        return new JobFactory(
+            $storageClientFactory,
+            $objectEncryptor,
+            $objectEncryptorFactory,
+            $dataPlaneConfigRepository,
+            getenv('SUPPORTS_DATA_PLANE') === 'true',
+        );
     }
 
     public function testDummy(): void
@@ -632,111 +652,6 @@ class JobFactoryTest extends BaseTest
                 '#foo3' => 'bar3',
             ],
             $job->getConfigDataDecrypted()
-        );
-    }
-
-    public function testEncryptionMultipleJobs(): void
-    {
-        /* this test does basically the same as testEncryption() method, but with two different jobs and
-        ObjectEncryptor settings. Because ObjectEncryptorFactory is not immutable (legacy reasons), it has to
-        be cloned inside the Job class before it is modified. This method actually tests that it is cloned (i.e. two
-        jobs do not interfere with each other). */
-
-        $objectEncryptor = ObjectEncryptorFactory::getEncryptor(new EncryptorOptions(
-            (string) parse_url((string) getenv('TEST_STORAGE_API_URL'), PHP_URL_HOST),
-            (string) getenv('TEST_KMS_KEY_ID'),
-            (string) getenv('TEST_KMS_REGION'),
-            (string) getenv('TEST_KMS_ROLE'),
-            (string) getenv('TEST_AZURE_KEY_VAULT_URL'),
-        ));
-
-        $storageClientFactory = new StorageClientPlainFactory(new ClientOptions(
-            (string) getenv('TEST_STORAGE_API_URL')
-        ));
-        $client = new Client(
-            [
-                'url' => getenv('TEST_STORAGE_API_URL'),
-                'token' => getenv('TEST_STORAGE_API_TOKEN'),
-            ]
-        );
-        $tokenInfo = $client->verifyToken();
-
-        $data = [
-            '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
-            'configId' => self::$configId1,
-            'configData' => [
-                '#foo11' => $objectEncryptor->encryptForProject(
-                    'bar11',
-                    self::COMPONENT_ID_1,
-                    (string) $tokenInfo['owner']['id'],
-                ),
-                '#foo12' => $objectEncryptor->encryptForComponent(
-                    'bar12',
-                    self::COMPONENT_ID_1,
-                ),
-                '#foo13' => $objectEncryptor->encryptForConfiguration(
-                    'bar13',
-                    self::COMPONENT_ID_1,
-                    (string) $tokenInfo['owner']['id'],
-                    (string) self::$configId1,
-                ),
-            ],
-            'componentId' => self::COMPONENT_ID_1,
-            'mode' => 'run',
-        ];
-        $jobFactory1 = new JobFactory($storageClientFactory, $objectEncryptor);
-        $job1 = $jobFactory1->createNewJob($data);
-
-        $data = [
-            '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
-            'configId' => self::$configId2,
-            'configData' => [
-                '#foo21' => $objectEncryptor->encryptForProject(
-                    'bar21',
-                    self::COMPONENT_ID_2,
-                    (string) $tokenInfo['owner']['id'],
-                ),
-                '#foo22' => $objectEncryptor->encryptForComponent(
-                    'bar22',
-                    self::COMPONENT_ID_2,
-                ),
-                '#foo23' => $objectEncryptor->encryptForConfiguration(
-                    'bar23',
-                    self::COMPONENT_ID_2,
-                    (string) $tokenInfo['owner']['id'],
-                    (string) self::$configId2,
-                ),
-            ],
-            'componentId' => self::COMPONENT_ID_2,
-            'mode' => 'run',
-        ];
-        $jobFactory2 = new JobFactory($storageClientFactory, $objectEncryptor);
-        $job2 = $jobFactory2->createNewJob($data);
-
-        self::assertEquals(self::$configId1, $job1->getConfigId());
-        self::assertStringStartsWith('KBC::ProjectSecure', $job1->getConfigData()['#foo11']);
-        self::assertStringStartsWith('KBC::ComponentSecure', $job1->getConfigData()['#foo12']);
-        self::assertStringStartsWith('KBC::ConfigSecure', $job1->getConfigData()['#foo13']);
-        self::assertEquals(
-            [
-                '#foo11' => 'bar11',
-                '#foo12' => 'bar12',
-                '#foo13' => 'bar13',
-            ],
-            $job1->getConfigDataDecrypted()
-        );
-
-        self::assertEquals(self::$configId2, $job2->getConfigId());
-        self::assertStringStartsWith('KBC::ProjectSecure', $job2->getConfigData()['#foo21']);
-        self::assertStringStartsWith('KBC::ComponentSecure', $job2->getConfigData()['#foo22']);
-        self::assertStringStartsWith('KBC::ConfigSecure', $job2->getConfigData()['#foo23']);
-        self::assertEquals(
-            [
-                '#foo21' => 'bar21',
-                '#foo22' => 'bar22',
-                '#foo23' => 'bar23',
-            ],
-            $job2->getConfigDataDecrypted()
         );
     }
 }

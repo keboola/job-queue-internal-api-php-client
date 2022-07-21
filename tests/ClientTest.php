@@ -10,6 +10,8 @@ use GuzzleHttp\Middleware;
 use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\Psr7\Response;
 use Keboola\JobQueueInternalClient\Client;
+use Keboola\JobQueueInternalClient\DataPlane\DataPlaneConfigRepository;
+use Keboola\JobQueueInternalClient\DataPlane\DataPlaneObjectEncryptorFactory;
 use Keboola\JobQueueInternalClient\Exception\ClientException;
 use Keboola\JobQueueInternalClient\JobFactory;
 use Keboola\JobQueueInternalClient\JobFactory\Job;
@@ -17,6 +19,8 @@ use Keboola\JobQueueInternalClient\JobListOptions;
 use Keboola\JobQueueInternalClient\JobPatchData;
 use Keboola\JobQueueInternalClient\Result\JobMetrics;
 use Keboola\JobQueueInternalClient\Result\JobResult;
+use Keboola\ObjectEncryptor\EncryptorOptions;
+use Keboola\ObjectEncryptor\ObjectEncryptor;
 use Keboola\ObjectEncryptor\ObjectEncryptorFactory;
 use Keboola\StorageApiBranch\Factory\ClientOptions;
 use Keboola\StorageApiBranch\Factory\StorageClientPlainFactory;
@@ -27,20 +31,27 @@ use Psr\Log\Test\TestLogger;
 
 class ClientTest extends BaseTest
 {
-    private function getJobFactory(): JobFactory
-    {
-        $storageClientFactory = new StorageClientPlainFactory(new ClientOptions(
-            'http://example.com/',
-        ));
-        $objectEncryptor = ObjectEncryptorFactory::getAwsEncryptor('local', 'alias/some-key', 'us-east-1', null);
-        return new JobFactory($storageClientFactory, $objectEncryptor);
-    }
-
     private function getClient(array $options, ?LoggerInterface $logger = null): Client
     {
+        $jobFactory = new JobFactory(
+            new StorageClientPlainFactory(new ClientOptions(
+                'http://example.com/',
+            )),
+            new ObjectEncryptor(new EncryptorOptions(
+                'stackId',
+                'kmsKeyId',
+                'kmsRegion',
+                null,
+                null
+            )),
+            $this->createMock(DataPlaneObjectEncryptorFactory::class),
+            $this->createMock(DataPlaneConfigRepository::class),
+            false
+        );
+
         return new Client(
             $logger ?? new NullLogger(),
-            $this->getJobFactory(),
+            $jobFactory,
             'http://example.com/',
             'testToken',
             $options
@@ -55,7 +66,7 @@ class ClientTest extends BaseTest
         );
         new Client(
             new NullLogger(),
-            $this->getJobFactory(),
+            $this->createMock(JobFactory::class),
             'http://example.com/',
             'testToken',
             ['backoffMaxTries' => 'abc']
@@ -70,7 +81,7 @@ class ClientTest extends BaseTest
         );
         new Client(
             new NullLogger(),
-            $this->getJobFactory(),
+            $this->createMock(JobFactory::class),
             'http://example.com/',
             'testToken',
             ['backoffMaxTries' => -1]
@@ -85,7 +96,7 @@ class ClientTest extends BaseTest
         );
         new Client(
             new NullLogger(),
-            $this->getJobFactory(),
+            $this->createMock(JobFactory::class),
             'http://example.com/',
             'testToken',
             ['backoffMaxTries' => 101]
@@ -98,7 +109,7 @@ class ClientTest extends BaseTest
         $this->expectExceptionMessage(
             'Invalid parameters when creating client: Value "" is invalid: This value should not be blank.'
         );
-        new Client(new NullLogger(), $this->getJobFactory(), 'http://example.com/', '');
+        new Client(new NullLogger(), $this->createMock(JobFactory::class), 'http://example.com/', '');
     }
 
     public function testCreateClientInvalidUrl(): void
@@ -107,7 +118,7 @@ class ClientTest extends BaseTest
         $this->expectExceptionMessage(
             'Invalid parameters when creating client: Value "invalid url" is invalid: This value is not a valid URL.'
         );
-        new Client(new NullLogger(), $this->getJobFactory(), 'invalid url', 'testToken');
+        new Client(new NullLogger(), $this->createMock(JobFactory::class), 'invalid url', 'testToken');
     }
 
     public function testCreateClientMultipleErrors(): void
@@ -117,7 +128,7 @@ class ClientTest extends BaseTest
             'Invalid parameters when creating client: Value "invalid url" is invalid: This value is not a valid URL.'
             . "\n" . 'Value "" is invalid: This value should not be blank.' . "\n"
         );
-        new Client(new NullLogger(), $this->getJobFactory(), 'invalid url', '');
+        new Client(new NullLogger(), $this->createMock(JobFactory::class), 'invalid url', '');
     }
 
     public function testClientRequestResponse(): void

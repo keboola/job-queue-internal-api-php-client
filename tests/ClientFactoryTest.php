@@ -19,12 +19,9 @@ class ClientFactoryTest extends TestCase
     {
         $testLogger = new TestLogger();
         $factory = new ClientFactory(
-            (string) getenv('TEST_QUEUE_API_URL'),
-            (string) getenv('TEST_QUEUE_API_TOKEN'),
-            new JobFactory(
-                new StorageClientPlainFactory(new ClientOptions((string) getenv('TEST_STORAGE_API_URL'))),
-                ObjectEncryptorFactory::getAwsEncryptor('no-used', 'alias/some-key', 'us-east-1', null)
-            ),
+            'https://connection.keboola.com',
+            'internalApiToken',
+            $this->createMock(JobFactory::class),
             $testLogger
         );
         $client = $factory->getClient();
