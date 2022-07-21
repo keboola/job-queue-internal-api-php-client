@@ -242,9 +242,9 @@ class JobTest extends BaseTest
 
     private function getJob(?array $jobData = null): Job
     {
-        $objectEncryptorFactoryMock = self::createMock(ObjectEncryptorFactory::class);
-        $storageClientFactoryMock = self::createMock(StorageClientPlainFactory::class);
-        return new Job($objectEncryptorFactoryMock, $storageClientFactoryMock, $jobData ?? $this->jobData);
+        $objectEncryptorMock = $this->createMock(ObjectEncryptor::class);
+        $storageClientFactoryMock = $this->createMock(StorageClientPlainFactory::class);
+        return new Job($objectEncryptorMock, $storageClientFactoryMock, $jobData ?? $this->jobData);
     }
 
     public function testGetDuration(): void
@@ -334,20 +334,21 @@ class JobTest extends BaseTest
 
     public function testCacheDecryptedToken(): void
     {
-        $objectEncryptorFactoryMock = self::createMock(ObjectEncryptorFactory::class);
-        $objectEncryptorMock = self::createMock(ObjectEncryptor::class);
-        $objectEncryptorFactoryMock
-            ->expects(self::once())
-            ->method('getEncryptor')
-            ->willReturn($objectEncryptorMock);
+        $objectEncryptorMock = $this->createMock(ObjectEncryptor::class);
+        $objectEncryptorMock->expects(self::once())
+            ->method('decryptForConfiguration')
+            ->with(
+                $this->jobData['#tokenString'],
+                $this->jobData['componentId'],
+                $this->jobData['projectId'],
+                $this->jobData['configId'],
+            )
+            ->willReturn('decrypted-token-123')
+        ;
 
-        $objectEncryptorMock
-            ->expects(self::once())
-            ->method('decrypt')
-            ->willReturn('decrypted-token-123');
-        $storageClientFactoryMock = self::createMock(StorageClientPlainFactory::class);
+        $storageClientFactoryMock = $this->createMock(StorageClientPlainFactory::class);
 
-        $job = new Job($objectEncryptorFactoryMock, $storageClientFactoryMock, $this->jobData);
+        $job = new Job($objectEncryptorMock, $storageClientFactoryMock, $this->jobData);
 
         // first call - calls the Encryptor API (mock)
         $decryptedToken = $job->getTokenDecrypted();
@@ -360,23 +361,25 @@ class JobTest extends BaseTest
 
     public function testCacheDecryptedConfigData(): void
     {
-        $objectEncryptorFactoryMock = self::createMock(ObjectEncryptorFactory::class);
-        $objectEncryptorMock = self::createMock(ObjectEncryptor::class);
-        $objectEncryptorFactoryMock
-            ->expects(self::once())
-            ->method('getEncryptor')
-            ->willReturn($objectEncryptorMock);
-
         $expectedConfigData = [
             'parameters' => ['#secret-foo' => 'decrypted-bar'],
         ];
-        $objectEncryptorMock
-            ->expects(self::once())
-            ->method('decrypt')
-            ->willReturn($expectedConfigData);
-        $storageClientFactoryMock = self::createMock(StorageClientPlainFactory::class);
 
-        $job = new Job($objectEncryptorFactoryMock, $storageClientFactoryMock, $this->jobData);
+        $objectEncryptorMock = $this->createMock(ObjectEncryptor::class);
+        $objectEncryptorMock->expects(self::once())
+            ->method('decryptForConfiguration')
+            ->with(
+                $this->jobData['configData'],
+                $this->jobData['componentId'],
+                $this->jobData['projectId'],
+                $this->jobData['configId'],
+            )
+            ->willReturn($expectedConfigData)
+        ;
+
+        $storageClientFactoryMock = $this->createMock(StorageClientPlainFactory::class);
+
+        $job = new Job($objectEncryptorMock, $storageClientFactoryMock, $this->jobData);
 
         // first call - calls the Encryptor API (mock)
         $decryptedConfigData = $job->getConfigDataDecrypted();
@@ -408,18 +411,19 @@ class JobTest extends BaseTest
             ->with(new ClientOptions(null, 'token', '987'))
             ->willReturn($clientWrapperMock);
 
-        $objectEncryptorFactoryMock = self::createMock(ObjectEncryptorFactory::class);
-        $objectEncryptorMock = self::createMock(ObjectEncryptor::class);
-        $objectEncryptorFactoryMock
-            ->expects(self::once())
-            ->method('getEncryptor')
-            ->willReturn($objectEncryptorMock);
-        $objectEncryptorMock
-            ->expects(self::once())
-            ->method('decrypt')
-            ->with('KBC::ProjectSecure::token')
-            ->willReturn('token');
-        $job = new Job($objectEncryptorFactoryMock, $factory, $this->jobData);
+        $objectEncryptorMock = $this->createMock(ObjectEncryptor::class);
+        $objectEncryptorMock->expects(self::once())
+            ->method('decryptForConfiguration')
+            ->with(
+                'KBC::ProjectSecure::token',
+                $this->jobData['componentId'],
+                $this->jobData['projectId'],
+                $this->jobData['configId'],
+            )
+            ->willReturn('token')
+        ;
+
+        $job = new Job($objectEncryptorMock, $factory, $this->jobData);
         self::assertSame('test', $job->getComponentSpecification()->getId());
         self::assertSame(256000000, $job->getComponentSpecification()->getMemoryLimitBytes());
         self::assertSame('256m', $job->getComponentSpecification()->getMemoryLimit());

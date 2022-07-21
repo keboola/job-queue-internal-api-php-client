@@ -6,15 +6,13 @@ namespace Keboola\JobQueueInternalClient\Tests;
 
 use Keboola\JobQueueInternalClient\Exception\ClientException;
 use Keboola\JobQueueInternalClient\JobFactory;
-use Keboola\JobQueueInternalClient\JobFactory\Job;
-use Keboola\ObjectEncryptor\Legacy\Encryptor;
+use Keboola\ObjectEncryptor\EncryptorOptions;
 use Keboola\ObjectEncryptor\ObjectEncryptorFactory;
 use Keboola\StorageApi\Client;
 use Keboola\StorageApi\Components;
 use Keboola\StorageApi\Options\Components\Configuration;
 use Keboola\StorageApiBranch\Factory\ClientOptions;
 use Keboola\StorageApiBranch\Factory\StorageClientPlainFactory;
-use ReflectionProperty;
 
 class JobFactoryTest extends BaseTest
 {
@@ -71,14 +69,15 @@ class JobFactoryTest extends BaseTest
         $storageClientFactory = new StorageClientPlainFactory(new ClientOptions(
             (string) getenv('TEST_STORAGE_API_URL')
         ));
-        $objectEncryptorFactory = new ObjectEncryptorFactory(
+
+        $objectEncryptor = ObjectEncryptorFactory::getEncryptor(new EncryptorOptions(
+            'local',
             (string) getenv('TEST_KMS_KEY_ID'),
             (string) getenv('TEST_KMS_REGION'),
-            '',
-            '123456789012345678901234567890ab',
-            (string) getenv('TEST_AZURE_KEY_VAULT_URL')
-        );
-        return new JobFactory($storageClientFactory, $objectEncryptorFactory);
+            (string) getenv('TEST_AZURE_KEY_VAULT_URL'),
+        ));
+
+        return new JobFactory($storageClientFactory, $objectEncryptor);
     }
 
     public function testDummy(): void
@@ -108,11 +107,6 @@ class JobFactoryTest extends BaseTest
         self::assertEquals($job->getId(), $job->getRunId());
         self::assertNull($job->getBranchId());
         self::assertNull($job->getOrchestrationJobId());
-        // check that the object encryptor factory is initialized (if it is not, there are no wrappers)
-        self::assertStringStartsWith(
-            'Keboola\\ObjectEncryptor\\Wrapper\\',
-            $job->getEncryptorFactory()->getEncryptor()->getRegisteredProjectWrapperClass()
-        );
     }
 
     public function testCreateNewJobNormalize(): void
@@ -177,26 +171,6 @@ class JobFactoryTest extends BaseTest
         self::assertSame('1234.567.' . $job->getId(), $job->jsonSerialize()['runId']);
         self::assertSame('1234', $job->getBranchId());
         self::assertEquals(['values' => []], $job->getVariableValuesData());
-    }
-
-    public function testGetTokenLegacyDecrypted(): void
-    {
-        $factory = $this->getJobFactory();
-        $data = [
-            '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
-            'configId' => self::$configId1,
-            'componentId' => self::COMPONENT_ID_1,
-            'mode' => 'run',
-        ];
-        $job = $factory->createNewJob($data);
-        $reflection = new ReflectionProperty(Job::class, 'data');
-        $reflection->setAccessible(true);
-        $data = (array) $reflection->getValue($job);
-        $encryptor = new Encryptor('123456789012345678901234567890ab');
-        $data['#tokenString'] = $encryptor->encrypt('someToken');
-        $reflection->setValue($job, $data);
-        self::assertNotEquals('someToken', $job->getTokenString());
-        self::assertEquals('someToken', $job->getTokenDecrypted());
     }
 
     public function testCreateNewJobFull(): void
@@ -449,8 +423,8 @@ class JobFactoryTest extends BaseTest
                 ],
             ],
         ];
-        self::expectException(ClientException::class);
-        self::expectExceptionMessage('Provide either "variableValuesId" or "variableValuesData", but not both.');
+        $this->expectException(ClientException::class);
+        $this->expectExceptionMessage('Provide either "variableValuesId" or "variableValuesData", but not both.');
         $factory->createNewJob($data);
     }
 
@@ -467,8 +441,8 @@ class JobFactoryTest extends BaseTest
             '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
         ];
 
-        self::expectException(ClientException::class);
-        self::expectExceptionMessageMatches(
+        $this->expectException(ClientException::class);
+        $this->expectExceptionMessageMatches(
             '#The child (node|config) "componentId" (at path|under) "job" must be configured.#'
         );
         $this->getJobFactory()->loadFromExistingJobData($jobData);
@@ -517,8 +491,8 @@ class JobFactoryTest extends BaseTest
             'componentId' => 'keboola.test',
             'mode' => 'run',
         ];
-        self::expectException(ClientException::class);
-        self::expectExceptionMessageMatches(
+        $this->expectException(ClientException::class);
+        $this->expectExceptionMessageMatches(
             '#The child (node|config) "\#tokenString" (at path|under) "job" must be configured.#'
         );
         $this->getJobFactory()->createNewJob($jobData);
@@ -532,20 +506,20 @@ class JobFactoryTest extends BaseTest
             'componentId' => 'keboola.test',
             'mode' => 'run',
         ];
-        self::expectException(ClientException::class);
-        self::expectExceptionMessage('Cannot create job: "Invalid access token".');
+        $this->expectException(ClientException::class);
+        $this->expectExceptionMessage('Cannot create job: "Invalid access token".');
         $this->getJobFactory()->createNewJob($data);
     }
 
     public function testEncryption(): void
     {
-        $objectEncryptorFactory = new ObjectEncryptorFactory(
+        $objectEncryptor = ObjectEncryptorFactory::getEncryptor(new EncryptorOptions(
+            (string) parse_url((string) getenv('TEST_STORAGE_API_URL'), PHP_URL_HOST),
             (string) getenv('TEST_KMS_KEY_ID'),
             (string) getenv('TEST_KMS_REGION'),
-            '',
-            '',
             (string) getenv('TEST_AZURE_KEY_VAULT_URL')
-        );
+        ));
+
         $client = new Client(
             [
                 'url' => getenv('TEST_STORAGE_API_URL'),
@@ -553,29 +527,30 @@ class JobFactoryTest extends BaseTest
             ]
         );
         $tokenInfo = $client->verifyToken();
-        $objectEncryptorFactory->setProjectId($tokenInfo['owner']['id']);
-        $objectEncryptorFactory->setConfigurationId(self::$configId1);
-        $objectEncryptorFactory->setComponentId(self::COMPONENT_ID_1);
-        $objectEncryptorFactory->setStackId((string) parse_url((string) getenv('TEST_STORAGE_API_URL'), PHP_URL_HOST));
 
         $factory = $this->getJobFactory();
         $data = [
             '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
             'configId' => self::$configId1,
             'configData' => [
-                '#foo1' => $objectEncryptorFactory->getEncryptor()->encrypt(
+                '#foo1' => $objectEncryptor->encryptForConfiguration(
                     'bar1',
-                    $objectEncryptorFactory->getEncryptor()->getRegisteredProjectWrapperClass()
+                    self::COMPONENT_ID_1,
+                    (string) $tokenInfo['owner']['id'],
+                    (string) self::$configId1
                 ),
-                '#foo2' => $objectEncryptorFactory->getEncryptor()->encrypt(
+                '#foo2' => $objectEncryptor->encryptForConfiguration(
                     'bar2',
-                    $objectEncryptorFactory->getEncryptor()->getRegisteredComponentWrapperClass()
+                    self::COMPONENT_ID_1,
+                    (string) $tokenInfo['owner']['id'],
+                    (string) self::$configId1
                 ),
-                '#foo3' => $objectEncryptorFactory->getEncryptor()->encrypt(
+                '#foo3' => $objectEncryptor->encryptForConfiguration(
                     'bar3',
-                    $objectEncryptorFactory->getEncryptor()->getRegisteredConfigurationWrapperClass()
+                    self::COMPONENT_ID_1,
+                    (string) $tokenInfo['owner']['id'],
+                    (string) self::$configId1
                 ),
-                '#foo4' => 'bar4',
             ],
             'componentId' => self::COMPONENT_ID_1,
             'mode' => 'run',
@@ -601,13 +576,12 @@ class JobFactoryTest extends BaseTest
 
     public function testEncryptionExistingJob(): void
     {
-        $objectEncryptorFactory = new ObjectEncryptorFactory(
+        $objectEncryptor = ObjectEncryptorFactory::getEncryptor(new EncryptorOptions(
+            (string) parse_url((string) getenv('TEST_STORAGE_API_URL'), PHP_URL_HOST),
             (string) getenv('TEST_KMS_KEY_ID'),
             (string) getenv('TEST_KMS_REGION'),
-            '',
-            '',
             (string) getenv('TEST_AZURE_KEY_VAULT_URL')
-        );
+        ));
         $client = new Client(
             [
                 'url' => getenv('TEST_STORAGE_API_URL'),
@@ -615,10 +589,6 @@ class JobFactoryTest extends BaseTest
             ]
         );
         $tokenInfo = $client->verifyToken();
-        $objectEncryptorFactory->setProjectId($tokenInfo['owner']['id']);
-        $objectEncryptorFactory->setConfigurationId(self::$configId1);
-        $objectEncryptorFactory->setComponentId(self::COMPONENT_ID_1);
-        $objectEncryptorFactory->setStackId((string) parse_url((string) getenv('TEST_STORAGE_API_URL'), PHP_URL_HOST));
 
         $factory = $this->getJobFactory();
         $data = [
@@ -631,17 +601,23 @@ class JobFactoryTest extends BaseTest
             '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
             'configId' => self::$configId1,
             'configData' => [
-                '#foo1' => $objectEncryptorFactory->getEncryptor()->encrypt(
+                '#foo1' => $objectEncryptor->encryptForConfiguration(
                     'bar1',
-                    $objectEncryptorFactory->getEncryptor()->getRegisteredProjectWrapperClass()
+                    self::COMPONENT_ID_1,
+                    (string) $tokenInfo['owner']['id'],
+                    (string) self::$configId1
                 ),
-                '#foo2' => $objectEncryptorFactory->getEncryptor()->encrypt(
+                '#foo2' => $objectEncryptor->encryptForConfiguration(
                     'bar2',
-                    $objectEncryptorFactory->getEncryptor()->getRegisteredComponentWrapperClass()
+                    self::COMPONENT_ID_1,
+                    (string) $tokenInfo['owner']['id'],
+                    (string) self::$configId1
                 ),
-                '#foo3' => $objectEncryptorFactory->getEncryptor()->encrypt(
+                '#foo3' => $objectEncryptor->encryptForConfiguration(
                     'bar3',
-                    $objectEncryptorFactory->getEncryptor()->getRegisteredConfigurationWrapperClass()
+                    self::COMPONENT_ID_1,
+                    (string) $tokenInfo['owner']['id'],
+                    (string) self::$configId1
                 ),
             ],
             'componentId' => self::COMPONENT_ID_1,
@@ -667,13 +643,14 @@ class JobFactoryTest extends BaseTest
         ObjectEncryptor settings. Because ObjectEncryptorFactory is not immutable (legacy reasons), it has to
         be cloned inside the Job class before it is modified. This method actually tests that it is cloned (i.e. two
         jobs do not interfere with each other). */
-        $objectEncryptorFactory = new ObjectEncryptorFactory(
+
+        $objectEncryptor = ObjectEncryptorFactory::getEncryptor(new EncryptorOptions(
+            (string) parse_url((string) getenv('TEST_STORAGE_API_URL'), PHP_URL_HOST),
             (string) getenv('TEST_KMS_KEY_ID'),
             (string) getenv('TEST_KMS_REGION'),
-            '',
-            '',
             (string) getenv('TEST_AZURE_KEY_VAULT_URL'),
-        );
+        ));
+
         $storageClientFactory = new StorageClientPlainFactory(new ClientOptions(
             (string) getenv('TEST_STORAGE_API_URL')
         ));
@@ -684,58 +661,63 @@ class JobFactoryTest extends BaseTest
             ]
         );
         $tokenInfo = $client->verifyToken();
-        $objectEncryptorFactory->setStackId((string) parse_url((string) getenv('TEST_STORAGE_API_URL'), PHP_URL_HOST));
 
-        $objectEncryptorFactory->setProjectId($tokenInfo['owner']['id']);
-        $objectEncryptorFactory->setConfigurationId(self::$configId1);
-        $objectEncryptorFactory->setComponentId(self::COMPONENT_ID_1);
         $data = [
             '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
             'configId' => self::$configId1,
             'configData' => [
-                '#foo11' => $objectEncryptorFactory->getEncryptor()->encrypt(
+                '#foo11' => $objectEncryptor->encryptForConfiguration(
                     'bar11',
-                    $objectEncryptorFactory->getEncryptor()->getRegisteredProjectWrapperClass()
+                    self::COMPONENT_ID_1,
+                    (string) $tokenInfo['owner']['id'],
+                    (string) self::$configId1,
                 ),
-                '#foo12' => $objectEncryptorFactory->getEncryptor()->encrypt(
+                '#foo12' => $objectEncryptor->encryptForConfiguration(
                     'bar12',
-                    $objectEncryptorFactory->getEncryptor()->getRegisteredComponentWrapperClass()
+                    self::COMPONENT_ID_1,
+                    (string) $tokenInfo['owner']['id'],
+                    (string) self::$configId1,
                 ),
-                '#foo13' => $objectEncryptorFactory->getEncryptor()->encrypt(
+                '#foo13' => $objectEncryptor->encryptForConfiguration(
                     'bar13',
-                    $objectEncryptorFactory->getEncryptor()->getRegisteredConfigurationWrapperClass()
+                    self::COMPONENT_ID_1,
+                    (string) $tokenInfo['owner']['id'],
+                    (string) self::$configId1,
                 ),
             ],
             'componentId' => self::COMPONENT_ID_1,
             'mode' => 'run',
         ];
-        $jobFactory1 = new JobFactory($storageClientFactory, $objectEncryptorFactory);
+        $jobFactory1 = new JobFactory($storageClientFactory, $objectEncryptor);
         $job1 = $jobFactory1->createNewJob($data);
 
-        $objectEncryptorFactory->setProjectId($tokenInfo['owner']['id']);
-        $objectEncryptorFactory->setConfigurationId(self::$configId2);
-        $objectEncryptorFactory->setComponentId(self::COMPONENT_ID_2);
         $data = [
             '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
             'configId' => self::$configId2,
             'configData' => [
-                '#foo21' => $objectEncryptorFactory->getEncryptor()->encrypt(
+                '#foo21' => $objectEncryptor->encryptForConfiguration(
                     'bar21',
-                    $objectEncryptorFactory->getEncryptor()->getRegisteredProjectWrapperClass()
+                    self::COMPONENT_ID_2,
+                    (string) $tokenInfo['owner']['id'],
+                    (string) self::$configId2,
                 ),
-                '#foo22' => $objectEncryptorFactory->getEncryptor()->encrypt(
+                '#foo22' => $objectEncryptor->encryptForConfiguration(
                     'bar22',
-                    $objectEncryptorFactory->getEncryptor()->getRegisteredComponentWrapperClass()
+                    self::COMPONENT_ID_2,
+                    (string) $tokenInfo['owner']['id'],
+                    (string) self::$configId2,
                 ),
-                '#foo23' => $objectEncryptorFactory->getEncryptor()->encrypt(
+                '#foo23' => $objectEncryptor->encryptForConfiguration(
                     'bar23',
-                    $objectEncryptorFactory->getEncryptor()->getRegisteredConfigurationWrapperClass()
+                    self::COMPONENT_ID_2,
+                    (string) $tokenInfo['owner']['id'],
+                    (string) self::$configId2,
                 ),
             ],
             'componentId' => self::COMPONENT_ID_2,
             'mode' => 'run',
         ];
-        $jobFactory2 = new JobFactory($storageClientFactory, $objectEncryptorFactory);
+        $jobFactory2 = new JobFactory($storageClientFactory, $objectEncryptor);
         $job2 = $jobFactory2->createNewJob($data);
 
         self::assertEquals(self::$configId1, $job1->getConfigId());
@@ -763,49 +745,5 @@ class JobFactoryTest extends BaseTest
             ],
             $job2->getConfigDataDecrypted()
         );
-    }
-
-    public function testEncryptionFactoryIsolation(): void
-    {
-        /* this test does basically the same as testEncryption() method, but with two different jobs and
-        ObjectEncryptor settings. Because ObjectEncryptorFactory is not immutable (legacy reasons), it has to
-        be cloned inside the Job class before it is modified. This method actually tests that it is cloned (i.e. two
-        jobs do not interfere with each other). */
-        $objectEncryptorFactory = new ObjectEncryptorFactory(
-            (string) getenv('TEST_KMS_KEY_ID'),
-            (string) getenv('TEST_KMS_REGION'),
-            '',
-            '',
-            (string) getenv('TEST_AZURE_KEY_VAULT_URL'),
-        );
-        $client = new Client(
-            [
-                'url' => getenv('TEST_STORAGE_API_URL'),
-                'token' => getenv('TEST_STORAGE_API_TOKEN'),
-            ]
-        );
-        $tokenInfo = $client->verifyToken();
-        $objectEncryptorFactory->setStackId((string) parse_url((string) getenv('TEST_STORAGE_API_URL'), PHP_URL_HOST));
-
-        $objectEncryptorFactory->setProjectId($tokenInfo['owner']['id']);
-        $objectEncryptorFactory->setConfigurationId('456');
-        $objectEncryptorFactory->setComponentId('keboola.different-test');
-        $encrypted = $objectEncryptorFactory->getEncryptor()->encrypt(
-            'bar',
-            $objectEncryptorFactory->getEncryptor()->getRegisteredProjectWrapperClass()
-        );
-        $storageClientFactory = new StorageClientPlainFactory(new ClientOptions(
-            (string) getenv('TEST_STORAGE_API_URL')
-        ));
-        $jobFactory = new JobFactory($storageClientFactory, $objectEncryptorFactory);
-        $data = [
-            '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
-            'configId' => self::$configId1,
-            'componentId' => self::COMPONENT_ID_1,
-            'mode' => 'run',
-        ];
-        $jobFactory->createNewJob($data);
-        self::assertStringStartsWith('KBC::ProjectSecure', is_string($encrypted) ? $encrypted : '');
-        self::assertEquals('bar', $objectEncryptorFactory->getEncryptor()->decrypt($encrypted));
     }
 }

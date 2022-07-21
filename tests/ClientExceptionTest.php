@@ -29,8 +29,9 @@ class ClientExceptionTest extends BaseTest
         $storageClientFactory = new StorageClientPlainFactory(new ClientOptions(
             'http://example.com/',
         ));
-        $objectEncryptorFactory = new ObjectEncryptorFactory('alias/some-key', 'us-east-1', '', '', '');
-        return new JobFactory($storageClientFactory, $objectEncryptorFactory);
+
+        $objectEncryptor = ObjectEncryptorFactory::getAwsEncryptor('local', 'alias/some-key', 'us-east-1');
+        return new JobFactory($storageClientFactory, $objectEncryptor);
     }
 
     private function getClient(array $options, ?LoggerInterface $logger = null): Client

@@ -7,6 +7,7 @@ namespace Keboola\JobQueueInternalClient\Tests;
 use Keboola\JobQueueInternalClient\Client;
 use Keboola\JobQueueInternalClient\JobFactory;
 use Keboola\JobQueueInternalClient\JobFactory\Job;
+use Keboola\ObjectEncryptor\EncryptorOptions;
 use Keboola\ObjectEncryptor\ObjectEncryptorFactory;
 use Keboola\StorageApiBranch\Factory\ClientOptions;
 use Keboola\StorageApiBranch\Factory\StorageClientPlainFactory;
@@ -40,14 +41,15 @@ abstract class BaseClientFunctionalTest extends BaseTest
         $storageClientFactory = new StorageClientPlainFactory(new ClientOptions(
             (string) getenv('TEST_STORAGE_API_URL')
         ));
-        $objectEncryptorFactory = new ObjectEncryptorFactory(
+
+        $objectEncryptor = ObjectEncryptorFactory::getEncryptor(new EncryptorOptions(
+            'local',
             $kmsKeyId ?? (string) getenv('TEST_KMS_KEY_ID'),
             (string) getenv('TEST_KMS_REGION'),
-            '',
-            '',
-            $keyVaultUrl ?? (string) getenv('TEST_AZURE_KEY_VAULT_URL')
-        );
-        return new JobFactory($storageClientFactory, $objectEncryptorFactory);
+            $keyVaultUrl ?? (string) getenv('TEST_AZURE_KEY_VAULT_URL'),
+        ));
+
+        return new JobFactory($storageClientFactory, $objectEncryptor);
     }
 
     private function cleanJobs(): void

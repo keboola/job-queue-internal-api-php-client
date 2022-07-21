@@ -6,6 +6,9 @@ namespace Keboola\JobQueueInternalClient\Tests;
 
 use Keboola\JobQueueInternalClient\Client;
 use Keboola\JobQueueInternalClient\ClientFactory;
+use Keboola\JobQueueInternalClient\JobFactory;
+use Keboola\ObjectEncryptor\EncryptorOptions;
+use Keboola\ObjectEncryptor\ObjectEncryptorFactory;
 use Keboola\StorageApiBranch\Factory\ClientOptions;
 use Keboola\StorageApiBranch\Factory\StorageClientPlainFactory;
 use PHPUnit\Framework\TestCase;
@@ -19,10 +22,10 @@ class ClientFactoryTest extends TestCase
         $factory = new ClientFactory(
             (string) getenv('TEST_QUEUE_API_URL'),
             (string) getenv('TEST_QUEUE_API_TOKEN'),
-            'us-east-1',
-            'alias/some-key',
-            '',
-            new StorageClientPlainFactory(new ClientOptions((string) getenv('TEST_STORAGE_API_URL'))),
+            new JobFactory(
+                new StorageClientPlainFactory(new ClientOptions((string) getenv('TEST_STORAGE_API_URL'))),
+                ObjectEncryptorFactory::getAwsEncryptor('no-used', 'alias/some-key', 'us-east-1')
+            ),
             $testLogger
         );
         $client = $factory->getClient();

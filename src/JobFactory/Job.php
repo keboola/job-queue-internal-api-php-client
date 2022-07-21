@@ -10,7 +10,7 @@ use JsonSerializable;
 use Keboola\JobQueueInternalClient\Exception\ClientException;
 use Keboola\JobQueueInternalClient\JobFactory;
 use Keboola\JobQueueInternalClient\Result\JobMetrics;
-use Keboola\ObjectEncryptor\ObjectEncryptorFactory;
+use Keboola\ObjectEncryptor\ObjectEncryptor;
 use Keboola\StorageApi\Components;
 use Keboola\StorageApiBranch\Factory\ClientOptions;
 use Keboola\StorageApiBranch\Factory\StorageClientPlainFactory;
@@ -22,30 +22,27 @@ class Job implements JsonSerializable, JobInterface
     public const MODE_DEBUG = 'debug';
     public const MODE_FORCE_RUN = 'forceRun';
 
+    private ObjectEncryptor $objectEncryptor;
+    private StorageClientPlainFactory $storageClientFactory;
     private array $data;
-    private ObjectEncryptorFactory $objectEncryptorFactory;
+
     private ?DateTimeImmutable $endTime;
     private ?DateTimeImmutable $startTime;
     private ?string $tokenDecrypted = null;
     private ?array $configDataDecrypted = null;
-    private StorageClientPlainFactory $storageClientFactory;
     private ?ComponentSpecification $componentSpecification;
 
     public function __construct(
-        ObjectEncryptorFactory $objectEncryptorFactory,
+        ObjectEncryptor $objectEncryptor,
         StorageClientPlainFactory $storageClientFactory,
         array $data
     ) {
+        $this->objectEncryptor = $objectEncryptor;
         $this->storageClientFactory = $storageClientFactory;
         $this->data = $data;
+
         $this->data['isFinished'] = in_array($this->getStatus(), JobFactory::getFinishedStatuses());
         $this->data['parentRunId'] = $this->getParentRunId();
-        // it's important to clone here because we change state of the factory!
-        // this is tested by JobFactoryTest::testEncryptionMultipleJobs()
-        $this->objectEncryptorFactory = clone $objectEncryptorFactory;
-        $this->objectEncryptorFactory->setProjectId($this->getProjectId());
-        $this->objectEncryptorFactory->setComponentId($this->getComponentId());
-        $this->objectEncryptorFactory->setConfigurationId($this->getConfigId());
         $this->startTime = null;
         $this->endTime = null;
         try {
@@ -195,39 +192,73 @@ class Job implements JsonSerializable, JobInterface
 
     public function getTokenDecrypted(): string
     {
-        if ($this->tokenDecrypted === null) {
-            $tokenDecrypted = $this->objectEncryptorFactory
-                ->getEncryptor(true)
-                ->decrypt($this->getTokenString());
-
-            if (!is_string($tokenDecrypted)) {
-                throw new ClientException('Decrypted token must be a string');
-            }
-
-            $this->tokenDecrypted =  $tokenDecrypted;
+        if ($this->tokenDecrypted !== null) {
+            return $this->tokenDecrypted;
         }
-        return $this->tokenDecrypted;
+
+        $data = $this->getTokenString();
+        $componentId = $this->getComponentId();
+        $projectId = $this->getProjectId();
+        $configId = $this->getConfigId();
+
+        if ($configId) {
+            $decryptedData = $this->objectEncryptor->decryptForConfiguration(
+                $data,
+                $componentId,
+                $projectId,
+                $configId,
+            );
+        } else {
+            $decryptedData = $this->objectEncryptor->decryptForProject(
+                $data,
+                $componentId,
+                $projectId,
+            );
+        }
+
+        if (!is_string($decryptedData)) {
+            throw new ClientException('Decrypted token must be a string');
+        }
+
+        return $this->tokenDecrypted = $decryptedData;
     }
 
     public function getConfigDataDecrypted(): array
     {
-        if ($this->configDataDecrypted === null) {
-            $configDataDecrypted = (array) $this->objectEncryptorFactory
-                ->getEncryptor()
-                ->decrypt($this->getConfigData());
-            $this->configDataDecrypted = $configDataDecrypted;
+        if ($this->configDataDecrypted !== null) {
+            return $this->configDataDecrypted;
         }
-        return $this->configDataDecrypted;
+
+        $data = $this->getConfigData();
+        $componentId = $this->getComponentId();
+        $projectId = $this->getProjectId();
+        $configId = $this->getConfigId();
+
+        if ($configId) {
+            $decryptedData = $this->objectEncryptor->decryptForConfiguration(
+                $data,
+                $componentId,
+                $projectId,
+                $configId,
+            );
+        } else {
+            $decryptedData = $this->objectEncryptor->decryptForProject(
+                $data,
+                $componentId,
+                $projectId,
+            );
+        }
+
+        if (!is_array($decryptedData)) {
+            throw new ClientException('Decrypted config data must be an array');
+        }
+
+        return $this->configDataDecrypted = $decryptedData;
     }
 
     public function isLegacyComponent(): bool
     {
         return empty($this->getComponentId()) || in_array($this->getComponentId(), JobFactory::getLegacyComponents());
-    }
-
-    public function getEncryptorFactory(): ObjectEncryptorFactory
-    {
-        return $this->objectEncryptorFactory;
     }
 
     public function getBranchId(): ?string

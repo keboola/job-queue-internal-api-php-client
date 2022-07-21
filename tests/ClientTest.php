@@ -32,8 +32,8 @@ class ClientTest extends BaseTest
         $storageClientFactory = new StorageClientPlainFactory(new ClientOptions(
             'http://example.com/',
         ));
-        $objectEncryptorFactory = new ObjectEncryptorFactory('alias/some-key', 'us-east-1', '', '', '');
-        return new JobFactory($storageClientFactory, $objectEncryptorFactory);
+        $objectEncryptor = ObjectEncryptorFactory::getAwsEncryptor('local', 'alias/some-key', 'us-east-1');
+        return new JobFactory($storageClientFactory, $objectEncryptor);
     }
 
     private function getClient(array $options, ?LoggerInterface $logger = null): Client
@@ -914,10 +914,10 @@ Out of order
 
     public function testClientUpdateJobWithEmptyIdThrowsException(): void
     {
-        $objectEncryptorFactory = new ObjectEncryptorFactory('alias/some-key', 'us-east-1', '', '', '');
+        $objectEncryptor = ObjectEncryptorFactory::getAwsEncryptor('local', 'alias/some-key', 'us-east-1');
         $storageClientFactory = new StorageClientPlainFactory(new ClientOptions());
         $job = new Job(
-            $objectEncryptorFactory,
+            $objectEncryptor,
             $storageClientFactory,
             [
                 'status' => JobFactory::STATUS_SUCCESS,

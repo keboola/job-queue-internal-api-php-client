@@ -8,7 +8,7 @@ use Keboola\JobQueueInternalClient\Exception\PermissionsException;
 use Keboola\JobQueueInternalClient\JobFactory\Job;
 use Keboola\JobQueueInternalClient\JobFactory\JobInterface;
 use Keboola\JobQueueInternalClient\PermissionChecker;
-use Keboola\ObjectEncryptor\ObjectEncryptorFactory;
+use Keboola\ObjectEncryptor\ObjectEncryptor;
 use Keboola\StorageApiBranch\Factory\StorageClientPlainFactory;
 use PHPUnit\Framework\TestCase;
 
@@ -31,9 +31,9 @@ class PermissionCheckerTest extends TestCase
             'tokenId' => '456',
             '#tokenString' => 'KBC::ProjectSecure::token',
         ];
-        $objectEncryptorFactoryMock = self::createMock(ObjectEncryptorFactory::class);
-        $storageFactoryMock = self::createMock(StorageClientPlainFactory::class);
-        return new Job($objectEncryptorFactoryMock, $storageFactoryMock, $jobData);
+        $objectEncryptorMock = $this->createMock(ObjectEncryptor::class);
+        $storageFactoryMock = $this->createMock(StorageClientPlainFactory::class);
+        return new Job($objectEncryptorMock, $storageFactoryMock, $jobData);
     }
 
     /**
@@ -122,8 +122,8 @@ class PermissionCheckerTest extends TestCase
      */
     public function testJobRunForbidden(JobInterface $job, array $tokenInfo, string $expectedError): void
     {
-        self::expectException(PermissionsException::class);
-        self::expectExceptionMessage($expectedError);
+        $this->expectException(PermissionsException::class);
+        $this->expectExceptionMessage($expectedError);
         PermissionChecker::verifyJobRunPermissions($job, $tokenInfo);
     }
 
