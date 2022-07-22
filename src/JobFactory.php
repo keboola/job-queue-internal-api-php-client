@@ -205,11 +205,6 @@ class JobFactory
 
         if ($data['dataPlaneId'] ?? null) {
             $dataPlaneConfig = $this->dataPlaneConfigRepository->fetchDataPlaneConfig($data['dataPlaneId']);
-        } else {
-            $dataPlaneConfig = null;
-        }
-
-        if ($dataPlaneConfig !== null) {
             $objectEncryptor = $this->objectEncryptorFactory->getObjectEncryptor(
                 $data['dataPlaneId'],
                 $dataPlaneConfig['encryption'],
