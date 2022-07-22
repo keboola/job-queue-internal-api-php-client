@@ -147,6 +147,15 @@ class JobFactory
             $dataPlaneConfig = null;
         }
 
+        if ($dataPlaneConfig !== null) {
+            $objectEncryptor = $this->objectEncryptorFactory->getObjectEncryptor(
+                $dataPlaneConfig['id'],
+                $dataPlaneConfig['parameters'],
+            );
+        } else {
+            $objectEncryptor = $this->controlPlaneObjectEncryptor;
+        }
+
         $jobData = [
             'id' => $jobId,
             'runId' => $runId,
@@ -179,15 +188,6 @@ class JobFactory
         $jobData = $this->jobRuntimeResolver->resolveJobData($jobData, $tokenInfo);
         // set type after resolving parallelism
         $jobData['type'] = $data['type'] ?? $this->getJobType($jobData);
-
-        if ($dataPlaneConfig !== null) {
-            $objectEncryptor = $this->objectEncryptorFactory->getObjectEncryptor(
-                $dataPlaneConfig['id'],
-                $dataPlaneConfig['parameters'],
-            );
-        } else {
-            $objectEncryptor = $this->controlPlaneObjectEncryptor;
-        }
 
         $data = $objectEncryptor->encryptForProject(
             $jobData,
