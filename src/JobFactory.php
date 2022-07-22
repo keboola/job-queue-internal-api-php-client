@@ -245,16 +245,15 @@ class JobFactory
     {
         if ((intval($data['parallelism']) > 0) || $data['parallelism'] === self::PARALLELISM_INFINITY) {
             return self::TYPE_ROW_CONTAINER;
+        } else {
+            if ($data['componentId'] === self::ORCHESTRATOR_COMPONENT) {
+                if (isset($data['configData']['phaseId']) && (string) ($data['configData']['phaseId']) !== '') {
+                    return self::TYPE_PHASE_CONTAINER;
+                } else {
+                    return self::TYPE_ORCHESTRATION_CONTAINER;
+                }
+            }
         }
-
-        if ($data['componentId'] !== self::ORCHESTRATOR_COMPONENT) {
-            return self::TYPE_STANDARD;
-        }
-
-        if (isset($data['configData']['phaseId']) && (string) ($data['configData']['phaseId']) !== '') {
-            return self::TYPE_PHASE_CONTAINER;
-        }
-
-        return self::TYPE_ORCHESTRATION_CONTAINER;
+        return self::TYPE_STANDARD;
     }
 }
