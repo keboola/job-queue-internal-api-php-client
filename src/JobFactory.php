@@ -45,6 +45,7 @@ class JobFactory
     public const PAY_AS_YOU_GO_FEATURE = 'pay-as-you-go';
 
     private StorageClientPlainFactory $storageClientFactory;
+    private JobRuntimeResolver $jobRuntimeResolver;
     private ObjectEncryptor $controlPlaneObjectEncryptor;
     private DataPlaneObjectEncryptorFactory $objectEncryptorFactory;
     private DataPlaneConfigRepository $dataPlaneConfigRepository;
@@ -52,12 +53,14 @@ class JobFactory
 
     public function __construct(
         StorageClientPlainFactory $storageClientFactory,
+        JobRuntimeResolver $jobRuntimeResolver,
         ObjectEncryptor $controlPlaneEncryptor,
         DataPlaneObjectEncryptorFactory $objectEncryptorFactory,
         DataPlaneConfigRepository $dataPlaneConfigRepository,
         bool $supportsDataPlanes
     ) {
         $this->storageClientFactory = $storageClientFactory;
+        $this->jobRuntimeResolver = $jobRuntimeResolver;
         $this->controlPlaneObjectEncryptor = $controlPlaneEncryptor;
         $this->objectEncryptorFactory = $objectEncryptorFactory;
         $this->dataPlaneConfigRepository = $dataPlaneConfigRepository;
@@ -172,8 +175,8 @@ class JobFactory
             'variableValuesData' => $data['variableValuesData'] ?? [],
             'orchestrationJobId' => $data['orchestrationJobId'] ?? null,
         ];
-        $resolver = new JobRuntimeResolver($this->storageClientFactory);
-        $jobData = $resolver->resolveJobData($jobData, $tokenInfo);
+
+        $jobData = $this->jobRuntimeResolver->resolveJobData($jobData, $tokenInfo);
         // set type after resolving parallelism
         $jobData['type'] = $data['type'] ?? $this->getJobType($jobData);
 

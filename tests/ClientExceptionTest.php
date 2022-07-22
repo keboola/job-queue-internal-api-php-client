@@ -19,10 +19,8 @@ use Keboola\JobQueueInternalClient\JobFactory;
 use Keboola\JobQueueInternalClient\Result\JobResult;
 use Keboola\ObjectEncryptor\EncryptorOptions;
 use Keboola\ObjectEncryptor\ObjectEncryptor;
-use Keboola\ObjectEncryptor\ObjectEncryptorFactory;
 use Keboola\StorageApiBranch\Factory\ClientOptions;
 use Keboola\StorageApiBranch\Factory\StorageClientPlainFactory;
-use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 use Throwable;
 
@@ -30,10 +28,13 @@ class ClientExceptionTest extends BaseTest
 {
     private function getClient(array $options): Client
     {
+        $storageClientFactory = new StorageClientPlainFactory(new ClientOptions(
+            'http://example.com/',
+        ));
+
         $jobFactory = new JobFactory(
-            new StorageClientPlainFactory(new ClientOptions(
-                'http://example.com/',
-            )),
+            $storageClientFactory,
+            new JobFactory\JobRuntimeResolver($storageClientFactory),
             new ObjectEncryptor(new EncryptorOptions(
                 'stackId',
                 'kmsKeyId',

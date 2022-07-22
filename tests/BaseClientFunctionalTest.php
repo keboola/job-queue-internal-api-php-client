@@ -70,6 +70,7 @@ abstract class BaseClientFunctionalTest extends BaseTest
 
         return new JobFactory(
             $storageClientFactory,
+            new JobFactory\JobRuntimeResolver($storageClientFactory),
             $objectEncryptor,
             $objectEncryptorFactory,
             $dataPlaneConfigRepository,

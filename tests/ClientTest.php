@@ -33,10 +33,13 @@ class ClientTest extends BaseTest
 {
     private function getClient(array $options, ?LoggerInterface $logger = null): Client
     {
+        $storageClientFactory = new StorageClientPlainFactory(new ClientOptions(
+            'http://example.com/',
+        ));
+
         $jobFactory = new JobFactory(
-            new StorageClientPlainFactory(new ClientOptions(
-                'http://example.com/',
-            )),
+            $storageClientFactory,
+            new JobFactory\JobRuntimeResolver($storageClientFactory),
             new ObjectEncryptor(new EncryptorOptions(
                 'stackId',
                 'kmsKeyId',

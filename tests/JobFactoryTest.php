@@ -94,16 +94,12 @@ class JobFactoryTest extends BaseTest
 
         return new JobFactory(
             $storageClientFactory,
+            new JobFactory\JobRuntimeResolver($storageClientFactory),
             $objectEncryptor,
             $objectEncryptorFactory,
             $dataPlaneConfigRepository,
             getenv('SUPPORTS_DATA_PLANE') === 'true',
         );
-    }
-
-    public function testDummy(): void
-    {
-        self::assertEquals(true, true);
     }
 
     public function testCreateNewJob(): void

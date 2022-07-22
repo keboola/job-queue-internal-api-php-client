@@ -7,9 +7,6 @@ namespace Keboola\JobQueueInternalClient\Tests;
 use Keboola\JobQueueInternalClient\Client;
 use Keboola\JobQueueInternalClient\ClientFactory;
 use Keboola\JobQueueInternalClient\JobFactory;
-use Keboola\ObjectEncryptor\ObjectEncryptorFactory;
-use Keboola\StorageApiBranch\Factory\ClientOptions;
-use Keboola\StorageApiBranch\Factory\StorageClientPlainFactory;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\Test\TestLogger;
 
