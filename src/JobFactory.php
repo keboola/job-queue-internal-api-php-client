@@ -150,7 +150,7 @@ class JobFactory
         if ($dataPlaneConfig !== null) {
             $objectEncryptor = $this->objectEncryptorFactory->getObjectEncryptor(
                 $dataPlaneConfig['id'],
-                $dataPlaneConfig['parameters'],
+                $dataPlaneConfig['parameters']['encryption'],
             );
         } else {
             $objectEncryptor = $this->controlPlaneObjectEncryptor;
@@ -212,7 +212,7 @@ class JobFactory
         if ($dataPlaneConfig !== null) {
             $objectEncryptor = $this->objectEncryptorFactory->getObjectEncryptor(
                 $data['dataPlaneId'],
-                $dataPlaneConfig,
+                $dataPlaneConfig['encryption'],
             );
         } else {
             $objectEncryptor = $this->controlPlaneObjectEncryptor;

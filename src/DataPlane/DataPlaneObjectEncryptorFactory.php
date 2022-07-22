@@ -21,24 +21,23 @@ class DataPlaneObjectEncryptorFactory
 
     /**
      * @param array{
-     *     aws?: array{
-     *         kmsKeyId: string,
-     *         encryptionRoleArn: string,
-     *     }
-     * } $dataPlaneConfig
+     *     type: 'aws',
+     *     kmsKeyId: string,
+     *     encryptionRoleArn: string,
+     * } $encryptionConfig
      */
-    public function getObjectEncryptor(string $dataPlaneId, array $dataPlaneConfig): ObjectEncryptor
+    public function getObjectEncryptor(string $dataPlaneId, array $encryptionConfig): ObjectEncryptor
     {
-        $awsConfig = $dataPlaneConfig['aws'] ?? null;
-        if ($awsConfig !== null) {
+        if ($encryptionConfig['type'] === 'aws') {
             return StaticFactory::getAwsEncryptor(
                 $this->stackId,
-                $awsConfig['kmsKeyId'],
+                $encryptionConfig['kmsKeyId'],
                 $this->kmsRegion,
-                $awsConfig['encryptionRoleArn']
+                $encryptionConfig['encryptionRoleArn']
             );
         }
 
+        // @phpstan-ignore-next-line
         throw new RuntimeException(sprintf(
             'DataPlane "%s" is missing encryptor configuration or the configuration is not supported',
             $dataPlaneId

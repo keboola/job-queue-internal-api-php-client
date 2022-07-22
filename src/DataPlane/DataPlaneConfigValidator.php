@@ -25,7 +25,8 @@ class DataPlaneConfigValidator
      *         certificateAuthority: string,
      *         namespace: string,
      *     },
-     *     aws?: array{
+     *     encryption: array{
+     *         type: 'aws',
      *         kmsKeyId: string,
      *         encryptionRoleArn: string,
      *     },
@@ -33,7 +34,7 @@ class DataPlaneConfigValidator
      */
     public function validateDataPlaneConfig(string $dataPlaneId, array $dataPlaneConfig): array
     {
-        $errors = $this->validator->validate($dataPlaneConfig, new Assert\Collection([
+        $constraints = new Assert\Collection([
             'allowExtraFields' => true,
             'fields' => [
                 'kubernetes' => [
@@ -60,21 +61,33 @@ class DataPlaneConfigValidator
                     ]),
                 ],
 
-                'aws' => new Assert\Optional([
+                'encryption' => new Assert\Optional([
                     new Assert\Collection([
-                        'kmsKeyId' => [
+                        'type' => [
                             new Assert\NotBlank(),
-                            new Assert\Type('string'),
+                            new Assert\Choice(['aws']),
                         ],
 
-                        'encryptionRoleArn' => [
-                            new Assert\NotBlank(),
-                            new Assert\Type('string'),
+                        'kmsKeyId' => [
+                            new Assert\NotBlank(['groups' => 'type_aws']),
+                            new Assert\Type(['type' => 'string', 'groups' => 'type_aws']),
+                        ],
+
+                        'kmsRoleArn' => [
+                            new Assert\NotBlank(['groups' => 'aws']),
+                            new Assert\Type(['type' => 'string', 'groups' => 'type_aws']),
                         ],
                     ]),
                 ]),
             ],
-        ]));
+        ]);
+
+        $validationGroups = [
+            'Default',
+            'type_'.($dataPlaneConfig['encryption']['type'] ?? 'unknown'),
+        ];
+
+        $errors = $this->validator->validate($dataPlaneConfig, $constraints, $validationGroups);
 
         if ($errors->count() > 0) {
             throw new InvalidDataPlaneConfigurationException($dataPlaneId, $errors);

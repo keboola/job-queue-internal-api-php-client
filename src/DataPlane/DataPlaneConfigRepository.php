@@ -24,8 +24,17 @@ class DataPlaneConfigRepository
      * @return null|array{
      *     id: string,
      *     parameters: array{
-     *         aws?: array{kmsKeyId: string, encryptionRoleArn: string },
-     *         kubernetes: array{apiUrl: string, token: string, certificateAuthority: string, namespace: string},
+     *         kubernetes: array{
+     *             apiUrl: string,
+     *             token: string,
+     *             certificateAuthority: string,
+     *             namespace: string,
+     *         },
+     *         encryption: array{
+     *             type: 'aws',
+     *             kmsKeyId: string,
+     *             encryptionRoleArn: string,
+     *         },
      *     }
      * }
      */
@@ -54,8 +63,17 @@ class DataPlaneConfigRepository
 
     /**
      * @return array{
-     *     aws?: array{kmsKeyId: string, encryptionRoleArn: string },
-     *     kubernetes: array{apiUrl: string, token: string, certificateAuthority: string, namespace: string},
+     *     kubernetes: array{
+     *         apiUrl: string,
+     *         token: string,
+     *         certificateAuthority: string,
+     *         namespace: string,
+     *     },
+     *     encryption: array{
+     *         type: 'aws',
+     *         kmsKeyId: string,
+     *         encryptionRoleArn: string,
+     *     },
      * }
      */
     public function fetchDataPlaneConfig(string $dataPlaneId): array
