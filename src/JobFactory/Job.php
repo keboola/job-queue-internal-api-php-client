@@ -7,13 +7,13 @@ namespace Keboola\JobQueueInternalClient\JobFactory;
 use DateTimeImmutable;
 use DateTimeZone;
 use JsonSerializable;
-use Keboola\JobQueueInternalClient\Exception\ClientException;
 use Keboola\JobQueueInternalClient\JobFactory;
 use Keboola\JobQueueInternalClient\Result\JobMetrics;
 use Keboola\ObjectEncryptor\ObjectEncryptor;
 use Keboola\StorageApi\Components;
 use Keboola\StorageApiBranch\Factory\ClientOptions;
 use Keboola\StorageApiBranch\Factory\StorageClientPlainFactory;
+use stdClass;
 use Throwable;
 
 class Job implements JsonSerializable, JobInterface
@@ -196,31 +196,7 @@ class Job implements JsonSerializable, JobInterface
             return $this->tokenDecrypted;
         }
 
-        $data = $this->getTokenString();
-        $componentId = $this->getComponentId();
-        $projectId = $this->getProjectId();
-        $configId = $this->getConfigId();
-
-        if ($configId) {
-            $decryptedData = $this->objectEncryptor->decryptForConfiguration(
-                $data,
-                $componentId,
-                $projectId,
-                $configId,
-            );
-        } else {
-            $decryptedData = $this->objectEncryptor->decryptForProject(
-                $data,
-                $componentId,
-                $projectId,
-            );
-        }
-
-        if (!is_string($decryptedData)) {
-            throw new ClientException('Decrypted token must be a string');
-        }
-
-        return $this->tokenDecrypted = $decryptedData;
+        return $this->tokenDecrypted = $this->decryptData($this->getTokenString());
     }
 
     public function getConfigDataDecrypted(): array
@@ -229,31 +205,34 @@ class Job implements JsonSerializable, JobInterface
             return $this->configDataDecrypted;
         }
 
-        $data = $this->getConfigData();
+        return $this->configDataDecrypted = $this->decryptData($this->getConfigData());
+    }
+
+    /**
+     * @template T of array|stdClass|string
+     * @param T $data
+     * @return T
+     */
+    private function decryptData($data)
+    {
         $componentId = $this->getComponentId();
         $projectId = $this->getProjectId();
         $configId = $this->getConfigId();
 
         if ($configId) {
-            $decryptedData = $this->objectEncryptor->decryptForConfiguration(
+            return $this->objectEncryptor->decryptForConfiguration(
                 $data,
                 $componentId,
                 $projectId,
                 $configId,
             );
-        } else {
-            $decryptedData = $this->objectEncryptor->decryptForProject(
-                $data,
-                $componentId,
-                $projectId,
-            );
         }
 
-        if (!is_array($decryptedData)) {
-            throw new ClientException('Decrypted config data must be an array');
-        }
-
-        return $this->configDataDecrypted = $decryptedData;
+        return $this->objectEncryptor->decryptForProject(
+            $data,
+            $componentId,
+            $projectId,
+        );
     }
 
     public function isLegacyComponent(): bool
