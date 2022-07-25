@@ -53,7 +53,6 @@ $client->postJobResult('123', 'success', ['images' => ['digests' => []]]);
         - `TEST_AWS_SECRET_ACCESS_KEY` - The created security credentials for the `JobQueueInternalApiPhpClient` user.
         - `TEST_KMS_REGION` - `Region` output of the above stack.
         - `TEST_KMS_KEY_ID` - `KmsKey` output of the above stack.
-        - `TEST_KMS_ROLE` - Keep empty.
 
 ### Azure Setup
 

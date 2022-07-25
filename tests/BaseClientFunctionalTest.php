@@ -51,7 +51,7 @@ abstract class BaseClientFunctionalTest extends BaseTest
             (string) parse_url((string) getenv('TEST_STORAGE_API_URL'), PHP_URL_HOST),
             $kmsKeyId ?? (string) getenv('TEST_KMS_KEY_ID'),
             (string) getenv('TEST_KMS_REGION'),
-            (string) getenv('TEST_KMS_ROLE'),
+            null,
             $keyVaultUrl ?? (string) getenv('TEST_AZURE_KEY_VAULT_URL'),
         ));
 

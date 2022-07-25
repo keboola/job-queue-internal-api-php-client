@@ -76,7 +76,7 @@ class JobFactoryTest extends BaseTest
             (string) parse_url((string) getenv('TEST_STORAGE_API_URL'), PHP_URL_HOST),
             (string) getenv('TEST_KMS_KEY_ID'),
             (string) getenv('TEST_KMS_REGION'),
-            (string) getenv('TEST_KMS_ROLE'),
+            null,
             (string) getenv('TEST_AZURE_KEY_VAULT_URL'),
         ));
 
@@ -108,7 +108,7 @@ class JobFactoryTest extends BaseTest
             (string) parse_url((string) getenv('TEST_STORAGE_API_URL'), PHP_URL_HOST),
             (string) getenv('TEST_KMS_KEY_ID'),
             (string) getenv('TEST_KMS_REGION'),
-            (string) getenv('TEST_KMS_ROLE'),
+            null,
             (string) getenv('TEST_AZURE_KEY_VAULT_URL'),
         ));
 
@@ -116,7 +116,7 @@ class JobFactoryTest extends BaseTest
             'custom-value',
             (string) getenv('TEST_KMS_KEY_ID'),
             (string) getenv('TEST_KMS_REGION'),
-            (string) getenv('TEST_KMS_ROLE'),
+            null,
             (string) getenv('TEST_AZURE_KEY_VAULT_URL'),
         ));
 
@@ -620,7 +620,7 @@ class JobFactoryTest extends BaseTest
             (string) parse_url((string) getenv('TEST_STORAGE_API_URL'), PHP_URL_HOST),
             (string) getenv('TEST_KMS_KEY_ID'),
             (string) getenv('TEST_KMS_REGION'),
-            (string) getenv('TEST_KMS_ROLE'),
+            null,
             (string) getenv('TEST_AZURE_KEY_VAULT_URL')
         ));
 
