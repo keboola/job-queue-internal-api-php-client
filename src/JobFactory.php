@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Keboola\JobQueueInternalClient;
 
+use Keboola\JobQueueInternalClient\DataPlane\DataPlaneConfigRepository;
+use Keboola\JobQueueInternalClient\DataPlane\DataPlaneObjectEncryptorFactory;
 use Keboola\JobQueueInternalClient\Exception\ClientException;
 use Keboola\JobQueueInternalClient\JobFactory\Behavior;
 use Keboola\JobQueueInternalClient\JobFactory\FullJobDefinition;
@@ -11,7 +13,7 @@ use Keboola\JobQueueInternalClient\JobFactory\Job;
 use Keboola\JobQueueInternalClient\JobFactory\JobInterface;
 use Keboola\JobQueueInternalClient\JobFactory\JobRuntimeResolver;
 use Keboola\JobQueueInternalClient\JobFactory\NewJobDefinition;
-use Keboola\ObjectEncryptor\ObjectEncryptorFactory;
+use Keboola\ObjectEncryptor\ObjectEncryptor;
 use Keboola\StorageApi\ClientException as StorageClientException;
 use Keboola\StorageApiBranch\Factory\ClientOptions;
 use Keboola\StorageApiBranch\Factory\StorageClientPlainFactory;
@@ -43,22 +45,26 @@ class JobFactory
     public const PAY_AS_YOU_GO_FEATURE = 'pay-as-you-go';
 
     private StorageClientPlainFactory $storageClientFactory;
-    private ObjectEncryptorFactory $objectEncryptorFactory;
+    private JobRuntimeResolver $jobRuntimeResolver;
+    private ObjectEncryptor $controlPlaneObjectEncryptor;
+    private DataPlaneObjectEncryptorFactory $objectEncryptorFactory;
+    private DataPlaneConfigRepository $dataPlaneConfigRepository;
+    private bool $supportsDataPlanes;
 
     public function __construct(
         StorageClientPlainFactory $storageClientFactory,
-        ObjectEncryptorFactory $objectEncryptorFactory
+        JobRuntimeResolver $jobRuntimeResolver,
+        ObjectEncryptor $controlPlaneEncryptor,
+        DataPlaneObjectEncryptorFactory $objectEncryptorFactory,
+        DataPlaneConfigRepository $dataPlaneConfigRepository,
+        bool $supportsDataPlanes
     ) {
         $this->storageClientFactory = $storageClientFactory;
-        // it's important to clone here because we change state of the factory!,
-        // this is tested by JobFactoryTest::testEncryptionFactoryIsolation()
-        $this->objectEncryptorFactory = clone $objectEncryptorFactory;
-        $this->objectEncryptorFactory->setStackId(
-            (string) parse_url(
-                (string) $this->storageClientFactory->getClientOptionsReadOnly()->getUrl(),
-                PHP_URL_HOST
-            )
-        );
+        $this->jobRuntimeResolver = $jobRuntimeResolver;
+        $this->controlPlaneObjectEncryptor = $controlPlaneEncryptor;
+        $this->objectEncryptorFactory = $objectEncryptorFactory;
+        $this->dataPlaneConfigRepository = $dataPlaneConfigRepository;
+        $this->supportsDataPlanes = $supportsDataPlanes;
     }
 
     public static function getFinishedStatuses(): array
@@ -108,38 +114,7 @@ class JobFactory
     public function createNewJob(array $data): JobInterface
     {
         $data = $this->validateJobData($data, NewJobDefinition::class);
-        $data = $this->initializeNewJobData($data);
-        $data = $this->validateJobData($data, FullJobDefinition::class);
-        return new Job($this->objectEncryptorFactory, $this->storageClientFactory, $data);
-    }
 
-    public function loadFromExistingJobData(array $data): JobInterface
-    {
-        $data = $this->validateJobData($data, FullJobDefinition::class);
-        return new Job($this->objectEncryptorFactory, $this->storageClientFactory, $data);
-    }
-
-    public function modifyJob(JobInterface $job, array $patchData): JobInterface
-    {
-        $data = $job->jsonSerialize();
-        $data = array_replace_recursive($data, $patchData);
-        $data = $this->validateJobData($data, FullJobDefinition::class);
-        return new Job($this->objectEncryptorFactory, $this->storageClientFactory, $data);
-    }
-
-    private function validateJobData(array $data, string $validatorClass): array
-    {
-        try {
-            /** @var FullJobDefinition|NewJobDefinition $jobDefinition */
-            $jobDefinition = new $validatorClass();
-            return $jobDefinition->processData($data);
-        } catch (InvalidConfigurationException $e) {
-            throw new ClientException($e->getMessage(), $e->getCode(), $e);
-        }
-    }
-
-    private function initializeNewJobData(array $data): array
-    {
         try {
             $client = $this->storageClientFactory->createClientWrapper(new ClientOptions(
                 null,
@@ -156,19 +131,36 @@ class JobFactory
                 $e
             );
         }
+
         if (!empty($data['variableValuesId']) && !empty($data['variableValuesData']['values'])) {
             throw new ClientException(
                 'Provide either "variableValuesId" or "variableValuesData", but not both.'
             );
         }
-        $this->objectEncryptorFactory->setProjectId($tokenInfo['owner']['id']);
-        $this->objectEncryptorFactory->setComponentId($data['componentId']);
-        $this->objectEncryptorFactory->setConfigurationId($data['configId'] ?? null);
+
+        if ($this->supportsDataPlanes) {
+            $dataPlaneConfig = $this->dataPlaneConfigRepository->fetchProjectDataPlane(
+                (string) $tokenInfo['owner']['id'],
+            );
+        } else {
+            $dataPlaneConfig = null;
+        }
+
+        if ($dataPlaneConfig !== null) {
+            $objectEncryptor = $this->objectEncryptorFactory->getObjectEncryptor(
+                $dataPlaneConfig['id'],
+                $dataPlaneConfig['parameters']['encryption'],
+            );
+        } else {
+            $objectEncryptor = $this->controlPlaneObjectEncryptor;
+        }
+
         $jobData = [
             'id' => $jobId,
             'runId' => $runId,
             'projectId' => $tokenInfo['owner']['id'],
             'projectName' => $tokenInfo['owner']['name'],
+            'dataPlaneId' => $dataPlaneConfig['id'] ?? null,
             'tokenId' => $tokenInfo['id'],
             '#tokenString' => $data['#tokenString'],
             'tokenDescription' => $tokenInfo['description'],
@@ -191,14 +183,56 @@ class JobFactory
             'variableValuesData' => $data['variableValuesData'] ?? [],
             'orchestrationJobId' => $data['orchestrationJobId'] ?? null,
         ];
-        $resolver = new JobRuntimeResolver($this->storageClientFactory);
-        $jobData = $resolver->resolveJobData($jobData, $tokenInfo);
+
+        $jobData = $this->jobRuntimeResolver->resolveJobData($jobData, $tokenInfo);
         // set type after resolving parallelism
         $jobData['type'] = $data['type'] ?? $this->getJobType($jobData);
-        return (array) $this->objectEncryptorFactory->getEncryptor()->encrypt(
+
+        $data = $objectEncryptor->encryptForProject(
             $jobData,
-            $this->objectEncryptorFactory->getEncryptor()->getRegisteredProjectWrapperClass()
+            (string) $data['componentId'],
+            (string) $tokenInfo['owner']['id']
         );
+
+        $data = $this->validateJobData($data, FullJobDefinition::class);
+        return new Job($objectEncryptor, $this->storageClientFactory, $data);
+    }
+
+    public function loadFromExistingJobData(array $data): JobInterface
+    {
+        $data = $this->validateJobData($data, FullJobDefinition::class);
+
+        if ($data['dataPlaneId'] ?? null) {
+            $dataPlaneConfig = $this->dataPlaneConfigRepository->fetchDataPlaneConfig($data['dataPlaneId']);
+            $objectEncryptor = $this->objectEncryptorFactory->getObjectEncryptor(
+                $data['dataPlaneId'],
+                $dataPlaneConfig['encryption'],
+            );
+        } else {
+            $objectEncryptor = $this->controlPlaneObjectEncryptor;
+        }
+
+        return new Job($objectEncryptor, $this->storageClientFactory, $data);
+    }
+
+    public function modifyJob(JobInterface $job, array $patchData): JobInterface
+    {
+        $data = $job->jsonSerialize();
+        $data = array_replace_recursive($data, $patchData);
+
+        return $this->loadFromExistingJobData($data);
+    }
+
+    /**
+     * @param class-string<FullJobDefinition|NewJobDefinition> $validatorClass
+     */
+    private function validateJobData(array $data, string $validatorClass): array
+    {
+        try {
+            return (new $validatorClass())->processData($data);
+        } catch (InvalidConfigurationException $e) {
+            throw new ClientException($e->getMessage(), $e->getCode(), $e);
+        }
     }
 
     private function getJobType(array $data): string

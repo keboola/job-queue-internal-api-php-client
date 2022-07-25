@@ -6,8 +6,7 @@ namespace Keboola\JobQueueInternalClient\Tests;
 
 use Keboola\JobQueueInternalClient\Client;
 use Keboola\JobQueueInternalClient\ClientFactory;
-use Keboola\StorageApiBranch\Factory\ClientOptions;
-use Keboola\StorageApiBranch\Factory\StorageClientPlainFactory;
+use Keboola\JobQueueInternalClient\JobFactory;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\Test\TestLogger;
 
@@ -17,12 +16,9 @@ class ClientFactoryTest extends TestCase
     {
         $testLogger = new TestLogger();
         $factory = new ClientFactory(
-            (string) getenv('TEST_QUEUE_API_URL'),
-            (string) getenv('TEST_QUEUE_API_TOKEN'),
-            'us-east-1',
-            'alias/some-key',
-            '',
-            new StorageClientPlainFactory(new ClientOptions((string) getenv('TEST_STORAGE_API_URL'))),
+            'https://connection.keboola.com',
+            'internalApiToken',
+            $this->createMock(JobFactory::class),
             $testLogger
         );
         $client = $factory->getClient();

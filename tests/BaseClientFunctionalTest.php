@@ -5,12 +5,18 @@ declare(strict_types=1);
 namespace Keboola\JobQueueInternalClient\Tests;
 
 use Keboola\JobQueueInternalClient\Client;
+use Keboola\JobQueueInternalClient\DataPlane\DataPlaneConfigRepository;
+use Keboola\JobQueueInternalClient\DataPlane\DataPlaneConfigValidator;
+use Keboola\JobQueueInternalClient\DataPlane\DataPlaneObjectEncryptorFactory;
 use Keboola\JobQueueInternalClient\JobFactory;
 use Keboola\JobQueueInternalClient\JobFactory\Job;
+use Keboola\ManageApi\Client as ManageApiClient;
+use Keboola\ObjectEncryptor\EncryptorOptions;
 use Keboola\ObjectEncryptor\ObjectEncryptorFactory;
 use Keboola\StorageApiBranch\Factory\ClientOptions;
 use Keboola\StorageApiBranch\Factory\StorageClientPlainFactory;
 use Psr\Log\NullLogger;
+use Symfony\Component\Validator\Validation;
 
 abstract class BaseClientFunctionalTest extends BaseTest
 {
@@ -40,14 +46,36 @@ abstract class BaseClientFunctionalTest extends BaseTest
         $storageClientFactory = new StorageClientPlainFactory(new ClientOptions(
             (string) getenv('TEST_STORAGE_API_URL')
         ));
-        $objectEncryptorFactory = new ObjectEncryptorFactory(
+
+        $objectEncryptor = ObjectEncryptorFactory::getEncryptor(new EncryptorOptions(
+            (string) parse_url((string) getenv('TEST_STORAGE_API_URL'), PHP_URL_HOST),
             $kmsKeyId ?? (string) getenv('TEST_KMS_KEY_ID'),
             (string) getenv('TEST_KMS_REGION'),
-            '',
-            '',
-            $keyVaultUrl ?? (string) getenv('TEST_AZURE_KEY_VAULT_URL')
+            null,
+            $keyVaultUrl ?? (string) getenv('TEST_AZURE_KEY_VAULT_URL'),
+        ));
+
+        $objectEncryptorFactory = new DataPlaneObjectEncryptorFactory(
+            (string) parse_url((string) getenv('TEST_STORAGE_API_URL'), PHP_URL_HOST),
+            (string) getenv('TEST_KMS_REGION'),
         );
-        return new JobFactory($storageClientFactory, $objectEncryptorFactory);
+
+        $dataPlaneConfigRepository = new DataPlaneConfigRepository(
+            new ManageApiClient([
+                'url' => (string) getenv('TEST_STORAGE_API_URL'),
+                'token' => (string) getenv('TEST_MANAGE_API_TOKEN'),
+            ]),
+            new DataPlaneConfigValidator(Validation::createValidator()),
+        );
+
+        return new JobFactory(
+            $storageClientFactory,
+            new JobFactory\JobRuntimeResolver($storageClientFactory),
+            $objectEncryptor,
+            $objectEncryptorFactory,
+            $dataPlaneConfigRepository,
+            getenv('SUPPORTS_DATA_PLANE') === 'true',
+        );
     }
 
     private function cleanJobs(): void

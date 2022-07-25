@@ -10,6 +10,8 @@ use GuzzleHttp\Middleware;
 use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\Psr7\Response;
 use Keboola\JobQueueInternalClient\Client;
+use Keboola\JobQueueInternalClient\DataPlane\DataPlaneConfigRepository;
+use Keboola\JobQueueInternalClient\DataPlane\DataPlaneObjectEncryptorFactory;
 use Keboola\JobQueueInternalClient\Exception\ClientException;
 use Keboola\JobQueueInternalClient\JobFactory;
 use Keboola\JobQueueInternalClient\JobFactory\Job;
@@ -17,6 +19,8 @@ use Keboola\JobQueueInternalClient\JobListOptions;
 use Keboola\JobQueueInternalClient\JobPatchData;
 use Keboola\JobQueueInternalClient\Result\JobMetrics;
 use Keboola\JobQueueInternalClient\Result\JobResult;
+use Keboola\ObjectEncryptor\EncryptorOptions;
+use Keboola\ObjectEncryptor\ObjectEncryptor;
 use Keboola\ObjectEncryptor\ObjectEncryptorFactory;
 use Keboola\StorageApiBranch\Factory\ClientOptions;
 use Keboola\StorageApiBranch\Factory\StorageClientPlainFactory;
@@ -27,20 +31,30 @@ use Psr\Log\Test\TestLogger;
 
 class ClientTest extends BaseTest
 {
-    private function getJobFactory(): JobFactory
+    private function getClient(array $options, ?LoggerInterface $logger = null): Client
     {
         $storageClientFactory = new StorageClientPlainFactory(new ClientOptions(
             'http://example.com/',
         ));
-        $objectEncryptorFactory = new ObjectEncryptorFactory('alias/some-key', 'us-east-1', '', '', '');
-        return new JobFactory($storageClientFactory, $objectEncryptorFactory);
-    }
 
-    private function getClient(array $options, ?LoggerInterface $logger = null): Client
-    {
+        $jobFactory = new JobFactory(
+            $storageClientFactory,
+            new JobFactory\JobRuntimeResolver($storageClientFactory),
+            new ObjectEncryptor(new EncryptorOptions(
+                'stackId',
+                'kmsKeyId',
+                'kmsRegion',
+                null,
+                null
+            )),
+            $this->createMock(DataPlaneObjectEncryptorFactory::class),
+            $this->createMock(DataPlaneConfigRepository::class),
+            false
+        );
+
         return new Client(
             $logger ?? new NullLogger(),
-            $this->getJobFactory(),
+            $jobFactory,
             'http://example.com/',
             'testToken',
             $options
@@ -49,13 +63,13 @@ class ClientTest extends BaseTest
 
     public function testCreateClientInvalidBackoff(): void
     {
-        self::expectException(ClientException::class);
-        self::expectExceptionMessage(
+        $this->expectException(ClientException::class);
+        $this->expectExceptionMessage(
             'Invalid parameters when creating client: Value "abc" is invalid: This value should be a valid number'
         );
         new Client(
             new NullLogger(),
-            $this->getJobFactory(),
+            $this->createMock(JobFactory::class),
             'http://example.com/',
             'testToken',
             ['backoffMaxTries' => 'abc']
@@ -64,13 +78,13 @@ class ClientTest extends BaseTest
 
     public function testCreateClientTooLowBackoff(): void
     {
-        self::expectException(ClientException::class);
-        self::expectExceptionMessage(
+        $this->expectException(ClientException::class);
+        $this->expectExceptionMessage(
             'Invalid parameters when creating client: Value "-1" is invalid: This value should be between 0 and 100.'
         );
         new Client(
             new NullLogger(),
-            $this->getJobFactory(),
+            $this->createMock(JobFactory::class),
             'http://example.com/',
             'testToken',
             ['backoffMaxTries' => -1]
@@ -79,13 +93,13 @@ class ClientTest extends BaseTest
 
     public function testCreateClientTooHighBackoff(): void
     {
-        self::expectException(ClientException::class);
-        self::expectExceptionMessage(
+        $this->expectException(ClientException::class);
+        $this->expectExceptionMessage(
             'Invalid parameters when creating client: Value "101" is invalid: This value should be between 0 and 100.'
         );
         new Client(
             new NullLogger(),
-            $this->getJobFactory(),
+            $this->createMock(JobFactory::class),
             'http://example.com/',
             'testToken',
             ['backoffMaxTries' => 101]
@@ -94,30 +108,30 @@ class ClientTest extends BaseTest
 
     public function testCreateClientInvalidToken(): void
     {
-        self::expectException(ClientException::class);
-        self::expectExceptionMessage(
+        $this->expectException(ClientException::class);
+        $this->expectExceptionMessage(
             'Invalid parameters when creating client: Value "" is invalid: This value should not be blank.'
         );
-        new Client(new NullLogger(), $this->getJobFactory(), 'http://example.com/', '');
+        new Client(new NullLogger(), $this->createMock(JobFactory::class), 'http://example.com/', '');
     }
 
     public function testCreateClientInvalidUrl(): void
     {
-        self::expectException(ClientException::class);
-        self::expectExceptionMessage(
+        $this->expectException(ClientException::class);
+        $this->expectExceptionMessage(
             'Invalid parameters when creating client: Value "invalid url" is invalid: This value is not a valid URL.'
         );
-        new Client(new NullLogger(), $this->getJobFactory(), 'invalid url', 'testToken');
+        new Client(new NullLogger(), $this->createMock(JobFactory::class), 'invalid url', 'testToken');
     }
 
     public function testCreateClientMultipleErrors(): void
     {
-        self::expectException(ClientException::class);
-        self::expectExceptionMessage(
+        $this->expectException(ClientException::class);
+        $this->expectExceptionMessage(
             'Invalid parameters when creating client: Value "invalid url" is invalid: This value is not a valid URL.'
             . "\n" . 'Value "" is invalid: This value should not be blank.' . "\n"
         );
-        new Client(new NullLogger(), $this->getJobFactory(), 'invalid url', '');
+        new Client(new NullLogger(), $this->createMock(JobFactory::class), 'invalid url', '');
     }
 
     public function testClientRequestResponse(): void
@@ -208,8 +222,8 @@ class ClientTest extends BaseTest
         $stack = HandlerStack::create($mock);
         $stack->push($history);
         $client = $this->getClient(['handler' => $stack]);
-        self::expectException(ClientException::class);
-        self::expectExceptionMessage('Unable to parse response body into JSON: Syntax error');
+        $this->expectException(ClientException::class);
+        $this->expectExceptionMessage('Unable to parse response body into JSON: Syntax error');
         $client->getJob('123');
     }
 
@@ -476,8 +490,8 @@ Out of order
         $stack = HandlerStack::create($mock);
         $stack->push($history);
         $client = $this->getClient(['handler' => $stack]);
-        self::expectException(ClientException::class);
-        self::expectExceptionMessage('Invalid job ID: "".');
+        $this->expectException(ClientException::class);
+        $this->expectExceptionMessage('Invalid job ID: "".');
         $client->postJobResult(
             '',
             JobFactory::STATUS_SUCCESS,
@@ -500,14 +514,14 @@ Out of order
         $stack = HandlerStack::create($mock);
         $stack->push($history);
         $client = $this->getClient(['handler' => $stack]);
-        $job = self::getMockBuilder(Job::class)
+        $job = $this->getMockBuilder(Job::class)
             ->disableOriginalConstructor()
             ->onlyMethods(['jsonSerialize'])
             ->getMock();
         $job->method('jsonSerialize')->willReturn(['foo' => fopen('php://memory', 'rw')]);
         /** @var Job $job */
-        self::expectException(ClientException::class);
-        self::expectExceptionMessage('Invalid job data: Type is not supported');
+        $this->expectException(ClientException::class);
+        $this->expectExceptionMessage('Invalid job data: Type is not supported');
         $client->createJob($job);
     }
 
@@ -914,10 +928,10 @@ Out of order
 
     public function testClientUpdateJobWithEmptyIdThrowsException(): void
     {
-        $objectEncryptorFactory = new ObjectEncryptorFactory('alias/some-key', 'us-east-1', '', '', '');
+        $objectEncryptor = ObjectEncryptorFactory::getAwsEncryptor('local', 'alias/some-key', 'us-east-1', null);
         $storageClientFactory = new StorageClientPlainFactory(new ClientOptions());
         $job = new Job(
-            $objectEncryptorFactory,
+            $objectEncryptor,
             $storageClientFactory,
             [
                 'status' => JobFactory::STATUS_SUCCESS,
