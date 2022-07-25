@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Daemon\DataPlane\Exception;
+namespace Keboola\JobQueueInternalClient\DataPlane\Exception;
 
 use RuntimeException;
 

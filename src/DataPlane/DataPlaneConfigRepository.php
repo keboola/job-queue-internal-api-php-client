@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Keboola\JobQueueInternalClient\DataPlane;
 
-use App\Daemon\DataPlane\Exception\DataPlaneNotFoundException;
+use Keboola\JobQueueInternalClient\DataPlane\Exception\DataPlaneNotFoundException;
 use Keboola\ManageApi\Client as ManageApiClient;
 use Keboola\ManageApi\ClientException;
 use RuntimeException;
