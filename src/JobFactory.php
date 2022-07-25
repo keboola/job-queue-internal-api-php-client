@@ -122,8 +122,7 @@ class JobFactory
             ))->getBasicClient();
             $tokenInfo = $client->verifyToken();
             $jobId = $client->generateId();
-            $runId = empty($data['parentRunId']) ?
-                $jobId :
+            $runId = empty($data['parentRunId']) ? $jobId :
                 $data['parentRunId'] . JobInterface::RUN_ID_DELIMITER . $jobId;
         } catch (StorageClientException $e) {
             throw new ClientException(
