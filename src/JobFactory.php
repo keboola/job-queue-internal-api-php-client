@@ -202,7 +202,11 @@ class JobFactory
     {
         $data = $this->validateJobData($data, FullJobDefinition::class);
 
-        if ($data['dataPlaneId'] ?? null) {
+        // combination $this->supportsDataPlanes === false && data['dataPlaneId'] !== null should be considered an error
+        // in the future, but we can't do that now as Job Runner does use this now but knows nothing about the data
+        // plane
+
+        if ($this->supportsDataPlanes && ($data['dataPlaneId'] ?? null)) {
             $dataPlaneConfig = $this->dataPlaneConfigRepository->fetchDataPlaneConfig($data['dataPlaneId']);
             $objectEncryptor = $this->objectEncryptorFactory->getObjectEncryptor(
                 $data['dataPlaneId'],

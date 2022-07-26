@@ -867,4 +867,56 @@ class JobFactoryTest extends BaseTest
             $job->getConfigDataDecrypted()
         );
     }
+
+    public function testLoadExistingDataPlaneJobWithoutDataPlaneSupport(): void
+    {
+        [$factory, $controlPlaneObjectEncryptor] = $this->getJobFactoryWithoutDataPlaneSupport();
+
+        $data = [
+            'id' => '123',
+            'runId' => '123',
+            'projectId' => self::$projectId,
+            'dataPlaneId' => 'dataPlaneId',
+            'tokenId' => '1234',
+            'status' => JobFactory::STATUS_CREATED,
+            'desiredStatus' => JobFactory::DESIRED_STATUS_PROCESSING,
+            '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+            'configId' => self::$configId1,
+            'configData' => [
+                '#foo1' => $controlPlaneObjectEncryptor->encryptForProject(
+                    'bar1',
+                    self::COMPONENT_ID_1,
+                    self::$projectId,
+                ),
+                '#foo2' => $controlPlaneObjectEncryptor->encryptForComponent(
+                    'bar2',
+                    self::COMPONENT_ID_1,
+                ),
+                '#foo3' => $controlPlaneObjectEncryptor->encryptForConfiguration(
+                    'bar3',
+                    self::COMPONENT_ID_1,
+                    self::$projectId,
+                    (string) self::$configId1
+                ),
+            ],
+            'componentId' => self::COMPONENT_ID_1,
+            'mode' => 'run',
+        ];
+        $job = $factory->loadFromExistingJobData($data);
+        self::assertNotEmpty($job->getId());
+        self::assertSame(self::$configId1, $job->getConfigId());
+        self::assertSame(getenv('TEST_STORAGE_API_TOKEN'), $job->getTokenString());
+
+        self::assertStringStartsWith('KBC::ProjectSecure', $job->getConfigData()['#foo1']);
+        self::assertStringStartsWith('KBC::ComponentSecure', $job->getConfigData()['#foo2']);
+        self::assertStringStartsWith('KBC::ConfigSecure', $job->getConfigData()['#foo3']);
+        self::assertEquals(
+            [
+                '#foo1' => 'bar1',
+                '#foo2' => 'bar2',
+                '#foo3' => 'bar3',
+            ],
+            $job->getConfigDataDecrypted()
+        );
+    }
 }
