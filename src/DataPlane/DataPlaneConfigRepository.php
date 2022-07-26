@@ -33,7 +33,7 @@ class DataPlaneConfigRepository
      *         encryption: array{
      *             type: 'aws',
      *             kmsKeyId: string,
-     *             encryptionRoleArn: string,
+     *             kmsRoleArn: string,
      *         },
      *     }
      * }
@@ -72,7 +72,7 @@ class DataPlaneConfigRepository
      *     encryption: array{
      *         type: 'aws',
      *         kmsKeyId: string,
-     *         encryptionRoleArn: string,
+     *         kmsRoleArn: string,
      *     },
      * }
      */

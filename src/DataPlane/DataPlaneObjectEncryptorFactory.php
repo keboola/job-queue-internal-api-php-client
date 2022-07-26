@@ -23,7 +23,7 @@ class DataPlaneObjectEncryptorFactory
      * @param array{
      *     type: 'aws',
      *     kmsKeyId: string,
-     *     encryptionRoleArn: string,
+     *     kmsRoleArn: string,
      * } $encryptionConfig
      */
     public function getObjectEncryptor(string $dataPlaneId, array $encryptionConfig): ObjectEncryptor
@@ -33,7 +33,7 @@ class DataPlaneObjectEncryptorFactory
                 $this->stackId,
                 $encryptionConfig['kmsKeyId'],
                 $this->kmsRegion,
-                $encryptionConfig['encryptionRoleArn']
+                $encryptionConfig['kmsRoleArn']
             );
         }
 
