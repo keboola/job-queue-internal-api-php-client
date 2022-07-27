@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Keboola\JobQueueInternalClient\DataPlane;
 
+use Keboola\JobQueueInternalClient\DataPlane\Config\DataPlaneConfig;
+use Keboola\JobQueueInternalClient\DataPlane\Config\Encryption\AwsEncryptionConfig;
+use Keboola\JobQueueInternalClient\DataPlane\Config\KubernetesConfig;
 use Keboola\JobQueueInternalClient\DataPlane\Exception\DataPlaneNotFoundException;
 use Keboola\ManageApi\Client as ManageApiClient;
 use Keboola\ManageApi\ClientException;
@@ -13,32 +16,22 @@ class DataPlaneConfigRepository
 {
     private ManageApiClient $manageApiClient;
     private DataPlaneConfigValidator $configValidator;
+    private string $stackId;
+    private string $kmsRegion;
 
-    public function __construct(ManageApiClient $manageApiClient, DataPlaneConfigValidator $configValidator)
-    {
+    public function __construct(
+        ManageApiClient $manageApiClient,
+        DataPlaneConfigValidator $configValidator,
+        string $stackId,
+        string $kmsRegion
+    ) {
         $this->manageApiClient = $manageApiClient;
         $this->configValidator = $configValidator;
+        $this->stackId = $stackId;
+        $this->kmsRegion = $kmsRegion;
     }
 
-    /**
-     * @return null|array{
-     *     id: string,
-     *     parameters: array{
-     *         kubernetes: array{
-     *             apiUrl: string,
-     *             token: string,
-     *             certificateAuthority: string,
-     *             namespace: string,
-     *         },
-     *         encryption: array{
-     *             type: 'aws',
-     *             kmsKeyId: string,
-     *             kmsRoleArn: string,
-     *         },
-     *     }
-     * }
-     */
-    public function fetchProjectDataPlane(string $projectId): ?array
+    public function fetchProjectDataPlane(string $projectId): ?DataPlaneConfig
     {
         $project = $this->manageApiClient->getProject($projectId);
 
@@ -49,34 +42,13 @@ class DataPlaneConfigRepository
             return null;
         }
 
-        $dataPlaneId = (string) $dataPlane['id'];
-        $dataPlaneConfig = $this->configValidator->validateDataPlaneConfig(
-            $dataPlaneId,
-            $dataPlane['parameters'] ?? []
+        return $this->mapDataPlaneConfig(
+            (string) $dataPlane['id'],
+            $dataPlane['parameters'] ?? [],
         );
-
-        return [
-            'id' => $dataPlaneId,
-            'parameters' => $dataPlaneConfig,
-        ];
     }
 
-    /**
-     * @return array{
-     *     kubernetes: array{
-     *         apiUrl: string,
-     *         token: string,
-     *         certificateAuthority: string,
-     *         namespace: string,
-     *     },
-     *     encryption: array{
-     *         type: 'aws',
-     *         kmsKeyId: string,
-     *         kmsRoleArn: string,
-     *     },
-     * }
-     */
-    public function fetchDataPlaneConfig(string $dataPlaneId): array
+    public function fetchDataPlaneConfig(string $dataPlaneId): DataPlaneConfig
     {
         if (!ctype_digit($dataPlaneId)) {
             throw new RuntimeException(sprintf(
@@ -98,6 +70,46 @@ class DataPlaneConfigRepository
             throw $e;
         }
 
-        return $this->configValidator->validateDataPlaneConfig($dataPlaneId, $dataPlane['parameters'] ?? []);
+        return $this->mapDataPlaneConfig(
+            $dataPlaneId,
+            $dataPlane['parameters'] ?? [],
+        );
+    }
+
+    private function mapDataPlaneConfig(string $dataPlaneId, array $data): DataPlaneConfig
+    {
+        $data = $this->configValidator->validateDataPlaneConfig($dataPlaneId, $data);
+
+        $kubernetesData = $data['kubernetes'];
+        $kubernetesConfig = new KubernetesConfig(
+            $kubernetesData['apiUrl'],
+            $kubernetesData['token'],
+            $kubernetesData['certificateAuthority'],
+            $kubernetesData['namespace'],
+        );
+
+        $encryptionData = $data['encryption'];
+        switch ($encryptionData['type']) {
+            case 'aws':
+                $encryptionConfig = new AwsEncryptionConfig(
+                    $this->stackId,
+                    $this->kmsRegion,
+                    $encryptionData['kmsKeyId'],
+                    $encryptionData['kmsRoleArn'],
+                );
+                break;
+
+            default:
+                throw new RuntimeException(sprintf(
+                    'Invalid encryption type "%s"',
+                    $encryptionData['type']
+                ));
+        }
+
+        return new DataPlaneConfig(
+            $dataPlaneId,
+            $kubernetesConfig,
+            $encryptionConfig,
+        );
     }
 }

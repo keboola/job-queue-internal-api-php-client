@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Keboola\JobQueueInternalClient;
 
 use Keboola\JobQueueInternalClient\DataPlane\DataPlaneConfigRepository;
-use Keboola\JobQueueInternalClient\DataPlane\DataPlaneObjectEncryptorFactory;
 use Keboola\JobQueueInternalClient\Exception\ClientException;
 use Keboola\JobQueueInternalClient\JobFactory\Behavior;
 use Keboola\JobQueueInternalClient\JobFactory\FullJobDefinition;
@@ -47,7 +46,6 @@ class JobFactory
     private StorageClientPlainFactory $storageClientFactory;
     private JobRuntimeResolver $jobRuntimeResolver;
     private ObjectEncryptor $controlPlaneObjectEncryptor;
-    private DataPlaneObjectEncryptorFactory $objectEncryptorFactory;
     private DataPlaneConfigRepository $dataPlaneConfigRepository;
     private bool $supportsDataPlanes;
 
@@ -55,14 +53,12 @@ class JobFactory
         StorageClientPlainFactory $storageClientFactory,
         JobRuntimeResolver $jobRuntimeResolver,
         ObjectEncryptor $controlPlaneEncryptor,
-        DataPlaneObjectEncryptorFactory $objectEncryptorFactory,
         DataPlaneConfigRepository $dataPlaneConfigRepository,
         bool $supportsDataPlanes
     ) {
         $this->storageClientFactory = $storageClientFactory;
         $this->jobRuntimeResolver = $jobRuntimeResolver;
         $this->controlPlaneObjectEncryptor = $controlPlaneEncryptor;
-        $this->objectEncryptorFactory = $objectEncryptorFactory;
         $this->dataPlaneConfigRepository = $dataPlaneConfigRepository;
         $this->supportsDataPlanes = $supportsDataPlanes;
     }
@@ -147,10 +143,7 @@ class JobFactory
         }
 
         if ($dataPlaneConfig !== null) {
-            $objectEncryptor = $this->objectEncryptorFactory->getObjectEncryptor(
-                $dataPlaneConfig['id'],
-                $dataPlaneConfig['parameters']['encryption'],
-            );
+            $objectEncryptor = $dataPlaneConfig->getEncryption()->createEncryptor();
         } else {
             $objectEncryptor = $this->controlPlaneObjectEncryptor;
         }
@@ -160,7 +153,7 @@ class JobFactory
             'runId' => $runId,
             'projectId' => $tokenInfo['owner']['id'],
             'projectName' => $tokenInfo['owner']['name'],
-            'dataPlaneId' => $dataPlaneConfig['id'] ?? null,
+            'dataPlaneId' => $dataPlaneConfig ? $dataPlaneConfig->getId() : null,
             'tokenId' => $tokenInfo['id'],
             '#tokenString' => $data['#tokenString'],
             'tokenDescription' => $tokenInfo['description'],
@@ -208,10 +201,7 @@ class JobFactory
 
         if ($this->supportsDataPlanes && ($data['dataPlaneId'] ?? null)) {
             $dataPlaneConfig = $this->dataPlaneConfigRepository->fetchDataPlaneConfig($data['dataPlaneId']);
-            $objectEncryptor = $this->objectEncryptorFactory->getObjectEncryptor(
-                $data['dataPlaneId'],
-                $dataPlaneConfig['encryption'],
-            );
+            $objectEncryptor = $dataPlaneConfig->getEncryption()->createEncryptor();
         } else {
             $objectEncryptor = $this->controlPlaneObjectEncryptor;
         }
