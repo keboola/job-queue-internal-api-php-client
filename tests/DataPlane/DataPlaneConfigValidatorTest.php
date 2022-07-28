@@ -23,7 +23,7 @@ class DataPlaneConfigValidatorTest extends TestCase
             ],
             'kubernetes' => [
                 'apiUrl' => 'https://kubernetes.local',
-                'token' => 'token',
+                '#token' => 'token',
                 'certificateAuthority' => 'certificateAuthority',
                 'namespace' => 'namespace',
             ],
@@ -46,7 +46,7 @@ class DataPlaneConfigValidatorTest extends TestCase
             ],
             'kubernetes' => [
                 'apiUrl' => 'https://kubernetes.local',
-                'token' => 'token',
+                '#token' => 'token',
                 'certificateAuthority' => 'certificateAuthority',
                 'namespace' => 'namespace',
                 'somethingExtra' => 'value',
@@ -84,7 +84,7 @@ class DataPlaneConfigValidatorTest extends TestCase
                 'encryption' => [],
             ],
             'error' => 'Data plane "1" configuration is not valid: [kubernetes][apiUrl] This field is missing.
-[kubernetes][token] This field is missing.
+[kubernetes][#token] This field is missing.
 [kubernetes][certificateAuthority] This field is missing.
 [kubernetes][namespace] This field is missing.
 [encryption][type] This field is missing.',
@@ -94,7 +94,7 @@ class DataPlaneConfigValidatorTest extends TestCase
             'config' => [
                 'kubernetes' => [
                     'apiUrl' => 1,
-                    'token' => 1,
+                    '#token' => 1,
                     'certificateAuthority' => 1,
                     'namespace' => 1,
                 ],
@@ -103,7 +103,7 @@ class DataPlaneConfigValidatorTest extends TestCase
                 ],
             ],
             'error' => 'Data plane "1" configuration is not valid: [kubernetes][apiUrl] This value is not a valid URL.
-[kubernetes][token] This value should be of type string.
+[kubernetes][#token] This value should be of type string.
 [kubernetes][certificateAuthority] This value should be of type string.
 [kubernetes][namespace] This value should be of type string.
 [encryption][type] The value you selected is not a valid choice.',
@@ -113,7 +113,7 @@ class DataPlaneConfigValidatorTest extends TestCase
             'config' => [
                 'kubernetes' => [
                     'apiUrl' => 'https://kubernetes.local',
-                    'token' => 'token',
+                    '#token' => 'token',
                     'certificateAuthority' => 'certificateAuthority',
                     'namespace' => 'namespace',
                 ],
@@ -129,7 +129,7 @@ class DataPlaneConfigValidatorTest extends TestCase
             'config' => [
                 'kubernetes' => [
                     'apiUrl' => 'https://kubernetes.local',
-                    'token' => 'token',
+                    '#token' => 'token',
                     'certificateAuthority' => 'certificateAuthority',
                     'namespace' => 'namespace',
                 ],

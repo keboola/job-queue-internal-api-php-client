@@ -24,7 +24,7 @@ class DataPlaneConfigValidator
      * @return array{
      *     kubernetes: array{
      *         apiUrl: string,
-     *         token: string,
+     *         '#token': string,
      *         certificateAuthority: string,
      *         namespace: string,
      *     },
@@ -61,7 +61,7 @@ class DataPlaneConfigValidator
                                 new Assert\Url(),
                             ],
 
-                            'token' => [
+                            '#token' => [
                                 new Assert\NotBlank(),
                                 new Assert\Type('string'),
                             ],

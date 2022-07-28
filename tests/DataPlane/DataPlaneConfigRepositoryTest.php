@@ -28,7 +28,7 @@ class DataPlaneConfigRepositoryTest extends TestCase
             ],
             'kubernetes' => [
                 'apiUrl' => 'https://kubernetes.local',
-                'token' => 'token',
+                '#token' => 'token',
                 'certificateAuthority' => 'certificateAuthority',
                 'namespace' => 'namespace',
             ],

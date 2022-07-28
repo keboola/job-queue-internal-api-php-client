@@ -83,7 +83,7 @@ class DataPlaneConfigRepository
         $kubernetesData = $data['kubernetes'];
         $kubernetesConfig = new KubernetesConfig(
             $kubernetesData['apiUrl'],
-            $kubernetesData['token'],
+            $kubernetesData['#token'],
             $kubernetesData['certificateAuthority'],
             $kubernetesData['namespace'],
         );
