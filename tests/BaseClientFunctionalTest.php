@@ -7,7 +7,6 @@ namespace Keboola\JobQueueInternalClient\Tests;
 use Keboola\JobQueueInternalClient\Client;
 use Keboola\JobQueueInternalClient\DataPlane\DataPlaneConfigRepository;
 use Keboola\JobQueueInternalClient\DataPlane\DataPlaneConfigValidator;
-use Keboola\JobQueueInternalClient\DataPlane\DataPlaneObjectEncryptorFactory;
 use Keboola\JobQueueInternalClient\JobFactory;
 use Keboola\JobQueueInternalClient\JobFactory\Job;
 use Keboola\ManageApi\Client as ManageApiClient;
@@ -55,24 +54,20 @@ abstract class BaseClientFunctionalTest extends BaseTest
             $keyVaultUrl ?? (string) getenv('TEST_AZURE_KEY_VAULT_URL'),
         ));
 
-        $objectEncryptorFactory = new DataPlaneObjectEncryptorFactory(
-            (string) parse_url((string) getenv('TEST_STORAGE_API_URL'), PHP_URL_HOST),
-            (string) getenv('TEST_KMS_REGION'),
-        );
-
         $dataPlaneConfigRepository = new DataPlaneConfigRepository(
             new ManageApiClient([
                 'url' => (string) getenv('TEST_STORAGE_API_URL'),
                 'token' => (string) getenv('TEST_MANAGE_API_TOKEN'),
             ]),
             new DataPlaneConfigValidator(Validation::createValidator()),
+            (string) parse_url((string) getenv('TEST_STORAGE_API_URL'), PHP_URL_HOST),
+            (string) getenv('TEST_KMS_REGION'),
         );
 
         return new JobFactory(
             $storageClientFactory,
             new JobFactory\JobRuntimeResolver($storageClientFactory),
             $objectEncryptor,
-            $objectEncryptorFactory,
             $dataPlaneConfigRepository,
             getenv('SUPPORTS_DATA_PLANE') === 'true',
         );

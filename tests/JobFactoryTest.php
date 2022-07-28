@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace Keboola\JobQueueInternalClient\Tests;
 
+use Keboola\JobQueueInternalClient\DataPlane\Config\DataPlaneConfig;
+use Keboola\JobQueueInternalClient\DataPlane\Config\Encryption\TestingEncryptorConfig;
+use Keboola\JobQueueInternalClient\DataPlane\Config\KubernetesConfig;
 use Keboola\JobQueueInternalClient\DataPlane\DataPlaneConfigRepository;
-use Keboola\JobQueueInternalClient\DataPlane\DataPlaneObjectEncryptorFactory;
 use Keboola\JobQueueInternalClient\Exception\ClientException;
 use Keboola\JobQueueInternalClient\JobFactory;
 use Keboola\ObjectEncryptor\EncryptorOptions;
@@ -80,9 +82,6 @@ class JobFactoryTest extends BaseTest
             (string) getenv('TEST_AZURE_KEY_VAULT_URL'),
         ));
 
-        $objectEncryptorFactory = $this->createMock(DataPlaneObjectEncryptorFactory::class);
-        $objectEncryptorFactory->expects(self::never())->method(self::anything());
-
         $dataPlaneConfigRepository = $this->createMock(DataPlaneConfigRepository::class);
         $dataPlaneConfigRepository->expects(self::never())->method(self::anything());
 
@@ -90,7 +89,6 @@ class JobFactoryTest extends BaseTest
             $storageClientFactory,
             new JobFactory\JobRuntimeResolver($storageClientFactory),
             $objectEncryptor,
-            $objectEncryptorFactory,
             $dataPlaneConfigRepository,
             false,
         );
@@ -120,45 +118,25 @@ class JobFactoryTest extends BaseTest
             (string) getenv('TEST_AZURE_KEY_VAULT_URL'),
         ));
 
-        $objectEncryptorFactory = $this->createMock(DataPlaneObjectEncryptorFactory::class);
         $dataPlaneConfigRepository = $this->createMock(DataPlaneConfigRepository::class);
 
         if ($projectHasDataPlane) {
-            $objectEncryptorFactory
-                ->method('getObjectEncryptor')
-                ->with('dataPlaneId', [
-                    'type' => 'aws',
-                    'kmsKeyId' => 'kmsKeyId',
-                    'kmsRoleArn' => 'kmsRoleArn',
-                ])
-                ->willReturn($dataPlaneObjectEncryptor)
-            ;
+            $dataPlaneConfig = new DataPlaneConfig(
+                'dataPlaneId',
+                new KubernetesConfig('', '', '', ''),
+                new TestingEncryptorConfig($dataPlaneObjectEncryptor),
+            );
 
             $dataPlaneConfigRepository
                 ->method('fetchProjectDataPlane')
                 ->with(self::$projectId)
-                ->willReturn([
-                    'id' => 'dataPlaneId',
-                    'parameters' => [
-                        'encryption' => [
-                            'type' => 'aws',
-                            'kmsKeyId' => 'kmsKeyId',
-                            'kmsRoleArn' => 'kmsRoleArn',
-                        ],
-                    ],
-                ])
+                ->willReturn($dataPlaneConfig)
             ;
 
             $dataPlaneConfigRepository
                 ->method('fetchDataPlaneConfig')
                 ->with('dataPlaneId')
-                ->willReturn([
-                    'encryption' => [
-                        'type' => 'aws',
-                        'kmsKeyId' => 'kmsKeyId',
-                        'kmsRoleArn' => 'kmsRoleArn',
-                    ],
-                ])
+                ->willReturn($dataPlaneConfig)
             ;
         } else {
             $dataPlaneConfigRepository
@@ -171,7 +149,6 @@ class JobFactoryTest extends BaseTest
             $storageClientFactory,
             new JobFactory\JobRuntimeResolver($storageClientFactory),
             $controlPlaneObjectEncryptor,
-            $objectEncryptorFactory,
             $dataPlaneConfigRepository,
             true,
         );

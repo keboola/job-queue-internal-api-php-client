@@ -11,7 +11,6 @@ use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\Psr7\Response;
 use Keboola\JobQueueInternalClient\Client;
 use Keboola\JobQueueInternalClient\DataPlane\DataPlaneConfigRepository;
-use Keboola\JobQueueInternalClient\DataPlane\DataPlaneObjectEncryptorFactory;
 use Keboola\JobQueueInternalClient\Exception\ClientException;
 use Keboola\JobQueueInternalClient\JobFactory;
 use Keboola\JobQueueInternalClient\JobFactory\Job;
@@ -47,7 +46,6 @@ class ClientTest extends BaseTest
                 null,
                 null
             )),
-            $this->createMock(DataPlaneObjectEncryptorFactory::class),
             $this->createMock(DataPlaneConfigRepository::class),
             false
         );

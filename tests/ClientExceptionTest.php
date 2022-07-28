@@ -11,7 +11,6 @@ use GuzzleHttp\Middleware;
 use GuzzleHttp\Psr7\Response;
 use Keboola\JobQueueInternalClient\Client;
 use Keboola\JobQueueInternalClient\DataPlane\DataPlaneConfigRepository;
-use Keboola\JobQueueInternalClient\DataPlane\DataPlaneObjectEncryptorFactory;
 use Keboola\JobQueueInternalClient\Exception\StateTargetEqualsCurrentException;
 use Keboola\JobQueueInternalClient\Exception\StateTerminalException;
 use Keboola\JobQueueInternalClient\Exception\StateTransitionForbiddenException;
@@ -42,7 +41,6 @@ class ClientExceptionTest extends BaseTest
                 null,
                 null
             )),
-            $this->createMock(DataPlaneObjectEncryptorFactory::class),
             $this->createMock(DataPlaneConfigRepository::class),
             false
         );
