@@ -90,7 +90,7 @@ class DataPlaneConfigRepository
 
         $encryptionData = $data['encryption'];
         switch ($encryptionData['type']) {
-            case 'aws':
+            case DataPlaneConfigValidator::ENCRYPTION_TYPE_AWS:
                 $encryptionConfig = new AwsEncryptionConfig(
                     $this->stackId,
                     $this->kmsRegion,
