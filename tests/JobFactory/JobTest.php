@@ -195,27 +195,6 @@ class JobTest extends BaseTest
         self::assertSame(false, $job->hasVariables());
     }
 
-    public function testIsLegacy(): void
-    {
-        self::assertFalse($this->getJob()->isLegacyComponent());
-    }
-
-    public function testIsLegacyOrchestrator(): void
-    {
-        $jobData = $this->jobData;
-        $jobData['componentId'] = 'orchestrator';
-        self::assertTrue($this->getJob($jobData)->isLegacyComponent());
-    }
-
-    public function testLegacyOrchestratorJob(): void
-    {
-        $jobData = $this->jobData;
-        unset($jobData['componentId']);
-        $job = $this->getJob($jobData);
-        self::assertEquals('', $job->getComponentId());
-        self::assertTrue($job->isLegacyComponent());
-    }
-
     public function testJsonSerialize(): void
     {
         $expected = $this->jobData;

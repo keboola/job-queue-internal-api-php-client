@@ -235,11 +235,6 @@ class Job implements JsonSerializable, JobInterface
         );
     }
 
-    public function isLegacyComponent(): bool
-    {
-        return empty($this->getComponentId()) || in_array($this->getComponentId(), JobFactory::getLegacyComponents());
-    }
-
     public function getBranchId(): ?string
     {
         return $this->data['branchId'] ?? null;

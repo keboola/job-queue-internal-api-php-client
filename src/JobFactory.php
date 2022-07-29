@@ -102,11 +102,6 @@ class JobFactory
         return array_merge($intValues, ['infinity', null]);
     }
 
-    public static function getLegacyComponents(): array
-    {
-        return ['orchestrator', 'transformation', 'provisioning'];
-    }
-
     public function createNewJob(array $data): JobInterface
     {
         $data = $this->validateJobData($data, NewJobDefinition::class);
