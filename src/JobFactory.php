@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Keboola\JobQueueInternalClient;
 
-use Keboola\JobQueueInternalClient\DataPlane\DataPlaneConfigRepository;
 use Keboola\JobQueueInternalClient\Exception\ClientException;
 use Keboola\JobQueueInternalClient\JobFactory\Behavior;
 use Keboola\JobQueueInternalClient\JobFactory\FullJobDefinition;
@@ -12,7 +11,7 @@ use Keboola\JobQueueInternalClient\JobFactory\Job;
 use Keboola\JobQueueInternalClient\JobFactory\JobInterface;
 use Keboola\JobQueueInternalClient\JobFactory\JobRuntimeResolver;
 use Keboola\JobQueueInternalClient\JobFactory\NewJobDefinition;
-use Keboola\ObjectEncryptor\ObjectEncryptor;
+use Keboola\JobQueueInternalClient\JobFactory\ObjectEncryptorProvider\ObjectEncryptorProviderInterface;
 use Keboola\StorageApi\ClientException as StorageClientException;
 use Keboola\StorageApiBranch\Factory\ClientOptions;
 use Keboola\StorageApiBranch\Factory\StorageClientPlainFactory;
@@ -45,22 +44,16 @@ class JobFactory
 
     private StorageClientPlainFactory $storageClientFactory;
     private JobRuntimeResolver $jobRuntimeResolver;
-    private ObjectEncryptor $controlPlaneObjectEncryptor;
-    private DataPlaneConfigRepository $dataPlaneConfigRepository;
-    private bool $supportsDataPlanes;
+    private ObjectEncryptorProviderInterface $objectEncryptorProvider;
 
     public function __construct(
         StorageClientPlainFactory $storageClientFactory,
         JobRuntimeResolver $jobRuntimeResolver,
-        ObjectEncryptor $controlPlaneEncryptor,
-        DataPlaneConfigRepository $dataPlaneConfigRepository,
-        bool $supportsDataPlanes
+        ObjectEncryptorProviderInterface $objectEncryptorProvider
     ) {
         $this->storageClientFactory = $storageClientFactory;
         $this->jobRuntimeResolver = $jobRuntimeResolver;
-        $this->controlPlaneObjectEncryptor = $controlPlaneEncryptor;
-        $this->dataPlaneConfigRepository = $dataPlaneConfigRepository;
-        $this->supportsDataPlanes = $supportsDataPlanes;
+        $this->objectEncryptorProvider = $objectEncryptorProvider;
     }
 
     public static function getFinishedStatuses(): array
@@ -129,24 +122,14 @@ class JobFactory
             );
         }
 
-        if ($this->supportsDataPlanes) {
-            $dataPlaneConfig = $this->dataPlaneConfigRepository->fetchProjectDataPlane(
-                (string) $tokenInfo['owner']['id'],
-            );
-        } else {
-            $dataPlaneConfig = null;
-        }
-
-        if ($dataPlaneConfig !== null) {
-            $objectEncryptor = $dataPlaneConfig->getEncryption()->createEncryptor();
-        } else {
-            $objectEncryptor = $this->controlPlaneObjectEncryptor;
-        }
+        $projectId = (string) $tokenInfo['owner']['id'];
+        $dataPlaneConfig = $this->objectEncryptorProvider->getProjectDataPlaneConfig($projectId);
+        $jobObjectEncryptor = $this->objectEncryptorProvider->getDataPlaneObjectEncryptor($dataPlaneConfig);
 
         $jobData = [
             'id' => $jobId,
             'runId' => $runId,
-            'projectId' => $tokenInfo['owner']['id'],
+            'projectId' => $projectId,
             'projectName' => $tokenInfo['owner']['name'],
             'dataPlaneId' => $dataPlaneConfig ? $dataPlaneConfig->getId() : null,
             'tokenId' => $tokenInfo['id'],
@@ -176,32 +159,25 @@ class JobFactory
         // set type after resolving parallelism
         $jobData['type'] = $data['type'] ?? $this->getJobType($jobData);
 
-        $data = $objectEncryptor->encryptForProject(
+        $data = $jobObjectEncryptor->encrypt(
             $jobData,
             (string) $data['componentId'],
             (string) $tokenInfo['owner']['id']
         );
 
         $data = $this->validateJobData($data, FullJobDefinition::class);
-        return new Job($objectEncryptor, $this->storageClientFactory, $data);
+        return new Job($jobObjectEncryptor, $this->storageClientFactory, $data);
     }
 
     public function loadFromExistingJobData(array $data): JobInterface
     {
         $data = $this->validateJobData($data, FullJobDefinition::class);
 
-        // combination $this->supportsDataPlanes === false && data['dataPlaneId'] !== null should be considered an error
-        // in the future, but we can't do that now as Job Runner does use this now but knows nothing about the data
-        // plane
-
-        if ($this->supportsDataPlanes && ($data['dataPlaneId'] ?? null)) {
-            $dataPlaneConfig = $this->dataPlaneConfigRepository->fetchDataPlaneConfig($data['dataPlaneId']);
-            $objectEncryptor = $dataPlaneConfig->getEncryption()->createEncryptor();
-        } else {
-            $objectEncryptor = $this->controlPlaneObjectEncryptor;
-        }
-
-        return new Job($objectEncryptor, $this->storageClientFactory, $data);
+        return new Job(
+            $this->objectEncryptorProvider->getExistingJobEncryptor($data['dataPlaneId'] ?? null),
+            $this->storageClientFactory,
+            $data
+        );
     }
 
     public function modifyJob(JobInterface $job, array $patchData): JobInterface
