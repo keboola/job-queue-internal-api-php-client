@@ -6,7 +6,7 @@ namespace Keboola\JobQueueInternalClient\JobFactory\ObjectEncryptor;
 
 use Keboola\JobQueueInternalClient\DataPlane\DataPlaneConfigRepository;
 
-class LazyDataPlaneJobObjectEncryptor implements JobObjectEncryptorInterface
+class LazyDataPlaneJobObjectObjectEncryptor implements DataPlaneJobObjectEncryptorInterface
 {
     private DataPlaneConfigRepository $dataPlaneConfigRepository;
     private string $dataPlaneId;
@@ -17,6 +17,11 @@ class LazyDataPlaneJobObjectEncryptor implements JobObjectEncryptorInterface
     {
         $this->dataPlaneConfigRepository = $dataPlaneConfigRepository;
         $this->dataPlaneId = $dataPlaneId;
+    }
+
+    public function getDataPlaneId(): ?string
+    {
+        return $this->dataPlaneId;
     }
 
     public function encrypt($data, string $componentId, string $projectId)
@@ -35,12 +40,10 @@ class LazyDataPlaneJobObjectEncryptor implements JobObjectEncryptorInterface
             return $this->dataPlaneObjectEncryptor;
         }
 
-        $objectEncryptor = $this->dataPlaneConfigRepository
-            ->fetchDataPlaneConfig($this->dataPlaneId)
-            ->getEncryption()
-            ->createEncryptor()
-        ;
+        $dataPlaneConfig = $this->dataPlaneConfigRepository->fetchDataPlaneConfig($this->dataPlaneId);
 
-        return $this->dataPlaneObjectEncryptor = new JobObjectEncryptor($objectEncryptor);
+        return $this->dataPlaneObjectEncryptor = new JobObjectEncryptor(
+            $dataPlaneConfig->getEncryption()->createEncryptor(),
+        );
     }
 }

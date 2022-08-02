@@ -15,6 +15,15 @@ class JobObjectEncryptor implements JobObjectEncryptorInterface
         $this->objectEncryptor = $objectEncryptor;
     }
 
+    public function encrypt($data, string $componentId, string $projectId)
+    {
+        return $this->objectEncryptor->decryptForProject(
+            $data,
+            $componentId,
+            $projectId,
+        );
+    }
+
     public function decrypt($data, string $componentId, string $projectId, ?string $configId)
     {
         if ($configId) {

@@ -10,9 +10,7 @@ use Keboola\JobQueueInternalClient\JobFactory\ObjectEncryptor\JobObjectEncryptor
 
 interface ObjectEncryptorProviderInterface
 {
-    public function getProjectDataPlaneConfig(string $projectId): ?DataPlaneConfig;
+    public function getProjectObjectEncryptor(string $projectId): JobObjectEncryptorInterface;
 
     public function getExistingJobEncryptor(?string $dataPlaneId): JobObjectEncryptorInterface;
-
-    public function getDataPlaneObjectEncryptor(?DataPlaneConfig $dataPlaneConfig): JobObjectEncryptor;
 }

@@ -7,9 +7,10 @@ namespace Keboola\JobQueueInternalClient\JobFactory\ObjectEncryptorProvider;
 use Keboola\JobQueueInternalClient\DataPlane\Config\DataPlaneConfig;
 use Keboola\JobQueueInternalClient\JobFactory\ObjectEncryptor\JobObjectEncryptor;
 use Keboola\JobQueueInternalClient\JobFactory\ObjectEncryptor\JobObjectEncryptorInterface;
+use Keboola\JobQueueInternalClient\JobFactory\ObjectEncryptor\LazyDataPlaneJobObjectObjectEncryptor;
 use Keboola\ObjectEncryptor\ObjectEncryptor;
 
-class ConcreteObjectEncryptorProvider implements ObjectEncryptorProviderInterface
+class GenericObjectEncryptorProvider implements ObjectEncryptorProviderInterface
 {
     private ObjectEncryptor $objectEncryptor;
 
@@ -18,17 +19,12 @@ class ConcreteObjectEncryptorProvider implements ObjectEncryptorProviderInterfac
         $this->objectEncryptor = $objectEncryptor;
     }
 
-    public function getProjectDataPlaneConfig(string $projectId): ?DataPlaneConfig
-    {
-        return null;
-    }
-
-    public function getExistingJobEncryptor(?string $dataPlaneId): JobObjectEncryptorInterface
+    public function getProjectObjectEncryptor(string $projectId): JobObjectEncryptorInterface
     {
         return new JobObjectEncryptor($this->objectEncryptor);
     }
 
-    public function getDataPlaneObjectEncryptor(?DataPlaneConfig $dataPlaneConfig): JobObjectEncryptor
+    public function getExistingJobEncryptor(?string $dataPlaneId): JobObjectEncryptorInterface
     {
         return new JobObjectEncryptor($this->objectEncryptor);
     }

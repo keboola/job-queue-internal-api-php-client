@@ -11,6 +11,7 @@ use Keboola\JobQueueInternalClient\JobFactory\Job;
 use Keboola\JobQueueInternalClient\JobFactory\JobInterface;
 use Keboola\JobQueueInternalClient\JobFactory\JobRuntimeResolver;
 use Keboola\JobQueueInternalClient\JobFactory\NewJobDefinition;
+use Keboola\JobQueueInternalClient\JobFactory\ObjectEncryptor\DataPlaneJobObjectEncryptorInterface;
 use Keboola\JobQueueInternalClient\JobFactory\ObjectEncryptorProvider\ObjectEncryptorProviderInterface;
 use Keboola\StorageApi\ClientException as StorageClientException;
 use Keboola\StorageApiBranch\Factory\ClientOptions;
@@ -123,15 +124,15 @@ class JobFactory
         }
 
         $projectId = (string) $tokenInfo['owner']['id'];
-        $dataPlaneConfig = $this->objectEncryptorProvider->getProjectDataPlaneConfig($projectId);
-        $jobObjectEncryptor = $this->objectEncryptorProvider->getDataPlaneObjectEncryptor($dataPlaneConfig);
+        $encryptor = $this->objectEncryptorProvider->getProjectObjectEncryptor($projectId);
+        $dataPlaneId = $encryptor instanceof DataPlaneJobObjectEncryptorInterface ? $encryptor->getDataPlaneId() : null;
 
         $jobData = [
             'id' => $jobId,
             'runId' => $runId,
             'projectId' => $projectId,
             'projectName' => $tokenInfo['owner']['name'],
-            'dataPlaneId' => $dataPlaneConfig ? $dataPlaneConfig->getId() : null,
+            'dataPlaneId' => $dataPlaneId,
             'tokenId' => $tokenInfo['id'],
             '#tokenString' => $data['#tokenString'],
             'tokenDescription' => $tokenInfo['description'],
@@ -159,33 +160,22 @@ class JobFactory
         // set type after resolving parallelism
         $jobData['type'] = $data['type'] ?? $this->getJobType($jobData);
 
-        $data = $jobObjectEncryptor->encrypt(
+        $data = $encryptor->encrypt(
             $jobData,
             (string) $data['componentId'],
             (string) $tokenInfo['owner']['id']
         );
 
         $data = $this->validateJobData($data, FullJobDefinition::class);
-        return new Job($jobObjectEncryptor, $this->storageClientFactory, $data);
+        return new Job($encryptor, $this->storageClientFactory, $data);
     }
 
     public function loadFromExistingJobData(array $data): JobInterface
     {
         $data = $this->validateJobData($data, FullJobDefinition::class);
 
-        return new Job(
-            $this->objectEncryptorProvider->getExistingJobEncryptor($data['dataPlaneId'] ?? null),
-            $this->storageClientFactory,
-            $data
-        );
-    }
-
-    public function modifyJob(JobInterface $job, array $patchData): JobInterface
-    {
-        $data = $job->jsonSerialize();
-        $data = array_replace_recursive($data, $patchData);
-
-        return $this->loadFromExistingJobData($data);
+        $encryptor = $this->objectEncryptorProvider->getExistingJobEncryptor($data['dataPlaneId'] ?? null);
+        return new Job($encryptor, $this->storageClientFactory, $data);
     }
 
     /**

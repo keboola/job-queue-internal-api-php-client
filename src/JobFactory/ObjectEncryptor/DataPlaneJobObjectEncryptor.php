@@ -4,38 +4,20 @@ declare(strict_types=1);
 
 namespace Keboola\JobQueueInternalClient\JobFactory\ObjectEncryptor;
 
-use Keboola\JobQueueInternalClient\DataPlane\Config\DataPlaneConfig;
+use Keboola\ObjectEncryptor\ObjectEncryptor;
 
-class DataPlaneJobObjectEncryptor implements JobObjectEncryptorInterface
+class DataPlaneJobObjectEncryptor extends JobObjectEncryptor
 {
-    private DataPlaneConfig $dataPlaneConfig;
+    private string $dataPlaneId;
 
-    private ?JobObjectEncryptor $dataPlaneObjectEncryptor;
-
-    public function __construct(DataPlaneConfig $dataPlaneConfig)
+    public function __construct(string $dataPlaneId, ObjectEncryptor $objectEncryptor)
     {
-        $this->dataPlaneConfig = $dataPlaneConfig;
+        parent::__construct($objectEncryptor);
+        $this->dataPlaneId = $dataPlaneId;
     }
 
-    public function encrypt($data, string $componentId, string $projectId)
+    public function getDataPlaneId(): string
     {
-        if ($this->dataPlaneObjectEncryptor === null) {
-            $this->dataPlaneObjectEncryptor = new JobObjectEncryptor(
-                $this->dataPlaneConfig->getEncryption()->createEncryptor()
-            );
-        }
-
-        return $this->dataPlaneObjectEncryptor->encrypt($data, $componentId, $projectId);
-    }
-
-    public function decrypt($data, string $componentId, string $projectId, ?string $configId)
-    {
-        if ($this->dataPlaneObjectEncryptor === null) {
-            $this->dataPlaneObjectEncryptor = new JobObjectEncryptor(
-                $this->dataPlaneConfig->getEncryption()->createEncryptor()
-            );
-        }
-
-        return $this->dataPlaneObjectEncryptor->decrypt($data, $componentId, $projectId, $configId);
+        return $this->dataPlaneId;
     }
 }
