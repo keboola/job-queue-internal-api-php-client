@@ -6,8 +6,7 @@ namespace Keboola\JobQueueInternalClient\JobFactory\ObjectEncryptorProvider;
 
 use Keboola\JobQueueInternalClient\DataPlane\Config\DataPlaneConfig;
 use Keboola\JobQueueInternalClient\DataPlane\DataPlaneConfigRepository;
-use Keboola\JobQueueInternalClient\JobFactory\ObjectEncryptor\DataPlaneJobObjectEncryptor;
-use Keboola\JobQueueInternalClient\JobFactory\ObjectEncryptor\JobObjectEncryptor;
+use Keboola\JobQueueInternalClient\JobFactory\ObjectEncryptor\JobDataEncryptor;
 use Keboola\JobQueueInternalClient\JobFactory\ObjectEncryptor\JobObjectEncryptorInterface;
 use Keboola\JobQueueInternalClient\JobFactory\ObjectEncryptor\LazyDataPlaneJobObjectObjectEncryptor;
 use Keboola\ObjectEncryptor\ObjectEncryptor;
@@ -29,38 +28,47 @@ class DataPlaneObjectEncryptorProvider implements ObjectEncryptorProviderInterfa
         $this->supportsDataPlanes = $supportsDataPlanes;
     }
 
-    public function getProjectDataPlaneConfig(string $projectId): ?DataPlaneConfig
+    public function getJobEncryptor(array $jobData): JobObjectEncryptorInterface
     {
+        $dataPlaneId = $jobData['dataPlaneId'] ?? null;
+        
         if (!$this->supportsDataPlanes) {
-            return null;
+            if ($dataPlaneId !== null) {
+                throw new \Exception('ERROR');
+            }
+            
+            return new JobDataEncryptor($this->controlPlaneObjectEncryptor);
         }
-
-        return $this->dataPlaneConfigRepository->fetchProjectDataPlane($projectId);
-    }
-
-    public function getProjectObjectEncryptor(string $projectId): JobObjectEncryptorInterface
-    {
-        if (!$this->supportsDataPlanes) {
-            return new JobObjectEncryptor($this->controlPlaneObjectEncryptor);
-        }
-
-        $dataPlaneConfig = $this->dataPlaneConfigRepository->fetchProjectDataPlane($projectId);
-
-        if ($dataPlaneConfig === null) {
-            return new JobObjectEncryptor($this->controlPlaneObjectEncryptor);
-        }
-
-        return new DataPlaneJobObjectEncryptor(
-            $dataPlaneConfig->getId(),
-            $dataPlaneConfig->getEncryption()->createEncryptor(),
-        );
-    }
-
-    public function getExistingJobEncryptor(?string $dataPlaneId): JobObjectEncryptorInterface
-    {
+        
         return new LazyDataPlaneJobObjectObjectEncryptor(
             $this->dataPlaneConfigRepository,
             $dataPlaneId
         );
+    }
+    
+    public function resolveProjectDataPlaneConfig(string $projectId): ?DataPlaneConfig
+    {
+        if (!$this->supportsDataPlanes) {
+            return null;
+        }
+        
+        return $this->dataPlaneConfigRepository->fetchProjectDataPlane($projectId);
+    }
+
+    public function getProjectObjectEncryptor(?DataPlaneConfig $dataPlaneConfig): JobDataEncryptor
+    {
+        if (!$this->supportsDataPlanes) {
+            if ($dataPlaneConfig !== null) {
+                throw new RuntimeException('ERROR');
+            }
+
+            return new JobDataEncryptor($this->controlPlaneObjectEncryptor);
+        }
+
+        if ($dataPlaneConfig === null) {
+            return new JobDataEncryptor($this->controlPlaneObjectEncryptor);
+        }
+
+        return new JobDataEncryptor($dataPlaneConfig->getEncryption()->createEncryptor());
     }
 }

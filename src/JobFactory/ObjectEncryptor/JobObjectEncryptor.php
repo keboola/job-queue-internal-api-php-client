@@ -6,7 +6,7 @@ namespace Keboola\JobQueueInternalClient\JobFactory\ObjectEncryptor;
 
 use Keboola\ObjectEncryptor\ObjectEncryptor;
 
-class JobObjectEncryptor implements JobObjectEncryptorInterface
+class JobDataEncryptor implements JobObjectEncryptorInterface
 {
     private ObjectEncryptor $objectEncryptor;
 
