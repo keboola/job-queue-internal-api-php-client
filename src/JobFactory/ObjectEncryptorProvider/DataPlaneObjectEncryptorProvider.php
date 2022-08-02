@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace Keboola\JobQueueInternalClient\JobFactory\ObjectEncryptorProvider;
 
+use Exception;
 use Keboola\JobQueueInternalClient\DataPlane\Config\DataPlaneConfig;
 use Keboola\JobQueueInternalClient\DataPlane\DataPlaneConfigRepository;
-use Keboola\JobQueueInternalClient\JobFactory\ObjectEncryptor\JobDataEncryptor;
+use Keboola\JobQueueInternalClient\JobFactory\ObjectEncryptor\JobObjectEncryptor;
 use Keboola\JobQueueInternalClient\JobFactory\ObjectEncryptor\JobObjectEncryptorInterface;
 use Keboola\JobQueueInternalClient\JobFactory\ObjectEncryptor\LazyDataPlaneJobObjectObjectEncryptor;
 use Keboola\ObjectEncryptor\ObjectEncryptor;
@@ -31,44 +32,44 @@ class DataPlaneObjectEncryptorProvider implements ObjectEncryptorProviderInterfa
     public function getJobEncryptor(array $jobData): JobObjectEncryptorInterface
     {
         $dataPlaneId = $jobData['dataPlaneId'] ?? null;
-        
+
         if (!$this->supportsDataPlanes) {
             if ($dataPlaneId !== null) {
-                throw new \Exception('ERROR');
+                throw new RuntimeException('Can\'t provide dataPlane encryptor on stack without dataPlane support');
             }
-            
-            return new JobDataEncryptor($this->controlPlaneObjectEncryptor);
+
+            return new JobObjectEncryptor($this->controlPlaneObjectEncryptor);
         }
-        
+
         return new LazyDataPlaneJobObjectObjectEncryptor(
             $this->dataPlaneConfigRepository,
             $dataPlaneId
         );
     }
-    
+
     public function resolveProjectDataPlaneConfig(string $projectId): ?DataPlaneConfig
     {
         if (!$this->supportsDataPlanes) {
             return null;
         }
-        
+
         return $this->dataPlaneConfigRepository->fetchProjectDataPlane($projectId);
     }
 
-    public function getProjectObjectEncryptor(?DataPlaneConfig $dataPlaneConfig): JobDataEncryptor
+    public function getProjectObjectEncryptor(?DataPlaneConfig $dataPlaneConfig): JobObjectEncryptor
     {
         if (!$this->supportsDataPlanes) {
             if ($dataPlaneConfig !== null) {
-                throw new RuntimeException('ERROR');
+                throw new RuntimeException('Can\'t provide dataPlane encryptor on stack without dataPlane support');
             }
 
-            return new JobDataEncryptor($this->controlPlaneObjectEncryptor);
+            return new JobObjectEncryptor($this->controlPlaneObjectEncryptor);
         }
 
         if ($dataPlaneConfig === null) {
-            return new JobDataEncryptor($this->controlPlaneObjectEncryptor);
+            return new JobObjectEncryptor($this->controlPlaneObjectEncryptor);
         }
 
-        return new JobDataEncryptor($dataPlaneConfig->getEncryption()->createEncryptor());
+        return new JobObjectEncryptor($dataPlaneConfig->getEncryption()->createEncryptor());
     }
 }

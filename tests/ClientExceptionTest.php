@@ -10,11 +10,11 @@ use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Middleware;
 use GuzzleHttp\Psr7\Response;
 use Keboola\JobQueueInternalClient\Client;
-use Keboola\JobQueueInternalClient\DataPlane\DataPlaneConfigRepository;
 use Keboola\JobQueueInternalClient\Exception\StateTargetEqualsCurrentException;
 use Keboola\JobQueueInternalClient\Exception\StateTerminalException;
 use Keboola\JobQueueInternalClient\Exception\StateTransitionForbiddenException;
-use Keboola\JobQueueInternalClient\JobFactory;
+use Keboola\JobQueueInternalClient\ExistingJobFactory;
+use Keboola\JobQueueInternalClient\JobFactory\ObjectEncryptorProvider\GenericObjectEncryptorProvider;
 use Keboola\JobQueueInternalClient\Result\JobResult;
 use Keboola\ObjectEncryptor\EncryptorOptions;
 use Keboola\ObjectEncryptor\ObjectEncryptor;
@@ -31,9 +31,7 @@ class ClientExceptionTest extends BaseTest
             'http://example.com/',
         ));
 
-        $jobFactory = new JobFactory(
-            $storageClientFactory,
-            new JobFactory\JobRuntimeResolver($storageClientFactory),
+        $jobObjectEncryptorProvider = new GenericObjectEncryptorProvider(
             new ObjectEncryptor(new EncryptorOptions(
                 'stackId',
                 'kmsKeyId',
@@ -41,13 +39,16 @@ class ClientExceptionTest extends BaseTest
                 null,
                 null
             )),
-            $this->createMock(DataPlaneConfigRepository::class),
-            false
+        );
+
+        $existingJobFactory = new ExistingJobFactory(
+            $storageClientFactory,
+            $jobObjectEncryptorProvider,
         );
 
         return new Client(
             new NullLogger(),
-            $jobFactory,
+            $existingJobFactory,
             'http://example.com/',
             'testToken',
             $options

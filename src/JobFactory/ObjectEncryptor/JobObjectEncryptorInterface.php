@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Keboola\JobQueueInternalClient\JobFactory\ObjectEncryptor;
 
+use stdClass;
+
 interface JobObjectEncryptorInterface
 {
     /**

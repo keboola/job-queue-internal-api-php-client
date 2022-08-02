@@ -12,8 +12,11 @@ use GuzzleHttp\Psr7\Response;
 use Keboola\JobQueueInternalClient\Client;
 use Keboola\JobQueueInternalClient\DataPlane\DataPlaneConfigRepository;
 use Keboola\JobQueueInternalClient\Exception\ClientException;
+use Keboola\JobQueueInternalClient\ExistingJobFactory;
 use Keboola\JobQueueInternalClient\JobFactory;
 use Keboola\JobQueueInternalClient\JobFactory\Job;
+use Keboola\JobQueueInternalClient\JobFactory\ObjectEncryptor\JobObjectEncryptor;
+use Keboola\JobQueueInternalClient\JobFactory\ObjectEncryptorProvider\GenericObjectEncryptorProvider;
 use Keboola\JobQueueInternalClient\JobListOptions;
 use Keboola\JobQueueInternalClient\JobPatchData;
 use Keboola\JobQueueInternalClient\Result\JobMetrics;
@@ -36,9 +39,7 @@ class ClientTest extends BaseTest
             'http://example.com/',
         ));
 
-        $jobFactory = new JobFactory(
-            $storageClientFactory,
-            new JobFactory\JobRuntimeResolver($storageClientFactory),
+        $objectEncryptorProvider = new GenericObjectEncryptorProvider(
             new ObjectEncryptor(new EncryptorOptions(
                 'stackId',
                 'kmsKeyId',
@@ -46,8 +47,11 @@ class ClientTest extends BaseTest
                 null,
                 null
             )),
-            $this->createMock(DataPlaneConfigRepository::class),
-            false
+        );
+
+        $jobFactory = new ExistingJobFactory(
+            $storageClientFactory,
+            $objectEncryptorProvider,
         );
 
         return new Client(
@@ -67,7 +71,7 @@ class ClientTest extends BaseTest
         );
         new Client(
             new NullLogger(),
-            $this->createMock(JobFactory::class),
+            $this->createMock(ExistingJobFactory::class),
             'http://example.com/',
             'testToken',
             ['backoffMaxTries' => 'abc']
@@ -82,7 +86,7 @@ class ClientTest extends BaseTest
         );
         new Client(
             new NullLogger(),
-            $this->createMock(JobFactory::class),
+            $this->createMock(ExistingJobFactory::class),
             'http://example.com/',
             'testToken',
             ['backoffMaxTries' => -1]
@@ -97,7 +101,7 @@ class ClientTest extends BaseTest
         );
         new Client(
             new NullLogger(),
-            $this->createMock(JobFactory::class),
+            $this->createMock(ExistingJobFactory::class),
             'http://example.com/',
             'testToken',
             ['backoffMaxTries' => 101]
@@ -110,7 +114,7 @@ class ClientTest extends BaseTest
         $this->expectExceptionMessage(
             'Invalid parameters when creating client: Value "" is invalid: This value should not be blank.'
         );
-        new Client(new NullLogger(), $this->createMock(JobFactory::class), 'http://example.com/', '');
+        new Client(new NullLogger(), $this->createMock(ExistingJobFactory::class), 'http://example.com/', '');
     }
 
     public function testCreateClientInvalidUrl(): void
@@ -119,7 +123,7 @@ class ClientTest extends BaseTest
         $this->expectExceptionMessage(
             'Invalid parameters when creating client: Value "invalid url" is invalid: This value is not a valid URL.'
         );
-        new Client(new NullLogger(), $this->createMock(JobFactory::class), 'invalid url', 'testToken');
+        new Client(new NullLogger(), $this->createMock(ExistingJobFactory::class), 'invalid url', 'testToken');
     }
 
     public function testCreateClientMultipleErrors(): void
@@ -129,7 +133,7 @@ class ClientTest extends BaseTest
             'Invalid parameters when creating client: Value "invalid url" is invalid: This value is not a valid URL.'
             . "\n" . 'Value "" is invalid: This value should not be blank.' . "\n"
         );
-        new Client(new NullLogger(), $this->createMock(JobFactory::class), 'invalid url', '');
+        new Client(new NullLogger(), $this->createMock(ExistingJobFactory::class), 'invalid url', '');
     }
 
     public function testClientRequestResponse(): void
@@ -929,7 +933,7 @@ Out of order
         $objectEncryptor = ObjectEncryptorFactory::getAwsEncryptor('local', 'alias/some-key', 'us-east-1', null);
         $storageClientFactory = new StorageClientPlainFactory(new ClientOptions());
         $job = new Job(
-            $objectEncryptor,
+            new JobObjectEncryptor($objectEncryptor),
             $storageClientFactory,
             [
                 'status' => JobFactory::STATUS_SUCCESS,

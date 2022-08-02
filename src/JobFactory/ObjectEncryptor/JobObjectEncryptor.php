@@ -6,7 +6,7 @@ namespace Keboola\JobQueueInternalClient\JobFactory\ObjectEncryptor;
 
 use Keboola\ObjectEncryptor\ObjectEncryptor;
 
-class JobDataEncryptor implements JobObjectEncryptorInterface
+class JobObjectEncryptor implements JobObjectEncryptorInterface
 {
     private ObjectEncryptor $objectEncryptor;
 
@@ -17,7 +17,7 @@ class JobDataEncryptor implements JobObjectEncryptorInterface
 
     public function encrypt($data, string $componentId, string $projectId)
     {
-        return $this->objectEncryptor->decryptForProject(
+        return $this->objectEncryptor->encryptForProject(
             $data,
             $componentId,
             $projectId,

@@ -78,8 +78,10 @@ class ClientListConfigurationsJobsFunctionalTest extends BaseClientFunctionalTes
 
     public function testConfigJobsAreListed(): void
     {
+        $newJobFactory = $this->getNewJobFactory();
         $client = $this->getClient();
-        $job = $client->getJobFactory()->createNewJob([
+
+        $job = $newJobFactory->createNewJob([
             '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
             'configId' => self::$configId1,
             'branchId' => self::$branchId1,
@@ -87,7 +89,8 @@ class ClientListConfigurationsJobsFunctionalTest extends BaseClientFunctionalTes
             'mode' => 'run',
         ]);
         $expectedJob = $client->createJob($job);
-        $job2 = $client->getJobFactory()->createNewJob([
+
+        $job2 = $newJobFactory->createNewJob([
             '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
             'configId' => self::$configId2,
             'componentId' => self::COMPONENT_ID_1,
@@ -105,15 +108,18 @@ class ClientListConfigurationsJobsFunctionalTest extends BaseClientFunctionalTes
 
     public function testLatestConfigJobIsListed(): void
     {
+        $newJobFactory = $this->getNewJobFactory();
         $client = $this->getClient();
-        $job = $client->getJobFactory()->createNewJob([
+
+        $job = $newJobFactory->createNewJob([
             '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
             'configId' => self::$configId1,
             'componentId' => self::COMPONENT_ID_1,
             'mode' => 'run',
         ]);
         $client->createJob($job);
-        $job2 = $client->getJobFactory()->createNewJob([
+
+        $job2 = $newJobFactory->createNewJob([
             '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
             'configId' => self::$configId1,
             'componentId' => self::COMPONENT_ID_1,
@@ -121,7 +127,7 @@ class ClientListConfigurationsJobsFunctionalTest extends BaseClientFunctionalTes
         ]);
         $expectedJob = $client->createJob($job2);
 
-        $client->createJob($client->getJobFactory()->createNewJob([
+        $client->createJob($newJobFactory->createNewJob([
             '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
             'configId' => self::$configId1,
             'componentId' => self::COMPONENT_ID_2,
@@ -138,8 +144,10 @@ class ClientListConfigurationsJobsFunctionalTest extends BaseClientFunctionalTes
 
     public function testExistingProjectFilter(): void
     {
+        $newJobFactory = $this->getNewJobFactory();
         $client = $this->getClient();
-        $job1 = $client->getJobFactory()->createNewJob([
+
+        $job1 = $newJobFactory->createNewJob([
             '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
             'configId' => self::$configId1,
             'componentId' => self::COMPONENT_ID_1,
@@ -158,8 +166,10 @@ class ClientListConfigurationsJobsFunctionalTest extends BaseClientFunctionalTes
 
     public function testOtherProjectFilter(): void
     {
+        $newJobFactory = $this->getNewJobFactory();
         $client = $this->getClient();
-        $job1 = $client->getJobFactory()->createNewJob([
+
+        $job1 = $newJobFactory->createNewJob([
             '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
             'configId' => self::$configId1,
             'componentId' => self::COMPONENT_ID_1,
@@ -177,15 +187,18 @@ class ClientListConfigurationsJobsFunctionalTest extends BaseClientFunctionalTes
 
     public function testSorting(): void
     {
+        $newJobFactory = $this->getNewJobFactory();
         $client = $this->getClient();
-        $job1 = $client->getJobFactory()->createNewJob([
+
+        $job1 = $newJobFactory->createNewJob([
             '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
             'configId' => self::$configId1,
             'componentId' => self::COMPONENT_ID_1,
             'mode' => 'run',
         ]);
         $expectedJob1 = $client->createJob($job1);
-        $job2 = $client->getJobFactory()->createNewJob([
+
+        $job2 = $newJobFactory->createNewJob([
             '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
             'configId' => self::$configId2,
             'componentId' => self::COMPONENT_ID_1,
@@ -205,22 +218,26 @@ class ClientListConfigurationsJobsFunctionalTest extends BaseClientFunctionalTes
 
     public function testPagination(): void
     {
+        $newJobFactory = $this->getNewJobFactory();
         $client = $this->getClient();
-        $job1 = $client->getJobFactory()->createNewJob([
+
+        $job1 = $newJobFactory->createNewJob([
             '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
             'configId' => self::$configId1,
             'componentId' => self::COMPONENT_ID_1,
             'mode' => 'run',
         ]);
         $client->createJob($job1);
-        $job2 = $client->getJobFactory()->createNewJob([
+
+        $job2 = $newJobFactory->createNewJob([
             '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
             'configId' => self::$configId1,
             'componentId' => self::COMPONENT_ID_1,
             'mode' => 'run',
         ]);
         $expectedJob = $client->createJob($job2);
-        $job3 = $client->getJobFactory()->createNewJob([
+
+        $job3 = $newJobFactory->createNewJob([
             '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
             'configId' => self::$configId1,
             'componentId' => self::COMPONENT_ID_1,
@@ -241,8 +258,10 @@ class ClientListConfigurationsJobsFunctionalTest extends BaseClientFunctionalTes
 
     public function testBranchJobsAreListed(): void
     {
+        $newJobFactory = $this->getNewJobFactory();
         $client = $this->getClient();
-        $job1 = $client->getJobFactory()->createNewJob([
+
+        $job1 = $newJobFactory->createNewJob([
             '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
             'configId' => self::$configId1,
             'branchId' => self::$branchId1,
@@ -250,14 +269,16 @@ class ClientListConfigurationsJobsFunctionalTest extends BaseClientFunctionalTes
             'mode' => 'run',
         ]);
         $createdJob1 = $client->createJob($job1);
-        $job2 = $client->getJobFactory()->createNewJob([
+
+        $job2 = $newJobFactory->createNewJob([
             '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
             'configId' => self::$configId1,
             'componentId' => self::COMPONENT_ID_1,
             'mode' => 'run',
         ]);
         $client->createJob($job2);
-        $job3 = $client->getJobFactory()->createNewJob([
+
+        $job3 = $newJobFactory->createNewJob([
             '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
             'configId' => self::$configId1,
             'branchId' => self::$branchId1,
@@ -279,8 +300,10 @@ class ClientListConfigurationsJobsFunctionalTest extends BaseClientFunctionalTes
 
     public function testJobsWithoutBranchAreListed(): void
     {
+        $newJobFactory = $this->getNewJobFactory();
         $client = $this->getClient();
-        $job1 = $client->getJobFactory()->createNewJob([
+
+        $job1 = $newJobFactory->createNewJob([
             '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
             'configId' => self::$configId1,
             'branchId' => self::$branchId1,
@@ -288,7 +311,8 @@ class ClientListConfigurationsJobsFunctionalTest extends BaseClientFunctionalTes
             'mode' => 'run',
         ]);
         $createdJob1 = $client->createJob($job1);
-        $job2 = $client->getJobFactory()->createNewJob([
+
+        $job2 = $newJobFactory->createNewJob([
             '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
             'configId' => self::$configId1,
             'componentId' => self::COMPONENT_ID_1,

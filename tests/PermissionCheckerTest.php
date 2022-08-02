@@ -7,8 +7,8 @@ namespace Keboola\JobQueueInternalClient\Tests;
 use Keboola\JobQueueInternalClient\Exception\PermissionsException;
 use Keboola\JobQueueInternalClient\JobFactory\Job;
 use Keboola\JobQueueInternalClient\JobFactory\JobInterface;
+use Keboola\JobQueueInternalClient\JobFactory\ObjectEncryptor\JobObjectEncryptor;
 use Keboola\JobQueueInternalClient\PermissionChecker;
-use Keboola\ObjectEncryptor\ObjectEncryptor;
 use Keboola\StorageApiBranch\Factory\StorageClientPlainFactory;
 use PHPUnit\Framework\TestCase;
 
@@ -31,7 +31,7 @@ class PermissionCheckerTest extends TestCase
             'tokenId' => '456',
             '#tokenString' => 'KBC::ProjectSecure::token',
         ];
-        $objectEncryptorMock = $this->createMock(ObjectEncryptor::class);
+        $objectEncryptorMock = $this->createMock(JobObjectEncryptor::class);
         $storageFactoryMock = $this->createMock(StorageClientPlainFactory::class);
         return new Job($objectEncryptorMock, $storageFactoryMock, $jobData);
     }
