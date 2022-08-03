@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace Keboola\JobQueueInternalClient\Tests;
 
+use DateTimeImmutable;
 use GuzzleHttp\Handler\MockHandler;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Middleware;
 use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\Psr7\Response;
 use Keboola\JobQueueInternalClient\Client;
-use Keboola\JobQueueInternalClient\DataPlane\DataPlaneConfigRepository;
 use Keboola\JobQueueInternalClient\Exception\ClientException;
 use Keboola\JobQueueInternalClient\ExistingJobFactory;
 use Keboola\JobQueueInternalClient\JobFactory;
@@ -30,6 +30,7 @@ use Psr\Http\Message\RequestInterface;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 use Psr\Log\Test\TestLogger;
+use stdClass;
 
 class ClientTest extends BaseTest
 {
@@ -617,6 +618,71 @@ Out of order
         self::assertNotNull($request);
         /** @var RequestInterface $request */
         self::assertEquals('projectId%5B%5D=456&limit=100', $request->getUri()->getQuery());
+    }
+
+    /** @dataProvider provideListJobsOptionsTestData */
+    public function testListJobsOptions(JobListOptions $jobListOptions, string $expectedRequestUri): void
+    {
+        $mock = new MockHandler([
+            new Response(200, ['Content-Type' => 'application/json'], json_encode([
+                [
+                    'id' => '123',
+                    'runId' => '123',
+                    'projectId' => '456',
+                    'projectName' => 'Test project',
+                    'tokenId' => '789',
+                    '#tokenString' => 'KBC::ProjectSecure::aSdF',
+                    'tokenDescription' => 'my token',
+                    'status' => 'created',
+                    'desiredStatus' => 'processing',
+                    'mode' => 'run',
+                    'componentId' => 'keboola.test',
+                    'configId' => '123456',
+                    'configData' => [
+                        'parameters' => [
+                            'foo' => 'bar'
+                        ]
+                    ],
+                    'result' => new stdClass(),
+                    'usageData' => new stdClass(),
+                    'isFinished' => false,
+                    'branchId' => null
+                ],
+            ])),
+        ]);
+
+        $requestHistory = [];
+        $history = Middleware::history($requestHistory);
+        $stack = HandlerStack::create($mock);
+        $stack->push($history);
+
+        $client = $this->getClient(['handler' => $stack]);
+        $client->listJobs($jobListOptions, true);
+
+        $request = $requestHistory[0]['request'];
+        self::assertSame($expectedRequestUri, $request->getUri()->__toString());
+    }
+
+    public function provideListJobsOptionsTestData(): iterable
+    {
+        yield 'empty options' => [
+            'options' => new JobListOptions(),
+            'url' => 'http://example.com/jobs?limit=100',
+        ];
+
+        yield 'sort by id, asc' => [
+            'options' => (new JobListOptions())
+                ->setSortBy('id')
+                ->setSortOrder('asc'),
+            'url' => 'http://example.com/jobs?limit=100&sortBy=id&sortOrder=asc',
+        ];
+
+        yield 'filter date range' => [
+            'options' => (new JobListOptions())
+                ->setCreatedTimeFrom(new DateTimeImmutable('2022-03-01T12:17:05+10:00'))
+                ->setCreatedTimeTo(new DateTimeImmutable('2022-07-14T05:11:45-08:20')),
+            'url' => 'http://example.com/jobs?limit=100&createdTimeFrom=2022-03-01T12%3A17%3A05%2B10%3A00&createdTimeTo=2022-07-14T05%3A11%3A45-08%3A20',
+        ];
     }
 
     public function testClientGetJobsEscaping(): void
