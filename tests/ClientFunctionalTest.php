@@ -571,6 +571,42 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
         self::assertSame($jobIds, $resIds);
     }
 
+    public function testListJobsSortMultipage(): void
+    {
+        $newJobFactory = $this->getNewJobFactory();
+        $client = $this->getClient();
+
+        $jobs = array_map(fn () => $client->createJob($newJobFactory->createNewJob([
+            '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+            'configData' => [ ],
+            'componentId' => self::COMPONENT_ID_1,
+            'mode' => 'run',
+        ])), range(1, 10));
+
+        $jobIds = array_map(
+            fn(JobInterface $job) => (int) $job->getId(),
+            $jobs,
+        );
+
+        $response = $client->listJobs(
+            (new JobListOptions())
+                ->setIds($jobIds)
+                ->setSortBy('id')
+                ->setSortOrder(JobListOptions::SORT_ORDER_DESC)
+                ->setLimit(3),
+            true
+        );
+        self::assertCount(10, $response);
+
+        rsort($jobIds);
+        $resultJobIds = array_map(
+            fn(JobInterface $job) => (int) $job->getId(),
+            $response,
+        );
+
+        self::assertSame($jobIds, $resultJobIds);
+    }
+
     public function testListJobsEscaping(): void
     {
         $newJobFactory = $this->getNewJobFactory();
