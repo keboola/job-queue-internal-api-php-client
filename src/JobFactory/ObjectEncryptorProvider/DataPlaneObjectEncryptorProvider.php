@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Keboola\JobQueueInternalClient\JobFactory\ObjectEncryptorProvider;
 
-use Exception;
 use Keboola\JobQueueInternalClient\DataPlane\Config\DataPlaneConfig;
 use Keboola\JobQueueInternalClient\DataPlane\DataPlaneConfigRepository;
 use Keboola\JobQueueInternalClient\JobFactory\ObjectEncryptor\JobObjectEncryptor;
@@ -33,14 +32,14 @@ class DataPlaneObjectEncryptorProvider implements ObjectEncryptorProviderInterfa
     {
         $dataPlaneId = $jobData['dataPlaneId'] ?? null;
 
-        if (!$this->supportsDataPlanes) {
-            if ($dataPlaneId !== null) {
-                throw new RuntimeException('Can\'t provide dataPlane encryptor on stack without dataPlane support');
-            }
-
+        if ($dataPlaneId === null) {
             return new JobObjectEncryptor($this->controlPlaneObjectEncryptor);
         }
-
+        
+        if (!$this->supportsDataPlanes) {
+            throw new RuntimeException('Can\'t provide dataPlane encryptor on stack without dataPlane support');
+        }
+        
         return new LazyDataPlaneJobObjectObjectEncryptor(
             $this->dataPlaneConfigRepository,
             $dataPlaneId
@@ -58,18 +57,14 @@ class DataPlaneObjectEncryptorProvider implements ObjectEncryptorProviderInterfa
 
     public function getProjectObjectEncryptor(?DataPlaneConfig $dataPlaneConfig): JobObjectEncryptor
     {
-        if (!$this->supportsDataPlanes) {
-            if ($dataPlaneConfig !== null) {
-                throw new RuntimeException('Can\'t provide dataPlane encryptor on stack without dataPlane support');
-            }
-
-            return new JobObjectEncryptor($this->controlPlaneObjectEncryptor);
-        }
-
         if ($dataPlaneConfig === null) {
             return new JobObjectEncryptor($this->controlPlaneObjectEncryptor);
         }
-
+        
+        if (!$this->supportsDataPlanes) {
+            throw new RuntimeException('Can\'t provide dataPlane encryptor on stack without dataPlane support');
+        }
+        
         return new JobObjectEncryptor($dataPlaneConfig->getEncryption()->createEncryptor());
     }
 }
