@@ -35,11 +35,11 @@ class DataPlaneObjectEncryptorProvider implements ObjectEncryptorProviderInterfa
         if ($dataPlaneId === null) {
             return new JobObjectEncryptor($this->controlPlaneObjectEncryptor);
         }
-        
+
         if (!$this->supportsDataPlanes) {
             throw new RuntimeException('Can\'t provide dataPlane encryptor on stack without dataPlane support');
         }
-        
+
         return new LazyDataPlaneJobObjectObjectEncryptor(
             $this->dataPlaneConfigRepository,
             $dataPlaneId
@@ -60,11 +60,11 @@ class DataPlaneObjectEncryptorProvider implements ObjectEncryptorProviderInterfa
         if ($dataPlaneConfig === null) {
             return new JobObjectEncryptor($this->controlPlaneObjectEncryptor);
         }
-        
+
         if (!$this->supportsDataPlanes) {
             throw new RuntimeException('Can\'t provide dataPlane encryptor on stack without dataPlane support');
         }
-        
+
         return new JobObjectEncryptor($dataPlaneConfig->getEncryption()->createEncryptor());
     }
 }

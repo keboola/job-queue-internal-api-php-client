@@ -624,7 +624,7 @@ Out of order
     public function testListJobsOptions(JobListOptions $jobListOptions, string $expectedRequestUri): void
     {
         $mock = new MockHandler([
-            new Response(200, ['Content-Type' => 'application/json'], json_encode([
+            new Response(200, ['Content-Type' => 'application/json'], (string) json_encode([
                 [
                     'id' => '123',
                     'runId' => '123',
@@ -640,13 +640,13 @@ Out of order
                     'configId' => '123456',
                     'configData' => [
                         'parameters' => [
-                            'foo' => 'bar'
-                        ]
+                            'foo' => 'bar',
+                        ],
                     ],
                     'result' => new stdClass(),
                     'usageData' => new stdClass(),
                     'isFinished' => false,
-                    'branchId' => null
+                    'branchId' => null,
                 ],
             ])),
         ]);
@@ -681,6 +681,7 @@ Out of order
             'options' => (new JobListOptions())
                 ->setCreatedTimeFrom(new DateTimeImmutable('2022-03-01T12:17:05+10:00'))
                 ->setCreatedTimeTo(new DateTimeImmutable('2022-07-14T05:11:45-08:20')),
+            // phpcs:ignore
             'url' => 'http://example.com/jobs?limit=100&createdTimeFrom=2022-03-01T12%3A17%3A05%2B10%3A00&createdTimeTo=2022-07-14T05%3A11%3A45-08%3A20',
         ];
     }
