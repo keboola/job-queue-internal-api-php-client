@@ -369,11 +369,11 @@ class Client
         }
     }
 
-    private function decodeRequestBody(?ResponseInterface $response): array
+    private function decodeRequestBody(ResponseInterface $response): array
     {
         try {
             return (array) json_decode(
-                $response->getBody()->getContents(),
+                (string) $response->getBody(),
                 true,
                 self::JSON_DEPTH,
                 JSON_THROW_ON_ERROR

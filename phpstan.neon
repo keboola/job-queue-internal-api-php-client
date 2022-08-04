@@ -7,6 +7,3 @@ parameters:
     ignoreErrors:
         - '#Cannot call method scalarNode\(\) on Symfony\\Component\\Config\\Definition\\Builder\\NodeParentInterface\|null\.#'
         - '#Cannot call method arrayNode\(\) on Symfony\\Component\\Config\\Definition\\Builder\\NodeParentInterface\|null\.#'
-        -
-        	message: '#Cannot call method getBody\(\) on Psr\\Http\\Message\\ResponseInterface\|null\.#'
-        	path:  src/Client.php
