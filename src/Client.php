@@ -170,28 +170,6 @@ class Client
         return $this->listJobs($listOptions, true);
     }
 
-    public function updateJob(JobInterface $newJob): array
-    {
-        if (empty($newJob->getId())) {
-            throw new ClientException(sprintf('Invalid job ID: "%s".', $newJob->getId()));
-        }
-
-        /** @noinspection PhpUnhandledExceptionInspection */
-        $request = new Request(
-            'PUT',
-            'jobs/' . $newJob->getId(),
-            [],
-            json_encode(
-                [
-                    'status' => $newJob->getStatus(),
-                    'desiredStatus' => $newJob->getDesiredStatus(),
-                ],
-                JSON_THROW_ON_ERROR
-            )
-        );
-        return $this->sendRequest($request);
-    }
-
     public function patchJob(string $jobId, JobPatchData $patchData): JobInterface
     {
         if (empty($jobId)) {

@@ -858,23 +858,6 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
         self::assertCount(0, $response);
     }
 
-    public function testUpdateJobStatusRejected(): void
-    {
-        $newJobFactory = $this->getNewJobFactory();
-        $client = $this->getClient();
-
-        $job = $newJobFactory->createNewJob([
-            '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
-            'configData' => [],
-            'componentId' => self::COMPONENT_ID_1,
-            'mode' => 'run',
-        ]);
-        $createdJob = $client->createJob($job);
-        $this->expectException(StateTargetEqualsCurrentException::class);
-        $this->expectExceptionMessage('Invalid status transition of job');
-        $client->updateJob($createdJob);
-    }
-
     public function testUpdateJobDesiredStatus(): void
     {
         $newJobFactory = $this->getNewJobFactory();

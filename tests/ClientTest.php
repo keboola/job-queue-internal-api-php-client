@@ -995,27 +995,6 @@ Out of order
         $client->patchJob('', new JobPatchData());
     }
 
-    public function testClientUpdateJobWithEmptyIdThrowsException(): void
-    {
-        $objectEncryptor = ObjectEncryptorFactory::getAwsEncryptor('local', 'alias/some-key', 'us-east-1', null);
-        $storageClientFactory = new StorageClientPlainFactory(new ClientOptions());
-        $job = new Job(
-            new JobObjectEncryptor($objectEncryptor),
-            $storageClientFactory,
-            [
-                'status' => JobFactory::STATUS_SUCCESS,
-                'projectId' => 'test',
-                'id' => '',
-                'runId' => '',
-            ]
-        );
-        $client = $this->getClient([]);
-
-        $this->expectException(ClientException::class);
-        $this->expectExceptionMessage('Invalid job ID: "".');
-        $client->updateJob($job);
-    }
-
     public function testClientGetJobsDurationSumWithEmptyIdThrowsException(): void
     {
         $client = $this->getClient([]);
