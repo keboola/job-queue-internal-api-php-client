@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Keboola\JobQueueInternalClient\JobFactory;
 
 use Closure;
-use Keboola\JobQueueInternalClient\JobFactory;
 use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 
@@ -90,16 +89,16 @@ class FullJobDefinition extends NewJobDefinition
                 ->arrayNode('usageData')->ignoreExtraKeys(false)->end()
                 ->scalarNode('status')->isRequired()
                     ->validate()
-                        ->ifNotInArray(JobFactory::getAllStatuses())
-                        ->thenInvalid('Status must be one of ' . implode(', ', JobFactory::getAllStatuses()) . '.')
+                        ->ifNotInArray(Job::STATUSES_ALL)
+                        ->thenInvalid('Status must be one of ' . implode(', ', Job::STATUSES_ALL) . '.')
                     ->end()
                 ->end()
                 ->scalarNode('desiredStatus')->isRequired()
                     ->validate()
-                        ->ifNotInArray(JobFactory::getAllDesiredStatuses())
+                        ->ifNotInArray(Job::DESIRED_STATUSES_ALL)
                         ->thenInvalid(
                             'DesiredStatus must be one of ' .
-                            implode(', ', JobFactory::getAllDesiredStatuses()) .
+                            implode(', ', Job::DESIRED_STATUSES_ALL) .
                             '.'
                         )
                     ->end()
@@ -107,14 +106,14 @@ class FullJobDefinition extends NewJobDefinition
                 ->scalarNode('type')
                     ->defaultValue('standard')
                     ->validate()
-                        ->ifNotInArray(JobFactory::getAllowedJobTypes())
-                        ->thenInvalid('Type must be one of ' . implode(', ', JobFactory::getAllowedJobTypes()) . '.')
+                        ->ifNotInArray(Job::TYPES_ALL)
+                        ->thenInvalid('Type must be one of ' . implode(', ', Job::TYPES_ALL) . '.')
                     ->end()
                 ->end()
                 ->scalarNode('parallelism')
                     ->defaultNull()
                     ->validate()
-                        ->ifNotInArray(JobFactory::getAllowedParallelismValues())
+                        ->ifNotInArray(Job::getAllowedParallelismValues())
                         ->thenInvalid(
                             'Parallelism value must be either null, an integer from range 2-100 or "infinity".'
                         )

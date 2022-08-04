@@ -8,8 +8,8 @@ use Keboola\JobQueueInternalClient\Client;
 use Keboola\JobQueueInternalClient\DataPlane\DataPlaneConfigRepository;
 use Keboola\JobQueueInternalClient\DataPlane\DataPlaneConfigValidator;
 use Keboola\JobQueueInternalClient\ExistingJobFactory;
-use Keboola\JobQueueInternalClient\JobFactory;
 use Keboola\JobQueueInternalClient\JobFactory\Job;
+use Keboola\JobQueueInternalClient\JobFactory\JobRuntimeResolver;
 use Keboola\JobQueueInternalClient\JobFactory\ObjectEncryptorProvider\DataPlaneObjectEncryptorProvider;
 use Keboola\JobQueueInternalClient\JobPatchData;
 use Keboola\JobQueueInternalClient\NewJobFactory;
@@ -44,7 +44,7 @@ abstract class BaseClientFunctionalTest extends BaseTest
 
         return new NewJobFactory(
             $storageClientFactory,
-            new JobFactory\JobRuntimeResolver($storageClientFactory),
+            new JobRuntimeResolver($storageClientFactory),
             $objectEncryptorProvider
         );
     }
@@ -74,10 +74,10 @@ abstract class BaseClientFunctionalTest extends BaseTest
     {
         // cancel all created jobs
         $client = $this->getClient();
-        $response = $client->getJobsWithStatus([JobFactory::STATUS_CREATED]);
+        $response = $client->getJobsWithStatus([Job::STATUS_CREATED]);
         /** @var Job $job */
         foreach ($response as $job) {
-            $client->patchJob($job->getId(), (new JobPatchData())->setStatus(JobFactory::STATUS_CANCELLED));
+            $client->patchJob($job->getId(), (new JobPatchData())->setStatus(Job::STATUS_CANCELLED));
         }
     }
 

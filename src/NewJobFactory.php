@@ -72,8 +72,8 @@ class NewJobFactory extends JobFactory
             'tokenId' => $tokenInfo['id'],
             '#tokenString' => $data['#tokenString'],
             'tokenDescription' => $tokenInfo['description'],
-            'status' => JobFactory::STATUS_CREATED,
-            'desiredStatus' => JobFactory::DESIRED_STATUS_PROCESSING,
+            'status' => Job::STATUS_CREATED,
+            'desiredStatus' => Job::DESIRED_STATUS_PROCESSING,
             'mode' => $data['mode'],
             'componentId' => $data['componentId'],
             'configId' => $data['configId'] ?? null,
@@ -108,17 +108,17 @@ class NewJobFactory extends JobFactory
 
     private function getJobType(array $data): string
     {
-        if ((intval($data['parallelism']) > 0) || $data['parallelism'] === JobFactory::PARALLELISM_INFINITY) {
-            return JobFactory::TYPE_ROW_CONTAINER;
+        if ((intval($data['parallelism']) > 0) || $data['parallelism'] === Job::PARALLELISM_INFINITY) {
+            return Job::TYPE_ROW_CONTAINER;
         } else {
-            if ($data['componentId'] === JobFactory::ORCHESTRATOR_COMPONENT) {
+            if ($data['componentId'] === Job::ORCHESTRATOR_COMPONENT) {
                 if (isset($data['configData']['phaseId']) && (string) ($data['configData']['phaseId']) !== '') {
-                    return JobFactory::TYPE_PHASE_CONTAINER;
+                    return Job::TYPE_PHASE_CONTAINER;
                 } else {
-                    return JobFactory::TYPE_ORCHESTRATION_CONTAINER;
+                    return Job::TYPE_ORCHESTRATION_CONTAINER;
                 }
             }
         }
-        return JobFactory::TYPE_STANDARD;
+        return Job::TYPE_STANDARD;
     }
 }

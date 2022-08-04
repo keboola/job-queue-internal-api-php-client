@@ -13,9 +13,7 @@ use GuzzleHttp\Psr7\Response;
 use Keboola\JobQueueInternalClient\Client;
 use Keboola\JobQueueInternalClient\Exception\ClientException;
 use Keboola\JobQueueInternalClient\ExistingJobFactory;
-use Keboola\JobQueueInternalClient\JobFactory;
 use Keboola\JobQueueInternalClient\JobFactory\Job;
-use Keboola\JobQueueInternalClient\JobFactory\ObjectEncryptor\JobObjectEncryptor;
 use Keboola\JobQueueInternalClient\JobFactory\ObjectEncryptorProvider\GenericObjectEncryptorProvider;
 use Keboola\JobQueueInternalClient\JobListOptions;
 use Keboola\JobQueueInternalClient\JobPatchData;
@@ -23,7 +21,6 @@ use Keboola\JobQueueInternalClient\Result\JobMetrics;
 use Keboola\JobQueueInternalClient\Result\JobResult;
 use Keboola\ObjectEncryptor\EncryptorOptions;
 use Keboola\ObjectEncryptor\ObjectEncryptor;
-use Keboola\ObjectEncryptor\ObjectEncryptorFactory;
 use Keboola\StorageApiBranch\Factory\ClientOptions;
 use Keboola\StorageApiBranch\Factory\StorageClientPlainFactory;
 use Psr\Http\Message\RequestInterface;
@@ -431,7 +428,7 @@ Out of order
         $client = $this->getClient(['handler' => $stack]);
         $result = $client->postJobResult(
             '123',
-            JobFactory::STATUS_SUCCESS,
+            Job::STATUS_SUCCESS,
             (new JobResult())->setImages(['digests' => ['keboola.test' => ['id' => '123']]]),
             (new JobMetrics())->setInputTablesBytesSum(112233445566)->setBackendSize('small'),
         );
@@ -497,7 +494,7 @@ Out of order
         $this->expectExceptionMessage('Invalid job ID: "".');
         $client->postJobResult(
             '',
-            JobFactory::STATUS_SUCCESS,
+            Job::STATUS_SUCCESS,
             (new JobResult())->setImages(['digests' => ['keboola.test' => ['id' => '123']]])
         );
     }
@@ -926,7 +923,7 @@ Out of order
         $client = $this->getClient(['handler' => $stack]);
         $result = $client->patchJob(
             '123',
-            (new JobPatchData())->setStatus(JobFactory::STATUS_PROCESSING)
+            (new JobPatchData())->setStatus(Job::STATUS_PROCESSING)
         );
         self::assertInstanceOf(Job::class, $result);
         self::assertCount(1, $container);
@@ -969,7 +966,7 @@ Out of order
         $client = $this->getClient(['handler' => $stack]);
         $result = $client->patchJob(
             '123',
-            (new JobPatchData())->setDesiredStatus(JobFactory::DESIRED_STATUS_TERMINATING)
+            (new JobPatchData())->setDesiredStatus(Job::DESIRED_STATUS_TERMINATING)
         );
         self::assertInstanceOf(Job::class, $result);
         self::assertCount(1, $container);

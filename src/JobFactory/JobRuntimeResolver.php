@@ -7,7 +7,6 @@ namespace Keboola\JobQueueInternalClient\JobFactory;
 use Keboola\BillingApi\CreditsChecker;
 use Keboola\JobQueueInternalClient\Exception\ClientException;
 use Keboola\JobQueueInternalClient\Exception\ConfigurationDisabledException;
-use Keboola\JobQueueInternalClient\JobFactory;
 use Keboola\StorageApi\ClientException as StorageClientException;
 use Keboola\StorageApi\Components;
 use Keboola\StorageApiBranch\Factory\ClientOptions;
@@ -132,7 +131,7 @@ class JobRuntimeResolver
         We also ignore backend settings for other workspace types, as they do not make any sense at the moment.
         */
         if (in_array($stagingStorage, ['local', 's3', 'abs', 'none']) &&
-            !in_array(JobFactory::PAY_AS_YOU_GO_FEATURE, $tokenInfo['owner']['features'] ?? [])
+            !in_array(Job::PAY_AS_YOU_GO_FEATURE, $tokenInfo['owner']['features'] ?? [])
         ) {
             return new Backend(null, $tempBackend->getType());
         }

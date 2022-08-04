@@ -7,8 +7,6 @@ namespace Keboola\JobQueueInternalClient\Tests\JobFactory;
 use Keboola\JobQueueInternalClient\JobFactory\Job;
 use Keboola\JobQueueInternalClient\JobFactory\ObjectEncryptor\JobObjectEncryptor;
 use Keboola\JobQueueInternalClient\Tests\BaseTest;
-use Keboola\ObjectEncryptor\ObjectEncryptor;
-use Keboola\ObjectEncryptor\ObjectEncryptorFactory;
 use Keboola\StorageApi\BranchAwareClient;
 use Keboola\StorageApiBranch\ClientWrapper;
 use Keboola\StorageApiBranch\Factory\ClientOptions;
@@ -52,6 +50,13 @@ class JobTest extends BaseTest
         ],
         'orchestrationJobId' => '123456789',
     ];
+
+    public function testConstants(): void
+    {
+        self::assertCount(9, Job::STATUSES_ALL);
+        self::assertCount(5, Job::STATUSES_FINISHED);
+        self::assertCount(3, Job::STATUSES_KILLABLE);
+    }
 
     public function testGetComponentId(): void
     {

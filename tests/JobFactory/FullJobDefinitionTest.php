@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Keboola\JobQueueInternalClient\Tests\JobFactory;
 
-use Keboola\JobQueueInternalClient\JobFactory;
 use Keboola\JobQueueInternalClient\JobFactory\FullJobDefinition;
+use Keboola\JobQueueInternalClient\JobFactory\Job;
 use Keboola\JobQueueInternalClient\Tests\BaseTest;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 
@@ -29,8 +29,8 @@ class FullJobDefinitionTest extends BaseTest
             'result' => [
                 'bar' => 'foo',
             ],
-            'status' => JobFactory::STATUS_CREATED,
-            'desiredStatus' => JobFactory::DESIRED_STATUS_PROCESSING,
+            'status' => Job::STATUS_CREATED,
+            'desiredStatus' => Job::DESIRED_STATUS_PROCESSING,
             'parallelism' => null,
             'type' => 'standard',
         ];
@@ -61,8 +61,8 @@ class FullJobDefinitionTest extends BaseTest
             'tag' => 'latest',
             'id' => '1234',
             'runId' => '1234',
-            'status' => JobFactory::STATUS_CREATED,
-            'desiredStatus' => JobFactory::DESIRED_STATUS_PROCESSING,
+            'status' => Job::STATUS_CREATED,
+            'desiredStatus' => Job::DESIRED_STATUS_PROCESSING,
             'parallelism' => null,
             'type' => 'standard',
             'extraKey' => 'ignored',
@@ -389,8 +389,8 @@ class FullJobDefinitionTest extends BaseTest
             'tag' => 'latest',
             'id' => '1234',
             'runId' => '1234',
-            'status' => JobFactory::STATUS_CREATED,
-            'desiredStatus' => JobFactory::DESIRED_STATUS_PROCESSING,
+            'status' => Job::STATUS_CREATED,
+            'desiredStatus' => Job::DESIRED_STATUS_PROCESSING,
             'backend' => [
                 'type' => 'my-backend',
                 'foo' => 'bar',
@@ -421,8 +421,8 @@ class FullJobDefinitionTest extends BaseTest
             'tag' => 'latest',
             'id' => '1234',
             'runId' => '1234',
-            'status' => JobFactory::STATUS_CREATED,
-            'desiredStatus' => JobFactory::DESIRED_STATUS_PROCESSING,
+            'status' => Job::STATUS_CREATED,
+            'desiredStatus' => Job::DESIRED_STATUS_PROCESSING,
             'behavior' => [
                 'onError' => 'warning',
             ],

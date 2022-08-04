@@ -6,6 +6,7 @@ namespace Keboola\JobQueueInternalClient;
 
 use JsonSerializable;
 use Keboola\JobQueueInternalClient\Exception\ClientException;
+use Keboola\JobQueueInternalClient\JobFactory\Job;
 use Keboola\JobQueueInternalClient\Result\JobResult;
 
 class JobPatchData implements JsonSerializable
@@ -34,7 +35,7 @@ class JobPatchData implements JsonSerializable
 
     private function validateStatus(string $status): void
     {
-        if ($status && !in_array($status, JobFactory::getAllStatuses())) {
+        if ($status && !in_array($status, Job::STATUSES_ALL)) {
             throw new ClientException(sprintf('Invalid status: "%s".', $status));
         }
     }
@@ -42,8 +43,8 @@ class JobPatchData implements JsonSerializable
     private function validateDesiredStatus(string $desiredStatus): void
     {
         $allowedDesiredStatuses = [
-            JobFactory::DESIRED_STATUS_TERMINATING,
-            JobFactory::DESIRED_STATUS_PROCESSING,
+            Job::DESIRED_STATUS_TERMINATING,
+            Job::DESIRED_STATUS_PROCESSING,
         ];
 
         if ($desiredStatus && !in_array($desiredStatus, $allowedDesiredStatuses)) {
