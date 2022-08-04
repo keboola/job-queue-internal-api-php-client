@@ -9,7 +9,7 @@ use DateTimeZone;
 use JsonSerializable;
 use Keboola\JobQueueInternalClient\JobFactory\ObjectEncryptor\JobObjectEncryptorInterface;
 use Keboola\JobQueueInternalClient\Result\JobMetrics;
-use Keboola\StorageApi\Components;
+use Keboola\StorageApi\Components as ComponentsApiClient;
 use Keboola\StorageApiBranch\Factory\ClientOptions;
 use Keboola\StorageApiBranch\Factory\StorageClientPlainFactory;
 use Throwable;
@@ -24,7 +24,10 @@ class Job implements JsonSerializable, JobInterface
     private ?DateTimeImmutable $startTime;
     private ?string $tokenDecrypted = null;
     private ?array $configDataDecrypted = null;
-    private ?ComponentSpecification $componentSpecification;
+
+    private ?ComponentsApiClient $componentsApiClient = null;
+    private ?ComponentSpecification $componentSpecification = null;
+    private ?array $componentConfiguration = null;
 
     public function __construct(
         JobObjectEncryptorInterface $objectEncryptor,
@@ -254,21 +257,46 @@ class Job implements JsonSerializable, JobInterface
         return in_array($this->getMode(), [JobInterface::MODE_RUN, JobInterface::MODE_FORCE_RUN]);
     }
 
-    public function getComponentSpecification(): ComponentSpecification
-    {
-        if (empty($this->componentSpecification)) {
-            $client = $this->storageClientFactory->createClientWrapper(
-                new ClientOptions(null, $this->getTokenDecrypted(), $this->getBranchId())
-            );
-            $componentsApi = new Components($client->getBranchClientIfAvailable());
-            $data = $componentsApi->getComponent($this->getComponentId());
-            $this->componentSpecification = new ComponentSpecification($data);
-        }
-        return $this->componentSpecification;
-    }
-
     public function getOrchestrationJobId(): ?string
     {
         return $this->data['orchestrationJobId'] ?? null;
+    }
+
+    public function getComponentSpecification(): ComponentSpecification
+    {
+        if ($this->componentSpecification !== null) {
+            return $this->componentSpecification;
+        }
+
+        $data = $this->getComponentsApiClient()->getComponent($this->getComponentId());
+        return $this->componentSpecification = new ComponentSpecification($data);
+    }
+
+    public function getComponentConfiguration(): ?array
+    {
+        if ($this->componentConfiguration !== null) {
+            return $this->componentConfiguration;
+        }
+
+        if (!$this->getConfigId()) {
+            return null;
+        }
+
+        return $this->componentConfiguration = $this->getComponentsApiClient()->getConfiguration(
+            $this->getComponentId(),
+            $this->getConfigId()
+        );
+    }
+
+    private function getComponentsApiClient(): ComponentsApiClient
+    {
+        if ($this->componentsApiClient !== null) {
+            return $this->componentsApiClient;
+        }
+
+        $client = $this->storageClientFactory->createClientWrapper(
+            new ClientOptions(null, $this->getTokenDecrypted(), $this->getBranchId())
+        );
+        return $this->componentsApiClient = new ComponentsApiClient($client->getBranchClientIfAvailable());
     }
 }

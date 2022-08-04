@@ -9,7 +9,7 @@ use Keboola\JobQueueInternalClient\DataPlane\Config\Encryption\TestingEncryptorC
 use Keboola\JobQueueInternalClient\DataPlane\Config\KubernetesConfig;
 use Keboola\JobQueueInternalClient\DataPlane\DataPlaneConfigRepository;
 use Keboola\JobQueueInternalClient\Exception\ClientException;
-use Keboola\JobQueueInternalClient\JobFactory;
+use Keboola\JobQueueInternalClient\JobFactory\JobRuntimeResolver;
 use Keboola\JobQueueInternalClient\JobFactory\ObjectEncryptorProvider\DataPlaneObjectEncryptorProvider;
 use Keboola\JobQueueInternalClient\NewJobFactory;
 use Keboola\ObjectEncryptor\EncryptorOptions;
@@ -95,7 +95,7 @@ class NewJobFactoryTest extends BaseTest
 
         $factory = new NewJobFactory(
             $storageClientFactory,
-            new JobFactory\JobRuntimeResolver($storageClientFactory),
+            new JobRuntimeResolver($storageClientFactory),
             $objectEncryptorProvider,
         );
 
@@ -159,7 +159,7 @@ class NewJobFactoryTest extends BaseTest
 
         $factory = new NewJobFactory(
             $storageClientFactory,
-            new JobFactory\JobRuntimeResolver($storageClientFactory),
+            new JobRuntimeResolver($storageClientFactory),
             $objectEncryptorProvider,
         );
 

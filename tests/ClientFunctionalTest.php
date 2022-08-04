@@ -274,11 +274,13 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
             '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
             'configData' => [],
             'componentId' => self::COMPONENT_ID_1,
+            'configId' => self::$configId1,
             'mode' => 'run',
         ]);
         $createdJob = $client->createJob($job);
 
         $job = $client->getJob($createdJob->getId());
+
         self::assertEquals($createdJob->getTokenString(), $job->getTokenString());
         self::assertEquals($createdJob->getConfigData(), $job->getConfigData());
         self::assertEquals($createdJob->getComponentId(), $job->getComponentId());
@@ -297,6 +299,10 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
         self::assertNull($job->getStartTime());
         self::assertNull($job->getEndTime());
         self::assertEquals('keboola.runner-config-test', $job->getComponentSpecification()->getId());
+
+        $resultComponentConfig = $job->getComponentConfiguration();
+        self::assertNotNull($resultComponentConfig);
+        self::assertSame(self::$configId1, $resultComponentConfig['id'] ?? null);
     }
 
     public function testGetJobParentRunId(): void

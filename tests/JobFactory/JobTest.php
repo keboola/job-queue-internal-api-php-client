@@ -415,6 +415,81 @@ class JobTest extends BaseTest
         self::assertSame('256m', $job->getComponentSpecification()->getMemoryLimit());
     }
 
+    public function testComponentConfiguration(): void
+    {
+        $componentConfigData = [
+            'uri' => 'some-uri',
+            'type' => 'aws-ecr',
+        ];
+
+        $storageClient = $this->createMock(BranchAwareClient::class);
+        $storageClient->expects(self::once())
+            ->method('apiGet')
+            ->with(sprintf('components/%s/configs/%s', $this->jobData['componentId'], $this->jobData['configId']))
+            ->willReturn($componentConfigData)
+        ;
+
+        $storageClientWrapperMock = $this->createMock(ClientWrapper::class);
+        $storageClientWrapperMock->expects(self::once())
+            ->method('getBranchClientIfAvailable')
+            ->willReturn($storageClient)
+        ;
+
+        $storageClientFactory = $this->createMock(StorageClientPlainFactory::class);
+        $storageClientFactory->expects(self::once())
+            ->method('createClientWrapper')
+            ->with(new ClientOptions(null, 'token', $this->jobData['branchId']))
+            ->willReturn($storageClientWrapperMock)
+        ;
+
+        $objectEncryptorMock = $this->createMock(JobObjectEncryptor::class);
+        $objectEncryptorMock->expects(self::once())
+            ->method('decrypt')
+            ->with(
+                'KBC::ProjectSecure::token',
+                $this->jobData['componentId'],
+                $this->jobData['projectId'],
+                $this->jobData['configId'],
+            )
+            ->willReturn('token')
+        ;
+
+        $job = new Job(
+            $objectEncryptorMock,
+            $storageClientFactory,
+            $this->jobData
+        );
+
+        $result = $job->getComponentConfiguration();
+
+        self::assertSame($componentConfigData, $result);
+
+        // fetch configuration again to test it's not loaded form API again
+        $job->getComponentConfiguration();
+    }
+
+    public function testComponentNoConfiguration(): void
+    {
+        $storageClientFactory = $this->createMock(StorageClientPlainFactory::class);
+        $storageClientFactory->expects(self::never())->method(self::anything());
+
+        $objectEncryptorMock = $this->createMock(JobObjectEncryptor::class);
+        $objectEncryptorMock->expects(self::never())->method('decrypt');
+
+        $jobData = $this->jobData;
+        $jobData['configId'] = null;
+
+        $job = new Job(
+            $objectEncryptorMock,
+            $storageClientFactory,
+            $jobData
+        );
+
+        $result = $job->getComponentConfiguration();
+
+        self::assertNull($result);
+    }
+
     public function testGetOrchestrationId(): void
     {
         self::assertEquals('123456789', $this->getJob()->getOrchestrationJobId());
