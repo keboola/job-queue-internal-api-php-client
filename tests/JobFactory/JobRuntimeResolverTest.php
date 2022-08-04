@@ -57,7 +57,7 @@ class JobRuntimeResolverTest extends TestCase
         $clientMock = self::createMock(Client::class);
         $clientMock->expects(self::once())->method('apiGet')
             ->withConsecutive(
-                ['components/keboola.ex-db-snowflake']
+                ['branch/default/components/keboola.ex-db-snowflake']
             )->willReturnOnConsecutiveCalls(
                 $componentData
             );
@@ -126,7 +126,7 @@ class JobRuntimeResolverTest extends TestCase
         $clientMock = self::createMock(Client::class);
         $clientMock->expects(self::once())->method('apiGet')
             ->withConsecutive(
-                ['components/keboola.ex-db-snowflake']
+                ['branch/default/components/keboola.ex-db-snowflake']
             )->willReturnOnConsecutiveCalls(
                 $componentData
             );
@@ -215,8 +215,8 @@ class JobRuntimeResolverTest extends TestCase
         $clientMock = self::createMock(Client::class);
         $clientMock->expects(self::exactly(2))->method('apiGet')
             ->withConsecutive(
-                ['components/keboola.ex-db-snowflake/configs/454124290'],
-                ['components/keboola.ex-db-snowflake']
+                ['branch/default/components/keboola.ex-db-snowflake/configs/454124290'],
+                ['branch/default/components/keboola.ex-db-snowflake']
             )->willReturnOnConsecutiveCalls(
                 $configuration,
                 $componentData
@@ -289,8 +289,8 @@ class JobRuntimeResolverTest extends TestCase
         $clientMock = self::createMock(Client::class);
         $clientMock->expects(self::exactly(2))->method('apiGet')
             ->withConsecutive(
-                ['components/keboola.ex-db-snowflake/configs/454124290'],
-                ['components/keboola.ex-db-snowflake']
+                ['branch/default/components/keboola.ex-db-snowflake/configs/454124290'],
+                ['branch/default/components/keboola.ex-db-snowflake']
             )->willReturnOnConsecutiveCalls(
                 $configuration,
                 $componentData
@@ -374,8 +374,8 @@ class JobRuntimeResolverTest extends TestCase
         $clientMock = self::createMock(Client::class);
         $clientMock->expects(self::exactly(2))->method('apiGet')
             ->withConsecutive(
-                ['components/keboola.ex-db-snowflake/configs/454124290'],
-                ['components/keboola.ex-db-snowflake'],
+                ['branch/default/components/keboola.ex-db-snowflake/configs/454124290'],
+                ['branch/default/components/keboola.ex-db-snowflake'],
             )->willReturnOnConsecutiveCalls(
                 $configuration,
                 $componentData
@@ -445,8 +445,8 @@ class JobRuntimeResolverTest extends TestCase
         $clientMock = self::createMock(Client::class);
         $clientMock->expects(self::exactly(2))->method('apiGet')
             ->withConsecutive(
-                ['components/keboola.ex-db-snowflake/configs/454124290'],
-                ['components/keboola.ex-db-snowflake']
+                ['branch/default/components/keboola.ex-db-snowflake/configs/454124290'],
+                ['branch/default/components/keboola.ex-db-snowflake']
             )->willReturnOnConsecutiveCalls($configuration, $component);
         $clientWrapperMock = self::createMock(ClientWrapper::class);
         $clientWrapperMock->method('getBranchClientIfAvailable')->willReturn($clientMock);
@@ -507,7 +507,7 @@ class JobRuntimeResolverTest extends TestCase
         $clientMock = self::createMock(Client::class);
         $clientMock->expects(self::once())->method('apiGet')
             ->with(
-                'components/keboola.ex-db-snowflake/configs/454124290',
+                'branch/default/components/keboola.ex-db-snowflake/configs/454124290',
             )->willThrowException(new StorageClientException('Configuration "454124290" not found', 404));
         $clientWrapperMock = self::createMock(ClientWrapper::class);
         $clientWrapperMock->method('getBranchClientIfAvailable')->willReturn($clientMock);
@@ -539,7 +539,7 @@ class JobRuntimeResolverTest extends TestCase
 
         $clientMock = self::createMock(Client::class);
         $clientMock->expects(self::once())->method('apiGet')
-            ->with('components/keboola.ex-db-snowflake')->willReturn($component);
+            ->with('branch/default/components/keboola.ex-db-snowflake')->willReturn($component);
         $clientWrapperMock = self::createMock(ClientWrapper::class);
         $clientWrapperMock->method('getBranchClientIfAvailable')->willReturn($clientMock);
         $storageClientFactoryMock = self::createMock(StorageClientPlainFactory::class);
@@ -588,7 +588,7 @@ class JobRuntimeResolverTest extends TestCase
 
         $clientMock = self::createMock(Client::class);
         $clientMock->expects(self::once())->method('apiGet')
-            ->with('components/keboola.ex-db-snowflake')->willReturn($component);
+            ->with('branch/default/components/keboola.ex-db-snowflake')->willReturn($component);
         $clientWrapperMock = self::createMock(ClientWrapper::class);
         $clientWrapperMock->method('getBranchClientIfAvailable')->willReturn($clientMock);
         $storageClientFactoryMock = self::createMock(StorageClientPlainFactory::class);
@@ -675,7 +675,7 @@ class JobRuntimeResolverTest extends TestCase
 
         $clientMock = self::createMock(Client::class);
         $clientMock->expects(self::once())->method('apiGet')
-            ->with('components/keboola.ex-db-snowflake')->willReturn($component);
+            ->with('branch/default/components/keboola.ex-db-snowflake')->willReturn($component);
         $clientWrapperMock = self::createMock(ClientWrapper::class);
         $clientWrapperMock->method('getBranchClientIfAvailable')->willReturn($clientMock);
         $storageClientFactoryMock = self::createMock(StorageClientPlainFactory::class);
@@ -790,7 +790,7 @@ class JobRuntimeResolverTest extends TestCase
 
         $clientMock = self::createMock(Client::class);
         $clientMock->expects(self::once())->method('apiGet')
-            ->with('components/keboola.ex-db-snowflake/configs/454124290')->willReturn($configuration);
+            ->with('branch/default/components/keboola.ex-db-snowflake/configs/454124290')->willReturn($configuration);
         $clientWrapperMock = self::createMock(ClientWrapper::class);
         $clientWrapperMock->method('getBranchClientIfAvailable')->willReturn($clientMock);
         $storageClientFactoryMock = self::createMock(StorageClientPlainFactory::class);
@@ -842,7 +842,7 @@ class JobRuntimeResolverTest extends TestCase
         $clientMock = self::createMock(Client::class);
         $clientMock->expects(self::exactly($expectedApiCallCount))->method('apiGet')
             ->withConsecutive(
-                ['components/keboola.ex-db-snowflake']
+                ['branch/default/components/keboola.ex-db-snowflake']
             )->willReturnOnConsecutiveCalls(
                 $componentData
             );
