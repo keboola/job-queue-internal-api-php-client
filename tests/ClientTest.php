@@ -4,16 +4,19 @@ declare(strict_types=1);
 
 namespace Keboola\JobQueueInternalClient\Tests;
 
+use DateTimeImmutable;
 use GuzzleHttp\Handler\MockHandler;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Middleware;
 use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\Psr7\Response;
 use Keboola\JobQueueInternalClient\Client;
-use Keboola\JobQueueInternalClient\DataPlane\DataPlaneConfigRepository;
 use Keboola\JobQueueInternalClient\Exception\ClientException;
+use Keboola\JobQueueInternalClient\ExistingJobFactory;
 use Keboola\JobQueueInternalClient\JobFactory;
 use Keboola\JobQueueInternalClient\JobFactory\Job;
+use Keboola\JobQueueInternalClient\JobFactory\ObjectEncryptor\JobObjectEncryptor;
+use Keboola\JobQueueInternalClient\JobFactory\ObjectEncryptorProvider\GenericObjectEncryptorProvider;
 use Keboola\JobQueueInternalClient\JobListOptions;
 use Keboola\JobQueueInternalClient\JobPatchData;
 use Keboola\JobQueueInternalClient\Result\JobMetrics;
@@ -27,6 +30,7 @@ use Psr\Http\Message\RequestInterface;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 use Psr\Log\Test\TestLogger;
+use stdClass;
 
 class ClientTest extends BaseTest
 {
@@ -36,9 +40,7 @@ class ClientTest extends BaseTest
             'http://example.com/',
         ));
 
-        $jobFactory = new JobFactory(
-            $storageClientFactory,
-            new JobFactory\JobRuntimeResolver($storageClientFactory),
+        $objectEncryptorProvider = new GenericObjectEncryptorProvider(
             new ObjectEncryptor(new EncryptorOptions(
                 'stackId',
                 'kmsKeyId',
@@ -46,8 +48,11 @@ class ClientTest extends BaseTest
                 null,
                 null
             )),
-            $this->createMock(DataPlaneConfigRepository::class),
-            false
+        );
+
+        $jobFactory = new ExistingJobFactory(
+            $storageClientFactory,
+            $objectEncryptorProvider,
         );
 
         return new Client(
@@ -67,7 +72,7 @@ class ClientTest extends BaseTest
         );
         new Client(
             new NullLogger(),
-            $this->createMock(JobFactory::class),
+            $this->createMock(ExistingJobFactory::class),
             'http://example.com/',
             'testToken',
             ['backoffMaxTries' => 'abc']
@@ -82,7 +87,7 @@ class ClientTest extends BaseTest
         );
         new Client(
             new NullLogger(),
-            $this->createMock(JobFactory::class),
+            $this->createMock(ExistingJobFactory::class),
             'http://example.com/',
             'testToken',
             ['backoffMaxTries' => -1]
@@ -97,7 +102,7 @@ class ClientTest extends BaseTest
         );
         new Client(
             new NullLogger(),
-            $this->createMock(JobFactory::class),
+            $this->createMock(ExistingJobFactory::class),
             'http://example.com/',
             'testToken',
             ['backoffMaxTries' => 101]
@@ -110,7 +115,7 @@ class ClientTest extends BaseTest
         $this->expectExceptionMessage(
             'Invalid parameters when creating client: Value "" is invalid: This value should not be blank.'
         );
-        new Client(new NullLogger(), $this->createMock(JobFactory::class), 'http://example.com/', '');
+        new Client(new NullLogger(), $this->createMock(ExistingJobFactory::class), 'http://example.com/', '');
     }
 
     public function testCreateClientInvalidUrl(): void
@@ -119,7 +124,7 @@ class ClientTest extends BaseTest
         $this->expectExceptionMessage(
             'Invalid parameters when creating client: Value "invalid url" is invalid: This value is not a valid URL.'
         );
-        new Client(new NullLogger(), $this->createMock(JobFactory::class), 'invalid url', 'testToken');
+        new Client(new NullLogger(), $this->createMock(ExistingJobFactory::class), 'invalid url', 'testToken');
     }
 
     public function testCreateClientMultipleErrors(): void
@@ -129,7 +134,7 @@ class ClientTest extends BaseTest
             'Invalid parameters when creating client: Value "invalid url" is invalid: This value is not a valid URL.'
             . "\n" . 'Value "" is invalid: This value should not be blank.' . "\n"
         );
-        new Client(new NullLogger(), $this->createMock(JobFactory::class), 'invalid url', '');
+        new Client(new NullLogger(), $this->createMock(ExistingJobFactory::class), 'invalid url', '');
     }
 
     public function testClientRequestResponse(): void
@@ -615,6 +620,72 @@ Out of order
         self::assertEquals('projectId%5B%5D=456&limit=100', $request->getUri()->getQuery());
     }
 
+    /** @dataProvider provideListJobsOptionsTestData */
+    public function testListJobsOptions(JobListOptions $jobListOptions, string $expectedRequestUri): void
+    {
+        $mock = new MockHandler([
+            new Response(200, ['Content-Type' => 'application/json'], (string) json_encode([
+                [
+                    'id' => '123',
+                    'runId' => '123',
+                    'projectId' => '456',
+                    'projectName' => 'Test project',
+                    'tokenId' => '789',
+                    '#tokenString' => 'KBC::ProjectSecure::aSdF',
+                    'tokenDescription' => 'my token',
+                    'status' => 'created',
+                    'desiredStatus' => 'processing',
+                    'mode' => 'run',
+                    'componentId' => 'keboola.test',
+                    'configId' => '123456',
+                    'configData' => [
+                        'parameters' => [
+                            'foo' => 'bar',
+                        ],
+                    ],
+                    'result' => new stdClass(),
+                    'usageData' => new stdClass(),
+                    'isFinished' => false,
+                    'branchId' => null,
+                ],
+            ])),
+        ]);
+
+        $requestHistory = [];
+        $history = Middleware::history($requestHistory);
+        $stack = HandlerStack::create($mock);
+        $stack->push($history);
+
+        $client = $this->getClient(['handler' => $stack]);
+        $client->listJobs($jobListOptions, true);
+
+        $request = $requestHistory[0]['request'];
+        self::assertSame($expectedRequestUri, $request->getUri()->__toString());
+    }
+
+    public function provideListJobsOptionsTestData(): iterable
+    {
+        yield 'empty options' => [
+            'options' => new JobListOptions(),
+            'url' => 'http://example.com/jobs?limit=100',
+        ];
+
+        yield 'sort by id, asc' => [
+            'options' => (new JobListOptions())
+                ->setSortBy('id')
+                ->setSortOrder('asc'),
+            'url' => 'http://example.com/jobs?limit=100&sortBy=id&sortOrder=asc',
+        ];
+
+        yield 'filter date range' => [
+            'options' => (new JobListOptions())
+                ->setCreatedTimeFrom(new DateTimeImmutable('2022-03-01T12:17:05+10:00'))
+                ->setCreatedTimeTo(new DateTimeImmutable('2022-07-14T05:11:45-08:20')),
+            // phpcs:ignore
+            'url' => 'http://example.com/jobs?limit=100&createdTimeFrom=2022-03-01T12%3A17%3A05%2B10%3A00&createdTimeTo=2022-07-14T05%3A11%3A45-08%3A20',
+        ];
+    }
+
     public function testClientGetJobsEscaping(): void
     {
         $mock = new MockHandler([
@@ -929,7 +1000,7 @@ Out of order
         $objectEncryptor = ObjectEncryptorFactory::getAwsEncryptor('local', 'alias/some-key', 'us-east-1', null);
         $storageClientFactory = new StorageClientPlainFactory(new ClientOptions());
         $job = new Job(
-            $objectEncryptor,
+            new JobObjectEncryptor($objectEncryptor),
             $storageClientFactory,
             [
                 'status' => JobFactory::STATUS_SUCCESS,

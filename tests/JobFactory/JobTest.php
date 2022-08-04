@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Keboola\JobQueueInternalClient\Tests\JobFactory;
 
 use Keboola\JobQueueInternalClient\JobFactory\Job;
+use Keboola\JobQueueInternalClient\JobFactory\ObjectEncryptor\JobObjectEncryptor;
 use Keboola\JobQueueInternalClient\Tests\BaseTest;
 use Keboola\ObjectEncryptor\ObjectEncryptor;
 use Keboola\ObjectEncryptor\ObjectEncryptorFactory;
@@ -221,7 +222,7 @@ class JobTest extends BaseTest
 
     private function getJob(?array $jobData = null): Job
     {
-        $objectEncryptorMock = $this->createMock(ObjectEncryptor::class);
+        $objectEncryptorMock = $this->createMock(JobObjectEncryptor::class);
         $storageClientFactoryMock = $this->createMock(StorageClientPlainFactory::class);
         return new Job($objectEncryptorMock, $storageClientFactoryMock, $jobData ?? $this->jobData);
     }
@@ -313,9 +314,9 @@ class JobTest extends BaseTest
 
     public function testCacheDecryptedToken(): void
     {
-        $objectEncryptorMock = $this->createMock(ObjectEncryptor::class);
+        $objectEncryptorMock = $this->createMock(JobObjectEncryptor::class);
         $objectEncryptorMock->expects(self::once())
-            ->method('decryptForConfiguration')
+            ->method('decrypt')
             ->with(
                 $this->jobData['#tokenString'],
                 $this->jobData['componentId'],
@@ -344,9 +345,9 @@ class JobTest extends BaseTest
             'parameters' => ['#secret-foo' => 'decrypted-bar'],
         ];
 
-        $objectEncryptorMock = $this->createMock(ObjectEncryptor::class);
+        $objectEncryptorMock = $this->createMock(JobObjectEncryptor::class);
         $objectEncryptorMock->expects(self::once())
-            ->method('decryptForConfiguration')
+            ->method('decrypt')
             ->with(
                 $this->jobData['configData'],
                 $this->jobData['componentId'],
@@ -390,9 +391,9 @@ class JobTest extends BaseTest
             ->with(new ClientOptions(null, 'token', '987'))
             ->willReturn($clientWrapperMock);
 
-        $objectEncryptorMock = $this->createMock(ObjectEncryptor::class);
+        $objectEncryptorMock = $this->createMock(JobObjectEncryptor::class);
         $objectEncryptorMock->expects(self::once())
-            ->method('decryptForConfiguration')
+            ->method('decrypt')
             ->with(
                 'KBC::ProjectSecure::token',
                 $this->jobData['componentId'],

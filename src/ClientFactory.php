@@ -10,18 +10,18 @@ class ClientFactory
 {
     private string $internalApiUrl;
     private string $internalApiToken;
-    private JobFactory $jobFactory;
+    private ExistingJobFactory $existingJobFactory;
     private LoggerInterface $logger;
 
     public function __construct(
         string $internalApiUrl,
         string $internalApiToken,
-        JobFactory $jobFactory,
+        ExistingJobFactory $existingJobFactory,
         LoggerInterface $logger
     ) {
         $this->internalApiUrl = $internalApiUrl;
         $this->internalApiToken = $internalApiToken;
-        $this->jobFactory = $jobFactory;
+        $this->existingJobFactory = $existingJobFactory;
         $this->logger = $logger;
     }
 
@@ -29,7 +29,7 @@ class ClientFactory
     {
         return new Client(
             $this->logger,
-            $this->jobFactory,
+            $this->existingJobFactory,
             $this->internalApiUrl,
             $this->internalApiToken,
             [

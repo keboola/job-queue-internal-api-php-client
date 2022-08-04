@@ -8,12 +8,11 @@ use DateTimeImmutable;
 use DateTimeZone;
 use JsonSerializable;
 use Keboola\JobQueueInternalClient\JobFactory;
+use Keboola\JobQueueInternalClient\JobFactory\ObjectEncryptor\JobObjectEncryptorInterface;
 use Keboola\JobQueueInternalClient\Result\JobMetrics;
-use Keboola\ObjectEncryptor\ObjectEncryptor;
 use Keboola\StorageApi\Components;
 use Keboola\StorageApiBranch\Factory\ClientOptions;
 use Keboola\StorageApiBranch\Factory\StorageClientPlainFactory;
-use stdClass;
 use Throwable;
 
 class Job implements JsonSerializable, JobInterface
@@ -22,7 +21,7 @@ class Job implements JsonSerializable, JobInterface
     public const MODE_DEBUG = 'debug';
     public const MODE_FORCE_RUN = 'forceRun';
 
-    private ObjectEncryptor $objectEncryptor;
+    private JobObjectEncryptorInterface $objectEncryptor;
     private StorageClientPlainFactory $storageClientFactory;
     private array $data;
 
@@ -33,7 +32,7 @@ class Job implements JsonSerializable, JobInterface
     private ?ComponentSpecification $componentSpecification;
 
     public function __construct(
-        ObjectEncryptor $objectEncryptor,
+        JobObjectEncryptorInterface $objectEncryptor,
         StorageClientPlainFactory $storageClientFactory,
         array $data
     ) {
@@ -192,46 +191,21 @@ class Job implements JsonSerializable, JobInterface
 
     public function getTokenDecrypted(): string
     {
-        if ($this->tokenDecrypted !== null) {
-            return $this->tokenDecrypted;
-        }
-
-        return $this->tokenDecrypted = $this->decryptData($this->getTokenString());
+        return $this->tokenDecrypted ??= $this->objectEncryptor->decrypt(
+            $this->getTokenString(),
+            $this->getComponentId(),
+            $this->getProjectId(),
+            $this->getConfigId()
+        );
     }
 
     public function getConfigDataDecrypted(): array
     {
-        if ($this->configDataDecrypted !== null) {
-            return $this->configDataDecrypted;
-        }
-
-        return $this->configDataDecrypted = $this->decryptData($this->getConfigData());
-    }
-
-    /**
-     * @template T of array|stdClass|string
-     * @param T $data
-     * @return T
-     */
-    private function decryptData($data)
-    {
-        $componentId = $this->getComponentId();
-        $projectId = $this->getProjectId();
-        $configId = $this->getConfigId();
-
-        if ($configId) {
-            return $this->objectEncryptor->decryptForConfiguration(
-                $data,
-                $componentId,
-                $projectId,
-                $configId,
-            );
-        }
-
-        return $this->objectEncryptor->decryptForProject(
-            $data,
-            $componentId,
-            $projectId,
+        return $this->configDataDecrypted ??= $this->objectEncryptor->decrypt(
+            $this->getConfigData(),
+            $this->getComponentId(),
+            $this->getProjectId(),
+            $this->getConfigId()
         );
     }
 

@@ -37,12 +37,12 @@ class Client
     private const JSON_DEPTH = 512;
 
     protected GuzzleClient $guzzle;
-    private JobFactory $jobFactory;
+    private ExistingJobFactory $existingJobFactory;
     private LoggerInterface $logger;
 
     public function __construct(
         LoggerInterface $logger,
-        JobFactory $jobFactory,
+        ExistingJobFactory $existingJobFactory,
         string $internalQueueApiUrl,
         string $internalQueueToken,
         array $options = []
@@ -70,7 +70,7 @@ class Client
             throw new ClientException('Invalid parameters when creating client: ' . $messages);
         }
         $this->guzzle = $this->initClient($internalQueueApiUrl, $internalQueueToken, $options);
-        $this->jobFactory = $jobFactory;
+        $this->existingJobFactory = $existingJobFactory;
         $this->logger = $logger;
     }
 
@@ -88,7 +88,7 @@ class Client
             throw new ClientException('Invalid job data: ' . $e->getMessage(), $e->getCode(), $e);
         }
         $result = $this->sendRequest($request);
-        return $this->jobFactory->loadFromExistingJobData($result);
+        return $this->existingJobFactory->loadFromExistingJobData($result);
     }
 
     public function createJobsBatch(array $jobs): array
@@ -101,12 +101,7 @@ class Client
         }
         $result = $this->sendRequest($request);
 
-        return array_map(fn(array $jobData) => $this->jobFactory->loadFromExistingJobData($jobData), $result);
-    }
-
-    public function getJobFactory(): JobFactory
-    {
-        return $this->jobFactory;
+        return array_map(fn(array $jobData) => $this->existingJobFactory->loadFromExistingJobData($jobData), $result);
     }
 
     public function getJob(string $jobId): JobInterface
@@ -117,7 +112,7 @@ class Client
 
         $request = new Request('GET', 'jobs/' . $jobId);
         $result = $this->sendRequest($request);
-        return $this->jobFactory->loadFromExistingJobData($result);
+        return $this->existingJobFactory->loadFromExistingJobData($result);
     }
 
     /**
@@ -209,7 +204,7 @@ class Client
             [],
             json_encode($patchData->jsonSerialize(), JSON_THROW_ON_ERROR)
         );
-        return $this->jobFactory->loadFromExistingJobData($this->sendRequest($request));
+        return $this->existingJobFactory->loadFromExistingJobData($this->sendRequest($request));
     }
 
     public function postJobResult(
@@ -231,7 +226,7 @@ class Client
                 JSON_THROW_ON_ERROR
             )
         );
-        return $this->jobFactory->loadFromExistingJobData($this->sendRequest($request));
+        return $this->existingJobFactory->loadFromExistingJobData($this->sendRequest($request));
     }
 
     /**
@@ -300,7 +295,7 @@ class Client
     {
         $jobs = array_map(function (array $jobData): ?JobInterface {
             try {
-                return $this->jobFactory->loadFromExistingJobData($jobData);
+                return $this->existingJobFactory->loadFromExistingJobData($jobData);
             } catch (Throwable $e) {
                 $this->logger->error('Failed to parse Job data: ' . $e->getMessage());
                 // ignore invalid job
