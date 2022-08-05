@@ -77,9 +77,6 @@ class Job implements JsonSerializable, JobInterface
     ];
 
     public const PARALLELISM_INFINITY = 'infinity';
-    public const ORCHESTRATOR_COMPONENT = 'keboola.orchestrator';
-
-    public const PAY_AS_YOU_GO_FEATURE = 'pay-as-you-go';
 
     public static function getAllowedParallelismValues(): array
     {

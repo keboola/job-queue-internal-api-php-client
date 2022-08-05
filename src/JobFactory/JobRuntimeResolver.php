@@ -18,6 +18,8 @@ use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
  */
 class JobRuntimeResolver
 {
+    private const PAY_AS_YOU_GO_FEATURE = 'pay-as-you-go';
+
     private StorageClientPlainFactory $storageClientFactory;
     private ?array $configuration;
     private array $jobData;
@@ -131,7 +133,7 @@ class JobRuntimeResolver
         We also ignore backend settings for other workspace types, as they do not make any sense at the moment.
         */
         if (in_array($stagingStorage, ['local', 's3', 'abs', 'none']) &&
-            !in_array(Job::PAY_AS_YOU_GO_FEATURE, $tokenInfo['owner']['features'] ?? [])
+            !in_array(self::PAY_AS_YOU_GO_FEATURE, $tokenInfo['owner']['features'] ?? [])
         ) {
             return new Backend(null, $tempBackend->getType());
         }

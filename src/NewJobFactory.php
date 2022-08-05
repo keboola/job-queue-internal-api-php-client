@@ -18,6 +18,8 @@ use Keboola\StorageApiBranch\Factory\StorageClientPlainFactory;
 
 class NewJobFactory extends JobFactory
 {
+    private const ORCHESTRATOR_COMPONENT = 'keboola.orchestrator';
+
     private StorageClientPlainFactory $storageClientFactory;
     private JobRuntimeResolver $jobRuntimeResolver;
     private DataPlaneObjectEncryptorProvider $objectEncryptorProvider;
@@ -111,7 +113,7 @@ class NewJobFactory extends JobFactory
         if ((intval($data['parallelism']) > 0) || $data['parallelism'] === Job::PARALLELISM_INFINITY) {
             return Job::TYPE_ROW_CONTAINER;
         } else {
-            if ($data['componentId'] === Job::ORCHESTRATOR_COMPONENT) {
+            if ($data['componentId'] === self::ORCHESTRATOR_COMPONENT) {
                 if (isset($data['configData']['phaseId']) && (string) ($data['configData']['phaseId']) !== '') {
                     return Job::TYPE_PHASE_CONTAINER;
                 } else {
