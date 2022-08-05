@@ -51,6 +51,7 @@ class ClientExceptionTest extends BaseTest
             $existingJobFactory,
             'http://example.com/',
             'testToken',
+            null,
             $options
         );
     }

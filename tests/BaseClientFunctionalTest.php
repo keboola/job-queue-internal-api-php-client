@@ -68,6 +68,7 @@ abstract class BaseClientFunctionalTest extends BaseTest
             $existingJobFactory,
             (string) getenv('TEST_QUEUE_API_URL'),
             (string) getenv('TEST_QUEUE_API_TOKEN'),
+            null,
         );
     }
 

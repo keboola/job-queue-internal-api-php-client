@@ -44,14 +44,28 @@ class Client
         LoggerInterface $logger,
         ExistingJobFactory $existingJobFactory,
         string $internalQueueApiUrl,
-        string $internalQueueToken,
+        ?string $internalQueueToken,
+        ?string $storageApiToken,
         array $options = []
     ) {
         $validator = Validation::createValidator();
         $errors = $validator->validate($internalQueueApiUrl, [new Url()]);
-        $errors->addAll(
-            $validator->validate($internalQueueToken, [new NotBlank()])
-        );
+        if ($internalQueueToken === null && $storageApiToken === null) {
+            throw new ClientException('Both InternalApiToken and StorageAPIToken are empty.');
+        }
+        if ($internalQueueToken !== null && $storageApiToken !== null) {
+            throw new ClientException('Both InternalApiToken and StorageAPIToken are non-empty. Use only one.');
+        }
+        if ($internalQueueToken !== null) {
+            $errors->addAll(
+                $validator->validate($internalQueueToken, [new NotBlank()])
+            );
+        }
+        if ($storageApiToken !== null) {
+            $errors->addAll(
+                $validator->validate($storageApiToken, [new NotBlank()])
+            );
+        }
         if (!empty($options['backoffMaxTries'])) {
             $errors->addAll($validator->validate($options['backoffMaxTries'], [new Range(['min' => 0, 'max' => 100])]));
             $options['backoffMaxTries'] = intval($options['backoffMaxTries']);
@@ -69,7 +83,7 @@ class Client
             }
             throw new ClientException('Invalid parameters when creating client: ' . $messages);
         }
-        $this->guzzle = $this->initClient($internalQueueApiUrl, $internalQueueToken, $options);
+        $this->guzzle = $this->initClient($internalQueueApiUrl, $internalQueueToken, $storageApiToken, $options);
         $this->existingJobFactory = $existingJobFactory;
         $this->logger = $logger;
     }
@@ -316,8 +330,12 @@ class Client
         };
     }
 
-    private function initClient(string $url, string $token, array $options = []): GuzzleClient
-    {
+    private function initClient(
+        string $url,
+        ?string $internalToken,
+        ?string $storageToken,
+        array $options = []
+    ): GuzzleClient {
         // Initialize handlers (start with those supplied in constructor)
         if (isset($options['handler']) && is_callable($options['handler'])) {
             $handlerStack = HandlerStack::create($options['handler']);
@@ -328,11 +346,16 @@ class Client
         $handlerStack->push(Middleware::retry($this->createDefaultDecider($options['backoffMaxTries'])));
         // Set handler to set default headers
         $handlerStack->push(Middleware::mapRequest(
-            function (RequestInterface $request) use ($token, $options) {
-                return $request
-                    ->withHeader('User-Agent', $options['userAgent'])
-                    ->withHeader('X-JobQueue-InternalApi-Token', $token)
-                    ->withHeader('Content-type', 'application/json');
+            function (RequestInterface $request) use ($internalToken, $storageToken, $options) {
+                $request = $request->withHeader('User-Agent', $options['userAgent'])
+                        ->withHeader('Content-type', 'application/json');
+                if ($internalToken !== null) {
+                    $request = $request->withHeader('X-JobQueue-InternalApi-Token', $internalToken);
+                }
+                if ($storageToken !== null) {
+                    $request = $request->withHeader('X-StorageApi-Token', $storageToken);
+                }
+                return $request;
             }
         ));
         // Set client logger

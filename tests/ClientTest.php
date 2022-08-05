@@ -59,6 +59,7 @@ class ClientTest extends BaseTest
             $jobFactory,
             'http://example.com/',
             'testToken',
+            null,
             $options
         );
     }
@@ -74,6 +75,7 @@ class ClientTest extends BaseTest
             $this->createMock(ExistingJobFactory::class),
             'http://example.com/',
             'testToken',
+            null,
             ['backoffMaxTries' => 'abc']
         );
     }
@@ -89,6 +91,7 @@ class ClientTest extends BaseTest
             $this->createMock(ExistingJobFactory::class),
             'http://example.com/',
             'testToken',
+            null,
             ['backoffMaxTries' => -1]
         );
     }
@@ -104,17 +107,45 @@ class ClientTest extends BaseTest
             $this->createMock(ExistingJobFactory::class),
             'http://example.com/',
             'testToken',
+            null,
             ['backoffMaxTries' => 101]
         );
     }
 
-    public function testCreateClientInvalidToken(): void
+    public function testCreateClientInvalidQueueToken(): void
     {
         $this->expectException(ClientException::class);
         $this->expectExceptionMessage(
             'Invalid parameters when creating client: Value "" is invalid: This value should not be blank.'
         );
-        new Client(new NullLogger(), $this->createMock(ExistingJobFactory::class), 'http://example.com/', '');
+        new Client(new NullLogger(), $this->createMock(ExistingJobFactory::class), 'http://example.com/', '', null);
+    }
+
+    public function testCreateClientInvalidStorageToken(): void
+    {
+        $this->expectException(ClientException::class);
+        $this->expectExceptionMessage(
+            'Invalid parameters when creating client: Value "" is invalid: This value should not be blank.'
+        );
+        new Client(new NullLogger(), $this->createMock(ExistingJobFactory::class), 'http://example.com/', null, '');
+    }
+
+    public function testCreateClientNoToken(): void
+    {
+        $this->expectException(ClientException::class);
+        $this->expectExceptionMessage(
+            'Both InternalApiToken and StorageAPIToken are empty.'
+        );
+        new Client(new NullLogger(), $this->createMock(ExistingJobFactory::class), 'http://example.com/', null, null);
+    }
+
+    public function testCreateClientBothTokens(): void
+    {
+        $this->expectException(ClientException::class);
+        $this->expectExceptionMessage(
+            'Both InternalApiToken and StorageAPIToken are non-empty. Use only one.'
+        );
+        new Client(new NullLogger(), $this->createMock(ExistingJobFactory::class), 'http://example.com/', 'a', 'b');
     }
 
     public function testCreateClientInvalidUrl(): void
@@ -123,7 +154,7 @@ class ClientTest extends BaseTest
         $this->expectExceptionMessage(
             'Invalid parameters when creating client: Value "invalid url" is invalid: This value is not a valid URL.'
         );
-        new Client(new NullLogger(), $this->createMock(ExistingJobFactory::class), 'invalid url', 'testToken');
+        new Client(new NullLogger(), $this->createMock(ExistingJobFactory::class), 'invalid url', 'testToken', null);
     }
 
     public function testCreateClientMultipleErrors(): void
@@ -133,7 +164,7 @@ class ClientTest extends BaseTest
             'Invalid parameters when creating client: Value "invalid url" is invalid: This value is not a valid URL.'
             . "\n" . 'Value "" is invalid: This value should not be blank.' . "\n"
         );
-        new Client(new NullLogger(), $this->createMock(ExistingJobFactory::class), 'invalid url', '');
+        new Client(new NullLogger(), $this->createMock(ExistingJobFactory::class), 'invalid url', '', null);
     }
 
     public function testClientRequestResponse(): void
