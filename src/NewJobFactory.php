@@ -74,8 +74,8 @@ class NewJobFactory extends JobFactory
             'tokenId' => $tokenInfo['id'],
             '#tokenString' => $data['#tokenString'],
             'tokenDescription' => $tokenInfo['description'],
-            'status' => Job::STATUS_CREATED,
-            'desiredStatus' => Job::DESIRED_STATUS_PROCESSING,
+            'status' => JobInterface::STATUS_CREATED,
+            'desiredStatus' => JobInterface::DESIRED_STATUS_PROCESSING,
             'mode' => $data['mode'],
             'componentId' => $data['componentId'],
             'configId' => $data['configId'] ?? null,
@@ -111,16 +111,16 @@ class NewJobFactory extends JobFactory
     private function getJobType(array $data): string
     {
         if ((intval($data['parallelism']) > 0) || $data['parallelism'] === Job::PARALLELISM_INFINITY) {
-            return Job::TYPE_ROW_CONTAINER;
+            return JobInterface::TYPE_ROW_CONTAINER;
         } else {
             if ($data['componentId'] === self::ORCHESTRATOR_COMPONENT) {
                 if (isset($data['configData']['phaseId']) && (string) ($data['configData']['phaseId']) !== '') {
-                    return Job::TYPE_PHASE_CONTAINER;
+                    return JobInterface::TYPE_PHASE_CONTAINER;
                 } else {
-                    return Job::TYPE_ORCHESTRATION_CONTAINER;
+                    return JobInterface::TYPE_ORCHESTRATION_CONTAINER;
                 }
             }
         }
-        return Job::TYPE_STANDARD;
+        return JobInterface::TYPE_STANDARD;
     }
 }

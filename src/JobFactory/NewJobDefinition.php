@@ -38,9 +38,9 @@ class NewJobDefinition implements ConfigurationInterface
                 ->scalarNode('mode')->defaultValue('run')
                     ->validate()
                         ->ifNotInArray([
-                            Job::MODE_RUN,
-                            Job::MODE_DEBUG,
-                            Job::MODE_FORCE_RUN,
+                            JobInterface::MODE_RUN,
+                            JobInterface::MODE_DEBUG,
+                            JobInterface::MODE_FORCE_RUN,
                         ])
                         ->thenInvalid('Mode must be one of "run", "forceRun" or "debug".')
                     ->end()

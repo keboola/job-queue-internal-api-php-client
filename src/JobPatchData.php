@@ -35,7 +35,7 @@ class JobPatchData implements JsonSerializable
 
     private function validateStatus(string $status): void
     {
-        if ($status && !in_array($status, Job::STATUSES_ALL)) {
+        if ($status && !in_array($status, JobFactory\JobInterface::STATUSES_ALL)) {
             throw new ClientException(sprintf('Invalid status: "%s".', $status));
         }
     }
@@ -43,8 +43,8 @@ class JobPatchData implements JsonSerializable
     private function validateDesiredStatus(string $desiredStatus): void
     {
         $allowedDesiredStatuses = [
-            Job::DESIRED_STATUS_TERMINATING,
-            Job::DESIRED_STATUS_PROCESSING,
+            JobFactory\JobInterface::DESIRED_STATUS_TERMINATING,
+            JobFactory\JobInterface::DESIRED_STATUS_PROCESSING,
         ];
 
         if ($desiredStatus && !in_array($desiredStatus, $allowedDesiredStatuses)) {

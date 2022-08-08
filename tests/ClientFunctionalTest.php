@@ -336,12 +336,12 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
         self::assertNull($job->getStartTime());
         self::assertNull($job->getEndTime());
 
-        $client->patchJob($job->getId(), (new JobPatchData())->setStatus(Job::STATUS_PROCESSING));
+        $client->patchJob($job->getId(), (new JobPatchData())->setStatus(JobInterface::STATUS_PROCESSING));
 
         $job = $client->getJob($createdJob->getId());
         self::assertInstanceOf(DateTimeImmutable::class, $job->getStartTime());
         self::assertNull($job->getEndTime());
-        $client->postJobResult($job->getId(), Job::STATUS_SUCCESS, new JobResult());
+        $client->postJobResult($job->getId(), JobInterface::STATUS_SUCCESS, new JobResult());
         $job = $client->getJob($createdJob->getId());
         self::assertInstanceOf(DateTimeImmutable::class, $job->getStartTime());
         self::assertInstanceOf(DateTimeImmutable::class, $job->getEndTime());
@@ -375,7 +375,7 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
         ]));
 
         /** @var Job[] $response */
-        $response = $client->getJobsWithStatus([Job::STATUS_CREATED]);
+        $response = $client->getJobsWithStatus([JobInterface::STATUS_CREATED]);
         self::assertCount(2, $response);
 
         $listedJob1 = $response[0];
@@ -390,7 +390,7 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
             ->setSortOrder(JobsSortOptions::SORT_ORDER_ASC);
 
         /** @var Job[] $response */
-        $response = $client->getJobsWithStatus([Job::STATUS_CREATED], $sortOptions);
+        $response = $client->getJobsWithStatus([JobInterface::STATUS_CREATED], $sortOptions);
         self::assertCount(2, $response);
 
         $listedJob1 = $response[0];
@@ -405,7 +405,7 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
             ->setSortOrder(JobsSortOptions::SORT_ORDER_DESC);
 
         /** @var Job[] $response */
-        $response = $client->getJobsWithStatus([Job::STATUS_CREATED], $sortOptions);
+        $response = $client->getJobsWithStatus([JobInterface::STATUS_CREATED], $sortOptions);
         self::assertCount(2, $response);
 
         $listedJob1 = $response[0];
@@ -499,7 +499,7 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
         $response = $client->listJobs(
             (new JobListOptions())
                 ->setComponents([self::COMPONENT_ID_1])
-                ->setStatuses([Job::STATUS_CREATED]),
+                ->setStatuses([JobInterface::STATUS_CREATED]),
             true
         );
         self::assertCount(1, $response);
@@ -512,7 +512,7 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
         $response = $client->listJobs(
             (new JobListOptions())
                 ->setComponents([self::COMPONENT_ID_1, self::COMPONENT_ID_2])
-                ->setStatuses([Job::STATUS_CREATED]),
+                ->setStatuses([JobInterface::STATUS_CREATED]),
             true
         );
         self::assertCount(2, $response);
@@ -623,7 +623,7 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
         $response = $client->listJobs(
             (new JobListOptions())
                 ->setComponents(['{}=žýřčšěš (*^&^$%£  $"£)?! \''])
-                ->setStatuses([Job::STATUS_CREATED]),
+                ->setStatuses([JobInterface::STATUS_CREATED]),
             true
         );
         self::assertCount(1, $response);
@@ -658,7 +658,7 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
         // all jobs
         $response = $client->listJobs(
             (new JobListOptions())
-                ->setStatuses([Job::STATUS_CREATED]),
+                ->setStatuses([JobInterface::STATUS_CREATED]),
             true
         );
         self::assertCount(2, $response);
@@ -666,7 +666,7 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
         // job with branch
         $response = $client->listJobs(
             (new JobListOptions())
-                ->setStatuses([Job::STATUS_CREATED])
+                ->setStatuses([JobInterface::STATUS_CREATED])
                 ->setBranchIds([$branchId]),
             true
         );
@@ -679,7 +679,7 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
         // job without branch
         $response = $client->listJobs(
             (new JobListOptions())
-                ->setStatuses([Job::STATUS_CREATED])
+                ->setStatuses([JobInterface::STATUS_CREATED])
                 ->setBranchIds(['null']),
             true
         );
@@ -726,7 +726,7 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
         // jobs with configRowId 123
         $response = $client->listJobs(
             (new JobListOptions())
-                ->setStatuses([Job::STATUS_CREATED])
+                ->setStatuses([JobInterface::STATUS_CREATED])
                 ->setConfigRowIds(['123']),
             true
         );
@@ -743,7 +743,7 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
         // jobs with configRowId 123 and config $configId2
         $response = $client->listJobs(
             (new JobListOptions())
-                ->setStatuses([Job::STATUS_CREATED])
+                ->setStatuses([JobInterface::STATUS_CREATED])
                 ->setConfigs([self::$configId2])
                 ->setConfigRowIds(['123']),
             true
@@ -757,7 +757,7 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
         // no jobs
         $response = $client->listJobs(
             (new JobListOptions())
-                ->setStatuses([Job::STATUS_CREATED])
+                ->setStatuses([JobInterface::STATUS_CREATED])
                 ->setConfigs([self::$configId1])
                 ->setConfigRowIds(['456']),
             true
@@ -793,17 +793,17 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
         $createdJob = $client->createJob($job);
         $client = $this->getClient();
         $job = $client->getJob($createdJob->getId());
-        self::assertEquals(Job::STATUS_CREATED, $job->getStatus());
+        self::assertEquals(JobInterface::STATUS_CREATED, $job->getStatus());
         self::assertEquals([], $job->getResult());
         $client->postJobResult(
             $createdJob->getId(),
-            Job::STATUS_PROCESSING,
+            JobInterface::STATUS_PROCESSING,
             (new JobResult())->setMessage('bar'),
             (new JobMetrics())->setInputTablesBytesSum(654)->setBackendSize('medium')
                 ->setBackendContainerSize('small')
         );
         $job = $client->getJob($createdJob->getId());
-        self::assertEquals(Job::STATUS_PROCESSING, $job->getStatus());
+        self::assertEquals(JobInterface::STATUS_PROCESSING, $job->getStatus());
         self::assertEquals('bar', $job->getResult()['message']);
         self::assertEquals(654, $job->getMetrics()->getInputTablesBytesSum());
         self::assertEquals('medium', $job->getMetrics()->getBackendSize());
@@ -872,11 +872,11 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
 
         $terminatingJob = $client->patchJob(
             $createdJob->getId(),
-            (new JobPatchData())->setDesiredStatus(Job::DESIRED_STATUS_TERMINATING)
+            (new JobPatchData())->setDesiredStatus(JobInterface::DESIRED_STATUS_TERMINATING)
         );
 
-        self::assertEquals(Job::STATUS_CREATED, $terminatingJob->getStatus());
-        self::assertEquals(Job::DESIRED_STATUS_TERMINATING, $terminatingJob->getDesiredStatus());
+        self::assertEquals(JobInterface::STATUS_CREATED, $terminatingJob->getStatus());
+        self::assertEquals(JobInterface::DESIRED_STATUS_TERMINATING, $terminatingJob->getDesiredStatus());
     }
 
     public function testPatchJobStatus(): void
@@ -894,10 +894,10 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
 
         $client->patchJob(
             $job->getId(),
-            (new JobPatchData())->setStatus(Job::STATUS_PROCESSING)
+            (new JobPatchData())->setStatus(JobInterface::STATUS_PROCESSING)
         );
         $processingJob = $client->getJob($job->getId());
-        self::assertEquals(Job::STATUS_PROCESSING, $processingJob->getStatus());
+        self::assertEquals(JobInterface::STATUS_PROCESSING, $processingJob->getStatus());
     }
 
     public function testPatchJobDesiredStatus(): void
@@ -915,12 +915,12 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
 
         $client->patchJob(
             $job->getId(),
-            (new JobPatchData())->setDesiredStatus(Job::DESIRED_STATUS_TERMINATING)
+            (new JobPatchData())->setDesiredStatus(JobInterface::DESIRED_STATUS_TERMINATING)
         );
         $terminatingJob = $client->getJob($job->getId());
-        self::assertEquals(Job::DESIRED_STATUS_TERMINATING, $terminatingJob->getDesiredStatus());
+        self::assertEquals(JobInterface::DESIRED_STATUS_TERMINATING, $terminatingJob->getDesiredStatus());
         // status must not be affected
-        self::assertEquals(Job::STATUS_CREATED, $terminatingJob->getStatus());
+        self::assertEquals(JobInterface::STATUS_CREATED, $terminatingJob->getStatus());
     }
 
     public function testPatchJobMultiple(): void
@@ -939,22 +939,22 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
         $client->patchJob(
             $job->getId(),
             (new JobPatchData())
-                ->setStatus(Job::STATUS_TERMINATING)
-                ->setDesiredStatus(Job::DESIRED_STATUS_TERMINATING)
+                ->setStatus(JobInterface::STATUS_TERMINATING)
+                ->setDesiredStatus(JobInterface::DESIRED_STATUS_TERMINATING)
         );
         $terminatingJob = $client->getJob($job->getId());
-        self::assertEquals(Job::DESIRED_STATUS_TERMINATING, $terminatingJob->getDesiredStatus());
-        self::assertEquals(Job::STATUS_TERMINATING, $terminatingJob->getStatus());
+        self::assertEquals(JobInterface::DESIRED_STATUS_TERMINATING, $terminatingJob->getDesiredStatus());
+        self::assertEquals(JobInterface::STATUS_TERMINATING, $terminatingJob->getStatus());
 
         $client->patchJob(
             $job->getId(),
             (new JobPatchData())
-                ->setStatus(Job::STATUS_TERMINATED)
+                ->setStatus(JobInterface::STATUS_TERMINATED)
                 ->setResult((new JobResult())->setMessage('Terminated'))
         );
         $terminatedJob = $client->getJob($job->getId());
-        self::assertEquals(Job::DESIRED_STATUS_TERMINATING, $terminatedJob->getDesiredStatus());
-        self::assertEquals(Job::STATUS_TERMINATED, $terminatedJob->getStatus());
+        self::assertEquals(JobInterface::DESIRED_STATUS_TERMINATING, $terminatedJob->getDesiredStatus());
+        self::assertEquals(JobInterface::STATUS_TERMINATED, $terminatedJob->getStatus());
         self::assertEquals('Terminated', $terminatedJob->getResult()['message']);
     }
 
@@ -997,11 +997,11 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
 
         $job = $client->createJob($job);
 
-        $client->patchJob($job->getId(), (new JobPatchData())->setStatus(Job::STATUS_PROCESSING));
+        $client->patchJob($job->getId(), (new JobPatchData())->setStatus(JobInterface::STATUS_PROCESSING));
 
         sleep($duration);
 
-        $job = $client->postJobResult($job->getId(), Job::STATUS_SUCCESS, new JobResult());
+        $job = $client->postJobResult($job->getId(), JobInterface::STATUS_SUCCESS, new JobResult());
 
         self::assertSame($durationSum + $job->getDurationSeconds(), $client->getJobsDurationSum($job->getProjectId()));
     }

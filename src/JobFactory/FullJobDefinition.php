@@ -61,7 +61,10 @@ class FullJobDefinition extends NewJobDefinition
                 ->end()
                 ->scalarNode('mode')
                     ->validate()
-                        ->ifNotInArray([Job::MODE_RUN, Job::MODE_FORCE_RUN, Job::MODE_DEBUG,
+                        ->ifNotInArray([
+                            JobInterface::MODE_RUN,
+                            JobInterface::MODE_FORCE_RUN,
+                            JobInterface::MODE_DEBUG,
                             // these are only for compatibility with transformation jobs, not used on new jobs
                             'dry-run', 'prepare', 'input', 'full', 'single',
                         ])
@@ -89,16 +92,16 @@ class FullJobDefinition extends NewJobDefinition
                 ->arrayNode('usageData')->ignoreExtraKeys(false)->end()
                 ->scalarNode('status')->isRequired()
                     ->validate()
-                        ->ifNotInArray(Job::STATUSES_ALL)
-                        ->thenInvalid('Status must be one of ' . implode(', ', Job::STATUSES_ALL) . '.')
+                        ->ifNotInArray(JobInterface::STATUSES_ALL)
+                        ->thenInvalid('Status must be one of ' . implode(', ', JobInterface::STATUSES_ALL) . '.')
                     ->end()
                 ->end()
                 ->scalarNode('desiredStatus')->isRequired()
                     ->validate()
-                        ->ifNotInArray(Job::DESIRED_STATUSES_ALL)
+                        ->ifNotInArray(JobInterface::DESIRED_STATUSES_ALL)
                         ->thenInvalid(
                             'DesiredStatus must be one of ' .
-                            implode(', ', Job::DESIRED_STATUSES_ALL) .
+                            implode(', ', JobInterface::DESIRED_STATUSES_ALL) .
                             '.'
                         )
                     ->end()
@@ -106,8 +109,8 @@ class FullJobDefinition extends NewJobDefinition
                 ->scalarNode('type')
                     ->defaultValue('standard')
                     ->validate()
-                        ->ifNotInArray(Job::TYPES_ALL)
-                        ->thenInvalid('Type must be one of ' . implode(', ', Job::TYPES_ALL) . '.')
+                        ->ifNotInArray(JobInterface::TYPES_ALL)
+                        ->thenInvalid('Type must be one of ' . implode(', ', JobInterface::TYPES_ALL) . '.')
                     ->end()
                 ->end()
                 ->scalarNode('parallelism')

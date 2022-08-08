@@ -14,6 +14,8 @@ use Keboola\JobQueueInternalClient\Client;
 use Keboola\JobQueueInternalClient\Exception\ClientException;
 use Keboola\JobQueueInternalClient\ExistingJobFactory;
 use Keboola\JobQueueInternalClient\JobFactory\Job;
+use Keboola\JobQueueInternalClient\JobFactory\JobComponentsApiClientFactory;
+use Keboola\JobQueueInternalClient\JobFactory\JobInterface;
 use Keboola\JobQueueInternalClient\JobFactory\ObjectEncryptorProvider\GenericObjectEncryptorProvider;
 use Keboola\JobQueueInternalClient\JobListOptions;
 use Keboola\JobQueueInternalClient\JobPatchData;
@@ -428,7 +430,7 @@ Out of order
         $client = $this->getClient(['handler' => $stack]);
         $result = $client->postJobResult(
             '123',
-            Job::STATUS_SUCCESS,
+            JobInterface::STATUS_SUCCESS,
             (new JobResult())->setImages(['digests' => ['keboola.test' => ['id' => '123']]]),
             (new JobMetrics())->setInputTablesBytesSum(112233445566)->setBackendSize('small'),
         );
@@ -494,7 +496,7 @@ Out of order
         $this->expectExceptionMessage('Invalid job ID: "".');
         $client->postJobResult(
             '',
-            Job::STATUS_SUCCESS,
+            JobInterface::STATUS_SUCCESS,
             (new JobResult())->setImages(['digests' => ['keboola.test' => ['id' => '123']]])
         );
     }
@@ -923,7 +925,7 @@ Out of order
         $client = $this->getClient(['handler' => $stack]);
         $result = $client->patchJob(
             '123',
-            (new JobPatchData())->setStatus(Job::STATUS_PROCESSING)
+            (new JobPatchData())->setStatus(JobInterface::STATUS_PROCESSING)
         );
         self::assertInstanceOf(Job::class, $result);
         self::assertCount(1, $container);
@@ -966,7 +968,7 @@ Out of order
         $client = $this->getClient(['handler' => $stack]);
         $result = $client->patchJob(
             '123',
-            (new JobPatchData())->setDesiredStatus(Job::DESIRED_STATUS_TERMINATING)
+            (new JobPatchData())->setDesiredStatus(JobInterface::DESIRED_STATUS_TERMINATING)
         );
         self::assertInstanceOf(Job::class, $result);
         self::assertCount(1, $container);

@@ -10,7 +10,7 @@ use Keboola\JobQueueInternalClient\DataPlane\Config\KubernetesConfig;
 use Keboola\JobQueueInternalClient\DataPlane\DataPlaneConfigRepository;
 use Keboola\JobQueueInternalClient\Exception\ClientException;
 use Keboola\JobQueueInternalClient\ExistingJobFactory;
-use Keboola\JobQueueInternalClient\JobFactory\Job;
+use Keboola\JobQueueInternalClient\JobFactory\JobInterface;
 use Keboola\JobQueueInternalClient\JobFactory\ObjectEncryptorProvider\DataPlaneObjectEncryptorProvider;
 use Keboola\ObjectEncryptor\EncryptorOptions;
 use Keboola\ObjectEncryptor\ObjectEncryptorFactory;
@@ -192,8 +192,8 @@ class ExistingJobFactoryTest extends BaseTest
             'runId' => '123',
             'projectId' => self::$projectId,
             'tokenId' => '1234',
-            'status' => Job::STATUS_CREATED,
-            'desiredStatus' => Job::DESIRED_STATUS_PROCESSING,
+            'status' => JobInterface::STATUS_CREATED,
+            'desiredStatus' => JobInterface::DESIRED_STATUS_PROCESSING,
             '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
             'configId' => self::$configId1,
             'configData' => [
@@ -242,8 +242,8 @@ class ExistingJobFactoryTest extends BaseTest
             'projectId' => self::$projectId,
             'dataPlaneId' => 'dataPlaneId',
             'tokenId' => '1234',
-            'status' => Job::STATUS_CREATED,
-            'desiredStatus' => Job::DESIRED_STATUS_PROCESSING,
+            'status' => JobInterface::STATUS_CREATED,
+            'desiredStatus' => JobInterface::DESIRED_STATUS_PROCESSING,
             '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
             'configId' => self::$configId1,
             'configData' => [
@@ -294,8 +294,8 @@ class ExistingJobFactoryTest extends BaseTest
             'projectId' => self::$projectId,
             'dataPlaneId' => 'dataPlaneId',
             'tokenId' => '1234',
-            'status' => Job::STATUS_CREATED,
-            'desiredStatus' => Job::DESIRED_STATUS_PROCESSING,
+            'status' => JobInterface::STATUS_CREATED,
+            'desiredStatus' => JobInterface::DESIRED_STATUS_PROCESSING,
             '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
             'configId' => self::$configId1,
             'configData' => [

@@ -9,6 +9,7 @@ use Keboola\JobQueueInternalClient\DataPlane\DataPlaneConfigRepository;
 use Keboola\JobQueueInternalClient\DataPlane\DataPlaneConfigValidator;
 use Keboola\JobQueueInternalClient\ExistingJobFactory;
 use Keboola\JobQueueInternalClient\JobFactory\Job;
+use Keboola\JobQueueInternalClient\JobFactory\JobInterface;
 use Keboola\JobQueueInternalClient\JobFactory\JobRuntimeResolver;
 use Keboola\JobQueueInternalClient\JobFactory\ObjectEncryptorProvider\DataPlaneObjectEncryptorProvider;
 use Keboola\JobQueueInternalClient\JobPatchData;
@@ -74,10 +75,10 @@ abstract class BaseClientFunctionalTest extends BaseTest
     {
         // cancel all created jobs
         $client = $this->getClient();
-        $response = $client->getJobsWithStatus([Job::STATUS_CREATED]);
+        $response = $client->getJobsWithStatus([JobInterface::STATUS_CREATED]);
         /** @var Job $job */
         foreach ($response as $job) {
-            $client->patchJob($job->getId(), (new JobPatchData())->setStatus(Job::STATUS_CANCELLED));
+            $client->patchJob($job->getId(), (new JobPatchData())->setStatus(JobInterface::STATUS_CANCELLED));
         }
     }
 

@@ -6,11 +6,70 @@ namespace Keboola\JobQueueInternalClient\JobFactory;
 
 use DateTimeImmutable;
 use Keboola\JobQueueInternalClient\Result\JobMetrics;
-use Keboola\ObjectEncryptor\ObjectEncryptorFactory;
 
 interface JobInterface
 {
     public const RUN_ID_DELIMITER = '.';
+
+    public const MODE_RUN = 'run';
+    public const MODE_DEBUG = 'debug';
+    public const MODE_FORCE_RUN = 'forceRun';
+
+    public const STATUS_CANCELLED = 'cancelled';
+    public const STATUS_CREATED = 'created';
+    public const STATUS_ERROR = 'error';
+    public const STATUS_PROCESSING = 'processing';
+    public const STATUS_SUCCESS = 'success';
+    public const STATUS_TERMINATED = 'terminated';
+    public const STATUS_TERMINATING = 'terminating';
+    public const STATUS_WAITING = 'waiting';
+    public const STATUS_WARNING = 'warning';
+
+    public const STATUSES_ALL = [
+        self::STATUS_CANCELLED,
+        self::STATUS_CREATED,
+        self::STATUS_ERROR,
+        self::STATUS_PROCESSING,
+        self::STATUS_SUCCESS,
+        self::STATUS_TERMINATED,
+        self::STATUS_TERMINATING,
+        self::STATUS_WAITING,
+        self::STATUS_WARNING,
+    ];
+
+    public const STATUSES_FINISHED = [
+        self::STATUS_SUCCESS,
+        self::STATUS_WARNING,
+        self::STATUS_ERROR,
+        self::STATUS_CANCELLED,
+        self::STATUS_TERMINATED,
+    ];
+
+    public const STATUSES_KILLABLE = [
+        self::STATUS_CREATED,
+        self::STATUS_WAITING,
+        self::STATUS_PROCESSING,
+    ];
+
+    public const DESIRED_STATUS_PROCESSING = 'processing';
+    public const DESIRED_STATUS_TERMINATING = 'terminating';
+
+    public const DESIRED_STATUSES_ALL = [
+        self::DESIRED_STATUS_PROCESSING,
+        self::DESIRED_STATUS_TERMINATING,
+    ];
+
+    public const TYPE_STANDARD = 'standard';
+    public const TYPE_ROW_CONTAINER = 'container';
+    public const TYPE_PHASE_CONTAINER = 'phaseContainer';
+    public const TYPE_ORCHESTRATION_CONTAINER = 'orchestrationContainer';
+
+    public const TYPES_ALL = [
+        self::TYPE_STANDARD,
+        self::TYPE_ROW_CONTAINER,
+        self::TYPE_PHASE_CONTAINER,
+        self::TYPE_ORCHESTRATION_CONTAINER,
+    ];
 
     public function getId(): string;
     public function getComponentId(): string;
