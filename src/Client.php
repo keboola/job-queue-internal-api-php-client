@@ -48,6 +48,27 @@ class Client
         ?string $storageApiToken,
         array $options = []
     ) {
+        $this->validateConfiguration($internalQueueApiUrl, $internalQueueToken, $storageApiToken, $options);
+        if (!empty($options['backoffMaxTries'])) {
+            $options['backoffMaxTries'] = intval($options['backoffMaxTries']);
+        } else {
+            $options['backoffMaxTries'] = self::DEFAULT_BACKOFF_RETRIES;
+        }
+        if (empty($options['userAgent'])) {
+            $options['userAgent'] = self::DEFAULT_USER_AGENT;
+        }
+
+        $this->guzzle = $this->initClient($internalQueueApiUrl, $internalQueueToken, $storageApiToken, $options);
+        $this->existingJobFactory = $existingJobFactory;
+        $this->logger = $logger;
+    }
+
+    private function validateConfiguration(
+        string $internalQueueApiUrl,
+        ?string $internalQueueToken,
+        ?string $storageApiToken,
+        array $options
+    ): void {
         $validator = Validation::createValidator();
         $errors = $validator->validate($internalQueueApiUrl, [new Url()]);
         if ($internalQueueToken === null && $storageApiToken === null) {
@@ -68,12 +89,6 @@ class Client
         }
         if (!empty($options['backoffMaxTries'])) {
             $errors->addAll($validator->validate($options['backoffMaxTries'], [new Range(['min' => 0, 'max' => 100])]));
-            $options['backoffMaxTries'] = intval($options['backoffMaxTries']);
-        } else {
-            $options['backoffMaxTries'] = self::DEFAULT_BACKOFF_RETRIES;
-        }
-        if (empty($options['userAgent'])) {
-            $options['userAgent'] = self::DEFAULT_USER_AGENT;
         }
         if ($errors->count() !== 0) {
             $messages = '';
@@ -83,9 +98,6 @@ class Client
             }
             throw new ClientException('Invalid parameters when creating client: ' . $messages);
         }
-        $this->guzzle = $this->initClient($internalQueueApiUrl, $internalQueueToken, $storageApiToken, $options);
-        $this->existingJobFactory = $existingJobFactory;
-        $this->logger = $logger;
     }
 
     public function addJobUsage(string $jobId, array $usage): void
