@@ -16,17 +16,6 @@ use Throwable;
 
 class Job implements JsonSerializable, JobInterface
 {
-    public const PARALLELISM_INFINITY = 'infinity';
-
-    public static function getAllowedParallelismValues(): array
-    {
-        $intValues = array_map(
-            fn ($item) => (string) $item,
-            range(0, 100)
-        );
-        return array_merge($intValues, ['infinity', null]);
-    }
-
     private JobObjectEncryptorInterface $objectEncryptor;
     private StorageClientPlainFactory $storageClientFactory;
     private array $data;

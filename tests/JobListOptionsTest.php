@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Keboola\JobQueueInternalClient\Tests;
 
 use Keboola\JobQueueInternalClient\Exception\ClientException;
-use Keboola\JobQueueInternalClient\JobFactory\Job;
 use Keboola\JobQueueInternalClient\JobFactory\JobInterface;
 use Keboola\JobQueueInternalClient\JobListOptions;
 use PHPUnit\Framework\TestCase;
@@ -56,7 +55,10 @@ class JobListOptionsTest extends TestCase
         self::assertSame(['d', 'e', 'f'], $jobListOptions->getConfigRowIds());
         self::assertSame(['12', '13'], $jobListOptions->getProjects());
         self::assertSame(['run', 'debug'], $jobListOptions->getModes());
-        self::assertSame([JobInterface::STATUS_SUCCESS, JobInterface::STATUS_PROCESSING], $jobListOptions->getStatuses());
+        self::assertSame(
+            [JobInterface::STATUS_SUCCESS, JobInterface::STATUS_PROCESSING],
+            $jobListOptions->getStatuses()
+        );
         self::assertSame('123', $jobListOptions->getParentRunId());
         self::assertSame(JobInterface::TYPE_STANDARD, $jobListOptions->getType());
         self::assertSame('2022-02-02 01:12:23', $jobListOptions->getCreatedTimeFrom()->format('Y-m-d H:i:s'));

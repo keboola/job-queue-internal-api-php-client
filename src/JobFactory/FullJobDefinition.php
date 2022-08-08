@@ -116,7 +116,7 @@ class FullJobDefinition extends NewJobDefinition
                 ->scalarNode('parallelism')
                     ->defaultNull()
                     ->validate()
-                        ->ifNotInArray(Job::getAllowedParallelismValues())
+                        ->ifNotInArray(JobInterface::PARALLELISM_ALL)
                         ->thenInvalid(
                             'Parallelism value must be either null, an integer from range 2-100 or "infinity".'
                         )

@@ -110,7 +110,7 @@ class NewJobFactory extends JobFactory
 
     private function getJobType(array $data): string
     {
-        if ((intval($data['parallelism']) > 0) || $data['parallelism'] === Job::PARALLELISM_INFINITY) {
+        if ((intval($data['parallelism']) > 0) || $data['parallelism'] === JobInterface::PARALLELISM_INFINITY) {
             return JobInterface::TYPE_ROW_CONTAINER;
         } else {
             if ($data['componentId'] === self::ORCHESTRATOR_COMPONENT) {

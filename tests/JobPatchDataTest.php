@@ -69,7 +69,10 @@ class JobPatchDataTest extends TestCase
         self::assertNull($jobPatchData2->getStatus());
         self::assertNull($jobPatchData2->getResult());
         self::assertNull($jobPatchData2->getUsageData());
-        self::assertSame(['desiredStatus' => JobInterface::DESIRED_STATUS_TERMINATING], $jobPatchData2->jsonSerialize());
+        self::assertSame(
+            ['desiredStatus' => JobInterface::DESIRED_STATUS_TERMINATING],
+            $jobPatchData2->jsonSerialize()
+        );
     }
 
     public function testInvalidStatus(): void
