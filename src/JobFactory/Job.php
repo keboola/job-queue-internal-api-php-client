@@ -274,7 +274,7 @@ class Job implements JsonSerializable, JobInterface
         try {
             $data = $this->getComponentsApiClient()->getComponent($this->getComponentId());
         } catch (StorageApiClientException $e) {
-            throw new ClientException('Failed to fetch component configuration: '.$e->getMessage(), 0, $e);
+            throw new ClientException('Failed to fetch component specification: '.$e->getMessage(), 0, $e);
         }
 
         return $this->componentSpecification = new ComponentSpecification($data);

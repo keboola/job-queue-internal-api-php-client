@@ -10,6 +10,7 @@ use Keboola\JobQueueInternalClient\JobFactory\JobInterface;
 use Keboola\JobQueueInternalClient\JobFactory\ObjectEncryptor\JobObjectEncryptor;
 use Keboola\JobQueueInternalClient\Tests\BaseTest;
 use Keboola\StorageApi\BranchAwareClient;
+use Keboola\StorageApi\ClientException as StorageApiClientException;
 use Keboola\StorageApiBranch\ClientWrapper;
 use Keboola\StorageApiBranch\Factory\ClientOptions;
 use Keboola\StorageApiBranch\Factory\StorageClientPlainFactory;
@@ -377,7 +378,7 @@ class JobTest extends BaseTest
         self::assertEquals($expectedConfigData, $decryptedConfigData);
     }
 
-    public function testComponentSpecification(): void
+    public function testGetComponentSpecification(): void
     {
         $componentData = [
             'id' => 'test',
@@ -416,7 +417,53 @@ class JobTest extends BaseTest
         self::assertSame('256m', $job->getComponentSpecification()->getMemoryLimit());
     }
 
-    public function testComponentConfiguration(): void
+    public function testGetComponentSpecificationWhenComponentDoesNotExist(): void
+    {
+        $storageClient = $this->createMock(BranchAwareClient::class);
+        $storageClient->expects(self::once())
+            ->method('apiGet')
+            ->with(sprintf('components/%s', $this->jobData['componentId']))
+            ->willThrowException(new StorageApiClientException('Component not found', 404))
+        ;
+
+        $storageClientWrapperMock = $this->createMock(ClientWrapper::class);
+        $storageClientWrapperMock->expects(self::once())
+            ->method('getBranchClientIfAvailable')
+            ->willReturn($storageClient)
+        ;
+
+        $storageClientFactory = $this->createMock(StorageClientPlainFactory::class);
+        $storageClientFactory->expects(self::once())
+            ->method('createClientWrapper')
+            ->with(new ClientOptions(null, 'token', $this->jobData['branchId']))
+            ->willReturn($storageClientWrapperMock)
+        ;
+
+        $objectEncryptorMock = $this->createMock(JobObjectEncryptor::class);
+        $objectEncryptorMock->expects(self::once())
+            ->method('decrypt')
+            ->with(
+                'KBC::ProjectSecure::token',
+                $this->jobData['componentId'],
+                $this->jobData['projectId'],
+                $this->jobData['configId'],
+            )
+            ->willReturn('token')
+        ;
+
+        $job = new Job(
+            $objectEncryptorMock,
+            $storageClientFactory,
+            $this->jobData
+        );
+
+        $this->expectException(ClientException::class);
+        $this->expectExceptionMessage('Failed to fetch component specification: Component not found');
+
+        $job->getComponentSpecification();
+    }
+
+    public function testGetComponentConfiguration(): void
     {
         $componentConfigData = [
             'uri' => 'some-uri',
@@ -469,7 +516,7 @@ class JobTest extends BaseTest
         $job->getComponentConfiguration();
     }
 
-    public function testComponentNoConfiguration(): void
+    public function testGetComponentConfigurationWhenJobHasNoConfigIdSet(): void
     {
         $storageClientFactory = $this->createMock(StorageClientPlainFactory::class);
         $storageClientFactory->expects(self::never())->method(self::anything());
@@ -488,6 +535,52 @@ class JobTest extends BaseTest
 
         $this->expectException(ClientException::class);
         $this->expectExceptionMessage('Can\'t fetch component configuration: job has no configId set');
+
+        $job->getComponentConfiguration();
+    }
+
+    public function testGetComponentConfigurationWhenConfigDoesNotExist(): void
+    {
+        $storageClient = $this->createMock(BranchAwareClient::class);
+        $storageClient->expects(self::once())
+            ->method('apiGet')
+            ->with(sprintf('components/%s/configs/%s', $this->jobData['componentId'], $this->jobData['configId']))
+            ->willThrowException(new StorageApiClientException('Config not found', 404))
+        ;
+
+        $storageClientWrapperMock = $this->createMock(ClientWrapper::class);
+        $storageClientWrapperMock->expects(self::once())
+            ->method('getBranchClientIfAvailable')
+            ->willReturn($storageClient)
+        ;
+
+        $storageClientFactory = $this->createMock(StorageClientPlainFactory::class);
+        $storageClientFactory->expects(self::once())
+            ->method('createClientWrapper')
+            ->with(new ClientOptions(null, 'token', $this->jobData['branchId']))
+            ->willReturn($storageClientWrapperMock)
+        ;
+
+        $objectEncryptorMock = $this->createMock(JobObjectEncryptor::class);
+        $objectEncryptorMock->expects(self::once())
+            ->method('decrypt')
+            ->with(
+                'KBC::ProjectSecure::token',
+                $this->jobData['componentId'],
+                $this->jobData['projectId'],
+                $this->jobData['configId'],
+            )
+            ->willReturn('token')
+        ;
+
+        $job = new Job(
+            $objectEncryptorMock,
+            $storageClientFactory,
+            $this->jobData
+        );
+
+        $this->expectException(ClientException::class);
+        $this->expectExceptionMessage('Failed to fetch component configuration: Config not found');
 
         $job->getComponentConfiguration();
     }
