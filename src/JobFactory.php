@@ -11,6 +11,8 @@ use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 
 abstract class JobFactory
 {
+    public const ORCHESTRATOR_COMPONENT = 'keboola.orchestrator';
+
     /**
      * @param class-string<FullJobDefinition|NewJobDefinition> $validatorClass
      */
