@@ -124,6 +124,6 @@ interface JobInterface
     public function getMetrics(): JobMetrics;
     public function isInRunMode(): bool;
     public function getComponentSpecification(): ComponentSpecification;
-    public function getComponentConfiguration(): ?array;
+    public function getComponentConfiguration(): array;
     public function getOrchestrationJobId(): ?string;
 }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Keboola\JobQueueInternalClient\Tests\JobFactory;
 
+use Keboola\JobQueueInternalClient\Exception\ClientException;
 use Keboola\JobQueueInternalClient\JobFactory\Job;
 use Keboola\JobQueueInternalClient\JobFactory\JobInterface;
 use Keboola\JobQueueInternalClient\JobFactory\ObjectEncryptor\JobObjectEncryptor;
@@ -485,9 +486,10 @@ class JobTest extends BaseTest
             $jobData
         );
 
-        $result = $job->getComponentConfiguration();
+        $this->expectException(ClientException::class);
+        $this->expectExceptionMessage('Can\'t fetch component configuration: job has no configId set');
 
-        self::assertNull($result);
+        $job->getComponentConfiguration();
     }
 
     public function testGetOrchestrationId(): void

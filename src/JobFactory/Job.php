@@ -7,8 +7,11 @@ namespace Keboola\JobQueueInternalClient\JobFactory;
 use DateTimeImmutable;
 use DateTimeZone;
 use JsonSerializable;
+use Keboola\JobQueueInternalClient\Exception\ClientException;
+use Keboola\JobQueueInternalClient\Exception\ConfigurationNotFoundException;
 use Keboola\JobQueueInternalClient\JobFactory\ObjectEncryptor\JobObjectEncryptorInterface;
 use Keboola\JobQueueInternalClient\Result\JobMetrics;
+use Keboola\StorageApi\ClientException as StorageApiClientException;
 use Keboola\StorageApi\Components as ComponentsApiClient;
 use Keboola\StorageApiBranch\Factory\ClientOptions;
 use Keboola\StorageApiBranch\Factory\StorageClientPlainFactory;
@@ -268,24 +271,33 @@ class Job implements JsonSerializable, JobInterface
             return $this->componentSpecification;
         }
 
-        $data = $this->getComponentsApiClient()->getComponent($this->getComponentId());
+        try {
+            $data = $this->getComponentsApiClient()->getComponent($this->getComponentId());
+        } catch (StorageApiClientException $e) {
+            throw new ClientException('Failed to fetch component configuration: '.$e->getMessage(), 0, $e);
+        }
+
         return $this->componentSpecification = new ComponentSpecification($data);
     }
 
-    public function getComponentConfiguration(): ?array
+    public function getComponentConfiguration(): array
     {
         if ($this->componentConfiguration !== null) {
             return $this->componentConfiguration;
         }
 
         if (!$this->getConfigId()) {
-            return null;
+            throw new ClientException('Can\'t fetch component configuration: job has no configId set');
         }
 
-        return $this->componentConfiguration = $this->getComponentsApiClient()->getConfiguration(
-            $this->getComponentId(),
-            $this->getConfigId()
-        );
+        try {
+            return $this->componentConfiguration = $this->getComponentsApiClient()->getConfiguration(
+                $this->getComponentId(),
+                $this->getConfigId()
+            );
+        } catch (StorageApiClientException $e) {
+            throw new ClientException('Failed to fetch component configuration: '.$e->getMessage(), 0, $e);
+        }
     }
 
     private function getComponentsApiClient(): ComponentsApiClient
@@ -297,6 +309,7 @@ class Job implements JsonSerializable, JobInterface
         $client = $this->storageClientFactory->createClientWrapper(
             new ClientOptions(null, $this->getTokenDecrypted(), $this->getBranchId())
         );
+
         return $this->componentsApiClient = new ComponentsApiClient($client->getBranchClientIfAvailable());
     }
 }

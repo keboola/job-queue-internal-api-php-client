@@ -301,7 +301,6 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
         self::assertEquals('keboola.runner-config-test', $job->getComponentSpecification()->getId());
 
         $resultComponentConfig = $job->getComponentConfiguration();
-        self::assertNotNull($resultComponentConfig);
         self::assertSame(self::$configId1, $resultComponentConfig['id'] ?? null);
     }
 
