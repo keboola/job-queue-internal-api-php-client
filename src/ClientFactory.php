@@ -9,18 +9,21 @@ use Psr\Log\LoggerInterface;
 class ClientFactory
 {
     private string $internalApiUrl;
-    private string $internalApiToken;
+    private ?string $internalApiToken;
     private ExistingJobFactory $existingJobFactory;
     private LoggerInterface $logger;
+    private ?string $storageApiToken;
 
     public function __construct(
         string $internalApiUrl,
-        string $internalApiToken,
+        ?string $internalApiToken,
         ExistingJobFactory $existingJobFactory,
-        LoggerInterface $logger
+        LoggerInterface $logger,
+        ?string $storageApiToken = null
     ) {
         $this->internalApiUrl = $internalApiUrl;
         $this->internalApiToken = $internalApiToken;
+        $this->storageApiToken = $storageApiToken;
         $this->existingJobFactory = $existingJobFactory;
         $this->logger = $logger;
     }
@@ -32,6 +35,7 @@ class ClientFactory
             $this->existingJobFactory,
             $this->internalApiUrl,
             $this->internalApiToken,
+            $this->storageApiToken,
             [
                 'backoffMaxTries' => 2,
                 'userAgent' => 'Public API',
