@@ -467,7 +467,6 @@ Out of order
                 ->setInputTablesBytesSum(112233445566)
                 ->setOutputTablesBytesSum(112233445577)
                 ->setBackendSize('small')
-            ,
         );
         self::assertInstanceOf(Job::class, $result);
         self::assertCount(1, $container);
