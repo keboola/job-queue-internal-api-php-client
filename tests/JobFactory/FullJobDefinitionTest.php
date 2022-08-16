@@ -74,6 +74,7 @@ class FullJobDefinitionTest extends BaseTest
             'metrics' => [
                 'storage' => [
                     'inputTablesBytesSum' => 123,
+                    'outputTablesBytesSum' => 456,
                     'storageExtraKey' => 'ignored',
                 ],
                 'backend' => [
@@ -285,6 +286,26 @@ class FullJobDefinitionTest extends BaseTest
                     ],
                 ],
                 '#Invalid type for path "job.metrics.storage.inputTablesBytesSum". Expected "scalar",' .
+                    ' but got "array".#',
+            ],
+            'Invalid storage outputTablesBytesSum metrics' => [
+                [
+                    '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+                    'tokenId' => '1234',
+                    'projectId' => '123',
+                    'id' => '12345',
+                    'runId' => '12345',
+                    'status' => 'created',
+                    'configId' => '123',
+                    'componentId' => 'keboola.test',
+                    'mode' => 'run',
+                    'metrics' => [
+                        'storage' => [
+                            'outputTablesBytesSum' => [],
+                        ],
+                    ],
+                ],
+                '#Invalid type for path "job.metrics.storage.outputTablesBytesSum". Expected "scalar",' .
                     ' but got "array".#',
             ],
             'Invalid backend metrics' => [
