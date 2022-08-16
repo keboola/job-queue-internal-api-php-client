@@ -463,7 +463,11 @@ Out of order
             '123',
             JobInterface::STATUS_SUCCESS,
             (new JobResult())->setImages(['digests' => ['keboola.test' => ['id' => '123']]]),
-            (new JobMetrics())->setInputTablesBytesSum(112233445566)->setBackendSize('small'),
+            (new JobMetrics())
+                ->setInputTablesBytesSum(112233445566)
+                ->setOutputTablesBytesSum(112233445577)
+                ->setBackendSize('small')
+            ,
         );
         self::assertInstanceOf(Job::class, $result);
         self::assertCount(1, $container);
@@ -494,6 +498,7 @@ Out of order
                 'metrics' => [
                     'storage' => [
                         'inputTablesBytesSum' => 112233445566,
+                        'outputTablesBytesSum' => 112233445577,
                     ],
                     'backend' => [
                         'size' => 'small',

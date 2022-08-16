@@ -292,6 +292,7 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
         self::assertEquals([
             'storage' => [
                 'inputTablesBytesSum' => null,
+                'outputTablesBytesSum' => null,
             ],
             'backend' => [
                 'size' => null,
