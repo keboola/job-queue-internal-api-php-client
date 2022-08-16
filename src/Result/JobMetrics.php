@@ -9,6 +9,7 @@ use JsonSerializable;
 class JobMetrics implements JsonSerializable
 {
     private ?int $inputTablesBytesSum = null;
+    private ?int $outputTablesBytesSum = null;
 
     private ?string $backendSize = null;
     private ?string $backendContainerSize = null;
@@ -18,6 +19,7 @@ class JobMetrics implements JsonSerializable
         return [
             'storage' => [
                 'inputTablesBytesSum' => $this->inputTablesBytesSum,
+                'outputTablesBytesSum' => $this->outputTablesBytesSum,
             ],
             'backend' => [
                 'size' => $this->backendSize,
@@ -66,6 +68,9 @@ class JobMetrics implements JsonSerializable
         if (isset($metricsData['storage']['inputTablesBytesSum'])) {
             $metrics->setInputTablesBytesSum($metricsData['storage']['inputTablesBytesSum']);
         }
+        if (isset($metricsData['storage']['outputTablesBytesSum'])) {
+            $metrics->setOutputTablesBytesSum($metricsData['storage']['outputTablesBytesSum']);
+        }
         if (isset($metricsData['backend']['size'])) {
             $metrics->setBackendSize($metricsData['backend']['size']);
         }
@@ -73,5 +78,16 @@ class JobMetrics implements JsonSerializable
             $metrics->setBackendContainerSize($metricsData['backend']['containerSize']);
         }
         return $metrics;
+    }
+
+    public function setOutputTablesBytesSum(int $bytes): JobMetrics
+    {
+        $this->outputTablesBytesSum = $bytes;
+        return $this;
+    }
+
+    public function getOutputTablesBytesSum(): ?int
+    {
+        return $this->outputTablesBytesSum;
     }
 }

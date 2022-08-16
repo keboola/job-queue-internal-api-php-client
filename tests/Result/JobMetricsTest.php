@@ -13,6 +13,7 @@ class JobMetricsTest extends TestCase
     {
         $metrics = new JobMetrics();
         $metrics->setInputTablesBytesSum(123);
+        $metrics->setOutputTablesBytesSum(456);
         $metrics->setBackendSize('large');
         $metrics->setBackendContainerSize('small');
         self::assertSame(123, $metrics->getInputTablesBytesSum());
@@ -21,6 +22,7 @@ class JobMetricsTest extends TestCase
             [
                 'storage' => [
                     'inputTablesBytesSum' => 123,
+                    'outputTablesBytesSum' => 456,
                 ],
                 'backend' => [
                     'size' => 'large',
@@ -35,6 +37,7 @@ class JobMetricsTest extends TestCase
             [
                 'storage' => [
                     'inputTablesBytesSum' => null,
+                    'outputTablesBytesSum' => null,
                 ],
                 'backend' => [
                     'size' => null,
@@ -51,6 +54,7 @@ class JobMetricsTest extends TestCase
             'metrics' => [
                 'storage' => [
                     'inputTablesBytesSum' => 123,
+                    'outputTablesBytesSum' => 456,
                 ],
                 'backend' => [
                     'size' => 'medium',
@@ -60,6 +64,7 @@ class JobMetricsTest extends TestCase
         ];
         $jobMetrics = JobMetrics::fromDataArray($data);
         self::assertSame(123, $jobMetrics->getInputTablesBytesSum());
+        self::assertSame(456, $jobMetrics->getOutputTablesBytesSum());
         self::assertSame('medium', $jobMetrics->getBackendSize());
         self::assertSame('large', $jobMetrics->getBackendContainerSize());
 
