@@ -241,4 +241,70 @@ class DataPlaneConfigRepositoryTest extends TestCase
 
         $repository->fetchDataPlaneConfig('1');
     }
+
+    public function testListDataPlaneConfigs(): void
+    {
+        $dataPlaneConfig1 = self::DATA_PLANE_CONFIG;
+
+        $dataPlaneConfig2 = self::DATA_PLANE_CONFIG;
+        $dataPlaneConfig2['id'] = 2;
+        $dataPlaneConfig2['parameters']['kubernetes']['#token'] = 'otherToken';
+
+        $manageApiClient = $this->createMock(ManageApiClient::class);
+        $manageApiClient->expects(self::once())
+            ->method('listDataPlanes')
+            ->willReturn([$dataPlaneConfig1, $dataPlaneConfig2])
+        ;
+
+        $configValidator = $this->createMock(DataPlaneConfigValidator::class);
+        $configValidator->expects(self::exactly(2))
+            ->method('validateDataPlaneConfig')
+            ->withConsecutive(
+                ['1', $dataPlaneConfig1['parameters']],
+                ['2', $dataPlaneConfig2['parameters']],
+            )
+            ->willReturnArgument(1)
+        ;
+
+        $repository = new DataPlaneConfigRepository(
+            $manageApiClient,
+            $configValidator,
+            'stackId',
+            'kmsRegion'
+        );
+
+        $result = $repository->listDataPlaneConfigs();
+
+        self::assertEquals(new DataPlaneConfig(
+            '1',
+            new KubernetesConfig(
+                'https://kubernetes.local',
+                'token',
+                'certificateAuthority',
+                'namespace',
+            ),
+            new AwsEncryptionConfig(
+                'stackId',
+                'kmsRegion',
+                'kmsKeyId',
+                'kmsRoleArn',
+            ),
+        ), $result[0]);
+
+        self::assertEquals(new DataPlaneConfig(
+            '2',
+            new KubernetesConfig(
+                'https://kubernetes.local',
+                'otherToken',
+                'certificateAuthority',
+                'namespace',
+            ),
+            new AwsEncryptionConfig(
+                'stackId',
+                'kmsRegion',
+                'kmsKeyId',
+                'kmsRoleArn',
+            ),
+        ), $result[1]);
+    }
 }

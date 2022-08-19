@@ -76,6 +76,17 @@ class DataPlaneConfigRepository
         );
     }
 
+    /**
+     * @return DataPlaneConfig[]
+     */
+    public function listDataPlaneConfigs(): array
+    {
+        return array_map(
+            fn(array $data) => $this->mapDataPlaneConfig((string) $data['id'], $data['parameters']),
+            $this->manageApiClient->listDataPlanes()
+        );
+    }
+
     private function mapDataPlaneConfig(string $dataPlaneId, array $data): DataPlaneConfig
     {
         $data = $this->configValidator->validateDataPlaneConfig($dataPlaneId, $data);
