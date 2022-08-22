@@ -132,8 +132,6 @@ class Client
 
     public function getJob(string $jobId): JobInterface
     {
-        throw new ClientException(sprintf('Access restricted to job ID: "%s".', $jobId));
-
         if (empty($jobId)) {
             throw new ClientException(sprintf('Invalid job ID: "%s".', $jobId));
         }
