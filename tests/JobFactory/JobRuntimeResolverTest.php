@@ -623,6 +623,63 @@ class JobRuntimeResolverTest extends TestCase
         );
     }
 
+    public function testResolveEmptyConfigurationData(): void
+    {
+        $jobData = self::JOB_DATA;
+        $jobData['configId'] = '123456';
+        $component = [
+            'id' => 'keboola.ex-db-snowflake',
+            'data' => [
+                'definition' => [
+                    'tag' => '9.9.9',
+                ],
+            ],
+        ];
+
+        $clientMock = self::createMock(Client::class);
+        $clientMock->expects(self::exactly(2))->method('apiGet')
+            ->withConsecutive(
+                ['branch/default/components/keboola.ex-db-snowflake/configs/123456'],
+                ['branch/default/components/keboola.ex-db-snowflake'],
+            )
+            ->willReturn(
+                ['configuration' => null],
+                $component,
+            );
+        $clientWrapperMock = self::createMock(ClientWrapper::class);
+        $clientWrapperMock->method('getBranchClientIfAvailable')->willReturn($clientMock);
+        $storageClientFactoryMock = self::createMock(StorageClientPlainFactory::class);
+        $storageClientFactoryMock
+            ->expects(self::exactly(2))
+            ->method('createClientWrapper')
+            ->willReturn($clientWrapperMock);
+
+        $jobRuntimeResolver = new JobRuntimeResolver($storageClientFactoryMock);
+        self::assertSame(
+            [
+                'id' => '123456456',
+                'runId' => '123456456',
+                'configId' => '123456',
+                'componentId' => 'keboola.ex-db-snowflake',
+                'mode' => 'run',
+                'status' => 'created',
+                'desiredStatus' => 'processing',
+                'projectId' => '123',
+                'tokenId' => '456',
+                '#tokenString' => 'KBC::ProjectSecure::token',
+                'variableValuesId' => null,
+                'variableValuesData' => [],
+                'backend' => [
+                    'type' => null,
+                    'containerType' => null,
+                ],
+                'tag' => '9.9.9',
+                'parallelism' => null,
+            ],
+            $jobRuntimeResolver->resolveJobData($jobData, [])
+        );
+    }
+
     public function testInternalCacheIsClearedForEveryCall(): void
     {
         $jobData = self::JOB_DATA;

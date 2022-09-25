@@ -191,7 +191,9 @@ class JobRuntimeResolver
                 }
 
                 $configurationDefinition = new OverridesConfigurationDefinition();
-                $this->configuration = $configurationDefinition->processData($this->configuration['configuration']);
+                $this->configuration = $configurationDefinition->processData(
+                    $this->configuration['configuration'] ?? []
+                );
             } else {
                 $this->configuration = [];
             }
