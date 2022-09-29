@@ -14,6 +14,7 @@ class ClientListConfigurationsJobsFunctionalTest extends BaseClientFunctionalTes
 {
     private static string $configId1;
     private static string $configId2;
+    private static string $configId3;
     private static string $branchId1;
     private const COMPONENT_ID_1 = 'keboola.runner-config-test';
     private const COMPONENT_ID_2 = 'keboola.runner-workspace-test';
@@ -50,7 +51,7 @@ class ClientListConfigurationsJobsFunctionalTest extends BaseClientFunctionalTes
         self::$configId2 = $componentsApi->addConfiguration($configuration)['id'];
         $configuration->setConfigurationId(self::$configId1);
         $configuration->setComponentId(self::COMPONENT_ID_2);
-        $componentsApi->addConfiguration($configuration);
+        self::$configId3 = $componentsApi->addConfiguration($configuration);
 
         $branchesApi = new DevBranches(self::$masterClient);
         foreach ($branchesApi->listBranches() as $devBranch) {
@@ -73,6 +74,10 @@ class ClientListConfigurationsJobsFunctionalTest extends BaseClientFunctionalTes
         if (self::$configId2) {
             $componentsApi = new Components(self::$client);
             $componentsApi->deleteConfiguration(self::COMPONENT_ID_1, self::$configId2);
+        }
+        if (self::$configId3) {
+            $componentsApi = new Components(self::$client);
+            $componentsApi->deleteConfiguration(self::COMPONENT_ID_2, self::$configId3);
         }
     }
 
