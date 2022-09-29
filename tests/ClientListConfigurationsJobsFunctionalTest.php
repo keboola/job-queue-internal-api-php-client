@@ -51,7 +51,7 @@ class ClientListConfigurationsJobsFunctionalTest extends BaseClientFunctionalTes
         self::$configId2 = $componentsApi->addConfiguration($configuration)['id'];
         $configuration->setConfigurationId(self::$configId1);
         $configuration->setComponentId(self::COMPONENT_ID_2);
-        self::$configId3 = $componentsApi->addConfiguration($configuration);
+        self::$configId3 = $componentsApi->addConfiguration($configuration)['id'];
 
         $branchesApi = new DevBranches(self::$masterClient);
         foreach ($branchesApi->listBranches() as $devBranch) {
