@@ -70,6 +70,7 @@ class FullJobDefinitionTest extends BaseTest
             'backend' => [
                 'type' => 'large',
                 'containerType' => 'small',
+                'context' => 'wml',
             ],
             'metrics' => [
                 'storage' => [
@@ -81,6 +82,7 @@ class FullJobDefinitionTest extends BaseTest
                     'size' => 'medium',
                     'containerSize' => 'large',
                     'backendExtraKey' => 'ignored',
+                    'context' => 'wml',
                 ],
             ],
             'orchestrationJobId' => '123456789',

@@ -72,6 +72,7 @@ class NewJobDefinition implements ConfigurationInterface
                     ->children()
                         ->scalarNode('type')->end()
                         ->scalarNode('containerType')->end()
+                        ->scalarNode('context')->end()
                     ->end()
                 ->end()
                 ->arrayNode('behavior')->ignoreExtraKeys(true)
