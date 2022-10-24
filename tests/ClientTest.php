@@ -467,6 +467,7 @@ Out of order
                 ->setInputTablesBytesSum(112233445566)
                 ->setOutputTablesBytesSum(112233445577)
                 ->setBackendSize('small')
+                ->setBackendContext('wlm')
         );
         self::assertInstanceOf(Job::class, $result);
         self::assertCount(1, $container);
@@ -502,6 +503,7 @@ Out of order
                     'backend' => [
                         'size' => 'small',
                         'containerSize' => null,
+                        'context' => 'wlm',
                     ],
                 ],
             ],
