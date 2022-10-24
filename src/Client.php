@@ -318,7 +318,7 @@ class Client
             $error = null
         ) use ($maxRetries) {
             if ($retries >= $maxRetries) {
-                $this->logger->notice(sprintf('We have tried this %d times.  Giving up.', $maxRetries));
+                $this->logger->notice(sprintf('We have tried this %d times. Giving up.', $maxRetries));
                 return false;
             } elseif ($response && $response->getStatusCode() >= 500) {
                 $this->logger->notice(sprintf(
