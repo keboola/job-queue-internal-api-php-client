@@ -405,7 +405,7 @@ Out of order
         self::assertTrue($logger->hasNoticeThatContains('Got a 500 error with this message: Server error: `GET http://example.com/jobs/123` resulted in a `500 Internal Server Error` response:
 {"message" => "Out of order"}
 , retrying.'));
-        self::assertTrue($logger->hasNoticeThatContains('We have tried this 1 times.  Giving up.'));
+        self::assertTrue($logger->hasNoticeThatMatches('#We have tried this 1 times.\s*Giving up.#'));
         //phpcs:enable Generic.Files.LineLength.MaxExceeded
     }
 
