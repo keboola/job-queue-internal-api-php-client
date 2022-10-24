@@ -16,8 +16,10 @@ class JobMetricsTest extends TestCase
         $metrics->setOutputTablesBytesSum(456);
         $metrics->setBackendSize('large');
         $metrics->setBackendContainerSize('small');
+        $metrics->setBackendContext('wlm');
         self::assertSame(123, $metrics->getInputTablesBytesSum());
         self::assertSame('large', $metrics->getBackendSize());
+        self::assertSame('wlm', $metrics->getBackendContext());
         self::assertSame(
             [
                 'storage' => [
@@ -27,6 +29,7 @@ class JobMetricsTest extends TestCase
                 'backend' => [
                     'size' => 'large',
                     'containerSize' => 'small',
+                    'context' => 'wlm',
                 ],
             ],
             $metrics->jsonSerialize()
@@ -42,6 +45,7 @@ class JobMetricsTest extends TestCase
                 'backend' => [
                     'size' => null,
                     'containerSize' => null,
+                    'context' => null,
                 ],
             ],
             $metrics->jsonSerialize()
@@ -59,6 +63,7 @@ class JobMetricsTest extends TestCase
                 'backend' => [
                     'size' => 'medium',
                     'containerSize' => 'large',
+                    'context' => 'wlm',
                 ],
             ],
         ];
@@ -67,10 +72,12 @@ class JobMetricsTest extends TestCase
         self::assertSame(456, $jobMetrics->getOutputTablesBytesSum());
         self::assertSame('medium', $jobMetrics->getBackendSize());
         self::assertSame('large', $jobMetrics->getBackendContainerSize());
+        self::assertSame('wlm', $jobMetrics->getBackendContext());
 
         $jobMetrics = JobMetrics::fromDataArray([]);
         self::assertNull($jobMetrics->getInputTablesBytesSum());
         self::assertNull($jobMetrics->getBackendSize());
         self::assertNull($jobMetrics->getBackendContainerSize());
+        self::assertNull($jobMetrics->getBackendContext());
     }
 }

@@ -50,6 +50,7 @@ class JobTest extends BaseTest
             ],
             'backend' => [
                 'size' => 'medium',
+                'context' => 'wml',
             ],
         ],
         'orchestrationJobId' => '123456789',
@@ -253,6 +254,7 @@ class JobTest extends BaseTest
         self::assertSame(567, $job->getMetrics()->getInputTablesBytesSum());
         self::assertSame(987, $job->getMetrics()->getOutputTablesBytesSum());
         self::assertSame('medium', $job->getMetrics()->getBackendSize());
+        self::assertSame('wml', $job->getMetrics()->getBackendContext());
     }
 
     public function testGetNoMetrics(): void
@@ -263,6 +265,7 @@ class JobTest extends BaseTest
         self::assertNull($job->getMetrics()->getInputTablesBytesSum());
         self::assertNull($job->getMetrics()->getOutputTablesBytesSum());
         self::assertNull($job->getMetrics()->getBackendSize());
+        self::assertNull($job->getMetrics()->getBackendContext());
     }
 
     public function testGetNoBehavior(): void

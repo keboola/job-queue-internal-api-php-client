@@ -297,6 +297,7 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
             'backend' => [
                 'size' => null,
                 'containerSize' => null,
+                'context' => null,
             ],
         ], $job->getMetrics()->jsonSerialize());
         self::assertNull($job->getStartTime());
@@ -809,6 +810,7 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
             (new JobResult())->setMessage('bar'),
             (new JobMetrics())->setInputTablesBytesSum(654)->setBackendSize('medium')
                 ->setBackendContainerSize('small')
+                ->setBackendContext('wlm')
         );
         $job = $client->getJob($createdJob->getId());
         self::assertEquals(JobInterface::STATUS_PROCESSING, $job->getStatus());
@@ -816,6 +818,7 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
         self::assertEquals(654, $job->getMetrics()->getInputTablesBytesSum());
         self::assertEquals('medium', $job->getMetrics()->getBackendSize());
         self::assertEquals('small', $job->getMetrics()->getBackendContainerSize());
+        self::assertEquals('wlm', $job->getMetrics()->getBackendContext());
     }
 
     public function testGetJobsWithProjectId(): void
