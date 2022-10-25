@@ -113,7 +113,7 @@ class JobRuntimeResolver
             // return this irrespective if it is empty, because if it is we create empty Backend anyway
             return Backend::fromDataArray($configuration['runtime']['backend']);
         }
-        return new Backend(null, null);
+        return new Backend(null, null, null);
     }
 
     private function resolveBackend(array $tokenInfo): Backend
@@ -135,14 +135,14 @@ class JobRuntimeResolver
         if (in_array($stagingStorage, ['local', 's3', 'abs', 'none']) &&
             !in_array(self::PAY_AS_YOU_GO_FEATURE, $tokenInfo['owner']['features'] ?? [])
         ) {
-            return new Backend(null, $tempBackend->getType());
+            return new Backend(null, $tempBackend->getType(), $tempBackend->getContext());
         }
         if ($stagingStorage === 'workspace-snowflake') {
             // dynamic workspace si hidden behind another feature `workspace-snowflake-dynamic-backend-size`
             // that is checked in SAPI, so we don't check it here, yet
-            return new Backend($tempBackend->getType(), null);
+            return new Backend($tempBackend->getType(), null, $tempBackend->getContext());
         }
-        return new Backend(null, null);
+        return new Backend(null, null, $tempBackend->getContext());
     }
 
     private function resolveParallelism(): ?string

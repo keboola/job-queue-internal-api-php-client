@@ -44,7 +44,10 @@ class JobRuntimeResolverTest extends TestCase
                 ],
             ],
         ];
-        $jobData['backend'] = ['type' => 'custom'];
+        $jobData['backend'] = [
+            'type' => 'custom',
+            'context' => 'wml',
+        ];
         $jobData['parallelism'] = '5';
         $componentData = [
             'data' => [
@@ -94,6 +97,7 @@ class JobRuntimeResolverTest extends TestCase
                 'backend' => [
                     'type' => null,
                     'containerType' => 'custom',
+                    'context' => 'wml',
                 ],
                 'parallelism' => '5',
                 'variableValuesId' => null,
@@ -109,7 +113,10 @@ class JobRuntimeResolverTest extends TestCase
             'variableValuesId' => '123',
             'runtime' => [
                 'tag' => '3.2.1',
-                'backend' => ['type' => 'mass-produced'],
+                'backend' => [
+                    'type' => 'mass-produced',
+                    'context' => 'wml',
+                ],
                 'parallelism' => '5',
             ],
             'parameters' => ['foo' => 'bar'],
@@ -157,6 +164,7 @@ class JobRuntimeResolverTest extends TestCase
                         'tag' => '3.2.1',
                         'backend' => [
                             'type' => 'mass-produced',
+                            'context' => 'wml',
                         ],
                         'parallelism' => '5',
                     ],
@@ -169,6 +177,7 @@ class JobRuntimeResolverTest extends TestCase
                 'backend' => [
                     'type' => null,
                     'containerType' => 'mass-produced',
+                    'context' => 'wml',
                 ],
                 'tag' => '3.2.1',
                 'parallelism' => '5',
@@ -187,6 +196,7 @@ class JobRuntimeResolverTest extends TestCase
                 'runtime' => [
                     'backend' => [
                         'type' => 'stereotyped',
+                        'context' => 'wml',
                     ],
                     'tag' => '4.5.6',
                     'parallelism' => '5',
@@ -254,6 +264,7 @@ class JobRuntimeResolverTest extends TestCase
                 'backend' => [
                     'type' => null,
                     'containerType' => 'stereotyped',
+                    'context' => 'wml',
                 ],
                 'tag' => '4.5.6',
                 'parallelism' => '5',
@@ -271,6 +282,7 @@ class JobRuntimeResolverTest extends TestCase
                 'runtime' => [
                     'backend' => [
                         'type' => 'stereotyped',
+                        'context' => 'wml',
                     ],
                     'image_tag' => '4.5.6',
                     'parallelism' => '5',
@@ -321,6 +333,7 @@ class JobRuntimeResolverTest extends TestCase
                 'backend' => [
                     'type' => null,
                     'containerType' => 'stereotyped',
+                    'context' => 'wml',
                 ],
                 'tag' => '4.5.6',
                 'parallelism' => '5',
@@ -416,6 +429,7 @@ class JobRuntimeResolverTest extends TestCase
                 'backend' => [
                     'type' => null,
                     'containerType' => 'stereotyped',
+                    'context' => null,
                 ],
                 'tag' => '4.5.6',
                 'parallelism' => '0',
@@ -475,6 +489,7 @@ class JobRuntimeResolverTest extends TestCase
                 'backend' => [
                     'type' => null,
                     'containerType' => null,
+                    'context' => null,
                 ],
                 'tag' => '9.9.9',
                 'parallelism' => null,
@@ -565,6 +580,7 @@ class JobRuntimeResolverTest extends TestCase
                 'backend' => [
                     'type' => null,
                     'containerType' => null,
+                    'context' => null,
                 ],
                 'tag' => '9.9.9',
                 'parallelism' => null,
@@ -615,6 +631,7 @@ class JobRuntimeResolverTest extends TestCase
                 'backend' => [
                     'type' => null,
                     'containerType' => null,
+                    'context' => null,
                 ],
                 'tag' => '9.9.9',
                 'parallelism' => null,
@@ -672,6 +689,7 @@ class JobRuntimeResolverTest extends TestCase
                 'backend' => [
                     'type' => null,
                     'containerType' => null,
+                    'context' => null,
                 ],
                 'tag' => '9.9.9',
                 'parallelism' => null,
@@ -826,6 +844,7 @@ class JobRuntimeResolverTest extends TestCase
                 'backend' => [
                     'type' => null,
                     'containerType' => 'stereotyped',
+                    'context' => null,
                 ],
                 'tag' => '4.5.6',
                 'parallelism' => '5',
@@ -871,6 +890,7 @@ class JobRuntimeResolverTest extends TestCase
         int $expectedApiCallCount,
         ?string $expectedType,
         ?string $expectedContainerType,
+        ?string $expectedContext,
         array $tokenInfo
     ): void {
         $jobData = $this::JOB_DATA;
@@ -936,6 +956,7 @@ class JobRuntimeResolverTest extends TestCase
                 'backend' => [
                     'type' => $expectedType,
                     'containerType' => $expectedContainerType,
+                    'context' => $expectedContext,
                 ],
                 'parallelism' => '5',
                 'variableValuesId' => null,
@@ -952,6 +973,7 @@ class JobRuntimeResolverTest extends TestCase
             0,
             null,
             null,
+            null,
             [],
         ];
         yield 'custom local' => [
@@ -960,6 +982,7 @@ class JobRuntimeResolverTest extends TestCase
             1,
             null,
             'custom',
+            null,
             [],
         ];
         yield 'custom local without feature' => [
@@ -968,6 +991,7 @@ class JobRuntimeResolverTest extends TestCase
             1,
             null,
             null, // no container backend is set
+            null,
             ['owner' => ['features' => ['pay-as-you-go']]],
         ];
         yield 'custom s3' => [
@@ -976,6 +1000,7 @@ class JobRuntimeResolverTest extends TestCase
             1,
             null,
             'custom',
+            null,
             ['owner' => ['features' => []]],
         ];
         yield 'custom abs' => [
@@ -984,6 +1009,7 @@ class JobRuntimeResolverTest extends TestCase
             1,
             null,
             'custom',
+            null,
             ['owner' => ['features' => []]],
         ];
         yield 'custom none' => [
@@ -992,6 +1018,7 @@ class JobRuntimeResolverTest extends TestCase
             1,
             null,
             'custom',
+            null,
             ['owner' => ['features' => []]],
         ];
         yield 'custom workspace-snowflake' => [
@@ -999,6 +1026,7 @@ class JobRuntimeResolverTest extends TestCase
             'workspace-snowflake',
             1,
             'custom',
+            null,
             null,
             ['owner' => ['features' => []]],
         ];
@@ -1008,12 +1036,14 @@ class JobRuntimeResolverTest extends TestCase
             1,
             'custom',
             null,
+            null,
             ['owner' => ['features' => ['pay-as-you-go']]],
         ];
         yield 'custom workspace-redshift' => [
             'custom',
             'workspace-redshift',
             1,
+            null,
             null,
             null,
             ['owner' => ['features' => []]],
@@ -1024,12 +1054,14 @@ class JobRuntimeResolverTest extends TestCase
             1,
             null,
             null,
+            null,
             ['owner' => ['features' => []]],
         ];
         yield 'custom workspace-abs' => [
             'custom',
             'workspace-abs',
             1,
+            null,
             null,
             null,
             ['owner' => ['features' => []]],
@@ -1040,12 +1072,14 @@ class JobRuntimeResolverTest extends TestCase
             1,
             null,
             null,
+            null,
             ['owner' => ['features' => []]],
         ];
         yield 'custom workspace-teradata' => [
             'custom',
             'workspace-teradata',
             1,
+            null,
             null,
             null,
             ['owner' => ['features' => []]],
@@ -1056,12 +1090,14 @@ class JobRuntimeResolverTest extends TestCase
             1,
             null,
             null,
+            null,
             ['owner' => ['features' => []]],
         ];
         yield 'custom invalid' => [
             'custom',
             null,
             1,
+            null,
             null,
             null,
             ['owner' => ['features' => []]],

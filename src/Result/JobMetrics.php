@@ -13,6 +13,7 @@ class JobMetrics implements JsonSerializable
 
     private ?string $backendSize = null;
     private ?string $backendContainerSize = null;
+    private ?string $backendContext = null;
 
     public function jsonSerialize(): array
     {
@@ -24,6 +25,7 @@ class JobMetrics implements JsonSerializable
             'backend' => [
                 'size' => $this->backendSize,
                 'containerSize' => $this->backendContainerSize,
+                'context' => $this->backendContext,
             ],
         ];
     }
@@ -61,6 +63,17 @@ class JobMetrics implements JsonSerializable
         return $this;
     }
 
+    public function getBackendContext(): ?string
+    {
+        return $this->backendContext;
+    }
+
+    public function setBackendContext(string $context): JobMetrics
+    {
+        $this->backendContext = $context;
+        return $this;
+    }
+
     public static function fromDataArray(array $data): self
     {
         $metricsData = $data['metrics'] ?? [];
@@ -76,6 +89,9 @@ class JobMetrics implements JsonSerializable
         }
         if (isset($metricsData['backend']['containerSize'])) {
             $metrics->setBackendContainerSize($metricsData['backend']['containerSize']);
+        }
+        if (isset($metricsData['backend']['context'])) {
+            $metrics->setBackendContext($metricsData['backend']['context']);
         }
         return $metrics;
     }

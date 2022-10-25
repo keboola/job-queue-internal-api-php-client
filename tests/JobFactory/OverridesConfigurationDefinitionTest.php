@@ -38,6 +38,7 @@ class OverridesConfigurationDefinitionTest extends TestCase
                 'tag' => 1,
                 'backend' => [
                     'type' => 'weird',
+                    'context' => 'wml',
                     'ignored' => 'yes',
                 ],
             ],

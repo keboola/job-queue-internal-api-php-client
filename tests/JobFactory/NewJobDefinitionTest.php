@@ -60,13 +60,12 @@ class NewJobDefinitionTest extends BaseTest
             'backend' => [
                 'type' => 'my',
                 'containerType' => 'his',
+                'context' => 'wml',
                 'foo' => 'bar',
             ],
             'orchestrationJobId' => '123456789',
         ];
         $definition = new NewJobDefinition();
-        $expected = $data;
-        unset($expected['backend']['foo']);
         self::assertSame($data, $definition->processData($data));
     }
 
