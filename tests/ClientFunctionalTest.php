@@ -152,7 +152,9 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
             'variableValuesData' => [
                 'values' => [],
             ],
-            'backend' => [],
+            'backend' => [
+                'context' => sprintf('%s-application', $tokenInfo['owner']['id'])
+            ],
             'metrics' => [],
             'type' => 'container',
             'parallelism' => '5',
@@ -253,7 +255,9 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
                 'variableValuesData' => [
                     'values' => [],
                 ],
-                'backend' => [],
+                'backend' => [
+                    'context' => sprintf('%s-application', $tokenInfo['owner']['id'])
+                ],
                 'metrics' => [],
                 'type' => 'standard',
                 'parallelism' => null,
