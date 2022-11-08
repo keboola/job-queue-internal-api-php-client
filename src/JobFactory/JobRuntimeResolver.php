@@ -38,6 +38,7 @@ class JobRuntimeResolver
             $tag = $this->resolveTag();
             $variableValues = $this->resolveVariables();
             $backend = $this->resolveBackend($tokenInfo);
+            $backend = $this->resolveBackendContext($backend);
             $parallelism = $this->resolveParallelism();
             foreach ($variableValues->asDataArray() as $key => $value) {
                 $jobData[$key] = $value;
@@ -52,6 +53,27 @@ class JobRuntimeResolver
             throw new ClientException('Cannot resolve job parameters: ' . $e->getMessage(), 0, $e);
         }
     }
+
+    private function resolveBackendContext(Backend $backend): Backend
+    {
+        if ($backend->getContext()) {
+            return $backend;
+        }
+
+        $componentsApi = $this->getComponentsApiClient(null);
+        $componentData = $componentsApi->getComponent($this->jobData['componentId']);
+
+        return new Backend(
+            $backend->getType(),
+            $backend->getContainerType(),
+            sprintf(
+                '%s-%s',
+                $this->jobData['projectId'],
+                $componentData['type']
+            )
+        );
+    }
+
 
     private function resolveTag(): string
     {
