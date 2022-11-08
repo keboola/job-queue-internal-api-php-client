@@ -20,6 +20,7 @@ class JobListOptions
     private array $modes;
     private array $projects;
     private array $statuses;
+    private array $tags;
     private DateTimeInterface $startTimeFrom;
     private DateTimeInterface $startTimeTo;
     private DateTimeInterface $createdTimeFrom;
@@ -55,6 +56,7 @@ class JobListOptions
             'modes' => 'mode',
             'projects' => 'projectId',
             'statuses' => 'status',
+            'tags' => 'tag',
         ];
         $scalarProps = [
             'durationSecondsFrom' => 'durationSecondsFrom',
@@ -221,6 +223,17 @@ class JobListOptions
     public function setStatuses(array $values): JobListOptions
     {
         $this->statuses = $values;
+        return $this;
+    }
+
+    public function getTags(): array
+    {
+        return $this->tags;
+    }
+
+    public function setTags(array $values): JobListOptions
+    {
+        $this->tags = $values;
         return $this;
     }
 

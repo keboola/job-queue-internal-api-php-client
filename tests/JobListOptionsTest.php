@@ -27,6 +27,7 @@ class JobListOptionsTest extends TestCase
         $jobListOptions->setProjects(['12', '13']);
         $jobListOptions->setModes(['run', 'debug']);
         $jobListOptions->setStatuses([JobInterface::STATUS_SUCCESS, JobInterface::STATUS_PROCESSING]);
+        $jobListOptions->setTags(['1.1.1', '1.2.3']);
         $jobListOptions->setParentRunId('123');
         $jobListOptions->setType(JobInterface::TYPE_STANDARD);
         $jobListOptions->setCreatedTimeFrom(DateTime::createFromFormat('Y-m-d H:i:s', '2022-02-02 1:12:23'));
@@ -59,6 +60,7 @@ class JobListOptionsTest extends TestCase
             [JobInterface::STATUS_SUCCESS, JobInterface::STATUS_PROCESSING],
             $jobListOptions->getStatuses()
         );
+        self::assertSame(['1.1.1', '1.2.3'], $jobListOptions->getTags());
         self::assertSame('123', $jobListOptions->getParentRunId());
         self::assertSame(JobInterface::TYPE_STANDARD, $jobListOptions->getType());
         self::assertSame('2022-02-02 01:12:23', $jobListOptions->getCreatedTimeFrom()->format('Y-m-d H:i:s'));
@@ -106,6 +108,8 @@ class JobListOptionsTest extends TestCase
             'projectId[]=13',
             'status[]=success',
             'status[]=processing',
+            'tag[]=1.1.1',
+            'tag[]=1.2.3',
             'durationSecondsFrom=5',
             'durationSecondsTo=7200',
             'offset=20',
