@@ -116,6 +116,15 @@ class JobRuntimeResolver
         return VariableValues::fromDataArray($configuration);
     }
 
+    private function getDefaultBackendContext(string $componentType): string
+    {
+        return sprintf(
+            '%s-%s',
+            $this->jobData['projectId'],
+            $componentType
+        );
+    }
+
     private function getBackend(): Backend
     {
         if (!empty($this->jobData['backend'])) {
@@ -141,13 +150,23 @@ class JobRuntimeResolver
     private function resolveBackend(array $tokenInfo): Backend
     {
         $tempBackend = $this->getBackend();
+
         if ($tempBackend->isEmpty()) {
-            return $tempBackend;
+            return new Backend(
+                $tempBackend->getType(),
+                $tempBackend->getContainerType(),
+                $this->getDefaultBackendContext(
+                    $this->getComponentsApiClient(null)
+                        ->getComponent($this->jobData['componentId'])['type']
+                )
+            );
         }
+
         // decide whether to set "type' (aka workspaceSize) or containerType (aka containerSize)
-        $componentsApi = $this->getComponentsApiClient(null);
-        $component = $componentsApi->getComponent($this->jobData['componentId']);
+        $component = $this->getComponentsApiClient(null)->getComponent($this->jobData['componentId']);
         $stagingStorage = $component['data']['staging_storage']['input'] ?? '';
+        $backendContext = $tempBackend->getContext() ?? $this->getDefaultBackendContext($component['type']);
+
         /* Possible values of staging storage: https://github.com/keboola/docker-bundle/blob/ec9a628b614a70d0ed8a6ec36f2b6003a8e07ed4/src/Docker/Configuration/Component.php#L87
         For the purpose of setting backend, we consider: 'local', 's3', 'abs', 'none' to use container.
         For workspace size, we only consider 'workspace-snowflake' as it is the only backend supporting scaling.
@@ -157,14 +176,14 @@ class JobRuntimeResolver
         if (in_array($stagingStorage, ['local', 's3', 'abs', 'none']) &&
             !in_array(self::PAY_AS_YOU_GO_FEATURE, $tokenInfo['owner']['features'] ?? [])
         ) {
-            return new Backend(null, $tempBackend->getType(), $tempBackend->getContext());
+            return new Backend(null, $tempBackend->getType(), $backendContext);
         }
         if ($stagingStorage === 'workspace-snowflake') {
             // dynamic workspace si hidden behind another feature `workspace-snowflake-dynamic-backend-size`
             // that is checked in SAPI, so we don't check it here, yet
-            return new Backend($tempBackend->getType(), null, $tempBackend->getContext());
+            return new Backend($tempBackend->getType(), null, $backendContext);
         }
-        return new Backend(null, null, $tempBackend->getContext());
+        return new Backend(null, null, $backendContext);
     }
 
     private function resolveParallelism(): ?string
