@@ -441,14 +441,6 @@ class JobRuntimeResolverTest extends TestCase
     public function testResolveRuntimeSettingsNowhere(): void
     {
         $jobData = self::JOB_DATA;
-        $component = [
-            'id' => 'keboola.ex-db-snowflake',
-            'data' => [
-                'definition' => [
-                    'tag' => '9.9.9',
-                ],
-            ],
-        ];
         $configuration = [
             'id' => '454124290',
             'configuration' => [
@@ -457,16 +449,21 @@ class JobRuntimeResolverTest extends TestCase
         ];
 
         $clientMock = self::createMock(Client::class);
-        $clientMock->expects(self::exactly(2))->method('apiGet')
+        $clientMock->expects(self::exactly(3))->method('apiGet')
             ->withConsecutive(
                 ['branch/default/components/keboola.ex-db-snowflake/configs/454124290'],
-                ['branch/default/components/keboola.ex-db-snowflake']
-            )->willReturnOnConsecutiveCalls($configuration, $component);
+                ['branch/default/components/keboola.ex-db-snowflake'],
+                ['branch/default/components/keboola.ex-db-snowflake'],
+            )->willReturnOnConsecutiveCalls(
+                $configuration,
+                $this->getTestExtractorComponentData(),
+                $this->getTestExtractorComponentData()
+            );
         $clientWrapperMock = self::createMock(ClientWrapper::class);
         $clientWrapperMock->method('getBranchClientIfAvailable')->willReturn($clientMock);
         $storageClientFactoryMock = self::createMock(StorageClientPlainFactory::class);
         $storageClientFactoryMock
-            ->expects(self::exactly(2))
+            ->expects(self::exactly(3))
             ->method('createClientWrapper')
             ->willReturn($clientWrapperMock);
 
@@ -489,7 +486,7 @@ class JobRuntimeResolverTest extends TestCase
                 'backend' => [
                     'type' => null,
                     'containerType' => null,
-                    'context' => null,
+                    'context' => '123-extractor',
                 ],
                 'tag' => '9.9.9',
                 'parallelism' => null,
@@ -1132,6 +1129,19 @@ class JobRuntimeResolverTest extends TestCase
                 'staging_storage' => [
                     'input' => $stagingInput,
                     'output' => 'local',
+                ],
+            ],
+        ];
+    }
+
+    private function getTestExtractorComponentData(): array
+    {
+        return [
+            'type' => 'extractor',
+            'id' => 'keboola.ex-db-snowflake',
+            'data' => [
+                'definition' => [
+                    'tag' => '9.9.9',
                 ],
             ],
         ];
