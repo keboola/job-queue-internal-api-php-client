@@ -886,6 +886,7 @@ class JobRuntimeResolverTest extends TestCase
      */
     public function testResolveBackend(
         ?string $inputBackendType,
+        ?string $inputBackendContext,
         ?string $stagingInput,
         int $expectedApiCallCount,
         ?string $expectedType,
@@ -904,24 +905,18 @@ class JobRuntimeResolverTest extends TestCase
                 ],
             ],
         ];
-        $jobData['backend'] = ['type' => $inputBackendType];
-        $jobData['parallelism'] = '5';
-
-        $componentData = [
-            'data' => [
-                'staging_storage' => [
-                    'input' => $stagingInput,
-                    'output' => 'local',
-                ],
-            ],
+        $jobData['backend'] = [
+            'type' => $inputBackendType,
+            'context' => $inputBackendContext,
         ];
+        $jobData['parallelism'] = '5';
 
         $clientMock = self::createMock(Client::class);
         $clientMock->expects(self::exactly($expectedApiCallCount))->method('apiGet')
             ->withConsecutive(
                 ['branch/default/components/keboola.ex-db-snowflake']
             )->willReturnOnConsecutiveCalls(
-                $componentData
+                $this->getTestComponentData($stagingInput)
             );
         $clientWrapperMock = self::createMock(ClientWrapper::class);
         $clientWrapperMock->method('getBranchClientIfAvailable')->willReturn($clientMock);
@@ -969,138 +964,177 @@ class JobRuntimeResolverTest extends TestCase
     {
         yield 'null backend' => [
             null,
+            null,
             'local',
-            0,
+            1,
             null,
             null,
-            null,
+            '123-extractor',
             [],
         ];
         yield 'custom local' => [
             'custom',
+            null,
             'local',
             1,
             null,
             'custom',
+            '123-extractor',
+            [],
+        ];
+        yield 'custom context' => [
             null,
+            'custom-context',
+            null,
+            1,
+            null,
+            null,
+            'custom-context',
             [],
         ];
         yield 'custom local without feature' => [
             'custom',
+            null,
             'local',
             1,
             null,
             null, // no container backend is set
-            null,
+            '123-extractor',
             ['owner' => ['features' => ['pay-as-you-go']]],
         ];
         yield 'custom s3' => [
             'custom',
+            null,
             's3',
             1,
             null,
             'custom',
-            null,
+            '123-extractor',
             ['owner' => ['features' => []]],
         ];
         yield 'custom abs' => [
             'custom',
+            null,
             'abs',
             1,
             null,
             'custom',
-            null,
+            '123-extractor',
             ['owner' => ['features' => []]],
         ];
         yield 'custom none' => [
             'custom',
+            null,
             'none',
             1,
             null,
             'custom',
-            null,
+            '123-extractor',
             ['owner' => ['features' => []]],
         ];
         yield 'custom workspace-snowflake' => [
             'custom',
+            null,
             'workspace-snowflake',
             1,
             'custom',
             null,
-            null,
+            '123-extractor',
             ['owner' => ['features' => []]],
         ];
         yield 'custom workspace-snowflake without feature' => [
             'custom',
+            null,
             'workspace-snowflake',
             1,
             'custom',
             null,
-            null,
+            '123-extractor',
             ['owner' => ['features' => ['pay-as-you-go']]],
         ];
         yield 'custom workspace-redshift' => [
             'custom',
+            null,
             'workspace-redshift',
             1,
             null,
             null,
-            null,
+            '123-extractor',
             ['owner' => ['features' => []]],
         ];
         yield 'custom workspace-synapse' => [
             'custom',
+            null,
             'workspace-synapse',
             1,
             null,
             null,
-            null,
+            '123-extractor',
             ['owner' => ['features' => []]],
         ];
         yield 'custom workspace-abs' => [
             'custom',
+            null,
             'workspace-abs',
             1,
             null,
             null,
-            null,
+            '123-extractor',
             ['owner' => ['features' => []]],
         ];
         yield 'custom workspace-exasol' => [
             'custom',
+            null,
             'workspace-exasol',
             1,
             null,
             null,
-            null,
+            '123-extractor',
             ['owner' => ['features' => []]],
         ];
         yield 'custom workspace-teradata' => [
             'custom',
+            null,
             'workspace-teradata',
             1,
             null,
             null,
-            null,
+            '123-extractor',
             ['owner' => ['features' => []]],
         ];
         yield 'custom unknown' => [
             'custom',
+            null,
             'unknown',
             1,
             null,
             null,
-            null,
+            '123-extractor',
             ['owner' => ['features' => []]],
         ];
         yield 'custom invalid' => [
             'custom',
             null,
+            null,
             1,
             null,
             null,
-            null,
+            '123-extractor',
             ['owner' => ['features' => []]],
         ];
     }
+
+    private function getTestComponentData(?string $stagingInput = 'local'): array
+    {
+        return [
+            'type' => 'extractor',
+            'data' => [
+                'staging_storage' => [
+                    'input' => $stagingInput,
+                    'output' => 'local',
+                ],
+            ],
+        ];
+    }
+
 }
