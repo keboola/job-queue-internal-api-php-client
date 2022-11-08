@@ -627,15 +627,15 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
         $job = $newJobFactory->createNewJob([
             '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
             'configData' => [],
-            'componentId' => '{}=žýřčšěš (*^&^$%£  $"£)?! \'',
-            'tag' => 'non-existent',
+            'componentId' => self::COMPONENT_ID_1,
+            'tag' => '{}=žýřčšěš (*^&^$%£  $"£)?! \'',
             'mode' => 'run',
         ]);
         $createdJob = $client->createJob($job);
 
         $response = $client->listJobs(
             (new JobListOptions())
-                ->setComponents(['{}=žýřčšěš (*^&^$%£  $"£)?! \''])
+                ->setTags(['{}=žýřčšěš (*^&^$%£  $"£)?! \''])
                 ->setStatuses([JobInterface::STATUS_CREATED]),
             true
         );

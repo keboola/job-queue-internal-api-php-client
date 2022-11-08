@@ -228,7 +228,7 @@ class NewJobFactoryTest extends BaseTest
         [$factory] = $this->getJobFactoryWithoutDataPlaneSupport();
         $data = [
             '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
-            'componentId' => 123,
+            'componentId' => self::COMPONENT_ID_1,
             'mode' => 'run',
             'tag' => 123,
             'configRowIds' => [123, 456],
@@ -246,7 +246,7 @@ class NewJobFactoryTest extends BaseTest
         self::assertSame('123', $job->getTag());
         self::assertSame('1234.567.' . $job->getId(), $job->getRunId());
         self::assertSame('1234.567', $job->getParentRunId());
-        self::assertSame('123', $job->jsonSerialize()['componentId']);
+        self::assertSame(self::COMPONENT_ID_1, $job->jsonSerialize()['componentId']);
         self::assertSame(['123', '456'], $job->jsonSerialize()['configRowIds']);
         self::assertSame('123', $job->jsonSerialize()['tag']);
         self::assertSame('1234.567.' . $job->getId(), $job->jsonSerialize()['runId']);
