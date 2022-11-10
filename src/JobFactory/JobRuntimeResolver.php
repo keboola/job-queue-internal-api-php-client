@@ -22,6 +22,7 @@ class JobRuntimeResolver
 
     private StorageClientPlainFactory $storageClientFactory;
     private ?array $configuration;
+    private array $componentData;
     private array $jobData;
 
     public function __construct(StorageClientPlainFactory $storageClientFactory)
@@ -35,6 +36,9 @@ class JobRuntimeResolver
         $this->jobData = $jobData;
 
         try {
+            $this->componentData = $this->getComponentsApiClient(null)
+                ->getComponent($this->jobData['componentId']);
+
             $tag = $this->resolveTag();
             $variableValues = $this->resolveVariables();
             $backend = $this->resolveBackend($tokenInfo);
@@ -68,10 +72,8 @@ class JobRuntimeResolver
         if (!empty($configuration['runtime']['image_tag'])) {
             return (string) $configuration['runtime']['image_tag'];
         }
-        $componentsApi = $this->getComponentsApiClient(null);
-        $componentData = $componentsApi->getComponent($this->jobData['componentId']);
-        if (!empty($componentData['data']['definition']['tag'])) {
-            return $componentData['data']['definition']['tag'];
+        if (!empty($this->componentData['data']['definition']['tag'])) {
+            return $this->componentData['data']['definition']['tag'];
         } else {
             throw new ClientException(sprintf('The component "%s" is not runnable.', $this->jobData['componentId']));
         }
@@ -133,17 +135,13 @@ class JobRuntimeResolver
             return new Backend(
                 $tempBackend->getType(),
                 $tempBackend->getContainerType(),
-                $this->getDefaultBackendContext(
-                    $this->getComponentsApiClient(null)
-                        ->getComponent($this->jobData['componentId'])['type']
-                )
+                $this->getDefaultBackendContext($this->componentData['type'])
             );
         }
 
         // decide whether to set "type' (aka workspaceSize) or containerType (aka containerSize)
-        $component = $this->getComponentsApiClient(null)->getComponent($this->jobData['componentId']);
-        $stagingStorage = $component['data']['staging_storage']['input'] ?? '';
-        $backendContext = $tempBackend->getContext() ?? $this->getDefaultBackendContext($component['type']);
+        $stagingStorage = $this->componentData['data']['staging_storage']['input'] ?? '';
+        $backendContext = $tempBackend->getContext() ?? $this->getDefaultBackendContext($this->componentData['type']);
 
         /* Possible values of staging storage: https://github.com/keboola/docker-bundle/blob/ec9a628b614a70d0ed8a6ec36f2b6003a8e07ed4/src/Docker/Configuration/Component.php#L87
         For the purpose of setting backend, we consider: 'local', 's3', 'abs', 'none' to use container.
