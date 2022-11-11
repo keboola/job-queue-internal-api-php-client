@@ -87,6 +87,7 @@ class NewJobFactory extends JobFactory
             'usageData' => [],
             'isFinished' => false,
             'branchId' => $data['branchId'] ?? null,
+            'type' => $data['type'] ?? null,
             'variableValuesId' => $data['variableValuesId'] ?? null,
             'variableValuesData' => $data['variableValuesData'] ?? [],
             'orchestrationJobId' => $data['orchestrationJobId'] ?? null,
