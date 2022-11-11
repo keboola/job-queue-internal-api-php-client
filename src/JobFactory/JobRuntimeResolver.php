@@ -18,11 +18,9 @@ use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
  */
 class JobRuntimeResolver
 {
-    private const COMPONENT_TYPES_WITH_DEFAULT_BACKEND = [
-        'application',
-        'extractor',
-        'transformation',
-        'writer',
+    private const JOB_TYPES_WITH_DEFAULT_BACKEND = [
+        JobInterface::TYPE_STANDARD,
+        JobInterface::TYPE_ROW_CONTAINER,
     ];
 
     private const PAY_AS_YOU_GO_FEATURE = 'pay-as-you-go';
@@ -47,9 +45,11 @@ class JobRuntimeResolver
                 ->getComponent($jobData['componentId']);
             $jobData['tag'] = $this->resolveTag($jobData);
             $variableValues = $this->resolveVariables();
-            $jobData['backend'] = $this->resolveBackend($jobData, $tokenInfo)->toDataArray();
             $jobData['parallelism'] = $this->resolveParallelism($jobData);
-            $jobData['type'] = $this->resolveJobType($jobData); // set type after resolving parallelism
+            // set type after resolving parallelism
+            $jobData['type'] = $this->resolveJobType($jobData);
+            // set backend after resolving type
+            $jobData['backend'] = $this->resolveBackend($jobData, $tokenInfo)->toDataArray();
 
             foreach ($variableValues->asDataArray() as $key => $value) {
                 $jobData[$key] = $value;
@@ -101,15 +101,15 @@ class JobRuntimeResolver
         return VariableValues::fromDataArray($configuration);
     }
 
-    private function getDefaultBackendContext(string $componentType): ?string
+    private function getDefaultBackendContext(array $jobData, string $componentType): ?string
     {
-        if (!in_array($componentType, self::COMPONENT_TYPES_WITH_DEFAULT_BACKEND)) {
+        if (!in_array($jobData['type'], self::JOB_TYPES_WITH_DEFAULT_BACKEND)) {
             return null;
         }
 
         return sprintf(
             '%s-%s',
-            $this->jobData['projectId'],
+            $jobData['projectId'],
             $componentType
         );
     }
@@ -144,13 +144,16 @@ class JobRuntimeResolver
             return new Backend(
                 $tempBackend->getType(),
                 $tempBackend->getContainerType(),
-                $this->getDefaultBackendContext($this->componentData['type'])
+                $this->getDefaultBackendContext($jobData, $this->componentData['type'])
             );
         }
 
         // decide whether to set "type' (aka workspaceSize) or containerType (aka containerSize)
         $stagingStorage = $this->componentData['data']['staging_storage']['input'] ?? '';
-        $backendContext = $tempBackend->getContext() ?? $this->getDefaultBackendContext($this->componentData['type']);
+        $backendContext = $tempBackend->getContext() ?? $this->getDefaultBackendContext(
+            $jobData,
+            $this->componentData['type']
+        );
 
         /* Possible values of staging storage: https://github.com/keboola/docker-bundle/blob/ec9a628b614a70d0ed8a6ec36f2b6003a8e07ed4/src/Docker/Configuration/Component.php#L87
         For the purpose of setting backend, we consider: 'local', 's3', 'abs', 'none' to use container.
