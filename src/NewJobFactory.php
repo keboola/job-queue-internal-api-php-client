@@ -93,8 +93,6 @@ class NewJobFactory extends JobFactory
         ];
 
         $jobData = $this->jobRuntimeResolver->resolveJobData($jobData, $tokenInfo);
-        // set type after resolving parallelism
-        $jobData['type'] = $data['type'] ?? $this->getJobType($jobData);
 
         $data = $encryptor->encrypt(
             $jobData,
@@ -104,21 +102,5 @@ class NewJobFactory extends JobFactory
 
         $data = $this->validateJobData($data, FullJobDefinition::class);
         return new Job($encryptor, $this->storageClientFactory, $data);
-    }
-
-    private function getJobType(array $data): string
-    {
-        if ((intval($data['parallelism']) > 0) || $data['parallelism'] === JobInterface::PARALLELISM_INFINITY) {
-            return JobInterface::TYPE_ROW_CONTAINER;
-        } else {
-            if ($data['componentId'] === JobFactory::ORCHESTRATOR_COMPONENT) {
-                if (isset($data['configData']['phaseId']) && (string) ($data['configData']['phaseId']) !== '') {
-                    return JobInterface::TYPE_PHASE_CONTAINER;
-                } else {
-                    return JobInterface::TYPE_ORCHESTRATION_CONTAINER;
-                }
-            }
-        }
-        return JobInterface::TYPE_STANDARD;
     }
 }

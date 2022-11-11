@@ -6,6 +6,7 @@ namespace Keboola\JobQueueInternalClient\JobFactory;
 
 use Keboola\JobQueueInternalClient\Exception\ClientException;
 use Keboola\JobQueueInternalClient\Exception\ConfigurationDisabledException;
+use Keboola\JobQueueInternalClient\JobFactory;
 use Keboola\StorageApi\ClientException as StorageClientException;
 use Keboola\StorageApi\Components;
 use Keboola\StorageApiBranch\Factory\ClientOptions;
@@ -48,6 +49,7 @@ class JobRuntimeResolver
             $variableValues = $this->resolveVariables();
             $jobData['backend'] = $this->resolveBackend($jobData, $tokenInfo)->toDataArray();
             $jobData['parallelism'] = $this->resolveParallelism($jobData);
+            $jobData['type'] = $this->resolveJobType($jobData); // set type after resolving parallelism
 
             foreach ($variableValues->asDataArray() as $key => $value) {
                 $jobData[$key] = $value;
@@ -239,5 +241,25 @@ class JobRuntimeResolver
     private function resolveIsForceRunMode(): bool
     {
         return isset($this->jobData['mode']) && $this->jobData['mode'] === JobInterface::MODE_FORCE_RUN;
+    }
+
+    private function resolveJobType(array $jobData): string
+    {
+        if (!empty($jobData['type'])) {
+            return (string) $jobData['type'];
+        }
+
+        if ((intval($jobData['parallelism']) > 0) || $jobData['parallelism'] === JobInterface::PARALLELISM_INFINITY) {
+            return JobInterface::TYPE_ROW_CONTAINER;
+        } else {
+            if ($jobData['componentId'] === JobFactory::ORCHESTRATOR_COMPONENT) {
+                if (isset($jobData['configData']['phaseId']) && (string) ($jobData['configData']['phaseId']) !== '') {
+                    return JobInterface::TYPE_PHASE_CONTAINER;
+                } else {
+                    return JobInterface::TYPE_ORCHESTRATION_CONTAINER;
+                }
+            }
+        }
+        return JobInterface::TYPE_STANDARD;
     }
 }

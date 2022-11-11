@@ -178,6 +178,7 @@ class JobRuntimeResolverTest extends TestCase
                     'context' => 'wml',
                 ],
                 'parallelism' => '5',
+                'type' => 'container',
                 'variableValuesId' => null,
             ],
             $jobRuntimeResolver->resolveJobData($jobData, ['owner' => ['features' => []]])
@@ -257,6 +258,7 @@ class JobRuntimeResolverTest extends TestCase
                     'context' => 'wml',
                 ],
                 'parallelism' => '5',
+                'type' => 'container',
                 'variableValuesId' => '123',
                 'variableValuesData' => [],
             ],
@@ -337,6 +339,7 @@ class JobRuntimeResolverTest extends TestCase
                     'context' => 'wml',
                 ],
                 'parallelism' => '5',
+                'type' => 'container',
                 'variableValuesId' => null,
                 'variableValuesData' => [
                     'values' => [
@@ -413,6 +416,7 @@ class JobRuntimeResolverTest extends TestCase
                     'context' => 'wml',
                 ],
                 'parallelism' => '5',
+                'type' => 'container',
                 'variableValuesId' => null,
                 'variableValuesData' => [],
             ],
@@ -503,6 +507,7 @@ class JobRuntimeResolverTest extends TestCase
                     'context' => '123-extractor',
                 ],
                 'parallelism' => '0',
+                'type' => 'standard',
                 'variableValuesData' => [],
             ],
             $jobRuntimeResolver->resolveJobData($jobData, ['owner' => ['features' => []]])
@@ -557,6 +562,7 @@ class JobRuntimeResolverTest extends TestCase
                     'context' => '123-extractor',
                 ],
                 'parallelism' => null,
+                'type' => 'standard',
                 'variableValuesId' => null,
                 'variableValuesData' => [],
             ],
@@ -663,6 +669,7 @@ class JobRuntimeResolverTest extends TestCase
                     'context' => '123-extractor',
                 ],
                 'parallelism' => null,
+                'type' => 'standard',
                 'variableValuesId' => null,
                 'variableValuesData' => [],
             ],
@@ -709,6 +716,7 @@ class JobRuntimeResolverTest extends TestCase
                     'context' => '123-extractor',
                 ],
                 'parallelism' => null,
+                'type' => 'standard',
                 'variableValuesId' => null,
                 'variableValuesData' => [],
             ],
@@ -759,6 +767,7 @@ class JobRuntimeResolverTest extends TestCase
                     'context' => '123-extractor',
                 ],
                 'parallelism' => null,
+                'type' => 'standard',
                 'variableValuesId' => null,
                 'variableValuesData' => [],
             ],
@@ -910,6 +919,7 @@ class JobRuntimeResolverTest extends TestCase
                     'context' => '123-extractor',
                 ],
                 'parallelism' => '5',
+                'type' => 'container',
                 'variableValuesId' => null,
                 'variableValuesData' => [
                     'values' => [
@@ -1031,6 +1041,7 @@ class JobRuntimeResolverTest extends TestCase
                     'context' => $expectedContext,
                 ],
                 'parallelism' => '5',
+                'type' => 'container',
                 'variableValuesId' => null,
             ],
             $jobRuntimeResolver->resolveJobData($jobData, $tokenInfo)
