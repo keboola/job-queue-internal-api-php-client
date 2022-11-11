@@ -46,16 +46,13 @@ class JobRuntimeResolver
             $this->componentData = $this->getComponentsApiClient(null)
                 ->getComponent($this->jobData['componentId']);
 
-            $tag = $this->resolveTag();
+            $jobData['tag'] = $this->resolveTag();
             $variableValues = $this->resolveVariables();
-            $backend = $this->resolveBackend($tokenInfo);
-            $parallelism = $this->resolveParallelism();
+            $jobData['backend'] = $this->resolveBackend($tokenInfo)->toDataArray();
+            $jobData['parallelism'] = $this->resolveParallelism();
             foreach ($variableValues->asDataArray() as $key => $value) {
                 $jobData[$key] = $value;
             }
-            $jobData['backend'] = $backend->toDataArray();
-            $jobData['tag'] = $tag;
-            $jobData['parallelism'] = $parallelism;
             return $jobData;
         } catch (InvalidConfigurationException $e) {
             throw new ClientException('Invalid configuration: ' . $e->getMessage(), 0, $e);
