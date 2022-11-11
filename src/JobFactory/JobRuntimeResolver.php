@@ -18,6 +18,13 @@ use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
  */
 class JobRuntimeResolver
 {
+    private const COMPONENT_TYPES_WITH_DEFAULT_BACKEND = [
+        'application',
+        'extractor',
+        'transformation',
+        'writer',
+    ];
+
     private const PAY_AS_YOU_GO_FEATURE = 'pay-as-you-go';
 
     private StorageClientPlainFactory $storageClientFactory;
@@ -96,8 +103,12 @@ class JobRuntimeResolver
         return VariableValues::fromDataArray($configuration);
     }
 
-    private function getDefaultBackendContext(string $componentType): string
+    private function getDefaultBackendContext(string $componentType): ?string
     {
+        if (!in_array($componentType, self::COMPONENT_TYPES_WITH_DEFAULT_BACKEND)) {
+            return null;
+        }
+
         return sprintf(
             '%s-%s',
             $this->jobData['projectId'],

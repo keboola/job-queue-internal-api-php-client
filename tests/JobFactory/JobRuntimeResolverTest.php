@@ -32,6 +32,84 @@ class JobRuntimeResolverTest extends TestCase
         '#tokenString' => 'KBC::ProjectSecure::token',
     ];
 
+    public function resolveDefaultBackendContextData(): Generator
+    {
+        yield 'application type' => [
+            'application',
+            '123-application',
+        ];
+        yield 'code-pattern type' => [
+            'code-pattern',
+            null,
+        ];
+        yield 'extractor type' => [
+            'extractor',
+            '123-extractor',
+        ];
+        yield 'other type' => [
+            'other',
+            null,
+        ];
+        yield 'processor type' => [
+            'processor',
+            null,
+        ];
+        yield 'transformation type' => [
+            'transformation',
+            '123-transformation',
+        ];
+        yield 'writer type' => [
+            'writer',
+            '123-writer',
+        ];
+        yield 'dummy type' => [
+            'dummy',
+            null,
+        ];
+    }
+
+    /**
+     * @dataProvider resolveDefaultBackendContextData
+     */
+    public function testResolveDefaultBackendContext(string $componentType, ?string $expectedContext): void
+    {
+        $componentId = sprintf('keboola.dumy-%s', $componentType);
+        $jobData = $this::JOB_DATA;
+        unset($jobData['configId']);
+        $jobData['componentId'] = $componentId;
+        $jobData['configData'] = [
+            'parameters' => ['foo' => 'bar'],
+        ];
+        $componentData = [
+            'type' => $componentType,
+            'id' => $componentId,
+            'data' => [
+                'definition' => [
+                    'tag' => '9.9.9',
+                ],
+            ],
+        ];
+
+        $clientMock = self::createMock(Client::class);
+        $clientMock->expects(self::exactly(1))->method('apiGet')
+            ->withConsecutive(
+                [sprintf('branch/default/components/%s', $componentId)]
+            )->willReturnOnConsecutiveCalls(
+                $componentData
+            );
+        $clientWrapperMock = self::createMock(ClientWrapper::class);
+        $clientWrapperMock->method('getBranchClientIfAvailable')->willReturn($clientMock);
+        $storageClientFactoryMock = self::createMock(StorageClientPlainFactory::class);
+        $storageClientFactoryMock
+            ->expects(self::exactly(1))
+            ->method('createClientWrapper')
+            ->willReturn($clientWrapperMock);
+        $jobRuntimeResolver = new JobRuntimeResolver($storageClientFactoryMock);
+
+        $jobData = $jobRuntimeResolver->resolveJobData($jobData, ['owner' => ['features' => []]]);
+        self::assertSame($expectedContext, $jobData['backend']['context']);
+    }
+
     public function testResolveRuntimeSettingsInJob(): void
     {
         $jobData = $this::JOB_DATA;
