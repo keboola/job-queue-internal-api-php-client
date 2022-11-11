@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Keboola\JobQueueInternalClient\JobFactory;
 
-use Keboola\BillingApi\CreditsChecker;
 use Keboola\JobQueueInternalClient\Exception\ClientException;
 use Keboola\JobQueueInternalClient\Exception\ConfigurationDisabledException;
 use Keboola\StorageApi\ClientException as StorageClientException;
@@ -44,12 +43,12 @@ class JobRuntimeResolver
 
         try {
             $this->componentData = $this->getComponentsApiClient(null)
-                ->getComponent($this->jobData['componentId']);
-
-            $jobData['tag'] = $this->resolveTag();
+                ->getComponent($jobData['componentId']);
+            $jobData['tag'] = $this->resolveTag($jobData);
             $variableValues = $this->resolveVariables();
-            $jobData['backend'] = $this->resolveBackend($tokenInfo)->toDataArray();
-            $jobData['parallelism'] = $this->resolveParallelism();
+            $jobData['backend'] = $this->resolveBackend($jobData, $tokenInfo)->toDataArray();
+            $jobData['parallelism'] = $this->resolveParallelism($jobData);
+
             foreach ($variableValues->asDataArray() as $key => $value) {
                 $jobData[$key] = $value;
             }
@@ -61,10 +60,10 @@ class JobRuntimeResolver
         }
     }
 
-    private function resolveTag(): string
+    private function resolveTag(array $jobData): string
     {
-        if (!empty($this->jobData['tag'])) {
-            return (string) $this->jobData['tag'];
+        if (!empty($jobData['tag'])) {
+            return (string) $jobData['tag'];
         }
         if (!empty($this->getConfigData()['runtime']['tag'])) {
             return (string) $this->getConfigData()['runtime']['tag'];
@@ -79,7 +78,7 @@ class JobRuntimeResolver
         if (!empty($this->componentData['data']['definition']['tag'])) {
             return $this->componentData['data']['definition']['tag'];
         } else {
-            throw new ClientException(sprintf('The component "%s" is not runnable.', $this->jobData['componentId']));
+            throw new ClientException(sprintf('The component "%s" is not runnable.', $jobData['componentId']));
         }
     }
 
@@ -113,10 +112,10 @@ class JobRuntimeResolver
         );
     }
 
-    private function getBackend(): Backend
+    private function getBackend(array $jobData): Backend
     {
-        if (!empty($this->jobData['backend'])) {
-            $backend = Backend::fromDataArray($this->jobData['backend']);
+        if (!empty($jobData['backend'])) {
+            $backend = Backend::fromDataArray($jobData['backend']);
             if (!$backend->isEmpty()) {
                 return $backend;
             }
@@ -135,9 +134,9 @@ class JobRuntimeResolver
         return new Backend(null, null, null);
     }
 
-    private function resolveBackend(array $tokenInfo): Backend
+    private function resolveBackend(array $jobData, array $tokenInfo): Backend
     {
-        $tempBackend = $this->getBackend();
+        $tempBackend = $this->getBackend($jobData);
 
         if ($tempBackend->isEmpty()) {
             return new Backend(
@@ -170,10 +169,10 @@ class JobRuntimeResolver
         return new Backend(null, null, $backendContext);
     }
 
-    private function resolveParallelism(): ?string
+    private function resolveParallelism(array $jobData): ?string
     {
-        if (isset($this->jobData['parallelism']) && ($this->jobData['parallelism'] !== null)) {
-            return (string) $this->jobData['parallelism'];
+        if (isset($jobData['parallelism']) && ($jobData['parallelism'] !== null)) {
+            return (string) $jobData['parallelism'];
         }
         if (isset($this->getConfigData()['runtime']['parallelism'])
             && $this->getConfigData()['runtime']['parallelism'] !== null) {
