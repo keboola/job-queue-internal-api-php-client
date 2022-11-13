@@ -922,7 +922,7 @@ class JobRuntimeResolverTest extends TestCase
                 'backend' => [
                     'type' => null,
                     'containerType' => 'stereotyped',
-                    'context' => '123-extractor',
+                    'context' => null,
                 ],
                 'variableValuesId' => null,
                 'variableValuesData' => [
@@ -1061,7 +1061,7 @@ class JobRuntimeResolverTest extends TestCase
             1,
             null,
             null,
-            '123-extractor',
+            null,
             [],
         ];
         yield 'custom local' => [
@@ -1071,7 +1071,7 @@ class JobRuntimeResolverTest extends TestCase
             1,
             null,
             'custom',
-            '123-extractor',
+            null,
             [],
         ];
         yield 'custom context' => [
@@ -1091,7 +1091,7 @@ class JobRuntimeResolverTest extends TestCase
             1,
             null,
             null, // no container backend is set
-            '123-extractor',
+            null,
             ['owner' => ['features' => ['pay-as-you-go']]],
         ];
         yield 'custom s3' => [
@@ -1101,7 +1101,7 @@ class JobRuntimeResolverTest extends TestCase
             1,
             null,
             'custom',
-            '123-extractor',
+            null,
             ['owner' => ['features' => []]],
         ];
         yield 'custom abs' => [
@@ -1111,7 +1111,7 @@ class JobRuntimeResolverTest extends TestCase
             1,
             null,
             'custom',
-            '123-extractor',
+            null,
             ['owner' => ['features' => []]],
         ];
         yield 'custom none' => [
@@ -1121,7 +1121,7 @@ class JobRuntimeResolverTest extends TestCase
             1,
             null,
             'custom',
-            '123-extractor',
+            null,
             ['owner' => ['features' => []]],
         ];
         yield 'custom workspace-snowflake' => [
@@ -1131,7 +1131,7 @@ class JobRuntimeResolverTest extends TestCase
             1,
             'custom',
             null,
-            '123-extractor',
+            null,
             ['owner' => ['features' => []]],
         ];
         yield 'custom workspace-snowflake without feature' => [
@@ -1141,7 +1141,7 @@ class JobRuntimeResolverTest extends TestCase
             1,
             'custom',
             null,
-            '123-extractor',
+            null,
             ['owner' => ['features' => ['pay-as-you-go']]],
         ];
         yield 'custom workspace-redshift' => [
@@ -1151,7 +1151,7 @@ class JobRuntimeResolverTest extends TestCase
             1,
             null,
             null,
-            '123-extractor',
+            null,
             ['owner' => ['features' => []]],
         ];
         yield 'custom workspace-synapse' => [
@@ -1161,7 +1161,7 @@ class JobRuntimeResolverTest extends TestCase
             1,
             null,
             null,
-            '123-extractor',
+            null,
             ['owner' => ['features' => []]],
         ];
         yield 'custom workspace-abs' => [
@@ -1171,7 +1171,7 @@ class JobRuntimeResolverTest extends TestCase
             1,
             null,
             null,
-            '123-extractor',
+            null,
             ['owner' => ['features' => []]],
         ];
         yield 'custom workspace-exasol' => [
@@ -1181,7 +1181,7 @@ class JobRuntimeResolverTest extends TestCase
             1,
             null,
             null,
-            '123-extractor',
+            null,
             ['owner' => ['features' => []]],
         ];
         yield 'custom workspace-teradata' => [
@@ -1191,7 +1191,7 @@ class JobRuntimeResolverTest extends TestCase
             1,
             null,
             null,
-            '123-extractor',
+            null,
             ['owner' => ['features' => []]],
         ];
         yield 'custom unknown' => [
@@ -1201,7 +1201,7 @@ class JobRuntimeResolverTest extends TestCase
             1,
             null,
             null,
-            '123-extractor',
+            null,
             ['owner' => ['features' => []]],
         ];
         yield 'custom invalid' => [
@@ -1211,7 +1211,7 @@ class JobRuntimeResolverTest extends TestCase
             1,
             null,
             null,
-            '123-extractor',
+            null,
             ['owner' => ['features' => []]],
         ];
     }
