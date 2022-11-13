@@ -48,7 +48,7 @@ class JobRuntimeResolverTest extends TestCase
                 'parallelism' => '5',
             ],
             JobInterface::TYPE_ROW_CONTAINER,
-            '123-dummy-component-type',
+            null,
         ];
         yield 'phase container job' => [
             JobFactory::ORCHESTRATOR_COMPONENT,

@@ -20,7 +20,6 @@ class JobRuntimeResolver
 {
     private const JOB_TYPES_WITH_DEFAULT_BACKEND = [
         JobInterface::TYPE_STANDARD,
-        JobInterface::TYPE_ROW_CONTAINER,
     ];
 
     private const PAY_AS_YOU_GO_FEATURE = 'pay-as-you-go';
