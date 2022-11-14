@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Keboola\JobQueueInternalClient\JobFactory;
 
-use Keboola\BillingApi\CreditsChecker;
 use Keboola\JobQueueInternalClient\Exception\ClientException;
 use Keboola\JobQueueInternalClient\Exception\ConfigurationDisabledException;
+use Keboola\JobQueueInternalClient\JobFactory;
 use Keboola\StorageApi\ClientException as StorageClientException;
 use Keboola\StorageApi\Components;
 use Keboola\StorageApiBranch\Factory\ClientOptions;
@@ -18,6 +18,10 @@ use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
  */
 class JobRuntimeResolver
 {
+    private const JOB_TYPES_WITH_DEFAULT_BACKEND = [
+        JobInterface::TYPE_STANDARD,
+    ];
+
     private const PAY_AS_YOU_GO_FEATURE = 'pay-as-you-go';
 
     private StorageClientPlainFactory $storageClientFactory;
@@ -37,18 +41,18 @@ class JobRuntimeResolver
 
         try {
             $this->componentData = $this->getComponentsApiClient(null)
-                ->getComponent($this->jobData['componentId']);
-
-            $tag = $this->resolveTag();
+                ->getComponent($jobData['componentId']);
+            $jobData['tag'] = $this->resolveTag($jobData);
             $variableValues = $this->resolveVariables();
-            $backend = $this->resolveBackend($tokenInfo);
-            $parallelism = $this->resolveParallelism();
+            $jobData['parallelism'] = $this->resolveParallelism($jobData);
+            // set type after resolving parallelism
+            $jobData['type'] = $this->resolveJobType($jobData);
+            // set backend after resolving type
+            $jobData['backend'] = $this->resolveBackend($jobData, $tokenInfo)->toDataArray();
+
             foreach ($variableValues->asDataArray() as $key => $value) {
                 $jobData[$key] = $value;
             }
-            $jobData['backend'] = $backend->toDataArray();
-            $jobData['tag'] = $tag;
-            $jobData['parallelism'] = $parallelism;
             return $jobData;
         } catch (InvalidConfigurationException $e) {
             throw new ClientException('Invalid configuration: ' . $e->getMessage(), 0, $e);
@@ -57,10 +61,10 @@ class JobRuntimeResolver
         }
     }
 
-    private function resolveTag(): string
+    private function resolveTag(array $jobData): string
     {
-        if (!empty($this->jobData['tag'])) {
-            return (string) $this->jobData['tag'];
+        if (!empty($jobData['tag'])) {
+            return (string) $jobData['tag'];
         }
         if (!empty($this->getConfigData()['runtime']['tag'])) {
             return (string) $this->getConfigData()['runtime']['tag'];
@@ -75,7 +79,7 @@ class JobRuntimeResolver
         if (!empty($this->componentData['data']['definition']['tag'])) {
             return $this->componentData['data']['definition']['tag'];
         } else {
-            throw new ClientException(sprintf('The component "%s" is not runnable.', $this->jobData['componentId']));
+            throw new ClientException(sprintf('The component "%s" is not runnable.', $jobData['componentId']));
         }
     }
 
@@ -96,19 +100,23 @@ class JobRuntimeResolver
         return VariableValues::fromDataArray($configuration);
     }
 
-    private function getDefaultBackendContext(string $componentType): string
+    private function getDefaultBackendContext(array $jobData, string $componentType): ?string
     {
+        if (!in_array($jobData['type'], self::JOB_TYPES_WITH_DEFAULT_BACKEND)) {
+            return null;
+        }
+
         return sprintf(
             '%s-%s',
-            $this->jobData['projectId'],
+            $jobData['projectId'],
             $componentType
         );
     }
 
-    private function getBackend(): Backend
+    private function getBackend(array $jobData): Backend
     {
-        if (!empty($this->jobData['backend'])) {
-            $backend = Backend::fromDataArray($this->jobData['backend']);
+        if (!empty($jobData['backend'])) {
+            $backend = Backend::fromDataArray($jobData['backend']);
             if (!$backend->isEmpty()) {
                 return $backend;
             }
@@ -127,21 +135,24 @@ class JobRuntimeResolver
         return new Backend(null, null, null);
     }
 
-    private function resolveBackend(array $tokenInfo): Backend
+    private function resolveBackend(array $jobData, array $tokenInfo): Backend
     {
-        $tempBackend = $this->getBackend();
+        $tempBackend = $this->getBackend($jobData);
 
         if ($tempBackend->isEmpty()) {
             return new Backend(
                 $tempBackend->getType(),
                 $tempBackend->getContainerType(),
-                $this->getDefaultBackendContext($this->componentData['type'])
+                $this->getDefaultBackendContext($jobData, $this->componentData['type'])
             );
         }
 
         // decide whether to set "type' (aka workspaceSize) or containerType (aka containerSize)
         $stagingStorage = $this->componentData['data']['staging_storage']['input'] ?? '';
-        $backendContext = $tempBackend->getContext() ?? $this->getDefaultBackendContext($this->componentData['type']);
+        $backendContext = $tempBackend->getContext() ?? $this->getDefaultBackendContext(
+            $jobData,
+            $this->componentData['type']
+        );
 
         /* Possible values of staging storage: https://github.com/keboola/docker-bundle/blob/ec9a628b614a70d0ed8a6ec36f2b6003a8e07ed4/src/Docker/Configuration/Component.php#L87
         For the purpose of setting backend, we consider: 'local', 's3', 'abs', 'none' to use container.
@@ -162,10 +173,10 @@ class JobRuntimeResolver
         return new Backend(null, null, $backendContext);
     }
 
-    private function resolveParallelism(): ?string
+    private function resolveParallelism(array $jobData): ?string
     {
-        if (isset($this->jobData['parallelism']) && ($this->jobData['parallelism'] !== null)) {
-            return (string) $this->jobData['parallelism'];
+        if (isset($jobData['parallelism']) && ($jobData['parallelism'] !== null)) {
+            return (string) $jobData['parallelism'];
         }
         if (isset($this->getConfigData()['runtime']['parallelism'])
             && $this->getConfigData()['runtime']['parallelism'] !== null) {
@@ -232,5 +243,25 @@ class JobRuntimeResolver
     private function resolveIsForceRunMode(): bool
     {
         return isset($this->jobData['mode']) && $this->jobData['mode'] === JobInterface::MODE_FORCE_RUN;
+    }
+
+    private function resolveJobType(array $jobData): string
+    {
+        if (!empty($jobData['type'])) {
+            return (string) $jobData['type'];
+        }
+
+        if ((intval($jobData['parallelism']) > 0) || $jobData['parallelism'] === JobInterface::PARALLELISM_INFINITY) {
+            return JobInterface::TYPE_ROW_CONTAINER;
+        } else {
+            if ($jobData['componentId'] === JobFactory::ORCHESTRATOR_COMPONENT) {
+                if (isset($jobData['configData']['phaseId']) && (string) ($jobData['configData']['phaseId']) !== '') {
+                    return JobInterface::TYPE_PHASE_CONTAINER;
+                } else {
+                    return JobInterface::TYPE_ORCHESTRATION_CONTAINER;
+                }
+            }
+        }
+        return JobInterface::TYPE_STANDARD;
     }
 }
