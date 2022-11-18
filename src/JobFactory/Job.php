@@ -312,4 +312,9 @@ class Job implements JsonSerializable, JobInterface
 
         return $this->componentsApiClient = new ComponentsApiClient($client->getBranchClientIfAvailable());
     }
+
+    public static function generateRunnerId(): string
+    {
+        return bin2hex(random_bytes(16));
+    }
 }

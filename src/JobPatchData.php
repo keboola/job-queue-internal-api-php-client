@@ -23,6 +23,9 @@ class JobPatchData implements JsonSerializable
     /** @var array */
     private $usageData;
 
+    /** @var string|null */
+    private $runnerId;
+
     public function jsonSerialize(): array
     {
         return array_filter([
@@ -30,6 +33,7 @@ class JobPatchData implements JsonSerializable
             'desiredStatus' => $this->desiredStatus,
             'result' => is_null($this->result) ? null : $this->result->jsonSerialize(),
             'usageData' => $this->usageData,
+            'runnerId' => $this->runnerId,
         ]);
     }
 
@@ -96,5 +100,16 @@ class JobPatchData implements JsonSerializable
     public function getUsageData(): ?array
     {
         return $this->usageData;
+    }
+
+    public function setRunnerId(string $runnerId): JobPatchData
+    {
+        $this->runnerId = $runnerId;
+        return $this;
+    }
+
+    public function getRunnerId(): ?string
+    {
+        return $this->runnerId;
     }
 }
