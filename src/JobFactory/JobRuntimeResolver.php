@@ -113,26 +113,41 @@ class JobRuntimeResolver
         );
     }
 
+    private function getBackendFromJobdata(array $jobData): Backend
+    {
+        return !empty($jobData['backend'])
+            ? Backend::fromDataArray($jobData['backend']) : new Backend(null, null, null);
+    }
+
+    private function mergeBackends(Backend $backendOne, Backend $backendTwo): Backend
+    {
+        return Backend::fromDataArray(array_merge(
+            array_filter($backendOne->toDataArray()),
+            array_filter($backendTwo->toDataArray())
+        ));
+    }
+
     private function getBackend(array $jobData): Backend
     {
-        if (!empty($jobData['backend'])) {
-            $backend = Backend::fromDataArray($jobData['backend']);
-            if (!$backend->isEmpty()) {
-                return $backend;
-            }
-        }
+        $jobDataBackend = $this->getBackendFromJobdata($jobData);
+
         if (!empty($this->getConfigData()['runtime']['backend'])) {
             $backend = Backend::fromDataArray($this->getConfigData()['runtime']['backend']);
             if (!$backend->isEmpty()) {
-                return $backend;
+                return $this->mergeBackends($jobDataBackend, $backend);
             }
         }
+
         $configuration = $this->getConfiguration();
         if (!empty($configuration['runtime']['backend'])) {
             // return this irrespective if it is empty, because if it is we create empty Backend anyway
-            return Backend::fromDataArray($configuration['runtime']['backend']);
+            return $this->mergeBackends(
+                $jobDataBackend,
+                Backend::fromDataArray($configuration['runtime']['backend'])
+            );
         }
-        return new Backend(null, null, null);
+
+        return $jobDataBackend;
     }
 
     private function resolveBackend(array $jobData, array $tokenInfo): Backend
