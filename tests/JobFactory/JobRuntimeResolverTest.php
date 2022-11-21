@@ -141,18 +141,41 @@ class JobRuntimeResolverTest extends TestCase
                 ],
             ],
         ];
+
+        $configuration = [
+            'id' => '454124290',
+            'isDisabled' => false,
+            'configuration' => [
+                'runtime' => [
+                    'tag' => '4.5.6',
+                    'parallelism' => '5',
+                ],
+                'parameters' => ['foo' => 'bar'],
+                'variableValuesData' => [
+                    'values' => [
+                        [
+                            'name' => 'bar',
+                            'value' => 'Kochba',
+                        ],
+                    ],
+                ],
+            ],
+        ];
+
         $clientMock = self::createMock(Client::class);
-        $clientMock->expects(self::once())->method('apiGet')
+        $clientMock->expects(self::exactly(2))->method('apiGet')
             ->withConsecutive(
-                ['branch/default/components/keboola.ex-db-snowflake']
+                ['branch/default/components/keboola.ex-db-snowflake'],
+                ['branch/default/components/keboola.ex-db-snowflake/configs/454124290']
             )->willReturnOnConsecutiveCalls(
-                $componentData
+                $componentData,
+                $configuration
             );
         $clientWrapperMock = self::createMock(ClientWrapper::class);
         $clientWrapperMock->method('getBranchClientIfAvailable')->willReturn($clientMock);
         $storageClientFactoryMock = self::createMock(StorageClientPlainFactory::class);
         $storageClientFactoryMock
-            ->expects(self::once())
+            ->expects(self::exactly(2))
             ->method('createClientWrapper')
             ->willReturn($clientWrapperMock);
         $jobRuntimeResolver = new JobRuntimeResolver($storageClientFactoryMock);
@@ -1090,7 +1113,7 @@ class JobRuntimeResolverTest extends TestCase
             null,
             'local',
             1,
-            null,
+            'custom',
             null, // no container backend is set
             null,
             ['owner' => ['features' => ['pay-as-you-go']]],
@@ -1150,7 +1173,7 @@ class JobRuntimeResolverTest extends TestCase
             null,
             'workspace-redshift',
             1,
-            null,
+            'custom',
             null,
             null,
             ['owner' => ['features' => []]],
@@ -1160,7 +1183,7 @@ class JobRuntimeResolverTest extends TestCase
             null,
             'workspace-synapse',
             1,
-            null,
+            'custom',
             null,
             null,
             ['owner' => ['features' => []]],
@@ -1170,7 +1193,7 @@ class JobRuntimeResolverTest extends TestCase
             null,
             'workspace-abs',
             1,
-            null,
+            'custom',
             null,
             null,
             ['owner' => ['features' => []]],
@@ -1180,7 +1203,7 @@ class JobRuntimeResolverTest extends TestCase
             null,
             'workspace-exasol',
             1,
-            null,
+            'custom',
             null,
             null,
             ['owner' => ['features' => []]],
@@ -1190,7 +1213,7 @@ class JobRuntimeResolverTest extends TestCase
             null,
             'workspace-teradata',
             1,
-            null,
+            'custom',
             null,
             null,
             ['owner' => ['features' => []]],
@@ -1210,7 +1233,7 @@ class JobRuntimeResolverTest extends TestCase
             null,
             'unknown',
             1,
-            null,
+            'custom',
             null,
             null,
             ['owner' => ['features' => []]],
@@ -1220,7 +1243,7 @@ class JobRuntimeResolverTest extends TestCase
             null,
             null,
             1,
-            null,
+            'custom',
             null,
             null,
             ['owner' => ['features' => []]],
