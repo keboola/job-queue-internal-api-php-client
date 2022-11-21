@@ -36,6 +36,7 @@
         "monolog/monolog": "^2.6",
         "psr/log": "^1.1",
         "symfony/config": "^5.4|^6.0",
+        "symfony/uid": "^5.4",
         "symfony/validator": "^5.4|^6.0"
     },
     "require-dev": {
