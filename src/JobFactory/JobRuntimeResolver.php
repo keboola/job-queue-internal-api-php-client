@@ -185,7 +185,7 @@ class JobRuntimeResolver
             // that is checked in SAPI, so we don't check it here, yet
             return new Backend($tempBackend->getType(), null, $backendContext);
         }
-        return new Backend(null, null, $backendContext);
+        return new Backend($tempBackend->getType(), $tempBackend->getContainerType(), $backendContext);
     }
 
     private function resolveParallelism(array $jobData): ?string
