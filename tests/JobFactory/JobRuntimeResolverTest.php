@@ -1252,4 +1252,269 @@ class JobRuntimeResolverTest extends TestCase
             ],
         ];
     }
+
+    public function mergeBackendsData(): Generator
+    {
+        yield 'default context' => [
+            [],
+            [],
+            [
+                'type' => null,
+                'containerType' => null,
+                'context' => '123-extractor',
+            ],
+        ];
+        yield 'job data + default context' => [
+            [
+                'type' => 'small',
+            ],
+            [],
+            [
+                'type' => 'small',
+                'containerType' => null,
+                'context' => '123-extractor',
+            ],
+        ];
+        yield 'config data + default context' => [
+            [],
+            [
+                'runtime' => [
+                    'backend' => [
+                        'type' => 'large',
+                    ],
+                ],
+            ],
+            [
+                'type' => 'large',
+                'containerType' => null,
+                'context' => '123-extractor',
+            ],
+        ];
+        yield 'job data' => [
+            [
+                'type' => 'small',
+                'containerType' => 'smallType',
+                'context' => '123-wlm',
+            ],
+            [],
+            [
+                'type' => 'small',
+                'containerType' => 'smallType',
+                'context' => '123-wlm',
+            ],
+        ];
+        yield 'config data' => [
+            [],
+            [
+                'runtime' => [
+                    'backend' => [
+                        'type' => 'large',
+                        'containerType' => 'largeType',
+                        'context' => '123-test',
+                    ],
+                ],
+            ],
+            [
+                'type' => 'large',
+                'containerType' => null, // container type can be set only via jobData backend
+                'context' => '123-test',
+            ],
+        ];
+        yield 'job data + config data' => [
+            [
+                'type' => 'small',
+                'containerType' => 'smallType',
+                'context' => '123-wlm',
+            ],
+            [
+                'runtime' => [
+                    'backend' => [
+                        'type' => 'large',
+                        'containerType' => 'largeType',
+                        'context' => '123-test',
+                    ],
+                ],
+            ],
+            [
+                'type' => 'large',
+                'containerType' => 'smallType', // container type can be set only via jobData backend
+                'context' => '123-test',
+            ],
+        ];
+        yield 'job data + config data - do not merge nulls from config data' => [
+            [
+                'type' => 'small',
+                'containerType' => 'smallType',
+                'context' => '123-wlm',
+            ],
+            [
+                'runtime' => [
+                    'backend' => [
+                        'type' => null,
+                        'containerType' => null,
+                        'context' => null,
+                    ],
+                ],
+            ],
+            [
+                'type' => 'small',
+                'containerType' => 'smallType', // container type can be set only via jobData backend
+                'context' => '123-wlm',
+            ],
+        ];
+        yield 'job data + config data - do not merge nulls from job data' => [
+            [
+                'type' => null,
+                'containerType' => null,
+                'context' => null,
+            ],
+            [
+                'runtime' => [
+                    'backend' => [
+                        'type' => 'large',
+                        'containerType' => 'largeType',
+                        'context' => '123-test',
+                    ],
+                ],
+            ],
+            [
+                'type' => 'large',
+                'containerType' => null, // container type can be set only via jobData backend
+                'context' => '123-test',
+            ],
+        ];
+        yield 'job data + config data - partial merge' => [
+            [
+                'context' => '123-wlm',
+            ],
+            [
+                'runtime' => [
+                    'backend' => [
+                        'type' => 'large',
+                    ],
+                ],
+            ],
+            [
+                'type' => 'large',
+                'containerType' => null, // container type can be set only via jobData backend
+                'context' => '123-wlm',
+            ],
+        ];
+    }
+
+    /**
+     * @dataProvider mergeBackendsData
+     */
+    public function testMergeJobDataBackendWithConfigDataBackend(
+        array $jobDataBackend,
+        array $configData,
+        array $expectedBackend
+    ): void {
+        $jobData = $this::JOB_DATA;
+        $jobData['tag'] = '1.2.3';
+        $jobData['backend'] = $jobDataBackend;
+        unset($jobData['configId']);
+        $jobData['configData'] = $configData;
+
+        $componentData = [
+            'type' => 'extractor',
+        ];
+
+        $clientMock = self::createMock(Client::class);
+        $clientMock->expects(self::exactly(1))->method('apiGet')
+            ->withConsecutive(
+                ['branch/default/components/keboola.ex-db-snowflake'],
+            )->willReturnOnConsecutiveCalls(
+                $componentData
+            );
+        $clientWrapperMock = self::createMock(ClientWrapper::class);
+        $clientWrapperMock->method('getBranchClientIfAvailable')->willReturn($clientMock);
+        $storageClientFactoryMock = self::createMock(StorageClientPlainFactory::class);
+        $storageClientFactoryMock
+            ->expects(self::exactly(1))
+            ->method('createClientWrapper')
+            ->willReturn($clientWrapperMock);
+        $jobRuntimeResolver = new JobRuntimeResolver($storageClientFactoryMock);
+
+        self::assertSame(
+            [
+                'id' => '123456456',
+                'runId' => '123456456',
+                'componentId' => 'keboola.ex-db-snowflake',
+                'mode' => 'run',
+                'status' => 'created',
+                'desiredStatus' => 'processing',
+                'projectId' => '123',
+                'tokenId' => '456',
+                '#tokenString' => 'KBC::ProjectSecure::token',
+                'tag' => '1.2.3',
+                'backend' => $expectedBackend,
+                'configData' => $jobData['configData'],
+                'parallelism' => null,
+                'type' => 'standard',
+                'variableValuesId' => null,
+                'variableValuesData' => [],
+            ],
+            $jobRuntimeResolver->resolveJobData($jobData, ['owner' => ['features' => []]])
+        );
+    }
+
+    /**
+     * @dataProvider mergeBackendsData
+     */
+    public function testMergeJobDataBackendWithBackendFromConfig(
+        array $jobDataBackend,
+        array $configData,
+        array $expectedBackend
+    ): void {
+        $jobData = $this::JOB_DATA;
+        $jobData['tag'] = '1.2.3';
+        $jobData['backend'] = $jobDataBackend;
+
+        $componentData = [
+            'type' => 'extractor',
+        ];
+
+        $clientMock = self::createMock(Client::class);
+        $clientMock->expects(self::exactly(2))->method('apiGet')
+            ->withConsecutive(
+                ['branch/default/components/keboola.ex-db-snowflake'],
+                ['branch/default/components/keboola.ex-db-snowflake/configs/454124290']
+            )->willReturnOnConsecutiveCalls(
+                $componentData,
+                [
+                    'configuration' => $configData,
+                ]
+            );
+        $clientWrapperMock = self::createMock(ClientWrapper::class);
+        $clientWrapperMock->method('getBranchClientIfAvailable')->willReturn($clientMock);
+        $storageClientFactoryMock = self::createMock(StorageClientPlainFactory::class);
+        $storageClientFactoryMock
+            ->expects(self::exactly(2))
+            ->method('createClientWrapper')
+            ->willReturn($clientWrapperMock);
+        $jobRuntimeResolver = new JobRuntimeResolver($storageClientFactoryMock);
+
+        self::assertSame(
+            [
+                'id' => '123456456',
+                'runId' => '123456456',
+                'configId' => '454124290',
+                'componentId' => 'keboola.ex-db-snowflake',
+                'mode' => 'run',
+                'status' => 'created',
+                'desiredStatus' => 'processing',
+                'projectId' => '123',
+                'tokenId' => '456',
+                '#tokenString' => 'KBC::ProjectSecure::token',
+                'tag' => '1.2.3',
+                'backend' => $expectedBackend,
+                'parallelism' => null,
+                'type' => 'standard',
+                'variableValuesId' => null,
+                'variableValuesData' => [],
+            ],
+            $jobRuntimeResolver->resolveJobData($jobData, ['owner' => ['features' => []]])
+        );
+    }
 }
