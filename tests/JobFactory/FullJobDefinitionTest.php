@@ -9,6 +9,7 @@ use Keboola\JobQueueInternalClient\JobFactory\Job;
 use Keboola\JobQueueInternalClient\JobFactory\JobInterface;
 use Keboola\JobQueueInternalClient\Tests\BaseTest;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
+use Symfony\Component\Uid\Uuid;
 
 class FullJobDefinitionTest extends BaseTest
 {
@@ -41,11 +42,13 @@ class FullJobDefinitionTest extends BaseTest
         $expectedData['tag'] = null;
         $expectedData['isFinished'] = false;
         $expectedData['orchestrationJobId'] = null;
+        $expectedData['runnerId'] = null;
         self::assertEquals($expectedData, $processedData);
     }
 
     public function testValidJobFull(): void
     {
+        $runnerId = (string) Uuid::v4();
         $data = [
             '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
             'tokenId' => '12345',
@@ -86,6 +89,7 @@ class FullJobDefinitionTest extends BaseTest
                 ],
             ],
             'orchestrationJobId' => '123456789',
+            'runnerId' => $runnerId,
         ];
         unset($data['extraKey']);
         unset($data['metrics']['storage']['storageExtraKey']);
