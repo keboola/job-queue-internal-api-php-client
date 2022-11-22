@@ -993,6 +993,79 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
         );
     }
 
+    public function testPatchJobStatusRunnerIdSame(): void
+    {
+        $newJobFactory = $this->getNewJobFactory();
+        $client = $this->getClient();
+
+        $job = $newJobFactory->createNewJob([
+            '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+            'configData' => [],
+            'componentId' => self::COMPONENT_ID_1,
+            'mode' => 'run',
+        ]);
+        $client->createJob($job);
+
+        $runnerId = Job::generateRunnerId();
+        $client->patchJob(
+            $job->getId(),
+            (new JobPatchData())
+                ->setStatus(JobInterface::STATUS_PROCESSING)
+                ->setDesiredStatus(JobInterface::DESIRED_STATUS_PROCESSING)
+                ->setRunnerId($runnerId)
+        );
+        $processingJob = $client->getJob($job->getId());
+        self::assertEquals(JobInterface::DESIRED_STATUS_PROCESSING, $processingJob->getDesiredStatus());
+        self::assertEquals(JobInterface::STATUS_PROCESSING, $processingJob->getStatus());
+
+        $client->patchJob(
+            $job->getId(),
+            (new JobPatchData())
+                ->setStatus(JobInterface::STATUS_PROCESSING)
+                ->setDesiredStatus(JobInterface::DESIRED_STATUS_PROCESSING)
+                ->setRunnerId($runnerId)
+        );
+        $processingJob = $client->getJob($job->getId());
+        self::assertEquals(JobInterface::DESIRED_STATUS_PROCESSING, $processingJob->getDesiredStatus());
+        self::assertEquals(JobInterface::STATUS_PROCESSING, $processingJob->getStatus());
+    }
+
+    public function testPatchJobStatusRunnerIdDifferent(): void
+    {
+        $newJobFactory = $this->getNewJobFactory();
+        $client = $this->getClient();
+
+        $job = $newJobFactory->createNewJob([
+            '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+            'configData' => [],
+            'componentId' => self::COMPONENT_ID_1,
+            'mode' => 'run',
+        ]);
+        $client->createJob($job);
+
+        $runnerId = Job::generateRunnerId();
+        $client->patchJob(
+            $job->getId(),
+            (new JobPatchData())
+                ->setStatus(JobInterface::STATUS_PROCESSING)
+                ->setDesiredStatus(JobInterface::DESIRED_STATUS_PROCESSING)
+                ->setRunnerId($runnerId)
+        );
+        $processingJob = $client->getJob($job->getId());
+        self::assertEquals(JobInterface::DESIRED_STATUS_PROCESSING, $processingJob->getDesiredStatus());
+        self::assertEquals(JobInterface::STATUS_PROCESSING, $processingJob->getStatus());
+
+        $this->expectException(StateTargetEqualsCurrentException::class);
+        $this->expectExceptionMessage('Invalid status transition of job');
+        $client->patchJob(
+            $job->getId(),
+            (new JobPatchData())
+                ->setStatus(JobInterface::STATUS_PROCESSING)
+                ->setDesiredStatus(JobInterface::DESIRED_STATUS_PROCESSING)
+                ->setRunnerId(Job::generateRunnerId())
+        );
+    }
+
     public function testGetJobsDurationSum(): void
     {
         $duration = 2;

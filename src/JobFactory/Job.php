@@ -15,6 +15,7 @@ use Keboola\StorageApi\ClientException as StorageApiClientException;
 use Keboola\StorageApi\Components as ComponentsApiClient;
 use Keboola\StorageApiBranch\Factory\ClientOptions;
 use Keboola\StorageApiBranch\Factory\StorageClientPlainFactory;
+use Symfony\Component\Uid\Uuid;
 use Throwable;
 
 class Job implements JsonSerializable, JobInterface
@@ -311,5 +312,10 @@ class Job implements JsonSerializable, JobInterface
         );
 
         return $this->componentsApiClient = new ComponentsApiClient($client->getBranchClientIfAvailable());
+    }
+
+    public static function generateRunnerId(): string
+    {
+        return (string) Uuid::v4();
     }
 }
