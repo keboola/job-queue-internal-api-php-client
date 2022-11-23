@@ -14,6 +14,7 @@ use Keboola\StorageApi\ClientException as StorageApiClientException;
 use Keboola\StorageApiBranch\ClientWrapper;
 use Keboola\StorageApiBranch\Factory\ClientOptions;
 use Keboola\StorageApiBranch\Factory\StorageClientPlainFactory;
+use Symfony\Component\Uid\Uuid;
 
 class JobTest extends BaseTest
 {
@@ -594,5 +595,18 @@ class JobTest extends BaseTest
     public function testGetOrchestrationId(): void
     {
         self::assertEquals('123456789', $this->getJob()->getOrchestrationJobId());
+    }
+
+    public function testGetRunnerId(): void
+    {
+        $runnerId = (string) Uuid::v4();
+        $jobData = $this->jobData;
+        $jobData['runnerId'] = $runnerId;
+        $job = $this->getJob($jobData);
+        self::assertEquals($runnerId, $job->getRunnerId());
+
+        // not set
+        $job = $this->getJob($this->jobData);
+        self::assertNull($job->getRunnerId());
     }
 }

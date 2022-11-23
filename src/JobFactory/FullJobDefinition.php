@@ -184,6 +184,10 @@ class FullJobDefinition extends NewJobDefinition
                     ->defaultNull()
                     ->beforeNormalization()->always($this->getStringNormalizer())->end()
                 ->end()
+                ->scalarNode('runnerId')
+                    ->defaultNull()
+                    ->beforeNormalization()->always($this->getStringNormalizer())->end()
+                ->end()
             ->end();
         // @formatter:on
 
