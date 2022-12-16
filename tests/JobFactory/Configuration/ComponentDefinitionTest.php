@@ -379,7 +379,7 @@ class ComponentDefinitionTest extends TestCase
             ],
             'expected' => 'The value "invalid" is not allowed for path "component.data.staging_storage.input". ' .
                 'Permissible values: "local", "s3", "abs", "none", "workspace-snowflake", "workspace-redshift", ' .
-                '"workspace-synapse", "workspace-abs", "workspace-exasol", "workspace-teradata"',
+                '"workspace-synapse", "workspace-abs", "workspace-exasol", "workspace-teradata", "workspace-bigquery"',
         ];
         yield 'invalid staging output' => [
             'data' => [
@@ -396,7 +396,7 @@ class ComponentDefinitionTest extends TestCase
             ],
             'expected' => 'The value "invalid" is not allowed for path "component.data.staging_storage.output". ' .
                 'Permissible values: "local", "none", "workspace-snowflake", "workspace-redshift", ' .
-                '"workspace-synapse", "workspace-abs", "workspace-exasol", "workspace-teradata"',
+                '"workspace-synapse", "workspace-abs", "workspace-exasol", "workspace-teradata", "workspace-bigquery"',
         ];
         yield 'invalid process timeout too small' => [
             'data' => [

@@ -1194,6 +1194,16 @@ class JobRuntimeResolverTest extends TestCase
             null,
             ['owner' => ['features' => []]],
         ];
+        yield 'custom workspace-bigquery' => [
+            'custom',
+            null,
+            'workspace-bigquery',
+            1,
+            null,
+            null,
+            null,
+            ['owner' => ['features' => []]],
+        ];
         yield 'custom unknown' => [
             'custom',
             null,
