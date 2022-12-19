@@ -203,12 +203,14 @@ class ComponentDefinition implements ConfigurationInterface
                             ->enumNode('input')
                                 ->values(['local', 's3', 'abs', 'none', 'workspace-snowflake', 'workspace-redshift',
                                     'workspace-synapse', 'workspace-abs', 'workspace-exasol', 'workspace-teradata',
+                                    'workspace-bigquery',
                                 ])
                                 ->defaultValue('local')
                             ->end()
                             ->enumNode('output')
                                 ->values(['local', 'none', 'workspace-snowflake', 'workspace-redshift',
                                     'workspace-synapse', 'workspace-abs', 'workspace-exasol', 'workspace-teradata',
+                                    'workspace-bigquery',
                                 ])
                                 ->defaultValue('local')
                             ->end()
