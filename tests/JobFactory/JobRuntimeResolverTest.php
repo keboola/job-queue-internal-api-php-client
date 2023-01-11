@@ -32,6 +32,7 @@ class JobRuntimeResolverTest extends TestCase
         'projectId' => '123',
         'tokenId' => '456',
         '#tokenString' => 'KBC::ProjectSecure::token',
+        'backend' => null,
     ];
 
     public function resolveDefaultBackendContextData(): Generator
@@ -168,6 +169,11 @@ class JobRuntimeResolverTest extends TestCase
                 'projectId' => '123',
                 'tokenId' => '456',
                 '#tokenString' => 'KBC::ProjectSecure::token',
+                'backend' => [
+                    'type' => null,
+                    'containerType' => 'custom',
+                    'context' => 'wml',
+                ],
                 'tag' => '1.2.3',
                 'variableValuesData' => [
                     'values' => [
@@ -176,11 +182,6 @@ class JobRuntimeResolverTest extends TestCase
                             'value' => 'bar',
                         ],
                     ],
-                ],
-                'backend' => [
-                    'type' => null,
-                    'containerType' => 'custom',
-                    'context' => 'wml',
                 ],
                 'parallelism' => '5',
                 'type' => 'container',
@@ -242,6 +243,11 @@ class JobRuntimeResolverTest extends TestCase
                 'projectId' => '123',
                 'tokenId' => '456',
                 '#tokenString' => 'KBC::ProjectSecure::token',
+                'backend' => [
+                    'type' => null,
+                    'containerType' => 'mass-produced',
+                    'context' => 'wml',
+                ],
                 'configData' => [
                     'variableValuesId' => '123',
                     'runtime' => [
@@ -259,11 +265,6 @@ class JobRuntimeResolverTest extends TestCase
                 'tag' => '3.2.1',
                 'parallelism' => '5',
                 'type' => 'container',
-                'backend' => [
-                    'type' => null,
-                    'containerType' => 'mass-produced',
-                    'context' => 'wml',
-                ],
                 'variableValuesId' => '123',
                 'variableValuesData' => [],
             ],
@@ -337,14 +338,14 @@ class JobRuntimeResolverTest extends TestCase
                 'projectId' => '123',
                 'tokenId' => '456',
                 '#tokenString' => 'KBC::ProjectSecure::token',
-                'tag' => '4.5.6',
-                'parallelism' => '5',
-                'type' => 'container',
                 'backend' => [
                     'type' => null,
                     'containerType' => 'stereotyped',
                     'context' => 'wml',
                 ],
+                'tag' => '4.5.6',
+                'parallelism' => '5',
+                'type' => 'container',
                 'variableValuesId' => null,
                 'variableValuesData' => [
                     'values' => [
@@ -414,14 +415,14 @@ class JobRuntimeResolverTest extends TestCase
                 'projectId' => '123',
                 'tokenId' => '456',
                 '#tokenString' => 'KBC::ProjectSecure::token',
-                'tag' => '4.5.6',
-                'parallelism' => '5',
-                'type' => 'container',
                 'backend' => [
                     'type' => null,
                     'containerType' => 'stereotyped',
                     'context' => 'wml',
                 ],
+                'tag' => '4.5.6',
+                'parallelism' => '5',
+                'type' => 'container',
                 'variableValuesId' => null,
                 'variableValuesData' => [],
             ],
@@ -493,6 +494,11 @@ class JobRuntimeResolverTest extends TestCase
                 'projectId' => '123',
                 'tokenId' => '456',
                 '#tokenString' => 'KBC::ProjectSecure::token',
+                'backend' => [
+                    'type' => null,
+                    'containerType' => 'stereotyped',
+                    'context' => '123-extractor',
+                ],
                 'variableValuesId' => '123',
                 'configData' => [
                     'variableValuesId' => '456',
@@ -507,11 +513,6 @@ class JobRuntimeResolverTest extends TestCase
                 'tag' => '4.5.6',
                 'parallelism' => '0',
                 'type' => 'standard',
-                'backend' => [
-                    'type' => null,
-                    'containerType' => 'stereotyped',
-                    'context' => '123-extractor',
-                ],
                 'variableValuesData' => [],
             ],
             $jobRuntimeResolver->resolveJobData($jobData, ['owner' => ['features' => []]])
@@ -559,14 +560,14 @@ class JobRuntimeResolverTest extends TestCase
                 'projectId' => '123',
                 'tokenId' => '456',
                 '#tokenString' => 'KBC::ProjectSecure::token',
-                'tag' => '9.9.9',
-                'parallelism' => null,
-                'type' => 'standard',
                 'backend' => [
                     'type' => null,
                     'containerType' => null,
                     'context' => '123-extractor',
                 ],
+                'tag' => '9.9.9',
+                'parallelism' => null,
+                'type' => 'standard',
                 'variableValuesId' => null,
                 'variableValuesData' => [],
             ],
@@ -666,14 +667,14 @@ class JobRuntimeResolverTest extends TestCase
                 'projectId' => '123',
                 'tokenId' => '456',
                 '#tokenString' => 'KBC::ProjectSecure::token',
-                'tag' => '9.9.9',
-                'parallelism' => null,
-                'type' => 'standard',
                 'backend' => [
                     'type' => null,
                     'containerType' => null,
                     'context' => '123-extractor',
                 ],
+                'tag' => '9.9.9',
+                'parallelism' => null,
+                'type' => 'standard',
                 'variableValuesId' => null,
                 'variableValuesData' => [],
             ],
@@ -713,14 +714,14 @@ class JobRuntimeResolverTest extends TestCase
                 'projectId' => '123',
                 'tokenId' => '456',
                 '#tokenString' => 'KBC::ProjectSecure::token',
-                'tag' => '9.9.9',
-                'parallelism' => null,
-                'type' => 'standard',
                 'backend' => [
                     'type' => null,
                     'containerType' => null,
                     'context' => '123-extractor',
                 ],
+                'tag' => '9.9.9',
+                'parallelism' => null,
+                'type' => 'standard',
                 'variableValuesId' => null,
                 'variableValuesData' => [],
             ],
@@ -764,14 +765,14 @@ class JobRuntimeResolverTest extends TestCase
                 'projectId' => '123',
                 'tokenId' => '456',
                 '#tokenString' => 'KBC::ProjectSecure::token',
-                'tag' => '9.9.9',
-                'parallelism' => null,
-                'type' => 'standard',
                 'backend' => [
                     'type' => null,
                     'containerType' => null,
                     'context' => '123-extractor',
                 ],
+                'tag' => '9.9.9',
+                'parallelism' => null,
+                'type' => 'standard',
                 'variableValuesId' => null,
                 'variableValuesData' => [],
             ],
@@ -915,15 +916,15 @@ class JobRuntimeResolverTest extends TestCase
                 'projectId' => '123',
                 'tokenId' => '456',
                 '#tokenString' => 'KBC::ProjectSecure::token',
-                'branchId' => 'dev-branch',
-                'tag' => '4.5.6',
-                'parallelism' => '5',
-                'type' => 'container',
                 'backend' => [
                     'type' => null,
                     'containerType' => 'stereotyped',
                     'context' => null,
                 ],
+                'branchId' => 'dev-branch',
+                'tag' => '4.5.6',
+                'parallelism' => '5',
+                'type' => 'container',
                 'variableValuesId' => null,
                 'variableValuesData' => [
                     'values' => [
@@ -1030,6 +1031,11 @@ class JobRuntimeResolverTest extends TestCase
                 'projectId' => '123',
                 'tokenId' => '456',
                 '#tokenString' => 'KBC::ProjectSecure::token',
+                'backend' => [
+                    'type' => $expectedType,
+                    'containerType' => $expectedContainerType,
+                    'context' => $expectedContext,
+                ],
                 'tag' => '1.2.3',
                 'variableValuesData' => [
                     'values' => [
@@ -1038,11 +1044,6 @@ class JobRuntimeResolverTest extends TestCase
                             'value' => 'bar',
                         ],
                     ],
-                ],
-                'backend' => [
-                    'type' => $expectedType,
-                    'containerType' => $expectedContainerType,
-                    'context' => $expectedContext,
                 ],
                 'parallelism' => '5',
                 'type' => 'container',
