@@ -115,7 +115,7 @@ class JobRuntimeResolver
 
     private function getBackendFromJobdata(array $jobData): Backend
     {
-        return !empty($jobData['backend'])
+        return is_array($jobData['backend'])
             ? Backend::fromDataArray($jobData['backend']) : new Backend(null, null, null);
     }
 
