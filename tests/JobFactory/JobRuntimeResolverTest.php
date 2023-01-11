@@ -402,8 +402,8 @@ class JobRuntimeResolverTest extends TestCase
         $componentData = [
             'data' => [
                 'staging_storage' => [
-                    'input' => 'local',
-                    'output' => 'local',
+                    'input' => 'workspace-snowflake',
+                    'output' => 'workspace-snowflake',
                 ],
             ],
         ];
@@ -439,8 +439,8 @@ class JobRuntimeResolverTest extends TestCase
                 'tokenId' => '456',
                 '#tokenString' => 'KBC::ProjectSecure::token',
                 'backend' => [
-                    'type' => null,
-                    'containerType' => 'stereotyped',
+                    'type' => 'stereotyped',
+                    'containerType' => null,
                     'context' => 'wml',
                 ],
                 'tag' => '4.5.6',
@@ -1322,7 +1322,7 @@ class JobRuntimeResolverTest extends TestCase
             [],
             [
                 'type' => 'small',
-                'containerType' => 'smallType',
+                'containerType' => null,
                 'context' => '123-wlm',
             ],
         ];
@@ -1360,7 +1360,7 @@ class JobRuntimeResolverTest extends TestCase
             ],
             [
                 'type' => 'large',
-                'containerType' => 'smallType', // container type can be set only via jobData backend
+                'containerType' => null, // container type can be set only via jobData backend
                 'context' => '123-test',
             ],
         ];
@@ -1381,7 +1381,7 @@ class JobRuntimeResolverTest extends TestCase
             ],
             [
                 'type' => 'small',
-                'containerType' => 'smallType', // container type can be set only via jobData backend
+                'containerType' => null, // container type can be set only via jobData backend
                 'context' => '123-wlm',
             ],
         ];
@@ -1439,9 +1439,7 @@ class JobRuntimeResolverTest extends TestCase
         unset($jobData['configId']);
         $jobData['configData'] = $configData;
 
-        $componentData = [
-            'type' => 'extractor',
-        ];
+        $componentData = $this->getTestComponentData('workspace-snowflake');
 
         $clientMock = self::createMock(Client::class);
         $clientMock->expects(self::exactly(1))->method('apiGet')
@@ -1494,9 +1492,7 @@ class JobRuntimeResolverTest extends TestCase
         $jobData['tag'] = '1.2.3';
         $jobData['backend'] = $jobDataBackend;
 
-        $componentData = [
-            'type' => 'extractor',
-        ];
+        $componentData = $this->getTestComponentData('workspace-snowflake');
 
         $clientMock = self::createMock(Client::class);
         $clientMock->expects(self::exactly(2))->method('apiGet')
