@@ -1276,7 +1276,7 @@ class JobRuntimeResolverTest extends TestCase
         ];
     }
 
-    public function mergeBackendsData(): Generator
+    public function mergeBackendsProvider(): Generator
     {
         yield 'default context' => [
             [],
@@ -1426,7 +1426,7 @@ class JobRuntimeResolverTest extends TestCase
     }
 
     /**
-     * @dataProvider mergeBackendsData
+     * @dataProvider mergeBackendsProvider
      */
     public function testMergeJobDataBackendWithConfigDataBackend(
         array $jobDataBackend,
@@ -1481,7 +1481,7 @@ class JobRuntimeResolverTest extends TestCase
     }
 
     /**
-     * @dataProvider mergeBackendsData
+     * @dataProvider mergeBackendsProvider
      */
     public function testMergeJobDataBackendWithBackendFromConfig(
         array $jobDataBackend,
