@@ -1359,9 +1359,9 @@ class JobRuntimeResolverTest extends TestCase
                 ],
             ],
             [
-                'type' => 'large',
+                'type' => 'small',
                 'containerType' => null, // container type can be set only via jobData backend
-                'context' => '123-test',
+                'context' => '123-wlm',
             ],
         ];
         yield 'job data + config data - do not merge nulls from config data' => [
