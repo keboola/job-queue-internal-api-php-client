@@ -119,7 +119,7 @@ class JobRuntimeResolver
             ? Backend::fromDataArray($jobData['backend']) : new Backend(null, null, null);
     }
 
-    private function mergeBackendsDataProvider(Backend $backendOne, Backend $backendTwo): Backend
+    private function mergeBackendsData(Backend $backendOne, Backend $backendTwo): Backend
     {
         return Backend::fromDataArray(array_merge(
             array_filter($backendOne->toDataArray()),
@@ -134,7 +134,7 @@ class JobRuntimeResolver
         if (!empty($this->getConfigData()['runtime']['backend'])) {
             $backend = Backend::fromDataArray($this->getConfigData()['runtime']['backend']);
             if (!$backend->isEmpty()) {
-                return $this->mergeBackendsDataProvider($backend, $jobDataBackend);
+                return $this->mergeBackendsData($backend, $jobDataBackend);
             }
         }
 
@@ -142,7 +142,7 @@ class JobRuntimeResolver
         if (!empty($configuration['runtime']['backend'])) {
             $backend = Backend::fromDataArray($configuration['runtime']['backend']);
             if (!$backend->isEmpty()) {
-                return $this->mergeBackendsDataProvider($backend, $jobDataBackend);
+                return $this->mergeBackendsData($backend, $jobDataBackend);
             }
         }
 
