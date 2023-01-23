@@ -119,6 +119,20 @@ class JobRuntimeResolver
             ? Backend::fromDataArray($jobData['backend']) : new Backend(null, null, null);
     }
 
+    private function getBackendFromConfigData(): Backend
+    {
+        $configData = $this->getConfigData();
+        return !empty($configData['runtime']['backend'])
+            ? Backend::fromDataArray($configData['runtime']['backend']) : new Backend(null, null, null);
+    }
+
+    private function getBackendFromConfiguration(): Backend
+    {
+        $configuration = $this->getConfiguration();
+        return !empty($configuration['runtime']['backend'])
+            ? Backend::fromDataArray($configuration['runtime']['backend']) : new Backend(null, null, null);
+    }
+
     private function mergeBackendsData(Backend $backendOne, Backend $backendTwo): Backend
     {
         return Backend::fromDataArray(array_merge(
@@ -129,24 +143,16 @@ class JobRuntimeResolver
 
     private function getBackend(array $jobData): Backend
     {
-        $jobDataBackend = $this->getBackendFromJobdata($jobData);
+        $backend = new Backend(null, null, null);
 
-        if (!empty($this->getConfigData()['runtime']['backend'])) {
-            $backend = Backend::fromDataArray($this->getConfigData()['runtime']['backend']);
-            if (!$backend->isEmpty()) {
-                return $this->mergeBackendsData($backend, $jobDataBackend);
-            }
-        }
+        $overrideByBackend = $this->getBackendFromConfiguration();
+        $backend = $this->mergeBackendsData($backend, $overrideByBackend);
 
-        $configuration = $this->getConfiguration();
-        if (!empty($configuration['runtime']['backend'])) {
-            $backend = Backend::fromDataArray($configuration['runtime']['backend']);
-            if (!$backend->isEmpty()) {
-                return $this->mergeBackendsData($backend, $jobDataBackend);
-            }
-        }
+        $overrideByBackend = $this->getBackendFromConfigData();
+        $backend = $this->mergeBackendsData($backend, $overrideByBackend);
 
-        return $jobDataBackend;
+        $overrideByBackend = $this->getBackendFromJobdata($jobData);
+        return $this->mergeBackendsData($backend, $overrideByBackend);
     }
 
     private function resolveBackend(array $jobData, array $tokenInfo): Backend
