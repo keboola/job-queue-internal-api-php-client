@@ -217,6 +217,7 @@ class JobRuntimeResolverTest extends TestCase
     public function testResolveRuntimeSettingsInConfigData(): void
     {
         $jobData = self::JOB_DATA;
+        unset($jobData['configId']);
         $jobData['configData'] = [
             'variableValuesId' => '123',
             'runtime' => [
@@ -241,9 +242,9 @@ class JobRuntimeResolverTest extends TestCase
         $clientMock = self::createMock(Client::class);
         $clientMock->expects(self::once())->method('apiGet')
             ->withConsecutive(
-                ['branch/default/components/keboola.ex-db-snowflake']
+                ['branch/default/components/keboola.ex-db-snowflake'],
             )->willReturnOnConsecutiveCalls(
-                $componentData
+                $componentData,
             );
         $clientWrapperMock = self::createMock(ClientWrapper::class);
         $clientWrapperMock->method('getBranchClientIfAvailable')->willReturn($clientMock);
@@ -258,7 +259,6 @@ class JobRuntimeResolverTest extends TestCase
             [
                 'id' => '123456456',
                 'runId' => '123456456',
-                'configId' => '454124290',
                 'componentId' => 'keboola.ex-db-snowflake',
                 'mode' => 'run',
                 'status' => 'created',
@@ -1451,9 +1451,105 @@ class JobRuntimeResolverTest extends TestCase
                 ],
             ],
             'expected' => [
-                'type' => 'large', // !!! vraci null!
+                'type' => 'large',
                 'containerType' => null, // container type can be set only via jobData backend
                 'context' => '123-wlm',
+            ],
+        ];
+        yield 'job data + configuration + config data - partial merge + partial override' => [
+            'jobData' => [
+                'context' => '123-wlm',
+            ],
+            'configData' => [
+                'runtime' => [
+                    'backend' => [
+                        'context' => '321-wlm',
+                        'type' => 'small',
+                    ],
+                ],
+            ],
+            'configuration' => [
+                'runtime' => [
+                    'backend' => [
+                        'type' => 'large',
+                    ],
+                ],
+            ],
+            'expected' => [
+                'type' => 'small',
+                'containerType' => null, // container type can be set only via jobData backend
+                'context' => '123-wlm',
+            ],
+        ];
+        yield 'job data + configuration + config data - partial merge + full override' => [
+            'jobData' => [
+                'context' => '123-wlm',
+                'type' => 'medium',
+            ],
+            'configData' => [
+                'runtime' => [
+                    'backend' => [
+                        'context' => '321-wlm',
+                        'type' => 'small',
+                    ],
+                ],
+            ],
+            'configuration' => [
+                'runtime' => [
+                    'backend' => [
+                        'type' => 'large',
+                    ],
+                ],
+            ],
+            'expected' => [
+                'type' => 'medium',
+                'containerType' => null, // container type can be set only via jobData backend
+                'context' => '123-wlm',
+            ],
+        ];
+        yield 'configuration + config data - partial merge' => [
+            'jobData' => [],
+            'configData' => [
+                'runtime' => [
+                    'backend' => [
+                        'context' => '321-wlm',
+                    ],
+                ],
+            ],
+            'configuration' => [
+                'runtime' => [
+                    'backend' => [
+                        'type' => 'large',
+                    ],
+                ],
+            ],
+            'expected' => [
+                'type' => 'large',
+                'containerType' => null, // container type can be set only via jobData backend
+                'context' => '321-wlm',
+            ],
+        ];
+        yield 'configuration + config data - override' => [
+            'jobData' => [],
+            'configData' => [
+                'runtime' => [
+                    'backend' => [
+                        'context' => '321-wlm',
+                    ],
+                ],
+            ],
+            'configuration' => [
+                'runtime' => [
+                    'backend' => [
+                        'type' => 'large',
+                        'context' => '123-wlm'
+                    ],
+                ],
+            ],
+            'expected' => [
+                'type' => 'large',
+                'containerType' => null, // container type can be set only via jobData backend
+                'context' => '321-wlm',
             ],
         ];
     }
