@@ -242,9 +242,9 @@ class JobRuntimeResolverTest extends TestCase
         $clientMock = self::createMock(Client::class);
         $clientMock->expects(self::once())->method('apiGet')
             ->withConsecutive(
-                ['branch/default/components/keboola.ex-db-snowflake'],
+                ['branch/default/components/keboola.ex-db-snowflake']
             )->willReturnOnConsecutiveCalls(
-                $componentData,
+                $componentData
             );
         $clientWrapperMock = self::createMock(ClientWrapper::class);
         $clientWrapperMock->method('getBranchClientIfAvailable')->willReturn($clientMock);
@@ -1542,7 +1542,7 @@ class JobRuntimeResolverTest extends TestCase
                 'runtime' => [
                     'backend' => [
                         'type' => 'large',
-                        'context' => '123-wlm'
+                        'context' => '123-wlm',
                     ],
                 ],
             ],
@@ -1553,63 +1553,6 @@ class JobRuntimeResolverTest extends TestCase
             ],
         ];
     }
-
-    /**
-     * @dataProvider mergeBackendsProvider
-     */
-    /*
-    public function testMergeJobDataBackendWithConfigDataBackend(
-        array $jobDataBackend,
-        array $configData,
-        array $expectedBackend
-    ): void {
-        $jobData = $this::JOB_DATA;
-        $jobData['tag'] = '1.2.3';
-        $jobData['backend'] = $jobDataBackend;
-        unset($jobData['configId']);
-        $jobData['configData'] = $configData;
-
-        $componentData = $this->getTestComponentData('workspace-snowflake');
-
-        $clientMock = self::createMock(Client::class);
-        $clientMock->expects(self::exactly(1))->method('apiGet')
-            ->withConsecutive(
-                ['branch/default/components/keboola.ex-db-snowflake'],
-            )->willReturnOnConsecutiveCalls(
-                $componentData
-            );
-        $clientWrapperMock = self::createMock(ClientWrapper::class);
-        $clientWrapperMock->method('getBranchClientIfAvailable')->willReturn($clientMock);
-        $storageClientFactoryMock = self::createMock(StorageClientPlainFactory::class);
-        $storageClientFactoryMock
-            ->expects(self::exactly(1))
-            ->method('createClientWrapper')
-            ->willReturn($clientWrapperMock);
-        $jobRuntimeResolver = new JobRuntimeResolver($storageClientFactoryMock);
-
-        self::assertSame(
-            [
-                'id' => '123456456',
-                'runId' => '123456456',
-                'componentId' => 'keboola.ex-db-snowflake',
-                'mode' => 'run',
-                'status' => 'created',
-                'desiredStatus' => 'processing',
-                'projectId' => '123',
-                'tokenId' => '456',
-                '#tokenString' => 'KBC::ProjectSecure::token',
-                'backend' => $expectedBackend,
-                'tag' => '1.2.3',
-                'configData' => $jobData['configData'],
-                'parallelism' => null,
-                'type' => 'standard',
-                'variableValuesId' => null,
-                'variableValuesData' => [],
-            ],
-            $jobRuntimeResolver->resolveJobData($jobData, ['owner' => ['features' => []]])
-        );
-    }
-    */
 
     /**
      * @dataProvider mergeBackendsProvider
