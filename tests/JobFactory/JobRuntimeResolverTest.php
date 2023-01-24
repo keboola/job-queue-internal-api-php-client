@@ -1284,7 +1284,7 @@ class JobRuntimeResolverTest extends TestCase
             'configuration' => [],
             'expected' => [
                 'type' => null,
-                'containerType' => null,
+                'containerType' => null, // container type can be set only via jobData backend
                 'context' => '123-extractor',
             ],
         ];
@@ -1296,7 +1296,7 @@ class JobRuntimeResolverTest extends TestCase
             'configuration' => [],
             'expected' => [
                 'type' => 'small',
-                'containerType' => null,
+                'containerType' => null, // container type can be set only via jobData backend
                 'context' => '123-extractor',
             ],
         ];
@@ -1312,7 +1312,7 @@ class JobRuntimeResolverTest extends TestCase
             ],
             'expected' => [
                 'type' => 'large',
-                'containerType' => null,
+                'containerType' => null, // container type can be set only via jobData backend
                 'context' => '123-extractor',
             ],
         ];
@@ -1326,7 +1326,7 @@ class JobRuntimeResolverTest extends TestCase
             'configuration' => [],
             'expected' => [
                 'type' => 'small',
-                'containerType' => null,
+                'containerType' => null, // container type can be set only via jobData backend
                 'context' => '123-wlm',
             ],
         ];
