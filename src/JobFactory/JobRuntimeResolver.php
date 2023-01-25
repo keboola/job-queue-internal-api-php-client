@@ -113,26 +113,46 @@ class JobRuntimeResolver
         );
     }
 
+    private function getBackendFromJobdata(array $jobData): Backend
+    {
+        return is_array($jobData['backend'])
+            ? Backend::fromDataArray($jobData['backend']) : new Backend(null, null, null);
+    }
+
+    private function getBackendFromConfigData(): Backend
+    {
+        $configData = $this->getConfigData();
+        return !empty($configData['runtime']['backend'])
+            ? Backend::fromDataArray($configData['runtime']['backend']) : new Backend(null, null, null);
+    }
+
+    private function getBackendFromConfiguration(): Backend
+    {
+        $configuration = $this->getConfiguration();
+        return !empty($configuration['runtime']['backend'])
+            ? Backend::fromDataArray($configuration['runtime']['backend']) : new Backend(null, null, null);
+    }
+
+    private function mergeBackendsData(Backend $backendOne, Backend $backendTwo): Backend
+    {
+        return Backend::fromDataArray(array_merge(
+            array_filter($backendOne->toDataArray()),
+            array_filter($backendTwo->toDataArray())
+        ));
+    }
+
     private function getBackend(array $jobData): Backend
     {
-        if (!empty($jobData['backend'])) {
-            $backend = Backend::fromDataArray($jobData['backend']);
-            if (!$backend->isEmpty()) {
-                return $backend;
-            }
-        }
-        if (!empty($this->getConfigData()['runtime']['backend'])) {
-            $backend = Backend::fromDataArray($this->getConfigData()['runtime']['backend']);
-            if (!$backend->isEmpty()) {
-                return $backend;
-            }
-        }
-        $configuration = $this->getConfiguration();
-        if (!empty($configuration['runtime']['backend'])) {
-            // return this irrespective if it is empty, because if it is we create empty Backend anyway
-            return Backend::fromDataArray($configuration['runtime']['backend']);
-        }
-        return new Backend(null, null, null);
+        $backend = new Backend(null, null, null);
+
+        $overrideByBackend = $this->getBackendFromConfiguration();
+        $backend = $this->mergeBackendsData($backend, $overrideByBackend);
+
+        $overrideByBackend = $this->getBackendFromConfigData();
+        $backend = $this->mergeBackendsData($backend, $overrideByBackend);
+
+        $overrideByBackend = $this->getBackendFromJobdata($jobData);
+        return $this->mergeBackendsData($backend, $overrideByBackend);
     }
 
     private function resolveBackend(array $jobData, array $tokenInfo): Backend
@@ -141,8 +161,8 @@ class JobRuntimeResolver
 
         if ($tempBackend->isEmpty()) {
             return new Backend(
-                $tempBackend->getType(),
-                $tempBackend->getContainerType(),
+                null,
+                null,
                 $this->getDefaultBackendContext($jobData, $this->componentData['type'])
             );
         }

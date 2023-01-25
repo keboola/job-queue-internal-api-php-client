@@ -32,6 +32,7 @@ class JobRuntimeResolverTest extends TestCase
         'projectId' => '123',
         'tokenId' => '456',
         '#tokenString' => 'KBC::ProjectSecure::token',
+        'backend' => null,
     ];
 
     public function resolveDefaultBackendContextData(): Generator
@@ -140,18 +141,41 @@ class JobRuntimeResolverTest extends TestCase
                 ],
             ],
         ];
+
+        $configuration = [
+            'id' => '454124290',
+            'isDisabled' => false,
+            'configuration' => [
+                'runtime' => [
+                    'tag' => '4.5.6',
+                    'parallelism' => '5',
+                ],
+                'parameters' => ['foo' => 'bar'],
+                'variableValuesData' => [
+                    'values' => [
+                        [
+                            'name' => 'bar',
+                            'value' => 'Kochba',
+                        ],
+                    ],
+                ],
+            ],
+        ];
+
         $clientMock = self::createMock(Client::class);
-        $clientMock->expects(self::once())->method('apiGet')
+        $clientMock->expects(self::exactly(2))->method('apiGet')
             ->withConsecutive(
-                ['branch/default/components/keboola.ex-db-snowflake']
+                ['branch/default/components/keboola.ex-db-snowflake'],
+                ['branch/default/components/keboola.ex-db-snowflake/configs/454124290']
             )->willReturnOnConsecutiveCalls(
-                $componentData
+                $componentData,
+                $configuration
             );
         $clientWrapperMock = self::createMock(ClientWrapper::class);
         $clientWrapperMock->method('getBranchClientIfAvailable')->willReturn($clientMock);
         $storageClientFactoryMock = self::createMock(StorageClientPlainFactory::class);
         $storageClientFactoryMock
-            ->expects(self::once())
+            ->expects(self::exactly(2))
             ->method('createClientWrapper')
             ->willReturn($clientWrapperMock);
         $jobRuntimeResolver = new JobRuntimeResolver($storageClientFactoryMock);
@@ -168,6 +192,11 @@ class JobRuntimeResolverTest extends TestCase
                 'projectId' => '123',
                 'tokenId' => '456',
                 '#tokenString' => 'KBC::ProjectSecure::token',
+                'backend' => [
+                    'type' => null,
+                    'containerType' => 'custom',
+                    'context' => 'wml',
+                ],
                 'tag' => '1.2.3',
                 'variableValuesData' => [
                     'values' => [
@@ -176,11 +205,6 @@ class JobRuntimeResolverTest extends TestCase
                             'value' => 'bar',
                         ],
                     ],
-                ],
-                'backend' => [
-                    'type' => null,
-                    'containerType' => 'custom',
-                    'context' => 'wml',
                 ],
                 'parallelism' => '5',
                 'type' => 'container',
@@ -193,6 +217,7 @@ class JobRuntimeResolverTest extends TestCase
     public function testResolveRuntimeSettingsInConfigData(): void
     {
         $jobData = self::JOB_DATA;
+        unset($jobData['configId']);
         $jobData['configData'] = [
             'variableValuesId' => '123',
             'runtime' => [
@@ -234,7 +259,6 @@ class JobRuntimeResolverTest extends TestCase
             [
                 'id' => '123456456',
                 'runId' => '123456456',
-                'configId' => '454124290',
                 'componentId' => 'keboola.ex-db-snowflake',
                 'mode' => 'run',
                 'status' => 'created',
@@ -242,6 +266,11 @@ class JobRuntimeResolverTest extends TestCase
                 'projectId' => '123',
                 'tokenId' => '456',
                 '#tokenString' => 'KBC::ProjectSecure::token',
+                'backend' => [
+                    'type' => null,
+                    'containerType' => 'mass-produced',
+                    'context' => 'wml',
+                ],
                 'configData' => [
                     'variableValuesId' => '123',
                     'runtime' => [
@@ -259,11 +288,6 @@ class JobRuntimeResolverTest extends TestCase
                 'tag' => '3.2.1',
                 'parallelism' => '5',
                 'type' => 'container',
-                'backend' => [
-                    'type' => null,
-                    'containerType' => 'mass-produced',
-                    'context' => 'wml',
-                ],
                 'variableValuesId' => '123',
                 'variableValuesData' => [],
             ],
@@ -337,14 +361,14 @@ class JobRuntimeResolverTest extends TestCase
                 'projectId' => '123',
                 'tokenId' => '456',
                 '#tokenString' => 'KBC::ProjectSecure::token',
-                'tag' => '4.5.6',
-                'parallelism' => '5',
-                'type' => 'container',
                 'backend' => [
                     'type' => null,
                     'containerType' => 'stereotyped',
                     'context' => 'wml',
                 ],
+                'tag' => '4.5.6',
+                'parallelism' => '5',
+                'type' => 'container',
                 'variableValuesId' => null,
                 'variableValuesData' => [
                     'values' => [
@@ -378,8 +402,8 @@ class JobRuntimeResolverTest extends TestCase
         $componentData = [
             'data' => [
                 'staging_storage' => [
-                    'input' => 'local',
-                    'output' => 'local',
+                    'input' => 'workspace-snowflake',
+                    'output' => 'workspace-snowflake',
                 ],
             ],
         ];
@@ -414,14 +438,14 @@ class JobRuntimeResolverTest extends TestCase
                 'projectId' => '123',
                 'tokenId' => '456',
                 '#tokenString' => 'KBC::ProjectSecure::token',
+                'backend' => [
+                    'type' => 'stereotyped',
+                    'containerType' => null,
+                    'context' => 'wml',
+                ],
                 'tag' => '4.5.6',
                 'parallelism' => '5',
                 'type' => 'container',
-                'backend' => [
-                    'type' => null,
-                    'containerType' => 'stereotyped',
-                    'context' => 'wml',
-                ],
                 'variableValuesId' => null,
                 'variableValuesData' => [],
             ],
@@ -493,6 +517,11 @@ class JobRuntimeResolverTest extends TestCase
                 'projectId' => '123',
                 'tokenId' => '456',
                 '#tokenString' => 'KBC::ProjectSecure::token',
+                'backend' => [
+                    'type' => null,
+                    'containerType' => 'stereotyped',
+                    'context' => '123-extractor',
+                ],
                 'variableValuesId' => '123',
                 'configData' => [
                     'variableValuesId' => '456',
@@ -507,11 +536,6 @@ class JobRuntimeResolverTest extends TestCase
                 'tag' => '4.5.6',
                 'parallelism' => '0',
                 'type' => 'standard',
-                'backend' => [
-                    'type' => null,
-                    'containerType' => 'stereotyped',
-                    'context' => '123-extractor',
-                ],
                 'variableValuesData' => [],
             ],
             $jobRuntimeResolver->resolveJobData($jobData, ['owner' => ['features' => []]])
@@ -559,14 +583,14 @@ class JobRuntimeResolverTest extends TestCase
                 'projectId' => '123',
                 'tokenId' => '456',
                 '#tokenString' => 'KBC::ProjectSecure::token',
-                'tag' => '9.9.9',
-                'parallelism' => null,
-                'type' => 'standard',
                 'backend' => [
                     'type' => null,
                     'containerType' => null,
                     'context' => '123-extractor',
                 ],
+                'tag' => '9.9.9',
+                'parallelism' => null,
+                'type' => 'standard',
                 'variableValuesId' => null,
                 'variableValuesData' => [],
             ],
@@ -666,14 +690,14 @@ class JobRuntimeResolverTest extends TestCase
                 'projectId' => '123',
                 'tokenId' => '456',
                 '#tokenString' => 'KBC::ProjectSecure::token',
-                'tag' => '9.9.9',
-                'parallelism' => null,
-                'type' => 'standard',
                 'backend' => [
                     'type' => null,
                     'containerType' => null,
                     'context' => '123-extractor',
                 ],
+                'tag' => '9.9.9',
+                'parallelism' => null,
+                'type' => 'standard',
                 'variableValuesId' => null,
                 'variableValuesData' => [],
             ],
@@ -713,14 +737,14 @@ class JobRuntimeResolverTest extends TestCase
                 'projectId' => '123',
                 'tokenId' => '456',
                 '#tokenString' => 'KBC::ProjectSecure::token',
-                'tag' => '9.9.9',
-                'parallelism' => null,
-                'type' => 'standard',
                 'backend' => [
                     'type' => null,
                     'containerType' => null,
                     'context' => '123-extractor',
                 ],
+                'tag' => '9.9.9',
+                'parallelism' => null,
+                'type' => 'standard',
                 'variableValuesId' => null,
                 'variableValuesData' => [],
             ],
@@ -764,14 +788,14 @@ class JobRuntimeResolverTest extends TestCase
                 'projectId' => '123',
                 'tokenId' => '456',
                 '#tokenString' => 'KBC::ProjectSecure::token',
-                'tag' => '9.9.9',
-                'parallelism' => null,
-                'type' => 'standard',
                 'backend' => [
                     'type' => null,
                     'containerType' => null,
                     'context' => '123-extractor',
                 ],
+                'tag' => '9.9.9',
+                'parallelism' => null,
+                'type' => 'standard',
                 'variableValuesId' => null,
                 'variableValuesData' => [],
             ],
@@ -915,15 +939,15 @@ class JobRuntimeResolverTest extends TestCase
                 'projectId' => '123',
                 'tokenId' => '456',
                 '#tokenString' => 'KBC::ProjectSecure::token',
-                'branchId' => 'dev-branch',
-                'tag' => '4.5.6',
-                'parallelism' => '5',
-                'type' => 'container',
                 'backend' => [
                     'type' => null,
                     'containerType' => 'stereotyped',
                     'context' => null,
                 ],
+                'branchId' => 'dev-branch',
+                'tag' => '4.5.6',
+                'parallelism' => '5',
+                'type' => 'container',
                 'variableValuesId' => null,
                 'variableValuesData' => [
                     'values' => [
@@ -1030,6 +1054,11 @@ class JobRuntimeResolverTest extends TestCase
                 'projectId' => '123',
                 'tokenId' => '456',
                 '#tokenString' => 'KBC::ProjectSecure::token',
+                'backend' => [
+                    'type' => $expectedType,
+                    'containerType' => $expectedContainerType,
+                    'context' => $expectedContext,
+                ],
                 'tag' => '1.2.3',
                 'variableValuesData' => [
                     'values' => [
@@ -1038,11 +1067,6 @@ class JobRuntimeResolverTest extends TestCase
                             'value' => 'bar',
                         ],
                     ],
-                ],
-                'backend' => [
-                    'type' => $expectedType,
-                    'containerType' => $expectedContainerType,
-                    'context' => $expectedContext,
                 ],
                 'parallelism' => '5',
                 'type' => 'container',
@@ -1250,5 +1274,343 @@ class JobRuntimeResolverTest extends TestCase
                 ],
             ],
         ];
+    }
+
+    public function mergeBackendsProvider(): Generator
+    {
+        yield 'default context' => [
+            'jobData' => [],
+            'configData' => [],
+            'configuration' => [],
+            'expected' => [
+                'type' => null,
+                'containerType' => null, // container type can be set only via jobData backend
+                'context' => '123-extractor',
+            ],
+        ];
+        yield 'job data + default context' => [
+            'jobData' => [
+                'type' => 'small',
+            ],
+            'configData' => [],
+            'configuration' => [],
+            'expected' => [
+                'type' => 'small',
+                'containerType' => null, // container type can be set only via jobData backend
+                'context' => '123-extractor',
+            ],
+        ];
+        yield 'config data + default context' => [
+            'jobData' => [],
+            'configData' => [],
+            'configuration' => [
+                'runtime' => [
+                    'backend' => [
+                        'type' => 'large',
+                    ],
+                ],
+            ],
+            'expected' => [
+                'type' => 'large',
+                'containerType' => null, // container type can be set only via jobData backend
+                'context' => '123-extractor',
+            ],
+        ];
+        yield 'job data' => [
+            'jobData' => [
+                'type' => 'small',
+                'containerType' => 'smallType',
+                'context' => '123-wlm',
+            ],
+            'configData' => [],
+            'configuration' => [],
+            'expected' => [
+                'type' => 'small',
+                'containerType' => null, // container type can be set only via jobData backend
+                'context' => '123-wlm',
+            ],
+        ];
+        yield 'configuration' => [
+            'jobData' => [],
+            'configData' => [],
+            'configuration' => [
+                'runtime' => [
+                    'backend' => [
+                        'type' => 'large',
+                        'containerType' => 'largeType',
+                        'context' => '123-test',
+                    ],
+                ],
+            ],
+            'expected' => [
+                'type' => 'large',
+                'containerType' => null, // container type can be set only via jobData backend
+                'context' => '123-test',
+            ],
+        ];
+        yield 'job data + configuration' => [
+            'jobData' => [
+                'type' => 'small',
+                'containerType' => 'smallType',
+                'context' => '123-wlm',
+            ],
+            'configData' => [],
+            'configuration' => [
+                'runtime' => [
+                    'backend' => [
+                        'type' => 'large',
+                        'containerType' => 'largeType',
+                        'context' => '123-test',
+                    ],
+                ],
+            ],
+            'expected' => [
+                'type' => 'small',
+                'containerType' => null, // container type can be set only via jobData backend
+                'context' => '123-wlm',
+            ],
+        ];
+        yield 'job data + configuration - do not merge nulls from configuration' => [
+            'jobData' => [
+                'type' => 'small',
+                'containerType' => 'smallType',
+                'context' => '123-wlm',
+            ],
+            'configData' => [],
+            'configuration' => [
+                'runtime' => [
+                    'backend' => [
+                        'type' => null,
+                        'containerType' => null,
+                        'context' => null,
+                    ],
+                ],
+            ],
+            'expected' => [
+                'type' => 'small',
+                'containerType' => null, // container type can be set only via jobData backend
+                'context' => '123-wlm',
+            ],
+        ];
+        yield 'job data + configuration - do not merge nulls from job data' => [
+            'jobData' => [
+                'type' => null,
+                'containerType' => null,
+                'context' => null,
+            ],
+            'configData' => [],
+            'configuration' => [
+                'runtime' => [
+                    'backend' => [
+                        'type' => 'large',
+                        'containerType' => 'largeType',
+                        'context' => '123-test',
+                    ],
+                ],
+            ],
+            'expected' => [
+                'type' => 'large',
+                'containerType' => null, // container type can be set only via jobData backend
+                'context' => '123-test',
+            ],
+        ];
+        yield 'job data + configuration - partial merge' => [
+            'jobData' => [
+                'context' => '123-wlm',
+            ],
+            'configData' => [],
+            'configuration' => [
+                'runtime' => [
+                    'backend' => [
+                        'type' => 'large',
+                    ],
+                ],
+            ],
+            'expected' => [
+                'type' => 'large',
+                'containerType' => null, // container type can be set only via jobData backend
+                'context' => '123-wlm',
+            ],
+        ];
+        yield 'job data + configuration + config data - partial merge' => [
+            'jobData' => [
+                'context' => '123-wlm',
+            ],
+            'configData' => [
+                'runtime' => [
+                    'backend' => [
+                        'context' => '321-wlm',
+                    ],
+                ],
+            ],
+            'configuration' => [
+                'runtime' => [
+                    'backend' => [
+                        'type' => 'large',
+                    ],
+                ],
+            ],
+            'expected' => [
+                'type' => 'large',
+                'containerType' => null, // container type can be set only via jobData backend
+                'context' => '123-wlm',
+            ],
+        ];
+        yield 'job data + configuration + config data - partial merge + partial override' => [
+            'jobData' => [
+                'context' => '123-wlm',
+            ],
+            'configData' => [
+                'runtime' => [
+                    'backend' => [
+                        'context' => '321-wlm',
+                        'type' => 'small',
+                    ],
+                ],
+            ],
+            'configuration' => [
+                'runtime' => [
+                    'backend' => [
+                        'type' => 'large',
+                    ],
+                ],
+            ],
+            'expected' => [
+                'type' => 'small',
+                'containerType' => null, // container type can be set only via jobData backend
+                'context' => '123-wlm',
+            ],
+        ];
+        yield 'job data + configuration + config data - partial merge + full override' => [
+            'jobData' => [
+                'context' => '123-wlm',
+                'type' => 'medium',
+            ],
+            'configData' => [
+                'runtime' => [
+                    'backend' => [
+                        'context' => '321-wlm',
+                        'type' => 'small',
+                    ],
+                ],
+            ],
+            'configuration' => [
+                'runtime' => [
+                    'backend' => [
+                        'type' => 'large',
+                    ],
+                ],
+            ],
+            'expected' => [
+                'type' => 'medium',
+                'containerType' => null, // container type can be set only via jobData backend
+                'context' => '123-wlm',
+            ],
+        ];
+        yield 'configuration + config data - partial merge' => [
+            'jobData' => [],
+            'configData' => [
+                'runtime' => [
+                    'backend' => [
+                        'context' => '321-wlm',
+                    ],
+                ],
+            ],
+            'configuration' => [
+                'runtime' => [
+                    'backend' => [
+                        'type' => 'large',
+                    ],
+                ],
+            ],
+            'expected' => [
+                'type' => 'large',
+                'containerType' => null, // container type can be set only via jobData backend
+                'context' => '321-wlm',
+            ],
+        ];
+        yield 'configuration + config data - override' => [
+            'jobData' => [],
+            'configData' => [
+                'runtime' => [
+                    'backend' => [
+                        'context' => '321-wlm',
+                    ],
+                ],
+            ],
+            'configuration' => [
+                'runtime' => [
+                    'backend' => [
+                        'type' => 'large',
+                        'context' => '123-wlm',
+                    ],
+                ],
+            ],
+            'expected' => [
+                'type' => 'large',
+                'containerType' => null, // container type can be set only via jobData backend
+                'context' => '321-wlm',
+            ],
+        ];
+    }
+
+    /**
+     * @dataProvider mergeBackendsProvider
+     */
+    public function testMergeJobDataBackendWithBackendFromConfig(
+        array $jobDataBackend,
+        array $jobConfigData,
+        array $configuration,
+        array $expectedBackend
+    ): void {
+        $jobData = $this::JOB_DATA;
+        $jobData['tag'] = '1.2.3';
+        $jobData['backend'] = $jobDataBackend;
+        $jobData['configData'] = $jobConfigData;
+
+        $componentData = $this->getTestComponentData('workspace-snowflake');
+
+        $clientMock = self::createMock(Client::class);
+        $clientMock->expects(self::exactly(2))->method('apiGet')
+            ->withConsecutive(
+                ['branch/default/components/keboola.ex-db-snowflake'],
+                ['branch/default/components/keboola.ex-db-snowflake/configs/454124290']
+            )->willReturnOnConsecutiveCalls(
+                $componentData,
+                [
+                    'configuration' => $configuration,
+                ]
+            );
+        $clientWrapperMock = self::createMock(ClientWrapper::class);
+        $clientWrapperMock->method('getBranchClientIfAvailable')->willReturn($clientMock);
+        $storageClientFactoryMock = self::createMock(StorageClientPlainFactory::class);
+        $storageClientFactoryMock
+            ->expects(self::exactly(2))
+            ->method('createClientWrapper')
+            ->willReturn($clientWrapperMock);
+        $jobRuntimeResolver = new JobRuntimeResolver($storageClientFactoryMock);
+
+        self::assertSame(
+            [
+                'id' => '123456456',
+                'runId' => '123456456',
+                'configId' => '454124290',
+                'componentId' => 'keboola.ex-db-snowflake',
+                'mode' => 'run',
+                'status' => 'created',
+                'desiredStatus' => 'processing',
+                'projectId' => '123',
+                'tokenId' => '456',
+                '#tokenString' => 'KBC::ProjectSecure::token',
+                'backend' => $expectedBackend,
+                'tag' => '1.2.3',
+                'configData' => $jobData['configData'],
+                'parallelism' => null,
+                'type' => 'standard',
+                'variableValuesId' => null,
+                'variableValuesData' => [],
+            ],
+            $jobRuntimeResolver->resolveJobData($jobData, ['owner' => ['features' => []]])
+        );
     }
 }
