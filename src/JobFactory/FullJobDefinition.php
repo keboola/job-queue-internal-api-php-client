@@ -171,7 +171,7 @@ class FullJobDefinition extends NewJobDefinition
                         ->end()
                     ->end()
                     ->children()
-                        ->arrayNode('backend')
+                        ->arrayNode('backend')->ignoreExtraKeys(true)
                             ->children()
                                 ->scalarNode('size')->end()
                                 ->scalarNode('containerSize')->end()

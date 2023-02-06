@@ -74,6 +74,7 @@ class FullJobDefinitionTest extends BaseTest
                 'type' => 'large',
                 'containerType' => 'small',
                 'context' => 'wml',
+                'backendExtraKey' => 'ignored',
             ],
             'metrics' => [
                 'storage' => [
@@ -92,6 +93,7 @@ class FullJobDefinitionTest extends BaseTest
             'runnerId' => $runnerId,
         ];
         unset($data['extraKey']);
+        unset($data['backend']['backendExtraKey']);
         unset($data['metrics']['storage']['storageExtraKey']);
         unset($data['metrics']['backend']['backendExtraKey']);
         $definition = new FullJobDefinition();
