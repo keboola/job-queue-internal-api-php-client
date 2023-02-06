@@ -61,12 +61,14 @@ class NewJobDefinitionTest extends BaseTest
                 'type' => 'my',
                 'containerType' => 'his',
                 'context' => 'wml',
-                'foo' => 'bar',
+                'extraKey' => 'ignored',
             ],
             'orchestrationJobId' => '123456789',
         ];
         $definition = new NewJobDefinition();
-        self::assertSame($data, $definition->processData($data));
+        $result = $definition->processData($data);
+        unset($data['backend']['extraKey']);
+        self::assertSame($data, $result);
     }
 
     public function invalidJobProvider(): array
