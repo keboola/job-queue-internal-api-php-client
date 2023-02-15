@@ -4,12 +4,13 @@ declare(strict_types=1);
 
 namespace Keboola\JobQueueInternalClient\Tests\Result;
 
+use Keboola\Artifacts\Result;
 use Keboola\JobQueueInternalClient\Exception\ClientException;
-use Keboola\JobQueueInternalClient\Result\Artifacts;
 use Keboola\JobQueueInternalClient\Result\InputOutput\Column;
 use Keboola\JobQueueInternalClient\Result\InputOutput\ColumnCollection;
 use Keboola\JobQueueInternalClient\Result\InputOutput\Table;
 use Keboola\JobQueueInternalClient\Result\InputOutput\TableCollection;
+use Keboola\JobQueueInternalClient\Result\JobArtifacts;
 use Keboola\JobQueueInternalClient\Result\JobResult;
 use PHPUnit\Framework\TestCase;
 
@@ -45,25 +46,15 @@ class JobResultTest extends TestCase
             ->setInputTables($input)
             ->setOutputTables($output)
             ->setArtifacts(
-                (new Artifacts())
+                (new JobArtifacts())
                     ->setUploaded([
-                        [
-                            'storageFileId' => '12345',
-                        ],
-                        [
-                            'storageFileId' => '12346',
-                        ],
+                        new Result(12345),
+                        new Result(12346),
                     ])
                     ->setDownloaded([
-                        [
-                            'storageFileId' => '12345',
-                        ],
-                        [
-                            'storageFileId' => '12346',
-                        ],
-                        [
-                            'storageFileId' => '12347',
-                        ],
+                        new Result(12345),
+                        new Result(12346),
+                        new Result(12347),
                     ])
             )
         ;
