@@ -310,6 +310,7 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
 
         $resultComponentConfig = $job->getComponentConfiguration();
         self::assertSame(self::$configId1, $resultComponentConfig['id'] ?? null);
+        self::assertGreaterThan(0, count($job->getProjectFeatures()));
     }
 
     public function testGetJobParentRunId(): void

@@ -48,6 +48,7 @@
         "phpunit/phpunit": "^9.5"
     },
     "scripts": {
+        "pre-autoload-dump": "Aws\\Script\\Composer\\Composer::removeUnusedServices",
         "tests": "phpunit --coverage-clover /tmp/build-logs/clover.xml --coverage-xml=/tmp/build-logs/coverage-xml --log-junit=/tmp/build-logs/phpunit.junit.xml",
         "phpstan": "phpstan analyse --no-progress -c phpstan.neon",
         "phpcs": "phpcs --extensions=php src tests",
@@ -72,5 +73,12 @@
             "infection/extension-installer": true,
             "dealerdirect/phpcodesniffer-composer-installer": true
         }
+    },
+    "extra": {
+        "aws/aws-sdk-php": [
+            "S3",
+            "Kms",
+            "Sts"
+        ]
     }
 }

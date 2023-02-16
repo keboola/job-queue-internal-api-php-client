@@ -10,6 +10,7 @@ use Keboola\JobQueueInternalClient\JobFactory\JobInterface;
 use Keboola\JobQueueInternalClient\JobFactory\ObjectEncryptor\JobObjectEncryptor;
 use Keboola\JobQueueInternalClient\Tests\BaseTest;
 use Keboola\StorageApi\BranchAwareClient;
+use Keboola\StorageApi\Client;
 use Keboola\StorageApi\ClientException as StorageApiClientException;
 use Keboola\StorageApiBranch\ClientWrapper;
 use Keboola\StorageApiBranch\Factory\ClientOptions;
@@ -608,5 +609,63 @@ class JobTest extends BaseTest
         // not set
         $job = $this->getJob($this->jobData);
         self::assertNull($job->getRunnerId());
+    }
+
+    public function testGetProjectFeatures(): void
+    {
+        $tokenData = [
+            'owner' => [
+                'id' => 123,
+                'name' => 'dummy',
+                'features' => [
+                    'feature1',
+                    'feature2',
+                ],
+            ],
+        ];
+
+        $storageClient = $this->createMock(Client::class);
+        $storageClient->expects(self::once())
+            ->method('verifyToken')
+            ->willReturn($tokenData)
+        ;
+
+        $storageClientWrapperMock = $this->createMock(ClientWrapper::class);
+        $storageClientWrapperMock->expects(self::once())
+            ->method('getBranchClientIfAvailable')
+            ->willReturn($storageClient)
+        ;
+
+        $storageClientFactory = $this->createMock(StorageClientPlainFactory::class);
+        $storageClientFactory->expects(self::once())
+            ->method('createClientWrapper')
+            ->with(new ClientOptions(null, 'token', $this->jobData['branchId']))
+            ->willReturn($storageClientWrapperMock)
+        ;
+
+        $objectEncryptorMock = $this->createMock(JobObjectEncryptor::class);
+        $objectEncryptorMock->expects(self::once())
+            ->method('decrypt')
+            ->with(
+                'KBC::ProjectSecure::token',
+                $this->jobData['componentId'],
+                $this->jobData['projectId'],
+                $this->jobData['configId'],
+            )
+            ->willReturn('token')
+        ;
+
+        $job = new Job(
+            $objectEncryptorMock,
+            $storageClientFactory,
+            $this->jobData
+        );
+
+        $result = $job->getProjectFeatures();
+
+        self::assertSame(['feature1', 'feature2'], $result);
+
+        // fetch features again to test it's not loaded form API again
+        $job->getProjectFeatures();
     }
 }

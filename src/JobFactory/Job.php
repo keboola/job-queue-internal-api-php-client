@@ -8,7 +8,6 @@ use DateTimeImmutable;
 use DateTimeZone;
 use JsonSerializable;
 use Keboola\JobQueueInternalClient\Exception\ClientException;
-use Keboola\JobQueueInternalClient\Exception\ConfigurationNotFoundException;
 use Keboola\JobQueueInternalClient\JobFactory\ObjectEncryptor\JobObjectEncryptorInterface;
 use Keboola\JobQueueInternalClient\Result\JobMetrics;
 use Keboola\StorageApi\ClientException as StorageApiClientException;
@@ -32,6 +31,7 @@ class Job implements JsonSerializable, JobInterface
     private ?ComponentsApiClient $componentsApiClient = null;
     private ?ComponentSpecification $componentSpecification = null;
     private ?array $componentConfiguration = null;
+    private ?array $projectFeatures = null;
 
     public function __construct(
         JobObjectEncryptorInterface $objectEncryptor,
@@ -317,6 +317,18 @@ class Job implements JsonSerializable, JobInterface
         );
 
         return $this->componentsApiClient = new ComponentsApiClient($client->getBranchClientIfAvailable());
+    }
+
+    public function getProjectFeatures(): array
+    {
+        if ($this->projectFeatures !== null) {
+            return $this->projectFeatures;
+        }
+
+        $client = $this->storageClientFactory->createClientWrapper(
+            new ClientOptions(null, $this->getTokenDecrypted(), $this->getBranchId())
+        );
+        return $this->projectFeatures = $client->getBranchClientIfAvailable()->verifyToken()['owner']['features'];
     }
 
     public static function generateRunnerId(): string

@@ -126,4 +126,5 @@ interface JobInterface
     public function getComponentSpecification(): ComponentSpecification;
     public function getComponentConfiguration(): array;
     public function getOrchestrationJobId(): ?string;
+    public function getProjectFeatures(): array;
 }
