@@ -22,7 +22,7 @@ class JobResult implements JsonSerializable
     private ?TableCollection $inputTables = null;
     private ?TableCollection $outputTables = null;
 
-    private ?Artifacts $artifacts = null;
+    private ?JobArtifacts $artifacts = null;
 
     public function jsonSerialize(): array
     {
@@ -141,13 +141,13 @@ class JobResult implements JsonSerializable
         return $this->outputTables;
     }
 
-    public function setArtifacts(Artifacts $artifacts): JobResult
+    public function setArtifacts(JobArtifacts $artifacts): JobResult
     {
         $this->artifacts = $artifacts;
         return $this;
     }
 
-    public function getArtifacts(): ?Artifacts
+    public function getArtifacts(): ?JobArtifacts
     {
         return $this->artifacts;
     }

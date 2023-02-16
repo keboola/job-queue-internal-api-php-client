@@ -12,18 +12,3 @@ jobs:
         MANAGE_API_TOKEN: $(INTERNAL_API__MANAGE_TOKEN__AWS)
         AWS_SECRET_ACCESS_KEY: $(AWS_SECRET_ACCESS_KEY)
         AZURE_CLIENT_SECRET: $(AZURE_CLIENT_SECRET)
-
-  - template: ../../azure-pipelines/jobs/run-tests.yml
-    parameters:
-      jobName: tests_php74
-      displayName: Tests (PHP 7.4)
-      serviceName: ci-internal-api-php-client74
-      variables:
-        CLOUD_PROVIDER: aws
-        STORAGE_API_URL: $(STORAGE_API_URL_74__AWS)
-      secrets:
-        STORAGE_API_TOKEN: $(INTERNAL_API_PHP_CLIENT_74__STORAGE_API_TOKEN__AWS)
-        STORAGE_API_TOKEN_MASTER: $(INTERNAL_API_PHP_CLIENT_74__STORAGE_API_TOKEN_MASTER__AWS)
-        MANAGE_API_TOKEN: $(INTERNAL_API__MANAGE_TOKEN__AWS)
-        AWS_SECRET_ACCESS_KEY: $(AWS_SECRET_ACCESS_KEY)
-        AZURE_CLIENT_SECRET: $(AZURE_CLIENT_SECRET)
