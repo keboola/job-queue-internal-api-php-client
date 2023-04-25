@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Keboola\JobQueueInternalClient\JobFactory;
+namespace Keboola\JobQueueInternalClient\JobFactory\Runtime;
 
 class Backend
 {

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Keboola\JobQueueInternalClient\JobFactory;
 
 use Closure;
+use Keboola\JobQueueInternalClient\JobFactory\Runtime\Executor;
 use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
@@ -67,6 +68,9 @@ class OverridesConfigurationDefinition implements ConfigurationInterface
                                     ->beforeNormalization()->always($this->getStringNormalizer())->end()
                                 ->end()
                             ->end()
+                        ->end()
+                        ->enumNode('executor')
+                            ->values([null, ...array_map(fn(Executor $e) => $e->value, Executor::cases())])
                         ->end()
                         ->scalarNode('parallelism')
                             ->defaultNull()

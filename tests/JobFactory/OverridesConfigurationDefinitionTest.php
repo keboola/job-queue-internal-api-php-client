@@ -55,50 +55,58 @@ class OverridesConfigurationDefinitionTest extends TestCase
         self::assertSame($expected, $definition->processData($data));
     }
 
-    public function invalidConfigurationProvider(): array
+    public function invalidConfigurationProvider(): iterable
     {
-        return [
-            'Invalid Variable Values Data' => [
-                [
-                    'variableValuesData' => '5',
-                ],
-                '#Invalid type for path "overrides.variableValuesData". Expected "?array"?, but got "?string"?#',
+        // phpcs:disable Generic.Files.LineLength
+        yield 'Invalid Variable Values Data' => [
+            'jobData' => [
+                'variableValuesData' => '5',
             ],
-            'Invalid variable values ID' => [
-                [
-                    'variableValuesId' => ['123'],
-                    'runtime' => [
-                        'tag' => '1.2.3',
-                    ],
-                ],
-                '#Invalid type for path "overrides.variableValuesId". Expected "?scalar"?, but got "?array"?#',
-            ],
-            'Invalid tag' => [
-                [
-                    'runtime' => [
-                        'tag' => ['1.2.3'],
-                    ],
-                ],
-                '#Invalid type for path "overrides.runtime.tag". Expected "?scalar"?, but got "?array"?#',
-            ],
-            'Invalid backend' => [
-                [
-                    'runtime' => [
-                        'backend' => [
-                            'type' => ['weird'],
-                        ],
-                    ],
-                ],
-                '#Invalid type for path "overrides.runtime.backend.type". Expected "?scalar"?, but got "?array"?#',
-            ],
+            'message' => '#Invalid type for path "overrides.variableValuesData". Expected "?array"?, but got "?string"?#',
         ];
+
+        yield 'Invalid variable values ID' => [
+            'jobData' => [
+                'variableValuesId' => ['123'],
+                'runtime' => [
+                    'tag' => '1.2.3',
+                ],
+            ],
+            'message' => '#Invalid type for path "overrides.variableValuesId". Expected "?scalar"?, but got "?array"?#',
+        ];
+
+        yield 'Invalid tag' => [
+            'jobData' => [
+                'runtime' => [
+                    'tag' => ['1.2.3'],
+                ],
+            ],
+            'message' => '#Invalid type for path "overrides.runtime.tag". Expected "?scalar"?, but got "?array"?#',
+        ];
+
+        yield 'Invalid backend' => [
+            'jobData' => [
+                'runtime' => [
+                    'backend' => [
+                        'type' => ['weird'],
+                    ],
+                ],
+            ],
+            'message' => '#Invalid type for path "overrides.runtime.backend.type". Expected "?scalar"?, but got "?array"?#',
+        ];
+
+        yield 'Invalid executor' => [
+            'jobData' => [
+                'runtime' => [
+                    'executor' => 'foo',
+                ],
+            ],
+            'message' => '#The value "foo" is not allowed for path "overrides.runtime.executor". Permissible values: null, "dind", "k8sContainers"#',
+        ];
+        // phpcs:enable Generic.Files.LineLength
     }
 
-    /**
-     * @dataProvider invalidConfigurationProvider
-     * @param array $jobData
-     * @param string $message
-     */
+    /** @dataProvider invalidConfigurationProvider */
     public function testInvalidConfigurationOverride(array $jobData, string $message): void
     {
         self::expectException(InvalidConfigurationException::class);

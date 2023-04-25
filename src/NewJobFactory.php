@@ -82,6 +82,7 @@ class NewJobFactory extends JobFactory
             'tag' => $data['tag'] ?? null,
             'parallelism' => $data['parallelism'] ?? null,
             'backend' => $data['backend'] ?? null,
+            'executor' => $data['executor'] ?? null,
             'behavior' => $data['behavior'] ?? (new Behavior())->toDataArray(),
             'result' => [],
             'usageData' => [],

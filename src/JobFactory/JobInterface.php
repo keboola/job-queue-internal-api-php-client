@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Keboola\JobQueueInternalClient\JobFactory;
 
 use DateTimeImmutable;
+use Keboola\JobQueueInternalClient\JobFactory\Runtime\Backend;
+use Keboola\JobQueueInternalClient\JobFactory\Runtime\Executor;
 use Keboola\JobQueueInternalClient\Result\JobMetrics;
 
 interface JobInterface
@@ -107,6 +109,7 @@ interface JobInterface
     public function isFinished(): bool;
     public function getUsageData(): array;
     public function getBackend(): Backend;
+    public function getExecutor(): Executor;
     public function getType(): string;
     public function getParallelism(): ?string;
     public function getBehavior(): Behavior;

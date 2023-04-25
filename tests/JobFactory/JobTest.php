@@ -8,6 +8,7 @@ use Keboola\JobQueueInternalClient\Exception\ClientException;
 use Keboola\JobQueueInternalClient\JobFactory\Job;
 use Keboola\JobQueueInternalClient\JobFactory\JobInterface;
 use Keboola\JobQueueInternalClient\JobFactory\ObjectEncryptor\JobObjectEncryptor;
+use Keboola\JobQueueInternalClient\JobFactory\Runtime\Executor;
 use Keboola\JobQueueInternalClient\Tests\BaseTest;
 use Keboola\StorageApi\BranchAwareClient;
 use Keboola\StorageApi\Client;
@@ -230,6 +231,21 @@ class JobTest extends BaseTest
 
         $backend = $this->getJob($jobData)->getBackend();
         self::assertSame('custom', $backend->getType());
+    }
+
+    public function testGetDefaultExecutor(): void
+    {
+        $executor = $this->getJob()->getExecutor();
+        self::assertSame(Executor::DIND, $executor);
+    }
+
+    public function testGetCustomExecutor(): void
+    {
+        $jobData = $this->jobData;
+        $jobData['executor'] = Executor::K8S_CONTAINERS->value;
+
+        $executor = $this->getJob($jobData)->getExecutor();
+        self::assertSame(Executor::K8S_CONTAINERS, $executor);
     }
 
     private function getJob(?array $jobData = null): Job

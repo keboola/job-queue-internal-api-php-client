@@ -9,6 +9,8 @@ use DateTimeZone;
 use JsonSerializable;
 use Keboola\JobQueueInternalClient\Exception\ClientException;
 use Keboola\JobQueueInternalClient\JobFactory\ObjectEncryptor\JobObjectEncryptorInterface;
+use Keboola\JobQueueInternalClient\JobFactory\Runtime\Backend;
+use Keboola\JobQueueInternalClient\JobFactory\Runtime\Executor;
 use Keboola\JobQueueInternalClient\Result\JobMetrics;
 use Keboola\StorageApi\ClientException as StorageApiClientException;
 use Keboola\StorageApi\Components as ComponentsApiClient;
@@ -168,6 +170,11 @@ class Job implements JsonSerializable, JobInterface
     public function getBackend(): Backend
     {
         return Backend::fromDataArray($this->data['backend'] ?? []);
+    }
+
+    public function getExecutor(): Executor
+    {
+        return isset($this->data['executor']) ? Executor::from($this->data['executor']) : Executor::getDefault();
     }
 
     public function getType(): string

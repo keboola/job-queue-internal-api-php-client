@@ -7,6 +7,8 @@ namespace Keboola\JobQueueInternalClient\JobFactory;
 use Keboola\JobQueueInternalClient\Exception\ClientException;
 use Keboola\JobQueueInternalClient\Exception\ConfigurationDisabledException;
 use Keboola\JobQueueInternalClient\JobFactory;
+use Keboola\JobQueueInternalClient\JobFactory\Runtime\Backend;
+use Keboola\JobQueueInternalClient\JobFactory\Runtime\Executor;
 use Keboola\StorageApi\ClientException as StorageClientException;
 use Keboola\StorageApi\Components;
 use Keboola\StorageApiBranch\Factory\ClientOptions;
@@ -45,8 +47,11 @@ class JobRuntimeResolver
             $jobData['tag'] = $this->resolveTag($jobData);
             $variableValues = $this->resolveVariables();
             $jobData['parallelism'] = $this->resolveParallelism($jobData);
+            $jobData['executor'] = $this->resolveExecutor($jobData)->value;
+
             // set type after resolving parallelism
             $jobData['type'] = $this->resolveJobType($jobData);
+
             // set backend after resolving type
             $jobData['backend'] = $this->resolveBackend($jobData, $tokenInfo)->toDataArray();
 
@@ -283,5 +288,16 @@ class JobRuntimeResolver
             }
         }
         return JobInterface::TYPE_STANDARD;
+    }
+
+    private function resolveExecutor(array $jobData): Executor
+    {
+        $value = $jobData['executor'] ??
+            $this->getConfigData()['runtime']['executor'] ??
+            $this->getConfiguration()['runtime']['executor'] ??
+            Executor::getDefault()->value
+        ;
+
+        return Executor::from($value);
     }
 }
