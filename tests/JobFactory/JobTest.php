@@ -355,6 +355,55 @@ class JobTest extends BaseTest
         self::assertEquals('decrypted-token-123', $decryptedToken);
     }
 
+    public function testCacheDecryptedComponentConfig(): void
+    {
+        $componentData = [
+            'id' => 'test',
+            'data' => [
+                'definition' => [
+                    'uri' => 'some-uri',
+                    'type' => 'aws-ecr',
+                ],
+            ],
+        ];
+
+        // expect 2 calls - one for token, one for component config
+        $objectEncryptorMock = $this->createMock(JobObjectEncryptor::class);
+        $objectEncryptorMock->expects(self::exactly(2))
+            ->method('decrypt')
+            ->willReturnArgument(0)
+        ;
+
+        $storageApiClientMock = $this->createMock(BranchAwareClient::class);
+        $storageApiClientMock
+            ->method('apiGet')
+            ->willReturn($componentData)
+        ;
+
+        $storageApiClientWrapperMock = $this->createMock(ClientWrapper::class);
+        $storageApiClientWrapperMock->expects(self::once())
+            ->method('getBranchClientIfAvailable')
+            ->willReturn($storageApiClientMock)
+        ;
+
+        $storageClientFactoryMock = $this->createMock(StorageClientPlainFactory::class);
+        $storageClientFactoryMock->expects(self::once())
+            ->method('createClientWrapper')
+            ->with(new ClientOptions(null, 'KBC::ProjectSecure::token', '987'))
+            ->willReturn($storageApiClientWrapperMock)
+        ;
+
+        $job = new Job($objectEncryptorMock, $storageClientFactoryMock, $this->jobData);
+
+        // first call - calls the Encryptor API (mock)
+        $configDecrypted = $job->getComponentConfigurationDecrypted();
+        self::assertSame($componentData, $configDecrypted);
+
+        // second call - should be cached
+        $configDecrypted = $job->getComponentConfigurationDecrypted();
+        self::assertSame($componentData, $configDecrypted);
+    }
+
     public function testCacheDecryptedConfigData(): void
     {
         $expectedConfigData = [

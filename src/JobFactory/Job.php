@@ -26,6 +26,7 @@ class Job implements JsonSerializable, JobInterface
     private ?DateTimeImmutable $endTime;
     private ?DateTimeImmutable $startTime;
     private ?string $tokenDecrypted = null;
+    private ?array $componentConfigurationDecrypted = null;
     private ?array $configDataDecrypted = null;
 
     private ?ComponentsApiClient $componentsApiClient = null;
@@ -201,13 +202,31 @@ class Job implements JsonSerializable, JobInterface
         );
     }
 
+    public function getComponentConfigurationDecrypted(): ?array
+    {
+        if ($this->getConfigId() === null) {
+            return null;
+        }
+
+        if ($this->componentConfigurationDecrypted !== null) {
+            return $this->componentConfiguration;
+        }
+
+        return $this->componentConfigurationDecrypted = $this->objectEncryptor->decrypt(
+            $this->getComponentConfiguration(),
+            $this->getComponentId(),
+            $this->getProjectId(),
+            $this->getConfigId(),
+        );
+    }
+
     public function getConfigDataDecrypted(): array
     {
         return $this->configDataDecrypted ??= $this->objectEncryptor->decrypt(
             $this->getConfigData(),
             $this->getComponentId(),
             $this->getProjectId(),
-            $this->getConfigId()
+            $this->getConfigId(),
         );
     }
 

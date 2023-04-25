@@ -112,6 +112,7 @@ interface JobInterface
     public function getBehavior(): Behavior;
     public function jsonSerialize(): array;
     public function getTokenDecrypted(): string;
+    public function getComponentConfigurationDecrypted(): ?array;
     public function getConfigDataDecrypted(): array;
     public function getBranchId(): ?string;
     public function getVariableValuesId(): ?string;
