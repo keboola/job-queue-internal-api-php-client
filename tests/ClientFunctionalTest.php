@@ -88,8 +88,8 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
     }
 
     /**
-     * @param string $kmsKeyId
-     * @param string $keyVaultUrl
+     * @param non-empty-string $kmsKeyId
+     * @param non-empty-string $keyVaultUrl
      * @param string $cipherPrefix
      * @dataProvider cipherProvider
      */
@@ -168,8 +168,8 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
     }
 
     /**
-     * @param string $kmsKeyId
-     * @param string $keyVaultUrl
+     * @param non-empty-string $kmsKeyId
+     * @param non-empty-string $keyVaultUrl
      * @param string $cipherPrefix
      * @dataProvider cipherProvider
      */

@@ -24,21 +24,28 @@ use Symfony\Component\Validator\Validation;
 
 abstract class BaseClientFunctionalTest extends BaseTest
 {
+    use TestEnvVarsTrait;
+    use EncryptorOptionsTest;
+
     public function setUp(): void
     {
         parent::setUp();
-        putenv('AWS_ACCESS_KEY_ID=' . getenv('TEST_AWS_ACCESS_KEY_ID'));
-        putenv('AWS_SECRET_ACCESS_KEY=' . getenv('TEST_AWS_SECRET_ACCESS_KEY'));
-        putenv('AZURE_TENANT_ID=' . getenv('TEST_AZURE_TENANT_ID'));
-        putenv('AZURE_CLIENT_ID=' . getenv('TEST_AZURE_CLIENT_ID'));
-        putenv('AZURE_CLIENT_SECRET=' . getenv('TEST_AZURE_CLIENT_SECRET'));
+        putenv('AWS_ACCESS_KEY_ID=' . self::getRequiredEnv('TEST_AWS_ACCESS_KEY_ID'));
+        putenv('AWS_SECRET_ACCESS_KEY=' . self::getRequiredEnv('TEST_AWS_SECRET_ACCESS_KEY'));
+        putenv('AZURE_TENANT_ID=' . self::getRequiredEnv('TEST_AZURE_TENANT_ID'));
+        putenv('AZURE_CLIENT_ID=' . self::getRequiredEnv('TEST_AZURE_CLIENT_ID'));
+        putenv('AZURE_CLIENT_SECRET=' . self::getRequiredEnv('TEST_AZURE_CLIENT_SECRET'));
         $this->cleanJobs();
     }
 
+    /**
+     * @param non-empty-string|null $kmsKeyId
+     * @param non-empty-string|null $keyVaultUrl
+     */
     protected function getNewJobFactory(?string $kmsKeyId = null, ?string $keyVaultUrl = null): NewJobFactory
     {
         $storageClientFactory = new StorageClientPlainFactory(new ClientOptions(
-            (string) getenv('TEST_STORAGE_API_URL')
+            self::getRequiredEnv('TEST_STORAGE_API_URL')
         ));
 
         $objectEncryptorProvider = $this->getObjectEncryptorProvider($kmsKeyId, $keyVaultUrl);
@@ -50,10 +57,14 @@ abstract class BaseClientFunctionalTest extends BaseTest
         );
     }
 
+    /**
+     * @param non-empty-string|null $kmsKeyId
+     * @param non-empty-string|null $keyVaultUrl
+     */
     protected function getClient(?string $kmsKeyId = null, ?string $keyVaultUrl = null): Client
     {
         $storageClientFactory = new StorageClientPlainFactory(new ClientOptions(
-            (string) getenv('TEST_STORAGE_API_URL')
+            self::getRequiredEnv('TEST_STORAGE_API_URL')
         ));
 
         $objectEncryptorProvider = $this->getObjectEncryptorProvider($kmsKeyId, $keyVaultUrl);
@@ -66,8 +77,8 @@ abstract class BaseClientFunctionalTest extends BaseTest
         return new Client(
             new NullLogger(),
             $existingJobFactory,
-            (string) getenv('TEST_QUEUE_API_URL'),
-            (string) getenv('TEST_QUEUE_API_TOKEN'),
+            self::getRequiredEnv('TEST_QUEUE_API_URL'),
+            self::getRequiredEnv('TEST_QUEUE_API_TOKEN'),
             null,
         );
     }
@@ -83,34 +94,41 @@ abstract class BaseClientFunctionalTest extends BaseTest
         }
     }
 
+    /**
+     * @param non-empty-string|null $kmsKeyId
+     * @param non-empty-string|null $keyVaultUrl
+     */
     private function getObjectEncryptorProvider(
         ?string $kmsKeyId,
         ?string $keyVaultUrl
     ): DataPlaneObjectEncryptorProvider {
+        $stackId = self::getRequiredEnv('TEST_STORAGE_API_URL');
+        self::assertNotEmpty($stackId);
+
         $controlPlaneObjectEncryptor = ObjectEncryptorFactory::getEncryptor(
             new EncryptorOptions(
-                (string) parse_url((string) getenv('TEST_STORAGE_API_URL'), PHP_URL_HOST),
-                $kmsKeyId ?? (string) getenv('TEST_KMS_KEY_ID'),
-                (string) getenv('TEST_KMS_REGION'),
+                $stackId,
+                $kmsKeyId ?? self::getRequiredEnv('TEST_KMS_KEY_ID'),
+                self::getRequiredEnv('TEST_KMS_REGION'),
                 null,
-                $keyVaultUrl ?? (string) getenv('TEST_AZURE_KEY_VAULT_URL'),
+                $keyVaultUrl ?? self::getRequiredEnv('TEST_AZURE_KEY_VAULT_URL'),
             )
         );
 
         $dataPlaneConfigRepository = new DataPlaneConfigRepository(
             new ManageApiClient([
-                'url' => (string) getenv('TEST_STORAGE_API_URL'),
-                'token' => (string) getenv('TEST_MANAGE_API_TOKEN'),
+                'url' => self::getRequiredEnv('TEST_STORAGE_API_URL'),
+                'token' => '',
             ]),
             new DataPlaneConfigValidator(Validation::createValidator()),
-            (string) parse_url((string) getenv('TEST_STORAGE_API_URL'), PHP_URL_HOST),
-            (string) getenv('TEST_KMS_REGION'),
+            $stackId,
+            self::getRequiredEnv('TEST_KMS_REGION'),
         );
 
         return new DataPlaneObjectEncryptorProvider(
             $controlPlaneObjectEncryptor,
             $dataPlaneConfigRepository,
-            getenv('SUPPORTS_DATA_PLANE') === 'true',
+            self::getOptionalEnv('SUPPORTS_DATA_PLANE') === 'true',
         );
     }
 }

@@ -30,8 +30,8 @@ class DataPlaneConfigValidator
      *     },
      *     encryption: array{
      *         type: 'aws',
-     *         kmsKeyId: string,
-     *         kmsRoleArn: string,
+     *         kmsKeyId: non-empty-string,
+     *         kmsRoleArn: non-empty-string,
      *     },
      * }
      */
