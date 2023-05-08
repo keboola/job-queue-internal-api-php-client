@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Keboola\JobQueueInternalClient\Tests\JobFactory;
+namespace Keboola\JobQueueInternalClient\Tests\JobFactory\Runtime;
 
-use Keboola\JobQueueInternalClient\JobFactory\Backend;
+use Keboola\JobQueueInternalClient\JobFactory\Runtime\Backend;
 use PHPUnit\Framework\TestCase;
 
 class BackendTest extends TestCase

@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Keboola\JobQueueInternalClient\Tests\JobFactory\ObjectEncryptorProvider;
 
 use Keboola\JobQueueInternalClient\JobFactory\ObjectEncryptorProvider\GenericObjectEncryptorProvider;
-use Keboola\ObjectEncryptor\EncryptorOptions;
 use Keboola\ObjectEncryptor\ObjectEncryptor;
 use PHPUnit\Framework\TestCase;
 

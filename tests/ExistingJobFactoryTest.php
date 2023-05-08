@@ -23,6 +23,9 @@ use RuntimeException;
 
 class ExistingJobFactoryTest extends BaseTest
 {
+    use TestEnvVarsTrait;
+    use EncryptorOptionsTest;
+
     private static string $configId1;
     private const COMPONENT_ID_1 = 'keboola.runner-config-test';
     private static Client $client;
@@ -33,8 +36,8 @@ class ExistingJobFactoryTest extends BaseTest
         parent::setUpBeforeClass();
         self::$client = new Client(
             [
-                'token' => (string) getenv('TEST_STORAGE_API_TOKEN'),
-                'url' => (string) getenv('TEST_STORAGE_API_URL'),
+                'token' => self::getRequiredEnv('TEST_STORAGE_API_TOKEN'),
+                'url' => self::getRequiredEnv('TEST_STORAGE_API_URL'),
             ]
         );
 
@@ -60,26 +63,20 @@ class ExistingJobFactoryTest extends BaseTest
     public function setUp(): void
     {
         parent::setUp();
-        putenv('AWS_ACCESS_KEY_ID=' . getenv('TEST_AWS_ACCESS_KEY_ID'));
-        putenv('AWS_SECRET_ACCESS_KEY=' . getenv('TEST_AWS_SECRET_ACCESS_KEY'));
-        putenv('AZURE_TENANT_ID=' . getenv('TEST_AZURE_TENANT_ID'));
-        putenv('AZURE_CLIENT_ID=' . getenv('TEST_AZURE_CLIENT_ID'));
-        putenv('AZURE_CLIENT_SECRET=' . getenv('TEST_AZURE_CLIENT_SECRET'));
+        putenv('AWS_ACCESS_KEY_ID=' . self::getRequiredEnv('TEST_AWS_ACCESS_KEY_ID'));
+        putenv('AWS_SECRET_ACCESS_KEY=' . self::getRequiredEnv('TEST_AWS_SECRET_ACCESS_KEY'));
+        putenv('AZURE_TENANT_ID=' . self::getRequiredEnv('TEST_AZURE_TENANT_ID'));
+        putenv('AZURE_CLIENT_ID=' . self::getRequiredEnv('TEST_AZURE_CLIENT_ID'));
+        putenv('AZURE_CLIENT_SECRET=' . self::getRequiredEnv('TEST_AZURE_CLIENT_SECRET'));
     }
 
     private function getJobFactoryWithoutDataPlaneSupport(): array
     {
         $storageClientFactory = new StorageClientPlainFactory(new ClientOptions(
-            (string) getenv('TEST_STORAGE_API_URL')
+            self::getRequiredEnv('TEST_STORAGE_API_URL')
         ));
 
-        $objectEncryptor = ObjectEncryptorFactory::getEncryptor(new EncryptorOptions(
-            (string) parse_url((string) getenv('TEST_STORAGE_API_URL'), PHP_URL_HOST),
-            (string) getenv('TEST_KMS_KEY_ID'),
-            (string) getenv('TEST_KMS_REGION'),
-            null,
-            (string) getenv('TEST_AZURE_KEY_VAULT_URL'),
-        ));
+        $objectEncryptor = ObjectEncryptorFactory::getEncryptor(self::getEncryptorOptions());
 
         $dataPlaneConfigRepository = $this->createMock(DataPlaneConfigRepository::class);
         $dataPlaneConfigRepository->expects(self::never())->method(self::anything());
@@ -101,23 +98,17 @@ class ExistingJobFactoryTest extends BaseTest
     private function getJobFactoryWithDataPlaneSupport(bool $projectHasDataPlane): array
     {
         $storageClientFactory = new StorageClientPlainFactory(new ClientOptions(
-            (string) getenv('TEST_STORAGE_API_URL')
+            self::getRequiredEnv('TEST_STORAGE_API_URL')
         ));
 
-        $controlPlaneObjectEncryptor = ObjectEncryptorFactory::getEncryptor(new EncryptorOptions(
-            (string) parse_url((string) getenv('TEST_STORAGE_API_URL'), PHP_URL_HOST),
-            (string) getenv('TEST_KMS_KEY_ID'),
-            (string) getenv('TEST_KMS_REGION'),
-            null,
-            (string) getenv('TEST_AZURE_KEY_VAULT_URL'),
-        ));
+        $controlPlaneObjectEncryptor = ObjectEncryptorFactory::getEncryptor(self::getEncryptorOptions());
 
         $dataPlaneObjectEncryptor = ObjectEncryptorFactory::getEncryptor(new EncryptorOptions(
             'custom-value',
-            (string) getenv('TEST_KMS_KEY_ID'),
-            (string) getenv('TEST_KMS_REGION'),
+            self::getRequiredEnv('TEST_KMS_KEY_ID'),
+            self::getRequiredEnv('TEST_KMS_REGION'),
             null,
-            (string) getenv('TEST_AZURE_KEY_VAULT_URL'),
+            self::getRequiredEnv('TEST_AZURE_KEY_VAULT_URL'),
         ));
 
         $dataPlaneConfigRepository = $this->createMock(DataPlaneConfigRepository::class);
@@ -171,7 +162,7 @@ class ExistingJobFactoryTest extends BaseTest
             'mode' => 'run',
             'projectId' => '219',
             'tokenId' => '12345',
-            '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+            '#tokenString' => self::getRequiredEnv('TEST_STORAGE_API_TOKEN'),
         ];
 
         [$factory] = $this->getJobFactoryWithoutDataPlaneSupport();
@@ -194,7 +185,7 @@ class ExistingJobFactoryTest extends BaseTest
             'tokenId' => '1234',
             'status' => JobInterface::STATUS_CREATED,
             'desiredStatus' => JobInterface::DESIRED_STATUS_PROCESSING,
-            '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+            '#tokenString' => self::getRequiredEnv('TEST_STORAGE_API_TOKEN'),
             'configId' => self::$configId1,
             'configData' => [
                 '#foo1' => $objectEncryptor->encryptForProject(
@@ -244,7 +235,7 @@ class ExistingJobFactoryTest extends BaseTest
             'tokenId' => '1234',
             'status' => JobInterface::STATUS_CREATED,
             'desiredStatus' => JobInterface::DESIRED_STATUS_PROCESSING,
-            '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+            '#tokenString' => self::getRequiredEnv('TEST_STORAGE_API_TOKEN'),
             'configId' => self::$configId1,
             'configData' => [
                 '#foo1' => $dataPlaneObjectEncryptor->encryptForProject(
@@ -269,7 +260,7 @@ class ExistingJobFactoryTest extends BaseTest
         $job = $factory->loadFromExistingJobData($data);
         self::assertNotEmpty($job->getId());
         self::assertSame(self::$configId1, $job->getConfigId());
-        self::assertSame(getenv('TEST_STORAGE_API_TOKEN'), $job->getTokenString());
+        self::assertSame(self::getRequiredEnv('TEST_STORAGE_API_TOKEN'), $job->getTokenString());
 
         self::assertStringStartsWith('KBC::ProjectSecure', $job->getConfigData()['#foo1']);
         self::assertStringStartsWith('KBC::ComponentSecure', $job->getConfigData()['#foo2']);
@@ -296,7 +287,7 @@ class ExistingJobFactoryTest extends BaseTest
             'tokenId' => '1234',
             'status' => JobInterface::STATUS_CREATED,
             'desiredStatus' => JobInterface::DESIRED_STATUS_PROCESSING,
-            '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+            '#tokenString' => self::getRequiredEnv('TEST_STORAGE_API_TOKEN'),
             'configId' => self::$configId1,
             'configData' => [
                 '#foo1' => $controlPlaneObjectEncryptor->encryptForProject(

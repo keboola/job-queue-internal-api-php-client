@@ -16,14 +16,22 @@ class DataPlaneConfigRepository
 {
     private ManageApiClient $manageApiClient;
     private DataPlaneConfigValidator $configValidator;
-    private string $stackId;
-    private string $kmsRegion;
 
+    /** @var non-empty-string */
+    private string $stackId;
+
+    /** @var non-empty-string|null  */
+    private ?string $kmsRegion;
+
+    /**
+     * @param non-empty-string      $stackId
+     * @param non-empty-string|null $kmsRegion
+     */
     public function __construct(
         ManageApiClient $manageApiClient,
         DataPlaneConfigValidator $configValidator,
         string $stackId,
-        string $kmsRegion
+        ?string $kmsRegion
     ) {
         $this->manageApiClient = $manageApiClient;
         $this->configValidator = $configValidator;
@@ -102,6 +110,10 @@ class DataPlaneConfigRepository
         $encryptionData = $data['encryption'];
         switch ($encryptionData['type']) {
             case DataPlaneConfigValidator::ENCRYPTION_TYPE_AWS:
+                if ($this->kmsRegion === null) {
+                    throw new RuntimeException('Can\'t create AWS encryption config, the KMS region is not set.');
+                }
+
                 $encryptionConfig = new AwsEncryptionConfig(
                     $this->stackId,
                     $this->kmsRegion,

@@ -207,6 +207,7 @@ class JobRuntimeResolverTest extends TestCase
                     ],
                 ],
                 'parallelism' => '5',
+                'executor' => 'dind',
                 'type' => 'container',
                 'variableValuesId' => null,
             ],
@@ -287,6 +288,7 @@ class JobRuntimeResolverTest extends TestCase
                 ],
                 'tag' => '3.2.1',
                 'parallelism' => '5',
+                'executor' => 'dind',
                 'type' => 'container',
                 'variableValuesId' => '123',
                 'variableValuesData' => [],
@@ -368,6 +370,7 @@ class JobRuntimeResolverTest extends TestCase
                 ],
                 'tag' => '4.5.6',
                 'parallelism' => '5',
+                'executor' => 'dind',
                 'type' => 'container',
                 'variableValuesId' => null,
                 'variableValuesData' => [
@@ -445,6 +448,7 @@ class JobRuntimeResolverTest extends TestCase
                 ],
                 'tag' => '4.5.6',
                 'parallelism' => '5',
+                'executor' => 'dind',
                 'type' => 'container',
                 'variableValuesId' => null,
                 'variableValuesData' => [],
@@ -535,6 +539,7 @@ class JobRuntimeResolverTest extends TestCase
                 ],
                 'tag' => '4.5.6',
                 'parallelism' => '0',
+                'executor' => 'dind',
                 'type' => 'standard',
                 'variableValuesData' => [],
             ],
@@ -590,12 +595,148 @@ class JobRuntimeResolverTest extends TestCase
                 ],
                 'tag' => '9.9.9',
                 'parallelism' => null,
+                'executor' => 'dind',
                 'type' => 'standard',
                 'variableValuesId' => null,
                 'variableValuesData' => [],
             ],
             $jobRuntimeResolver->resolveJobData($jobData, [])
         );
+    }
+
+    /** @dataProvider provideExecutorResolutionTestData */
+    public function testResolveExecutor(
+        array $configuration,
+        array $configData,
+        array $jobData,
+        string $expectedResult
+    ): void {
+        $jobData = array_merge(self::JOB_DATA, $jobData);
+        $jobData['configData'] = $configData;
+
+        $storageApiClient = self::createMock(Client::class);
+        $storageApiClient->expects(self::exactly(2))
+            ->method('apiGet')
+            ->with(self::callback(function (...$args) {
+                static $expectedArgs = [
+                    ['branch/default/components/keboola.ex-db-snowflake'],
+                    ['branch/default/components/keboola.ex-db-snowflake/configs/454124290'],
+                ];
+
+                return count($expectedArgs) > 0 && $args === array_shift($expectedArgs);
+            }))
+            ->willReturnOnConsecutiveCalls(
+                $this->getTestExtractorComponentData(),
+                $configuration,
+            )
+        ;
+
+        $storageApiClientWrapper = self::createMock(ClientWrapper::class);
+        $storageApiClientWrapper->method('getBranchClientIfAvailable')->willReturn($storageApiClient);
+
+        $storageClientFactory = self::createMock(StorageClientPlainFactory::class);
+        $storageClientFactory
+            ->expects(self::exactly(2))
+            ->method('createClientWrapper')
+            ->willReturn($storageApiClientWrapper)
+        ;
+
+        $jobRuntimeResolver = new JobRuntimeResolver($storageClientFactory);
+        $actualResolvedData = $jobRuntimeResolver->resolveJobData($jobData, []);
+
+        $expectedResolvedData = [
+            'id' => '123456456',
+            'runId' => '123456456',
+            'configId' => '454124290',
+            'componentId' => 'keboola.ex-db-snowflake',
+            'mode' => 'run',
+            'status' => 'created',
+            'desiredStatus' => 'processing',
+            'projectId' => '123',
+            'tokenId' => '456',
+            '#tokenString' => 'KBC::ProjectSecure::token',
+            'backend' => [
+                'type' => null,
+                'containerType' => null,
+                'context' => '123-extractor',
+            ],
+            'configData' => $configData,
+            'tag' => '9.9.9',
+            'parallelism' => null,
+            'executor' => $expectedResult,
+            'type' => 'standard',
+            'variableValuesId' => null,
+            'variableValuesData' => [],
+        ];
+
+        ksort($actualResolvedData);
+        ksort($expectedResolvedData);
+
+        self::assertSame($expectedResolvedData, $actualResolvedData);
+    }
+
+    public function provideExecutorResolutionTestData(): iterable
+    {
+        yield 'no executor' => [
+            'config' => [
+                'id' => '454124290',
+            ],
+            'configData' => [],
+            'jobData' => [],
+            'result' => 'dind',
+        ];
+
+        yield 'executor in config' => [
+            'config' => [
+                'id' => '454124290',
+                'configuration' => [
+                    'runtime' => [
+                        'executor' => 'k8sContainers',
+                    ],
+                ],
+            ],
+            'configData' => [],
+            'jobData' => [],
+            'result' => 'k8sContainers',
+        ];
+
+        yield 'executor in config data' => [
+            'config' => [
+                'id' => '454124290',
+                'configuration' => [
+                    'runtime' => [
+                        'executor' => 'dind',
+                    ],
+                ],
+            ],
+            'configData' => [
+                'runtime' => [
+                    'executor' => 'k8sContainers',
+                ],
+            ],
+            'jobData' => [],
+            'result' => 'k8sContainers',
+        ];
+
+        yield 'executor in job data' => [
+            'config' => [
+                'id' => '454124290',
+                'configuration' => [
+                    'runtime' => [
+                        'executor' => 'dind',
+                    ],
+                ],
+            ],
+            'configData' => [
+                'runtime' => [
+                    'executor' => 'dind',
+                ],
+            ],
+            'jobData' => [
+                'executor' => 'k8sContainers',
+            ],
+            'result' => 'k8sContainers',
+        ];
     }
 
     public function testResolveInvalidConfigurationFailsWithClientException(): void
@@ -697,6 +838,7 @@ class JobRuntimeResolverTest extends TestCase
                 ],
                 'tag' => '9.9.9',
                 'parallelism' => null,
+                'executor' => 'dind',
                 'type' => 'standard',
                 'variableValuesId' => null,
                 'variableValuesData' => [],
@@ -744,6 +886,7 @@ class JobRuntimeResolverTest extends TestCase
                 ],
                 'tag' => '9.9.9',
                 'parallelism' => null,
+                'executor' => 'dind',
                 'type' => 'standard',
                 'variableValuesId' => null,
                 'variableValuesData' => [],
@@ -795,6 +938,7 @@ class JobRuntimeResolverTest extends TestCase
                 ],
                 'tag' => '9.9.9',
                 'parallelism' => null,
+                'executor' => 'dind',
                 'type' => 'standard',
                 'variableValuesId' => null,
                 'variableValuesData' => [],
@@ -947,6 +1091,7 @@ class JobRuntimeResolverTest extends TestCase
                 'branchId' => 'dev-branch',
                 'tag' => '4.5.6',
                 'parallelism' => '5',
+                'executor' => 'dind',
                 'type' => 'container',
                 'variableValuesId' => null,
                 'variableValuesData' => [
@@ -1069,6 +1214,7 @@ class JobRuntimeResolverTest extends TestCase
                     ],
                 ],
                 'parallelism' => '5',
+                'executor' => 'dind',
                 'type' => 'container',
                 'variableValuesId' => null,
             ],
@@ -1606,6 +1752,7 @@ class JobRuntimeResolverTest extends TestCase
                 'tag' => '1.2.3',
                 'configData' => $jobData['configData'],
                 'parallelism' => null,
+                'executor' => 'dind',
                 'type' => 'standard',
                 'variableValuesId' => null,
                 'variableValuesData' => [],

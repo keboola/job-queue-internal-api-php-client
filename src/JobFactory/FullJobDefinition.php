@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Keboola\JobQueueInternalClient\JobFactory;
 
 use Closure;
+use Keboola\JobQueueInternalClient\JobFactory\Runtime\Executor;
 use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 
@@ -158,6 +159,9 @@ class FullJobDefinition extends NewJobDefinition
                         ->scalarNode('containerType')->end()
                         ->scalarNode('context')->end()
                     ->end()
+                ->end()
+                ->enumNode('executor')
+                    ->values([null, ...array_map(fn(Executor $e) => $e->value, Executor::cases())])
                 ->end()
                 ->arrayNode('metrics')->ignoreExtraKeys(true)
                     ->children()

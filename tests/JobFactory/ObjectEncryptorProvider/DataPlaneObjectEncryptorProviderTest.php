@@ -150,7 +150,7 @@ class DataPlaneObjectEncryptorProviderTest extends TestCase
         $dataPlaneConfig = new DataPlaneConfig(
             'dataPlaneId',
             new KubernetesConfig('', '', '', ''),
-            new AwsEncryptionConfig('stackId', 'kmsId', '', ''),
+            new AwsEncryptionConfig('stackId', 'kmsRegion', 'kmsId', null),
         );
 
         $dataPlaneConfigRepository = $this->createMock(DataPlaneConfigRepository::class);
@@ -282,7 +282,7 @@ class DataPlaneObjectEncryptorProviderTest extends TestCase
         $dataPlaneConfig = new DataPlaneConfig(
             'dataPlaneId',
             new KubernetesConfig('', '', '', ''),
-            new AwsEncryptionConfig('stackId', 'kmsKeyId', '', '')
+            new AwsEncryptionConfig('stackId', 'kmsRegion', 'kmsKeyId', null)
         );
 
         $dataPlaneConfigRepository = $this->createMock(DataPlaneConfigRepository::class);

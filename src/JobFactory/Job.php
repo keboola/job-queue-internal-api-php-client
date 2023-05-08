@@ -9,6 +9,8 @@ use DateTimeZone;
 use JsonSerializable;
 use Keboola\JobQueueInternalClient\Exception\ClientException;
 use Keboola\JobQueueInternalClient\JobFactory\ObjectEncryptor\JobObjectEncryptorInterface;
+use Keboola\JobQueueInternalClient\JobFactory\Runtime\Backend;
+use Keboola\JobQueueInternalClient\JobFactory\Runtime\Executor;
 use Keboola\JobQueueInternalClient\Result\JobMetrics;
 use Keboola\StorageApi\ClientException as StorageApiClientException;
 use Keboola\StorageApi\Components as ComponentsApiClient;
@@ -26,6 +28,7 @@ class Job implements JsonSerializable, JobInterface
     private ?DateTimeImmutable $endTime;
     private ?DateTimeImmutable $startTime;
     private ?string $tokenDecrypted = null;
+    private ?array $componentConfigurationDecrypted = null;
     private ?array $configDataDecrypted = null;
 
     private ?ComponentsApiClient $componentsApiClient = null;
@@ -169,6 +172,11 @@ class Job implements JsonSerializable, JobInterface
         return Backend::fromDataArray($this->data['backend'] ?? []);
     }
 
+    public function getExecutor(): Executor
+    {
+        return isset($this->data['executor']) ? Executor::from($this->data['executor']) : Executor::getDefault();
+    }
+
     public function getType(): string
     {
         return $this->data['type'] ?? JobInterface::TYPE_STANDARD;
@@ -201,13 +209,31 @@ class Job implements JsonSerializable, JobInterface
         );
     }
 
+    public function getComponentConfigurationDecrypted(): ?array
+    {
+        if ($this->getConfigId() === null) {
+            return null;
+        }
+
+        if ($this->componentConfigurationDecrypted !== null) {
+            return $this->componentConfiguration;
+        }
+
+        return $this->componentConfigurationDecrypted = $this->objectEncryptor->decrypt(
+            $this->getComponentConfiguration(),
+            $this->getComponentId(),
+            $this->getProjectId(),
+            $this->getConfigId(),
+        );
+    }
+
     public function getConfigDataDecrypted(): array
     {
         return $this->configDataDecrypted ??= $this->objectEncryptor->decrypt(
             $this->getConfigData(),
             $this->getComponentId(),
             $this->getProjectId(),
-            $this->getConfigId()
+            $this->getConfigId(),
         );
     }
 

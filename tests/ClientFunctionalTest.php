@@ -88,8 +88,8 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
     }
 
     /**
-     * @param string $kmsKeyId
-     * @param string $keyVaultUrl
+     * @param non-empty-string $kmsKeyId
+     * @param non-empty-string $keyVaultUrl
      * @param string $cipherPrefix
      * @dataProvider cipherProvider
      */
@@ -162,13 +162,14 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
             'orchestrationJobId' => '123456789',
             'dataPlaneId' => null,
             'runnerId' => null,
+            'executor' => 'dind',
         ];
         self::assertEquals($expected, $response);
     }
 
     /**
-     * @param string $kmsKeyId
-     * @param string $keyVaultUrl
+     * @param non-empty-string $kmsKeyId
+     * @param non-empty-string $keyVaultUrl
      * @param string $cipherPrefix
      * @dataProvider cipherProvider
      */
@@ -266,6 +267,7 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
                 'orchestrationJobId' => $expectedOrchestraionId,
                 'dataPlaneId' => null,
                 'runnerId' => null,
+                'executor' => 'dind',
             ];
             self::assertEquals($expected, $responseJobJson);
         }

@@ -8,6 +8,7 @@ use Keboola\JobQueueInternalClient\Exception\ClientException;
 use Keboola\JobQueueInternalClient\JobFactory\Job;
 use Keboola\JobQueueInternalClient\JobFactory\JobInterface;
 use Keboola\JobQueueInternalClient\JobFactory\ObjectEncryptor\JobObjectEncryptor;
+use Keboola\JobQueueInternalClient\JobFactory\Runtime\Executor;
 use Keboola\JobQueueInternalClient\Tests\BaseTest;
 use Keboola\StorageApi\BranchAwareClient;
 use Keboola\StorageApi\Client;
@@ -232,6 +233,21 @@ class JobTest extends BaseTest
         self::assertSame('custom', $backend->getType());
     }
 
+    public function testGetDefaultExecutor(): void
+    {
+        $executor = $this->getJob()->getExecutor();
+        self::assertSame(Executor::DIND, $executor);
+    }
+
+    public function testGetCustomExecutor(): void
+    {
+        $jobData = $this->jobData;
+        $jobData['executor'] = Executor::K8S_CONTAINERS->value;
+
+        $executor = $this->getJob($jobData)->getExecutor();
+        self::assertSame(Executor::K8S_CONTAINERS, $executor);
+    }
+
     private function getJob(?array $jobData = null): Job
     {
         $objectEncryptorMock = $this->createMock(JobObjectEncryptor::class);
@@ -353,6 +369,55 @@ class JobTest extends BaseTest
         // second call - should be cached
         $decryptedToken = $job->getTokenDecrypted();
         self::assertEquals('decrypted-token-123', $decryptedToken);
+    }
+
+    public function testCacheDecryptedComponentConfig(): void
+    {
+        $componentData = [
+            'id' => 'test',
+            'data' => [
+                'definition' => [
+                    'uri' => 'some-uri',
+                    'type' => 'aws-ecr',
+                ],
+            ],
+        ];
+
+        // expect 2 calls - one for token, one for component config
+        $objectEncryptorMock = $this->createMock(JobObjectEncryptor::class);
+        $objectEncryptorMock->expects(self::exactly(2))
+            ->method('decrypt')
+            ->willReturnArgument(0)
+        ;
+
+        $storageApiClientMock = $this->createMock(BranchAwareClient::class);
+        $storageApiClientMock
+            ->method('apiGet')
+            ->willReturn($componentData)
+        ;
+
+        $storageApiClientWrapperMock = $this->createMock(ClientWrapper::class);
+        $storageApiClientWrapperMock->expects(self::once())
+            ->method('getBranchClientIfAvailable')
+            ->willReturn($storageApiClientMock)
+        ;
+
+        $storageClientFactoryMock = $this->createMock(StorageClientPlainFactory::class);
+        $storageClientFactoryMock->expects(self::once())
+            ->method('createClientWrapper')
+            ->with(new ClientOptions(null, 'KBC::ProjectSecure::token', '987'))
+            ->willReturn($storageApiClientWrapperMock)
+        ;
+
+        $job = new Job($objectEncryptorMock, $storageClientFactoryMock, $this->jobData);
+
+        // first call - calls the Encryptor API (mock)
+        $configDecrypted = $job->getComponentConfigurationDecrypted();
+        self::assertSame($componentData, $configDecrypted);
+
+        // second call - should be cached
+        $configDecrypted = $job->getComponentConfigurationDecrypted();
+        self::assertSame($componentData, $configDecrypted);
     }
 
     public function testCacheDecryptedConfigData(): void
