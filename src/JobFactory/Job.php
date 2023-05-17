@@ -215,11 +215,7 @@ class Job implements JsonSerializable, JobInterface
             return null;
         }
 
-        if ($this->componentConfigurationDecrypted !== null) {
-            return $this->componentConfiguration;
-        }
-
-        return $this->componentConfigurationDecrypted = $this->objectEncryptor->decrypt(
+        return $this->componentConfigurationDecrypted ??= $this->objectEncryptor->decrypt(
             $this->getComponentConfiguration(),
             $this->getComponentId(),
             $this->getProjectId(),
