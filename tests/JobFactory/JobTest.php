@@ -16,6 +16,7 @@ use Keboola\StorageApi\ClientException as StorageApiClientException;
 use Keboola\StorageApiBranch\ClientWrapper;
 use Keboola\StorageApiBranch\Factory\ClientOptions;
 use Keboola\StorageApiBranch\Factory\StorageClientPlainFactory;
+use RuntimeException;
 use Symfony\Component\Uid\Uuid;
 
 class JobTest extends BaseTest
@@ -346,16 +347,19 @@ class JobTest extends BaseTest
 
     public function testCacheDecryptedToken(): void
     {
+        $tokenEncrypted = $this->jobData['#tokenString'];
+        $tokenDecrypted = 'decrypted-token-123';
+
         $objectEncryptorMock = $this->createMock(JobObjectEncryptor::class);
         $objectEncryptorMock->expects(self::once())
             ->method('decrypt')
             ->with(
-                $this->jobData['#tokenString'],
+                $tokenEncrypted,
                 $this->jobData['componentId'],
                 $this->jobData['projectId'],
                 $this->jobData['configId'],
             )
-            ->willReturn('decrypted-token-123')
+            ->willReturn($tokenDecrypted)
         ;
 
         $storageClientFactoryMock = $this->createMock(StorageClientPlainFactory::class);
@@ -363,18 +367,28 @@ class JobTest extends BaseTest
         $job = new Job($objectEncryptorMock, $storageClientFactoryMock, $this->jobData);
 
         // first call - calls the Encryptor API (mock)
-        $decryptedToken = $job->getTokenDecrypted();
-        self::assertEquals('decrypted-token-123', $decryptedToken);
+        self::assertSame($tokenDecrypted, $job->getTokenDecrypted());
 
         // second call - should be cached
-        $decryptedToken = $job->getTokenDecrypted();
-        self::assertEquals('decrypted-token-123', $decryptedToken);
+        self::assertSame($tokenDecrypted, $job->getTokenDecrypted());
     }
 
     public function testCacheDecryptedComponentConfig(): void
     {
-        $componentData = [
-            'id' => 'test',
+        $tokenEncrypted = $this->jobData['#tokenString'];
+        $tokenDecrypted = 'decrypted-token-123';
+
+        $componentDataEncrypted = [
+            'id' => 'encrypted-test',
+            'data' => [
+                'definition' => [
+                    'uri' => 'some-uri',
+                    'type' => 'aws-ecr',
+                ],
+            ],
+        ];
+        $componentDataDecrypted = [
+            'id' => 'decrypted-test',
             'data' => [
                 'definition' => [
                     'uri' => 'some-uri',
@@ -387,13 +401,33 @@ class JobTest extends BaseTest
         $objectEncryptorMock = $this->createMock(JobObjectEncryptor::class);
         $objectEncryptorMock->expects(self::exactly(2))
             ->method('decrypt')
-            ->willReturnArgument(0)
+            ->with(
+                self::logicalOr(
+                    $this->equalTo($tokenEncrypted),
+                    $this->equalTo($componentDataEncrypted),
+                ),
+                $this->jobData['componentId'],
+                $this->jobData['projectId'],
+                $this->jobData['configId'],
+            )
+            ->willReturnCallback(function (mixed $encrypted) use (
+                $tokenEncrypted,
+                $tokenDecrypted,
+                $componentDataEncrypted,
+                $componentDataDecrypted,
+            ) {
+                return match ($encrypted) {
+                    $tokenEncrypted => $tokenDecrypted,
+                    $componentDataEncrypted => $componentDataDecrypted,
+                    default => throw new RuntimeException('Unexpected encrypted value'),
+                };
+            })
         ;
 
         $storageApiClientMock = $this->createMock(BranchAwareClient::class);
         $storageApiClientMock
             ->method('apiGet')
-            ->willReturn($componentData)
+            ->willReturn($componentDataEncrypted)
         ;
 
         $storageApiClientWrapperMock = $this->createMock(ClientWrapper::class);
@@ -405,24 +439,26 @@ class JobTest extends BaseTest
         $storageClientFactoryMock = $this->createMock(StorageClientPlainFactory::class);
         $storageClientFactoryMock->expects(self::once())
             ->method('createClientWrapper')
-            ->with(new ClientOptions(null, 'KBC::ProjectSecure::token', '987'))
+            ->with(new ClientOptions(null, $tokenDecrypted, '987'))
             ->willReturn($storageApiClientWrapperMock)
         ;
 
         $job = new Job($objectEncryptorMock, $storageClientFactoryMock, $this->jobData);
 
         // first call - calls the Encryptor API (mock)
-        $configDecrypted = $job->getComponentConfigurationDecrypted();
-        self::assertSame($componentData, $configDecrypted);
+        self::assertSame($componentDataDecrypted, $job->getComponentConfigurationDecrypted());
 
         // second call - should be cached
-        $configDecrypted = $job->getComponentConfigurationDecrypted();
-        self::assertSame($componentData, $configDecrypted);
+        self::assertSame($componentDataDecrypted, $job->getComponentConfigurationDecrypted());
     }
 
     public function testCacheDecryptedConfigData(): void
     {
-        $expectedConfigData = [
+        $configDataEncrypted = [
+            'parameters' => ['#secret-foo' => 'encrypted-bar'],
+        ];
+
+        $configDataDecrypted = [
             'parameters' => ['#secret-foo' => 'decrypted-bar'],
         ];
 
@@ -430,25 +466,26 @@ class JobTest extends BaseTest
         $objectEncryptorMock->expects(self::once())
             ->method('decrypt')
             ->with(
-                $this->jobData['configData'],
+                $configDataEncrypted,
                 $this->jobData['componentId'],
                 $this->jobData['projectId'],
                 $this->jobData['configId'],
             )
-            ->willReturn($expectedConfigData)
+            ->willReturn($configDataDecrypted)
         ;
 
         $storageClientFactoryMock = $this->createMock(StorageClientPlainFactory::class);
 
-        $job = new Job($objectEncryptorMock, $storageClientFactoryMock, $this->jobData);
+        $jobData = $this->jobData;
+        $jobData['configData'] = $configDataEncrypted;
+
+        $job = new Job($objectEncryptorMock, $storageClientFactoryMock, $jobData);
 
         // first call - calls the Encryptor API (mock)
-        $decryptedConfigData = $job->getConfigDataDecrypted();
-        self::assertEquals($expectedConfigData, $decryptedConfigData);
+        self::assertSame($configDataDecrypted, $job->getConfigDataDecrypted());
 
         // second call - should be cached
-        $decryptedConfigData = $job->getConfigDataDecrypted();
-        self::assertEquals($expectedConfigData, $decryptedConfigData);
+        self::assertSame($configDataDecrypted, $job->getConfigDataDecrypted());
     }
 
     public function testGetComponentSpecification(): void
