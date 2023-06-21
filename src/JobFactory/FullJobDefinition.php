@@ -6,6 +6,7 @@ namespace Keboola\JobQueueInternalClient\JobFactory;
 
 use Closure;
 use Keboola\JobQueueInternalClient\JobFactory\Runtime\Executor;
+use Keboola\PermissionChecker\BranchType;
 use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 
@@ -137,6 +138,17 @@ class FullJobDefinition extends NewJobDefinition
                 ->scalarNode('url')->end()
                 ->scalarNode('branchId')
                     ->beforeNormalization()->always($this->getStringNormalizer())->end()
+                ->end()
+                ->scalarNode('branchType')
+                    ->defaultNull()
+                    ->beforeNormalization()->always($this->getStringNormalizer())->end()
+                    ->validate()
+                        ->ifNotInArray([BranchType::DEV->value, BranchType::DEFAULT->value])
+                        ->thenInvalid(
+                            'BranchType must be one of ' .
+                            implode(', ', [BranchType::DEV->value, BranchType::DEFAULT->value]) . '.'
+                        )
+                    ->end()
                 ->end()
                 ->scalarNode('variableValuesId')
                     ->beforeNormalization()->always($this->getStringNormalizer())->end()

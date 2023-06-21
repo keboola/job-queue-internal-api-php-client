@@ -43,6 +43,7 @@ class FullJobDefinitionTest extends BaseTest
         $expectedData['isFinished'] = false;
         $expectedData['orchestrationJobId'] = null;
         $expectedData['runnerId'] = null;
+        $expectedData['branchType'] = null;
         self::assertEquals($expectedData, $processedData);
     }
 
@@ -91,6 +92,7 @@ class FullJobDefinitionTest extends BaseTest
             ],
             'orchestrationJobId' => '123456789',
             'runnerId' => $runnerId,
+            'branchType' => 'dev',
         ];
         unset($data['extraKey']);
         unset($data['backend']['backendExtraKey']);
@@ -384,6 +386,22 @@ class FullJobDefinitionTest extends BaseTest
                 ],
                 '#Invalid configuration for path "job.parallelism": ' .
                 'Parallelism value must be either null, an integer from range 2-100 or "infinity".#',
+            ],
+            'Invalid branch type' => [
+                [
+                    '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+                    'tokenId' => '1234',
+                    'projectId' => '123',
+                    'id' => '12345',
+                    'runId' => '12345',
+                    'status' => 'created',
+                    'desiredStatus' => 'processing',
+                    'configId' => '123',
+                    'componentId' => 'keboola.test',
+                    'mode' => 'run',
+                    'branchType' => 'invalid',
+                ],
+                '#Invalid configuration for path "job.branchType": BranchType must be one of dev, default.#',
             ],
         ];
     }

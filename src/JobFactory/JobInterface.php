@@ -8,6 +8,7 @@ use DateTimeImmutable;
 use Keboola\JobQueueInternalClient\JobFactory\Runtime\Backend;
 use Keboola\JobQueueInternalClient\JobFactory\Runtime\Executor;
 use Keboola\JobQueueInternalClient\Result\JobMetrics;
+use Keboola\PermissionChecker\BranchType;
 
 interface JobInterface
 {
@@ -131,4 +132,5 @@ interface JobInterface
     public function getComponentConfiguration(): array;
     public function getOrchestrationJobId(): ?string;
     public function getProjectFeatures(): array;
+    public function getBranchType(): ?BranchType;
 }

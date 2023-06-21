@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Keboola\JobQueueInternalClient\Tests;
 
+use Generator;
 use Keboola\JobQueueInternalClient\DataPlane\Config\DataPlaneConfig;
 use Keboola\JobQueueInternalClient\DataPlane\Config\Encryption\TestingEncryptorConfig;
 use Keboola\JobQueueInternalClient\DataPlane\Config\KubernetesConfig;
@@ -17,6 +18,7 @@ use Keboola\ObjectEncryptor\ObjectEncryptorFactory;
 use Keboola\StorageApi\Client;
 use Keboola\StorageApi\Components;
 use Keboola\StorageApi\Options\Components\Configuration;
+use Keboola\StorageApiBranch\ClientWrapper;
 use Keboola\StorageApiBranch\Factory\ClientOptions;
 use Keboola\StorageApiBranch\Factory\StorageClientPlainFactory;
 
@@ -224,7 +226,7 @@ class NewJobFactoryTest extends BaseTest
             'tag' => 123,
             'configRowIds' => [123, 456],
             'parentRunId' => 1234.567,
-            'branchId' => 1234,
+            'branchId' => 'default',
         ];
         $job = $factory->createNewJob($data);
         self::assertNotEmpty($job->getId());
@@ -241,7 +243,7 @@ class NewJobFactoryTest extends BaseTest
         self::assertSame(['123', '456'], $job->jsonSerialize()['configRowIds']);
         self::assertSame('123', $job->jsonSerialize()['tag']);
         self::assertSame('1234.567.' . $job->getId(), $job->jsonSerialize()['runId']);
-        self::assertSame('1234', $job->getBranchId());
+        self::assertSame('default', $job->getBranchId());
         self::assertEquals(['values' => []], $job->getVariableValuesData());
     }
 
@@ -679,5 +681,146 @@ class NewJobFactoryTest extends BaseTest
             self::$projectId
         );
         self::assertSame($decodedToken, $job->getTokenDecrypted());
+    }
+
+
+    /** @dataProvider provideBranchIds */
+    public function testCreateJobBranchType(
+        ?string $branchId,
+        bool $isDefault,
+        array $features,
+        int $invocationCount,
+        string $expectedBranchType,
+        string $expectedPrefix,
+    ): void {
+        $trackingInvocationCount = 0;
+        $objectEncryptor = ObjectEncryptorFactory::getEncryptor(self::getEncryptorOptions());
+        $clientMock = $this->createMock(Client::class);
+        $clientMock
+            ->method('verifyToken')
+            ->willReturnCallback(function () use ($features) {
+                $tokenInfo = self::$client->verifyToken();
+                $tokenInfo['owner']['features'] = $features;
+                return $tokenInfo;
+            });
+        $clientMock
+            ->method('apiGet')
+            ->willReturnCallback(function (...$args) use ($isDefault, &$trackingInvocationCount) {
+                if ($args[0] === 'dev-branches/987') {
+                    $trackingInvocationCount++;
+                    return ['id' => '987', 'isDefault' => $isDefault];
+                }
+                return self::$client->apiGet(...$args);
+            });
+        $clientMock
+            ->method('generateId')
+            ->willReturnCallback(fn(...$args) => self::$client->generateId());
+        $clientWrapperMock = $this->createMock(ClientWrapper::class);
+        $clientWrapperMock
+            ->method('getBasicClient')
+            ->willReturn($clientMock);
+        $clientWrapperMock
+            ->method('getBranchClientIfAvailable')
+            ->willReturn($clientMock);
+        $storageClientFactoryMock = $this->createMock(StorageClientPlainFactory::class);
+        $storageClientFactoryMock
+            ->method('createClientWrapper')
+            ->willReturn($clientWrapperMock);
+
+        $dataPlaneConfigRepository = $this->createMock(DataPlaneConfigRepository::class);
+        $dataPlaneConfigRepository->expects(self::never())->method(self::anything());
+
+        $objectEncryptorProvider = new DataPlaneObjectEncryptorProvider(
+            $objectEncryptor,
+            $dataPlaneConfigRepository,
+            false
+        );
+
+        $factory = new NewJobFactory(
+            $storageClientFactoryMock,
+            new JobRuntimeResolver($storageClientFactoryMock),
+            $objectEncryptorProvider,
+        );
+
+        $data = [
+            '#tokenString' => self::getRequiredEnv('TEST_STORAGE_API_TOKEN'),
+            'configData' => [],
+            'componentId' => 'keboola.runner-config-test',
+            'branchId' => $branchId,
+            'mode' => 'run',
+        ];
+        $job = $factory->createNewJob($data);
+        self::assertSame($expectedBranchType, $job->getBranchType()?->value);
+        self::assertSame($invocationCount, $trackingInvocationCount);
+        self::assertStringStartsWith($expectedPrefix, $job->getTokenString());
+    }
+
+    public function provideBranchIds(): Generator
+    {
+        yield 'branch id null' => [
+            'branchId' => null,
+            'isDefault' => true,
+            'features' => [],
+            'invocationCount' => 0,
+            'expectedBranchType' => 'default',
+            'expectedPrefix' => 'KBC::ProjectSecureKV::',
+        ];
+        yield 'branch id default' => [
+            'branchId' => 'default',
+            'isDefault' => true,
+            'features' => [],
+            'invocationCount' => 0,
+            'expectedBranchType' => 'default',
+            'expectedPrefix' => 'KBC::ProjectSecureKV::',
+        ];
+        yield 'branch id numeric dev' => [
+            'branchId' => '987',
+            'isDefault' => false,
+            'features' => [],
+            'invocationCount' => 1,
+            'expectedBranchType' => 'dev',
+            'expectedPrefix' => 'KBC::ProjectSecureKV::',
+        ];
+        yield 'branch id numeric default' => [
+            'branchId' => '987',
+            'isDefault' => true,
+            'features' => [],
+            'invocationCount' => 1,
+            'expectedBranchType' => 'default',
+            'expectedPrefix' => 'KBC::ProjectSecureKV::',
+        ];
+
+        yield 'branch id null with feature' => [
+            'branchId' => null,
+            'isDefault' => true,
+            'features' => ['protected-default-branch'],
+            'invocationCount' => 0,
+            'expectedBranchType' => 'default',
+            'expectedPrefix' => 'KBC::BranchTypeSecureKV::',
+        ];
+        yield 'branch id default with feature' => [
+            'branchId' => 'default',
+            'isDefault' => true,
+            'features' => ['protected-default-branch'],
+            'invocationCount' => 0,
+            'expectedBranchType' => 'default',
+            'expectedPrefix' => 'KBC::BranchTypeSecureKV::',
+        ];
+        yield 'branch id numeric dev with feature' => [
+            'branchId' => '987',
+            'isDefault' => false,
+            'features' => ['protected-default-branch'],
+            'invocationCount' => 1,
+            'expectedBranchType' => 'dev',
+            'expectedPrefix' => 'KBC::BranchTypeSecureKV::',
+        ];
+        yield 'branch id numeric default with feature' => [
+            'branchId' => '987',
+            'isDefault' => true,
+            'features' => ['protected-default-branch'],
+            'invocationCount' => 1,
+            'expectedBranchType' => 'default',
+            'expectedPrefix' => 'KBC::BranchTypeSecureKV::',
+        ];
     }
 }

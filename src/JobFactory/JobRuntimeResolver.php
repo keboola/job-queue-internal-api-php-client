@@ -9,8 +9,10 @@ use Keboola\JobQueueInternalClient\Exception\ConfigurationDisabledException;
 use Keboola\JobQueueInternalClient\JobFactory;
 use Keboola\JobQueueInternalClient\JobFactory\Runtime\Backend;
 use Keboola\JobQueueInternalClient\JobFactory\Runtime\Executor;
+use Keboola\PermissionChecker\BranchType;
 use Keboola\StorageApi\ClientException as StorageClientException;
 use Keboola\StorageApi\Components;
+use Keboola\StorageApi\DevBranches;
 use Keboola\StorageApiBranch\Factory\ClientOptions;
 use Keboola\StorageApiBranch\Factory\StorageClientPlainFactory;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
@@ -48,6 +50,7 @@ class JobRuntimeResolver
             $variableValues = $this->resolveVariables();
             $jobData['parallelism'] = $this->resolveParallelism($jobData);
             $jobData['executor'] = $this->resolveExecutor($jobData)->value;
+            $jobData['branchType'] = $this->resolveBranchType($jobData)->value;
 
             // set type after resolving parallelism
             $jobData['type'] = $this->resolveJobType($jobData);
@@ -299,5 +302,23 @@ class JobRuntimeResolver
         ;
 
         return Executor::from($value);
+    }
+
+    private function getBranchesApiClient(): DevBranches
+    {
+        return new DevBranches(
+            $this->storageClientFactory->createClientWrapper(new ClientOptions(
+                token: $this->jobData['#tokenString'],
+            ))->getBasicClient()
+        );
+    }
+
+    public function resolveBranchType(array $jobData): BranchType
+    {
+        if ($jobData['branchId'] === 'default' || $jobData['branchId'] === null) {
+            return BranchType::DEFAULT;
+        }
+        $branch = $this->getBranchesApiClient()->getBranch((int) $jobData['branchId']);
+        return $branch['isDefault'] ? BranchType::DEFAULT : BranchType::DEV;
     }
 }

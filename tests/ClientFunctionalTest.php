@@ -17,6 +17,7 @@ use Keboola\JobQueueInternalClient\Result\JobMetrics;
 use Keboola\JobQueueInternalClient\Result\JobResult;
 use Keboola\StorageApi\Client as StorageClient;
 use Keboola\StorageApi\Components;
+use Keboola\StorageApi\DevBranches;
 use Keboola\StorageApi\Options\Components\Configuration;
 use Psr\Log\NullLogger;
 
@@ -163,6 +164,7 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
             'dataPlaneId' => null,
             'runnerId' => null,
             'executor' => 'dind',
+            'branchType' => null,
         ];
         self::assertEquals($expected, $response);
     }
@@ -268,6 +270,7 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
                 'dataPlaneId' => null,
                 'runnerId' => null,
                 'executor' => 'dind',
+                'branchType' => null,
             ];
             self::assertEquals($expected, $responseJobJson);
         }
@@ -650,7 +653,15 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
 
     public function testListJobsBranchId(): void
     {
-        $branchId = 'branch-' . rand(0, 9999);
+        $masterClient = new StorageClient(
+            [
+                'token' => (string) getenv('TEST_STORAGE_API_TOKEN_MASTER'),
+                'url' => (string) getenv('TEST_STORAGE_API_URL'),
+            ]
+        );
+        $branchesApi = new DevBranches($masterClient);
+        $branchId = $branchesApi->createBranch('testListJobsBranchId')['id'];
+
         $newJobFactory = $this->getNewJobFactory();
         $client = $this->getClient();
 
@@ -706,6 +717,7 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
 
         self::assertEquals($createdJob2->jsonSerialize(), $listedJob->jsonSerialize());
         self::assertNull($listedJob->jsonSerialize()['branchId']);
+        $branchesApi->deleteBranch($branchId);
     }
 
     public function testListJobsConfigRowIds(): void
