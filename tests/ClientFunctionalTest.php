@@ -660,7 +660,7 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
             ]
         );
         $branchesApi = new DevBranches($masterClient);
-        $branchId = $branchesApi->createBranch('testListJobsBranchId')['id'];
+        $branchId = $branchesApi->createBranch(uniqid('testListJobsBranchId'))['id'];
 
         $newJobFactory = $this->getNewJobFactory();
         $client = $this->getClient();
