@@ -46,7 +46,7 @@ class LazyDataPlaneJobObjectObjectEncryptorTest extends TestCase
         $internalEncryptor = $this->createMock(ObjectEncryptor::class);
         $internalEncryptor->expects(self::once())
             ->method('decryptForBranchType')
-            ->with('encryptedData', 'componentId', 'projectId')
+            ->with('encryptedData', 'componentId', 'projectId', 'default')
             ->willReturn('data')
         ;
 
@@ -72,7 +72,7 @@ class LazyDataPlaneJobObjectObjectEncryptorTest extends TestCase
         $internalEncryptor = $this->createMock(ObjectEncryptor::class);
         $internalEncryptor->expects(self::once())
             ->method('decryptForBranchTypeConfiguration')
-            ->with('encryptedData', 'componentId', 'projectId', 'configId')
+            ->with('encryptedData', 'componentId', 'projectId', 'configId', 'default')
             ->willReturn('data')
         ;
 

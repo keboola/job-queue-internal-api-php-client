@@ -117,13 +117,4 @@ class NewJobFactory extends JobFactory
         $data = $this->validateJobData($data, FullJobDefinition::class);
         return new Job($encryptor, $this->storageClientFactory, $data);
     }
-
-    public function resolveBranchType(?string $branchId, DevBranches $branchesApi): BranchType
-    {
-        if ($branchId === 'default' || $branchId === null) {
-            return BranchType::DEFAULT;
-        }
-        $branch = $branchesApi->getBranch((int) $branchId);
-        return $branch['isDefault'] ? BranchType::DEFAULT : BranchType::DEV;
-    }
 }

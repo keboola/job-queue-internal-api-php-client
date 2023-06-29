@@ -24,7 +24,7 @@ class DataPlaneObjectEncryptorProviderTest extends TestCase
         $controlPlaneObjectEncryptor = $this->createMock(ObjectEncryptor::class);
         $controlPlaneObjectEncryptor->expects(self::once())
             ->method('decryptForBranchType')
-            ->with('encryptedData', 'componentId', 'projectId')
+            ->with('encryptedData', 'componentId', 'projectId', 'default')
             ->willReturn('data')
         ;
 
@@ -55,7 +55,7 @@ class DataPlaneObjectEncryptorProviderTest extends TestCase
         $dataPlaneObjectEncryptor = $this->createMock(ObjectEncryptor::class);
         $dataPlaneObjectEncryptor->expects(self::once())
             ->method('decryptForBranchType')
-            ->with('encryptedData', 'componentId', 'projectId')
+            ->with('encryptedData', 'componentId', 'projectId', 'default')
             ->willReturn('data')
         ;
 
@@ -94,7 +94,7 @@ class DataPlaneObjectEncryptorProviderTest extends TestCase
         $controlPlaneObjectEncryptor = $this->createMock(ObjectEncryptor::class);
         $controlPlaneObjectEncryptor->expects(self::once())
             ->method('decryptForBranchType')
-            ->with('encryptedData', 'componentId', 'projectId')
+            ->with('encryptedData', 'componentId', 'projectId', 'default')
             ->willReturn('data')
         ;
 
@@ -195,7 +195,7 @@ class DataPlaneObjectEncryptorProviderTest extends TestCase
         $controlPlaneObjectEncryptor = $this->createMock(ObjectEncryptor::class);
         $controlPlaneObjectEncryptor->expects(self::once())
             ->method('decryptForBranchType')
-            ->with('encryptedData', 'componentId', 'projectId')
+            ->with('encryptedData', 'componentId', 'projectId', 'default')
             ->willReturn('data')
         ;
 
@@ -222,7 +222,7 @@ class DataPlaneObjectEncryptorProviderTest extends TestCase
         $dataPlaneObjectEncryptor = $this->createMock(ObjectEncryptor::class);
         $dataPlaneObjectEncryptor->expects(self::once())
             ->method('decryptForBranchType')
-            ->with('encryptedData', 'componentId', 'projectId')
+            ->with('encryptedData', 'componentId', 'projectId', 'default')
             ->willReturn('data')
         ;
 
@@ -253,7 +253,7 @@ class DataPlaneObjectEncryptorProviderTest extends TestCase
         $controlPlaneObjectEncryptor = $this->createMock(ObjectEncryptor::class);
         $controlPlaneObjectEncryptor->expects(self::once())
             ->method('decryptForBranchType')
-            ->with('encryptedData', 'componentId', 'projectId')
+            ->with('encryptedData', 'componentId', 'projectId', 'default')
             ->willReturn('data')
         ;
 
