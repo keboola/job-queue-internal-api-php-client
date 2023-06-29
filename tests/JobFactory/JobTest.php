@@ -14,6 +14,8 @@ use Keboola\PermissionChecker\BranchType;
 use Keboola\StorageApi\BranchAwareClient;
 use Keboola\StorageApi\Client;
 use Keboola\StorageApi\ClientException as StorageApiClientException;
+use Keboola\StorageApi\Options\TokenCreateOptions;
+use Keboola\StorageApi\Tokens;
 use Keboola\StorageApiBranch\ClientWrapper;
 use Keboola\StorageApiBranch\Factory\ClientOptions;
 use Keboola\StorageApiBranch\Factory\StorageClientPlainFactory;
@@ -789,5 +791,84 @@ class JobTest extends BaseTest
 
         // fetch features again to test it's not loaded form API again
         $job->getProjectFeatures();
+    }
+
+    public function testGeneratePrivilegedToken(): void
+    {
+        $applicationToken = '4pPl1cAti0nT0k3n';
+        $privilegedTokenResponse = [
+            'id' => '123456',
+            'created' => '2023-06-29T09:49:51+0200',
+            'refreshed' => '2023-06-29T09:49:51+0200',
+            'description' => 'Created by Tony Stark',
+            'uri' => 'https://connection.eu-central-1.keboola.com/v2/storage/tokens/123456',
+            'isMasterToken' => false,
+            'canManageBuckets' => false,
+            'canManageTokens' => false,
+            'canReadAllFileUploads' => false,
+            'canPurgeTrash' => false,
+            'canManageProtectedDefaultBranch' => true,
+            'canCreateJobs' => false,
+            'expires' => '2023-13-29T09:49:51+0200',
+            'isExpired' => false,
+            'isDisabled' => false,
+            'dailyCapacity' => 5,
+            'token' => 'th1s-i5-pr1vIl3ged-70k3n',
+            'creatorToken' => [
+                'id' => '12345',
+                'description' => 'Tony\'s token',
+            ],
+            'bucketPermissions' => [],
+        ];
+
+        // we're testing if the parameters are passed properly to the Storage Client apiPostJson method
+        $storageClient = $this->createMock(Client::class);
+        $storageClient->expects(self::once())
+            ->method('apiPostJson')
+            ->with(
+                'tokens',
+                [
+                    'canManageProtectedDefaultBranch' => true,
+                    'expiresIn' => 604800,
+                ],
+                $applicationToken
+            )
+            ->willReturn($privilegedTokenResponse)
+        ;
+
+        $storageClientWrapperMock = $this->createMock(ClientWrapper::class);
+        $storageClientWrapperMock->expects(self::once())
+            ->method('getBranchClientIfAvailable')
+            ->willReturn($storageClient)
+        ;
+
+        $storageClientFactory = $this->createMock(StorageClientPlainFactory::class);
+        $storageClientFactory->expects(self::once())
+            ->method('createClientWrapper')
+            ->with(new ClientOptions(null, 'token', $this->jobData['branchId']))
+            ->willReturn($storageClientWrapperMock)
+        ;
+
+        $objectEncryptorMock = $this->createMock(JobObjectEncryptor::class);
+        $objectEncryptorMock->expects(self::once())
+            ->method('decrypt')
+            ->with(
+                'KBC::ProjectSecure::token',
+                $this->jobData['componentId'],
+                $this->jobData['projectId'],
+                $this->jobData['configId'],
+            )
+            ->willReturn('token')
+        ;
+
+        $job = new Job(
+            $objectEncryptorMock,
+            $storageClientFactory,
+            $this->jobData
+        );
+
+        $token = $job->createPrivilegedToken($applicationToken);
+
+        self::assertSame('th1s-i5-pr1vIl3ged-70k3n', $token);
     }
 }
