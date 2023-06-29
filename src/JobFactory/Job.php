@@ -217,8 +217,7 @@ class Job implements JsonSerializable, JobInterface
 
     public function getExecutionTokenDecrypted(string $applicationToken): ?string
     {
-        if (
-            in_array(JobFactory::PROTECTED_DEFAULT_BRANCH_FEATURE, $this->getProjectFeatures())
+        if (in_array(JobFactory::PROTECTED_DEFAULT_BRANCH_FEATURE, $this->getProjectFeatures())
             && ($this->getBranchType() === BranchType::DEFAULT)
         ) {
             return $this->executionTokenDecrypted ??= $this->createPrivilegedToken($applicationToken);
