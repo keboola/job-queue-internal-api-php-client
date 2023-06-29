@@ -219,9 +219,9 @@ class Job implements JsonSerializable, JobInterface
     {
         if (
             in_array(JobFactory::PROTECTED_DEFAULT_BRANCH_FEATURE, $this->getProjectFeatures())
-            && ($this->getBranchId() === null || $this->getBranchId() === 'default')
+            && ($this->getBranchType() === BranchType::DEFAULT)
         ) {
-            $this->executionTokenDecrypted ??= $this->createPrivilegedToken($applicationToken);
+            return $this->executionTokenDecrypted ??= $this->createPrivilegedToken($applicationToken);
         }
 
         return $this->executionTokenDecrypted = null;
