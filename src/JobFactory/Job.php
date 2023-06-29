@@ -8,6 +8,7 @@ use DateTimeImmutable;
 use DateTimeZone;
 use JsonSerializable;
 use Keboola\JobQueueInternalClient\Exception\ClientException;
+use Keboola\JobQueueInternalClient\JobFactory;
 use Keboola\JobQueueInternalClient\JobFactory\ObjectEncryptor\JobObjectEncryptorInterface;
 use Keboola\JobQueueInternalClient\JobFactory\Runtime\Backend;
 use Keboola\JobQueueInternalClient\JobFactory\Runtime\Executor;
@@ -216,7 +217,7 @@ class Job implements JsonSerializable, JobInterface
 
     public function getExecutionTokenDecrypted(string $applicationToken): ?string
     {
-        if (in_array('protected-branch', $this->getProjectFeatures())) {
+        if (in_array(JobFactory::PROTECTED_DEFAULT_BRANCH_FEATURE, $this->getProjectFeatures())) {
             $this->executionTokenDecrypted ??= $this->createPrivilegedToken($applicationToken);
         }
 
