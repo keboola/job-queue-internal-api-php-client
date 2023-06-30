@@ -164,7 +164,7 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
             'dataPlaneId' => null,
             'runnerId' => null,
             'executor' => 'dind',
-            'branchType' => null,
+            'branchType' => 'default',
         ];
         self::assertEquals($expected, $response);
     }
@@ -270,7 +270,7 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
                 'dataPlaneId' => null,
                 'runnerId' => null,
                 'executor' => 'dind',
-                'branchType' => null,
+                'branchType' => 'default',
             ];
             self::assertEquals($expected, $responseJobJson);
         }
