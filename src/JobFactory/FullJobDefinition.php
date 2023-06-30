@@ -143,10 +143,10 @@ class FullJobDefinition extends NewJobDefinition
                     ->defaultNull()
                     ->beforeNormalization()->always($this->getStringNormalizer())->end()
                     ->validate()
-                        ->ifNotInArray([BranchType::DEV->value, BranchType::DEFAULT->value])
+                        ->ifNotInArray([BranchType::DEV->value, BranchType::DEFAULT->value, null])
                         ->thenInvalid(
                             'BranchType must be one of ' .
-                            implode(', ', [BranchType::DEV->value, BranchType::DEFAULT->value]) . '.'
+                            implode(', ', [BranchType::DEV->value, BranchType::DEFAULT->value, null]) . '.'
                         )
                     ->end()
                 ->end()
