@@ -6,13 +6,16 @@ namespace Keboola\JobQueueInternalClient;
 
 use Keboola\JobQueueInternalClient\Exception\ClientException;
 use Keboola\JobQueueInternalClient\JobFactory\Behavior;
+use Keboola\JobQueueInternalClient\JobFactory\BranchTypeResolver;
 use Keboola\JobQueueInternalClient\JobFactory\FullJobDefinition;
 use Keboola\JobQueueInternalClient\JobFactory\Job;
 use Keboola\JobQueueInternalClient\JobFactory\JobInterface;
 use Keboola\JobQueueInternalClient\JobFactory\JobRuntimeResolver;
 use Keboola\JobQueueInternalClient\JobFactory\NewJobDefinition;
 use Keboola\JobQueueInternalClient\JobFactory\ObjectEncryptorProvider\DataPlaneObjectEncryptorProvider;
+use Keboola\PermissionChecker\BranchType;
 use Keboola\StorageApi\ClientException as StorageClientException;
+use Keboola\StorageApi\DevBranches;
 use Keboola\StorageApiBranch\Factory\ClientOptions;
 use Keboola\StorageApiBranch\Factory\StorageClientPlainFactory;
 
@@ -93,14 +96,23 @@ class NewJobFactory extends JobFactory
             'variableValuesData' => $data['variableValuesData'] ?? [],
             'orchestrationJobId' => $data['orchestrationJobId'] ?? null,
         ];
-
         $jobData = $this->jobRuntimeResolver->resolveJobData($jobData, $tokenInfo);
 
-        $data = $encryptor->encrypt(
-            $jobData,
-            (string) $data['componentId'],
-            (string) $tokenInfo['owner']['id']
-        );
+        if (in_array(self::PROTECTED_DEFAULT_BRANCH_FEATURE, $tokenInfo['owner']['features'])) {
+            $data = $encryptor->encrypt(
+                $jobData,
+                (string) $data['componentId'],
+                (string) $tokenInfo['owner']['id'],
+                BranchType::from($jobData['branchType']),
+            );
+        } else {
+            $data = $encryptor->encrypt(
+                $jobData,
+                (string) $data['componentId'],
+                (string) $tokenInfo['owner']['id'],
+                null,
+            );
+        }
 
         $data = $this->validateJobData($data, FullJobDefinition::class);
         return new Job($encryptor, $this->storageClientFactory, $data);

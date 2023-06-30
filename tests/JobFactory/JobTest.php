@@ -10,6 +10,7 @@ use Keboola\JobQueueInternalClient\JobFactory\JobInterface;
 use Keboola\JobQueueInternalClient\JobFactory\ObjectEncryptor\JobObjectEncryptor;
 use Keboola\JobQueueInternalClient\JobFactory\Runtime\Executor;
 use Keboola\JobQueueInternalClient\Tests\BaseTest;
+use Keboola\PermissionChecker\BranchType;
 use Keboola\StorageApi\BranchAwareClient;
 use Keboola\StorageApi\Client;
 use Keboola\StorageApi\ClientException as StorageApiClientException;
@@ -58,6 +59,7 @@ class JobTest extends BaseTest
             ],
         ],
         'orchestrationJobId' => '123456789',
+        'branchType' => null,
     ];
 
     public function testConstants(): void
@@ -403,8 +405,8 @@ class JobTest extends BaseTest
             ->method('decrypt')
             ->with(
                 self::logicalOr(
-                    $this->equalTo($tokenEncrypted),
-                    $this->equalTo($componentDataEncrypted),
+                    $this::equalTo($tokenEncrypted),
+                    $this::equalTo($componentDataEncrypted),
                 ),
                 $this->jobData['componentId'],
                 $this->jobData['projectId'],
@@ -486,6 +488,24 @@ class JobTest extends BaseTest
 
         // second call - should be cached
         self::assertSame($configDataDecrypted, $job->getConfigDataDecrypted());
+    }
+
+    public function testGetBranchType(): void
+    {
+        $jobData = $this->jobData;
+        $jobData['branchType'] = null;
+        $job = $this->getJob($jobData);
+        self::assertSame(null, $job->getBranchType());
+
+        $jobData = $this->jobData;
+        $jobData['branchType'] = 'default';
+        $job = $this->getJob($jobData);
+        self::assertSame(BranchType::DEFAULT, $job->getBranchType());
+
+        $jobData = $this->jobData;
+        $jobData['branchType'] = 'dev';
+        $job = $this->getJob($jobData);
+        self::assertSame(BranchType::DEV, $job->getBranchType());
     }
 
     public function testGetComponentSpecification(): void

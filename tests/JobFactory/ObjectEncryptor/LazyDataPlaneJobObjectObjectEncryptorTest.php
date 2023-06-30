@@ -10,6 +10,7 @@ use Keboola\JobQueueInternalClient\DataPlane\Config\KubernetesConfig;
 use Keboola\JobQueueInternalClient\DataPlane\DataPlaneConfigRepository;
 use Keboola\JobQueueInternalClient\JobFactory\ObjectEncryptor\LazyDataPlaneJobObjectObjectEncryptor;
 use Keboola\ObjectEncryptor\ObjectEncryptor;
+use Keboola\PermissionChecker\BranchType;
 use PHPUnit\Framework\TestCase;
 
 class LazyDataPlaneJobObjectObjectEncryptorTest extends TestCase
@@ -35,7 +36,7 @@ class LazyDataPlaneJobObjectObjectEncryptorTest extends TestCase
         ;
 
         $encryptor = new LazyDataPlaneJobObjectObjectEncryptor($dataPlaneConfigRepository, 'dataPlaneId');
-        $result = $encryptor->encrypt('data', 'componentId', 'projectId');
+        $result = $encryptor->encrypt('data', 'componentId', 'projectId', null);
 
         self::assertSame('encryptedData', $result);
     }
@@ -44,8 +45,8 @@ class LazyDataPlaneJobObjectObjectEncryptorTest extends TestCase
     {
         $internalEncryptor = $this->createMock(ObjectEncryptor::class);
         $internalEncryptor->expects(self::once())
-            ->method('decryptForProject')
-            ->with('encryptedData', 'componentId', 'projectId')
+            ->method('decryptForBranchType')
+            ->with('encryptedData', 'componentId', 'projectId', 'default')
             ->willReturn('data')
         ;
 
@@ -61,7 +62,7 @@ class LazyDataPlaneJobObjectObjectEncryptorTest extends TestCase
         ;
 
         $encryptor = new LazyDataPlaneJobObjectObjectEncryptor($dataPlaneConfigRepository, 'dataPlaneId');
-        $result = $encryptor->decrypt('encryptedData', 'componentId', 'projectId', null);
+        $result = $encryptor->decrypt('encryptedData', 'componentId', 'projectId', null, BranchType::DEFAULT);
 
         self::assertSame('data', $result);
     }
@@ -70,8 +71,8 @@ class LazyDataPlaneJobObjectObjectEncryptorTest extends TestCase
     {
         $internalEncryptor = $this->createMock(ObjectEncryptor::class);
         $internalEncryptor->expects(self::once())
-            ->method('decryptForConfiguration')
-            ->with('encryptedData', 'componentId', 'projectId', 'configId')
+            ->method('decryptForBranchTypeConfiguration')
+            ->with('encryptedData', 'componentId', 'projectId', 'configId', 'default')
             ->willReturn('data')
         ;
 
@@ -87,7 +88,7 @@ class LazyDataPlaneJobObjectObjectEncryptorTest extends TestCase
         ;
 
         $encryptor = new LazyDataPlaneJobObjectObjectEncryptor($dataPlaneConfigRepository, 'dataPlaneId');
-        $result = $encryptor->decrypt('encryptedData', 'componentId', 'projectId', 'configId');
+        $result = $encryptor->decrypt('encryptedData', 'componentId', 'projectId', 'configId', BranchType::DEFAULT);
 
         self::assertSame('data', $result);
     }
@@ -113,11 +114,11 @@ class LazyDataPlaneJobObjectObjectEncryptorTest extends TestCase
 
         $encryptor = new LazyDataPlaneJobObjectObjectEncryptor($dataPlaneConfigRepository, 'dataPlaneId');
 
-        $encryptor->encrypt('data', 'componentId', 'projectId');
-        $encryptor->encrypt('other data', 'componentId', 'projectId');
-        $encryptor->encrypt('data', 'componentId', 'otherProjectId');
-        $encryptor->decrypt('encryptedData', 'componentId', 'projectId', null);
-        $encryptor->decrypt('encryptedData', 'componentId', 'projectId', 'configId');
+        $encryptor->encrypt('data', 'componentId', 'projectId', null);
+        $encryptor->encrypt('other data', 'componentId', 'projectId', null);
+        $encryptor->encrypt('data', 'componentId', 'otherProjectId', null);
+        $encryptor->decrypt('encryptedData', 'componentId', 'projectId', null, BranchType::DEFAULT);
+        $encryptor->decrypt('encryptedData', 'componentId', 'projectId', 'configId', BranchType::DEFAULT);
 
         // no explicit assert is required, important is expects(self::once()) on DataPlaneConfigRepository
     }

@@ -33,6 +33,7 @@ class JobRuntimeResolverTest extends TestCase
         'tokenId' => '456',
         '#tokenString' => 'KBC::ProjectSecure::token',
         'backend' => null,
+        'branchId' => 'default',
     ];
 
     public function resolveDefaultBackendContextData(): Generator
@@ -197,6 +198,7 @@ class JobRuntimeResolverTest extends TestCase
                     'containerType' => 'custom',
                     'context' => 'wml',
                 ],
+                'branchId' => 'default',
                 'tag' => '1.2.3',
                 'variableValuesData' => [
                     'values' => [
@@ -208,6 +210,7 @@ class JobRuntimeResolverTest extends TestCase
                 ],
                 'parallelism' => '5',
                 'executor' => 'dind',
+                'branchType' => 'default',
                 'type' => 'container',
                 'variableValuesId' => null,
             ],
@@ -272,6 +275,7 @@ class JobRuntimeResolverTest extends TestCase
                     'containerType' => 'mass-produced',
                     'context' => 'wml',
                 ],
+                'branchId' => 'default',
                 'configData' => [
                     'variableValuesId' => '123',
                     'runtime' => [
@@ -289,6 +293,7 @@ class JobRuntimeResolverTest extends TestCase
                 'tag' => '3.2.1',
                 'parallelism' => '5',
                 'executor' => 'dind',
+                'branchType' => 'default',
                 'type' => 'container',
                 'variableValuesId' => '123',
                 'variableValuesData' => [],
@@ -368,9 +373,11 @@ class JobRuntimeResolverTest extends TestCase
                     'containerType' => 'stereotyped',
                     'context' => 'wml',
                 ],
+                'branchId' => 'default',
                 'tag' => '4.5.6',
                 'parallelism' => '5',
                 'executor' => 'dind',
+                'branchType' => 'default',
                 'type' => 'container',
                 'variableValuesId' => null,
                 'variableValuesData' => [
@@ -446,9 +453,11 @@ class JobRuntimeResolverTest extends TestCase
                     'containerType' => null,
                     'context' => 'wml',
                 ],
+                'branchId' => 'default',
                 'tag' => '4.5.6',
                 'parallelism' => '5',
                 'executor' => 'dind',
+                'branchType' => 'default',
                 'type' => 'container',
                 'variableValuesId' => null,
                 'variableValuesData' => [],
@@ -526,6 +535,7 @@ class JobRuntimeResolverTest extends TestCase
                     'containerType' => 'stereotyped',
                     'context' => '123-extractor',
                 ],
+                'branchId' => 'default',
                 'variableValuesId' => '123',
                 'configData' => [
                     'variableValuesId' => '456',
@@ -540,6 +550,7 @@ class JobRuntimeResolverTest extends TestCase
                 'tag' => '4.5.6',
                 'parallelism' => '0',
                 'executor' => 'dind',
+                'branchType' => 'default',
                 'type' => 'standard',
                 'variableValuesData' => [],
             ],
@@ -593,9 +604,11 @@ class JobRuntimeResolverTest extends TestCase
                     'containerType' => null,
                     'context' => '123-extractor',
                 ],
+                'branchId' => 'default',
                 'tag' => '9.9.9',
                 'parallelism' => null,
                 'executor' => 'dind',
+                'branchType' => 'default',
                 'type' => 'standard',
                 'variableValuesId' => null,
                 'variableValuesData' => [],
@@ -648,6 +661,8 @@ class JobRuntimeResolverTest extends TestCase
             'id' => '123456456',
             'runId' => '123456456',
             'configId' => '454124290',
+            'branchId' => 'default',
+            'branchType' => 'default',
             'componentId' => 'keboola.ex-db-snowflake',
             'mode' => 'run',
             'status' => 'created',
@@ -836,9 +851,11 @@ class JobRuntimeResolverTest extends TestCase
                     'containerType' => null,
                     'context' => '123-extractor',
                 ],
+                'branchId' => 'default',
                 'tag' => '9.9.9',
                 'parallelism' => null,
                 'executor' => 'dind',
+                'branchType' => 'default',
                 'type' => 'standard',
                 'variableValuesId' => null,
                 'variableValuesData' => [],
@@ -884,9 +901,11 @@ class JobRuntimeResolverTest extends TestCase
                     'containerType' => null,
                     'context' => '123-extractor',
                 ],
+                'branchId' => 'default',
                 'tag' => '9.9.9',
                 'parallelism' => null,
                 'executor' => 'dind',
+                'branchType' => 'default',
                 'type' => 'standard',
                 'variableValuesId' => null,
                 'variableValuesData' => [],
@@ -936,9 +955,11 @@ class JobRuntimeResolverTest extends TestCase
                     'containerType' => null,
                     'context' => '123-extractor',
                 ],
+                'branchId' => 'default',
                 'tag' => '9.9.9',
                 'parallelism' => null,
                 'executor' => 'dind',
+                'branchType' => 'default',
                 'type' => 'standard',
                 'variableValuesId' => null,
                 'variableValuesData' => [],
@@ -1028,7 +1049,7 @@ class JobRuntimeResolverTest extends TestCase
     public function testResolveBranchConfiguration(): void
     {
         $jobData = self::JOB_DATA;
-        $jobData['branchId'] = 'dev-branch';
+        $jobData['branchId'] = '1234';
         $configuration = [
             'id' => '454124290',
             'configuration' => [
@@ -1051,22 +1072,33 @@ class JobRuntimeResolverTest extends TestCase
             ],
         ];
 
-        $clientMock = self::createMock(BranchAwareClient::class);
-        $clientMock->expects(self::exactly(2))->method('apiGet')
+        $clientMock = self::createMock(Client::class);
+        $clientMock->expects(self::exactly(1))->method('apiGet')
+            ->with('dev-branches/1234')
+            ->willReturn(
+                ['id' => '1234', 'isDefault' => true]
+            );
+        $branchClientMock = self::createMock(BranchAwareClient::class);
+        $branchClientMock->expects(self::exactly(2))->method('apiGet')
             ->withConsecutive(
                 ['components/keboola.ex-db-snowflake'],
-                ['components/keboola.ex-db-snowflake/configs/454124290']
-            )->willReturnOnConsecutiveCalls($this->getTestComponentData(), $configuration);
+                ['components/keboola.ex-db-snowflake/configs/454124290'],
+            )->willReturnOnConsecutiveCalls(
+                $this->getTestComponentData(),
+                $configuration,
+            );
         $clientWrapperMock = self::createMock(ClientWrapper::class);
-        $clientWrapperMock->method('getBranchClientIfAvailable')->willReturn($clientMock);
+        $clientWrapperMock->method('getBranchClientIfAvailable')->willReturn($branchClientMock);
+        $clientWrapperMock->method('getBasicClient')->willReturn($clientMock);
         $storageClientFactoryMock = self::createMock(StorageClientPlainFactory::class);
         $storageClientFactoryMock
-            ->expects(self::exactly(2))
+            ->expects(self::exactly(3))
             ->method('createClientWrapper')
             // this is the important bit - branchId is passed as 2nd argument
             ->withConsecutive(
                 [new ClientOptions(null, 'KBC::ProjectSecure::token', null)],
-                [new ClientOptions(null, 'KBC::ProjectSecure::token', 'dev-branch')]
+                [new ClientOptions(null, 'KBC::ProjectSecure::token', '1234')],
+                [new ClientOptions(null, 'KBC::ProjectSecure::token', null)],
             )
             ->willReturn($clientWrapperMock);
 
@@ -1088,10 +1120,11 @@ class JobRuntimeResolverTest extends TestCase
                     'containerType' => 'stereotyped',
                     'context' => null,
                 ],
-                'branchId' => 'dev-branch',
+                'branchId' => '1234',
                 'tag' => '4.5.6',
                 'parallelism' => '5',
                 'executor' => 'dind',
+                'branchType' => 'default',
                 'type' => 'container',
                 'variableValuesId' => null,
                 'variableValuesData' => [
@@ -1204,6 +1237,7 @@ class JobRuntimeResolverTest extends TestCase
                     'containerType' => $expectedContainerType,
                     'context' => $expectedContext,
                 ],
+                'branchId' => 'default',
                 'tag' => '1.2.3',
                 'variableValuesData' => [
                     'values' => [
@@ -1215,6 +1249,7 @@ class JobRuntimeResolverTest extends TestCase
                 ],
                 'parallelism' => '5',
                 'executor' => 'dind',
+                'branchType' => 'default',
                 'type' => 'container',
                 'variableValuesId' => null,
             ],
@@ -1749,15 +1784,106 @@ class JobRuntimeResolverTest extends TestCase
                 'tokenId' => '456',
                 '#tokenString' => 'KBC::ProjectSecure::token',
                 'backend' => $expectedBackend,
+                'branchId' => 'default',
                 'tag' => '1.2.3',
                 'configData' => $jobData['configData'],
                 'parallelism' => null,
                 'executor' => 'dind',
+                'branchType' => 'default',
                 'type' => 'standard',
                 'variableValuesId' => null,
                 'variableValuesData' => [],
             ],
             $jobRuntimeResolver->resolveJobData($jobData, ['owner' => ['features' => []]])
         );
+    }
+
+    /** @dataProvider branchTypeProvider */
+    public function testResolveBranchType(
+        ?string $branchId,
+        int $invocationCount,
+        bool $isDefault,
+        string $expectedBranchType,
+    ): void {
+        $jobData = self::JOB_DATA;
+        $jobData['branchId'] = $branchId;
+        $jobData['configId'] = null;
+        $jobData['tag'] = '1.2.3';
+
+        $clientMock = self::createMock(Client::class);
+        $clientMock->expects(self::exactly($invocationCount))->method('apiGet')
+            ->with('dev-branches/1234')
+            ->willReturn(
+                ['id' => '1234', 'isDefault' => $isDefault]
+            );
+        $branchClientMock = self::createMock(BranchAwareClient::class);
+        $branchClientMock->expects(self::exactly(1))->method('apiGet')
+            ->with('components/keboola.ex-db-snowflake')
+            ->willReturn($this->getTestComponentData());
+        $clientWrapperMock = self::createMock(ClientWrapper::class);
+        $clientWrapperMock->method('getBranchClientIfAvailable')->willReturn($branchClientMock);
+        $clientWrapperMock->method('getBasicClient')->willReturn($clientMock);
+        $storageClientFactoryMock = self::createMock(StorageClientPlainFactory::class);
+        $storageClientFactoryMock
+            ->method('createClientWrapper')
+            ->willReturn($clientWrapperMock);
+
+        $jobRuntimeResolver = new JobRuntimeResolver($storageClientFactoryMock);
+        self::assertSame(
+            [
+                'id' => '123456456',
+                'runId' => '123456456',
+                'configId' => null,
+                'componentId' => 'keboola.ex-db-snowflake',
+                'mode' => 'run',
+                'status' => 'created',
+                'desiredStatus' => 'processing',
+                'projectId' => '123',
+                'tokenId' => '456',
+                '#tokenString' => 'KBC::ProjectSecure::token',
+                'backend' => [
+                    'type' => null,
+                    'containerType' => null,
+                    'context' => '123-extractor',
+                ],
+                'branchId' => $branchId,
+                'tag' => '1.2.3',
+                'parallelism' => null,
+                'executor' => 'dind',
+                'branchType' => $expectedBranchType,
+                'type' => 'standard',
+                'variableValuesId' => null,
+                'variableValuesData' => [],
+            ],
+            $jobRuntimeResolver->resolveJobData($jobData, ['owner' => ['features' => []]])
+        );
+    }
+
+    public function branchTypeProvider(): Generator
+    {
+        yield 'branch null' => [
+            'branchId' => null,
+            'invocationCount' => 0,
+            'isDefault' => true, // irrelevant
+            'expectedBranchType' => 'default',
+        ];
+        yield 'branch default' => [
+            'branchId' => 'default',
+            'invocationCount' => 0,
+            'isDefault' => true, // irrelevant
+            'expectedBranchType' => 'default',
+        ];
+        yield 'branch prod' => [
+            'branchId' => '1234',
+            'invocationCount' => 1,
+            'isDefault' => true,
+            'expectedBranchType' => 'default',
+        ];
+        yield 'branch dev' => [
+            'branchId' => '1234',
+            'invocationCount' => 1,
+            'isDefault' => false,
+            'expectedBranchType' => 'dev',
+        ];
     }
 }

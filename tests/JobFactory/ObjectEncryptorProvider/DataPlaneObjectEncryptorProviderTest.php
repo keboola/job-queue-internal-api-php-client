@@ -13,6 +13,7 @@ use Keboola\JobQueueInternalClient\JobFactory\ObjectEncryptor\JobObjectEncryptor
 use Keboola\JobQueueInternalClient\JobFactory\ObjectEncryptor\LazyDataPlaneJobObjectObjectEncryptor;
 use Keboola\JobQueueInternalClient\JobFactory\ObjectEncryptorProvider\DataPlaneObjectEncryptorProvider;
 use Keboola\ObjectEncryptor\ObjectEncryptor;
+use Keboola\PermissionChecker\BranchType;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 
@@ -22,8 +23,8 @@ class DataPlaneObjectEncryptorProviderTest extends TestCase
     {
         $controlPlaneObjectEncryptor = $this->createMock(ObjectEncryptor::class);
         $controlPlaneObjectEncryptor->expects(self::once())
-            ->method('decryptForProject')
-            ->with('encryptedData', 'componentId', 'projectId')
+            ->method('decryptForBranchType')
+            ->with('encryptedData', 'componentId', 'projectId', 'default')
             ->willReturn('data')
         ;
 
@@ -43,7 +44,7 @@ class DataPlaneObjectEncryptorProviderTest extends TestCase
         ]);
 
         // this should call decryptForProject and match the controlPlaneObjectEncryptor mock expectation
-        $result->decrypt('encryptedData', 'componentId', 'projectId', null);
+        $result->decrypt('encryptedData', 'componentId', 'projectId', null, BranchType::DEFAULT);
     }
 
     public function testGetEncryptorForProjectWithDataPlaneOnStackWithDataPlanes(): void
@@ -53,8 +54,8 @@ class DataPlaneObjectEncryptorProviderTest extends TestCase
 
         $dataPlaneObjectEncryptor = $this->createMock(ObjectEncryptor::class);
         $dataPlaneObjectEncryptor->expects(self::once())
-            ->method('decryptForProject')
-            ->with('encryptedData', 'componentId', 'projectId')
+            ->method('decryptForBranchType')
+            ->with('encryptedData', 'componentId', 'projectId', 'default')
             ->willReturn('data')
         ;
 
@@ -84,7 +85,7 @@ class DataPlaneObjectEncryptorProviderTest extends TestCase
         self::assertInstanceOf(LazyDataPlaneJobObjectObjectEncryptor::class, $result);
 
         // this should call decryptForProject and match the dataPlaneObjectEncryptor mock expectation
-        $x = $result->decrypt('encryptedData', 'componentId', 'projectId', null);
+        $x = $result->decrypt('encryptedData', 'componentId', 'projectId', null, BranchType::DEFAULT);
         self::assertSame('data', $x);
     }
 
@@ -92,8 +93,8 @@ class DataPlaneObjectEncryptorProviderTest extends TestCase
     {
         $controlPlaneObjectEncryptor = $this->createMock(ObjectEncryptor::class);
         $controlPlaneObjectEncryptor->expects(self::once())
-            ->method('decryptForProject')
-            ->with('encryptedData', 'componentId', 'projectId')
+            ->method('decryptForBranchType')
+            ->with('encryptedData', 'componentId', 'projectId', 'default')
             ->willReturn('data')
         ;
 
@@ -115,7 +116,7 @@ class DataPlaneObjectEncryptorProviderTest extends TestCase
         self::assertInstanceOf(JobObjectEncryptor::class, $result);
 
         // this should call decryptForProject and match the controlPlaneObjectEncryptor mock expectation
-        $x = $result->decrypt('encryptedData', 'componentId', 'projectId', null);
+        $x = $result->decrypt('encryptedData', 'componentId', 'projectId', null, BranchType::DEFAULT);
         self::assertSame('data', $x);
     }
 
@@ -193,8 +194,8 @@ class DataPlaneObjectEncryptorProviderTest extends TestCase
     {
         $controlPlaneObjectEncryptor = $this->createMock(ObjectEncryptor::class);
         $controlPlaneObjectEncryptor->expects(self::once())
-            ->method('decryptForProject')
-            ->with('encryptedData', 'componentId', 'projectId')
+            ->method('decryptForBranchType')
+            ->with('encryptedData', 'componentId', 'projectId', 'default')
             ->willReturn('data')
         ;
 
@@ -210,7 +211,7 @@ class DataPlaneObjectEncryptorProviderTest extends TestCase
         $result = $provider->getProjectObjectEncryptor(null);
 
         // this should call decryptForProject and match the controlPlaneObjectEncryptor mock expectation
-        $result->decrypt('encryptedData', 'componentId', 'projectId', null);
+        $result->decrypt('encryptedData', 'componentId', 'projectId', null, BranchType::DEFAULT);
     }
 
     public function testGetProjectObjectEncryptorForProjectWithDataPlaneOnStackWithDataPlanes(): void
@@ -220,8 +221,8 @@ class DataPlaneObjectEncryptorProviderTest extends TestCase
 
         $dataPlaneObjectEncryptor = $this->createMock(ObjectEncryptor::class);
         $dataPlaneObjectEncryptor->expects(self::once())
-            ->method('decryptForProject')
-            ->with('encryptedData', 'componentId', 'projectId')
+            ->method('decryptForBranchType')
+            ->with('encryptedData', 'componentId', 'projectId', 'default')
             ->willReturn('data')
         ;
 
@@ -243,7 +244,7 @@ class DataPlaneObjectEncryptorProviderTest extends TestCase
         $result = $provider->getProjectObjectEncryptor($dataPlaneConfig);
 
         // this should call decryptForProject and match the dataPlaneObjectEncryptor mock expectation
-        $x = $result->decrypt('encryptedData', 'componentId', 'projectId', null);
+        $x = $result->decrypt('encryptedData', 'componentId', 'projectId', null, BranchType::DEFAULT);
         self::assertSame('data', $x);
     }
 
@@ -251,8 +252,8 @@ class DataPlaneObjectEncryptorProviderTest extends TestCase
     {
         $controlPlaneObjectEncryptor = $this->createMock(ObjectEncryptor::class);
         $controlPlaneObjectEncryptor->expects(self::once())
-            ->method('decryptForProject')
-            ->with('encryptedData', 'componentId', 'projectId')
+            ->method('decryptForBranchType')
+            ->with('encryptedData', 'componentId', 'projectId', 'default')
             ->willReturn('data')
         ;
 
@@ -270,7 +271,7 @@ class DataPlaneObjectEncryptorProviderTest extends TestCase
         self::assertInstanceOf(JobObjectEncryptor::class, $result);
 
         // this should call decryptForProject and match the controlPlaneObjectEncryptor mock expectation
-        $x = $result->decrypt('encryptedData', 'componentId', 'projectId', null);
+        $x = $result->decrypt('encryptedData', 'componentId', 'projectId', null, BranchType::DEFAULT);
         self::assertSame('data', $x);
     }
 

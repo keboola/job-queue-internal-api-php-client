@@ -12,6 +12,7 @@ use Keboola\JobQueueInternalClient\JobFactory\ObjectEncryptor\JobObjectEncryptor
 use Keboola\JobQueueInternalClient\JobFactory\Runtime\Backend;
 use Keboola\JobQueueInternalClient\JobFactory\Runtime\Executor;
 use Keboola\JobQueueInternalClient\Result\JobMetrics;
+use Keboola\PermissionChecker\BranchType;
 use Keboola\StorageApi\ClientException as StorageApiClientException;
 use Keboola\StorageApi\Components as ComponentsApiClient;
 use Keboola\StorageApiBranch\Factory\ClientOptions;
@@ -198,14 +199,14 @@ class Job implements JsonSerializable, JobInterface
     {
         return $this->data;
     }
-
     public function getTokenDecrypted(): string
     {
         return $this->tokenDecrypted ??= $this->objectEncryptor->decrypt(
             $this->getTokenString(),
             $this->getComponentId(),
             $this->getProjectId(),
-            $this->getConfigId()
+            $this->getConfigId(),
+            $this->getBranchType(),
         );
     }
 
@@ -220,6 +221,7 @@ class Job implements JsonSerializable, JobInterface
             $this->getComponentId(),
             $this->getProjectId(),
             $this->getConfigId(),
+            $this->getBranchType(),
         );
     }
 
@@ -230,7 +232,13 @@ class Job implements JsonSerializable, JobInterface
             $this->getComponentId(),
             $this->getProjectId(),
             $this->getConfigId(),
+            $this->getBranchType(),
         );
+    }
+
+    public function getBranchType(): ?BranchType
+    {
+        return $this->data['branchType'] ? BranchType::from($this->data['branchType']) : null;
     }
 
     public function getBranchId(): ?string
