@@ -871,7 +871,10 @@ class JobTest extends BaseTest
         );
 
         $executionToken = $job->getExecutionTokenDecrypted($applicationToken);
+        self::assertSame('th1s-i5-pr1vIl3ged-70k3n', $executionToken);
 
+        // test the token is cached (Storage Client method apiPostJson is only called once)
+        $executionToken = $job->getExecutionTokenDecrypted($applicationToken);
         self::assertSame('th1s-i5-pr1vIl3ged-70k3n', $executionToken);
     }
 
