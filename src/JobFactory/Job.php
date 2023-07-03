@@ -8,6 +8,7 @@ use DateTimeImmutable;
 use DateTimeZone;
 use JsonSerializable;
 use Keboola\JobQueueInternalClient\Exception\ClientException;
+use Keboola\JobQueueInternalClient\JobFactory;
 use Keboola\JobQueueInternalClient\JobFactory\ObjectEncryptor\JobObjectEncryptorInterface;
 use Keboola\JobQueueInternalClient\JobFactory\Runtime\Backend;
 use Keboola\JobQueueInternalClient\JobFactory\Runtime\Executor;
@@ -15,6 +16,9 @@ use Keboola\JobQueueInternalClient\Result\JobMetrics;
 use Keboola\PermissionChecker\BranchType;
 use Keboola\StorageApi\ClientException as StorageApiClientException;
 use Keboola\StorageApi\Components as ComponentsApiClient;
+use Keboola\StorageApi\Options\TokenCreateOptions;
+use Keboola\StorageApi\Tokens;
+use Keboola\StorageApiBranch\ClientWrapper;
 use Keboola\StorageApiBranch\Factory\ClientOptions;
 use Keboola\StorageApiBranch\Factory\StorageClientPlainFactory;
 use Symfony\Component\Uid\Uuid;
@@ -29,6 +33,7 @@ class Job implements JsonSerializable, JobInterface
     private ?DateTimeImmutable $endTime;
     private ?DateTimeImmutable $startTime;
     private ?string $tokenDecrypted = null;
+    private ?string $executionTokenDecrypted = null;
     private ?array $componentConfigurationDecrypted = null;
     private ?array $configDataDecrypted = null;
 
@@ -210,6 +215,17 @@ class Job implements JsonSerializable, JobInterface
         );
     }
 
+    public function getExecutionTokenDecrypted(string $applicationToken): string
+    {
+        if (in_array(JobFactory::PROTECTED_DEFAULT_BRANCH_FEATURE, $this->getProjectFeatures())
+            && ($this->getBranchType() === BranchType::DEFAULT)
+        ) {
+            return $this->executionTokenDecrypted ??= $this->createPrivilegedToken($applicationToken);
+        }
+
+        return $this->getTokenDecrypted();
+    }
+
     public function getComponentConfigurationDecrypted(): ?array
     {
         if ($this->getConfigId() === null) {
@@ -342,11 +358,9 @@ class Job implements JsonSerializable, JobInterface
             return $this->componentsApiClient;
         }
 
-        $client = $this->storageClientFactory->createClientWrapper(
-            new ClientOptions(null, $this->getTokenDecrypted(), $this->getBranchId())
+        return $this->componentsApiClient = new ComponentsApiClient(
+            $this->getStorageClientWrapper()->getBranchClientIfAvailable()
         );
-
-        return $this->componentsApiClient = new ComponentsApiClient($client->getBranchClientIfAvailable());
     }
 
     public function getProjectFeatures(): array
@@ -355,14 +369,30 @@ class Job implements JsonSerializable, JobInterface
             return $this->projectFeatures;
         }
 
-        $client = $this->storageClientFactory->createClientWrapper(
-            new ClientOptions(null, $this->getTokenDecrypted(), $this->getBranchId())
-        );
-        return $this->projectFeatures = $client->getBranchClientIfAvailable()->verifyToken()['owner']['features'];
+        return $this->projectFeatures = $this->getStorageClientWrapper()
+            ->getBranchClientIfAvailable()
+            ->verifyToken()['owner']['features'];
+    }
+
+    private function createPrivilegedToken(string $applicationToken): string
+    {
+        $tokens = new Tokens($this->getStorageClientWrapper()->getBasicClient());
+        $options = new TokenCreateOptions();
+        $options->setExpiresIn(self::EXECUTION_TOKEN_TIMEOUT_SECONDS);
+        $token = $tokens->createTokenPrivilegedInProtectedDefaultBranch($options, $applicationToken);
+
+        return $token['token'];
     }
 
     public static function generateRunnerId(): string
     {
         return (string) Uuid::v4();
+    }
+
+    private function getStorageClientWrapper(): ClientWrapper
+    {
+        return $this->storageClientFactory->createClientWrapper(
+            new ClientOptions(null, $this->getTokenDecrypted(), $this->getBranchId())
+        );
     }
 }

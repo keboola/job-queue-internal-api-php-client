@@ -33,7 +33,7 @@
         "keboola/kbc-manage-api-php-client": "^5.2|^6.0",
         "keboola/object-encryptor": "^2.0",
         "keboola/permission-checker": "^0.1",
-        "keboola/storage-api-client": "^14.0",
+        "keboola/storage-api-client": "^14.10",
         "keboola/storage-api-php-client-branch-wrapper": "^3.2",
         "monolog/monolog": "^2.6",
         "psr/log": "^1.1",
@@ -58,7 +58,8 @@
         "build": [
             "@phpcs",
             "@phpstan",
-            "@tests"
+            "@tests",
+            "@infection"
         ],
         "ci": [
             "@composer validate --no-check-all --strict",
