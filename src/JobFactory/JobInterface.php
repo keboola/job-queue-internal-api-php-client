@@ -89,6 +89,8 @@ interface JobInterface
         self::PARALLELISM_INFINITY, null,
     ];
 
+    public const EXECUTION_TOKEN_TIMEOUT_SECONDS = 3600*24*7;
+
     public function getId(): string;
     public function getComponentId(): string;
     public function getConfigData(): array;
@@ -105,7 +107,7 @@ interface JobInterface
     public function getTokenString(): string;
     public function getTokenId(): string;
     public function getTokenDescription(): string;
-    public function getExecutionTokenDecrypted(string $applicationToken): ?string;
+    public function getExecutionTokenDecrypted(string $applicationToken): string;
     public function getParentRunId(): string;
     public function getRunId(): string;
     public function isFinished(): bool;

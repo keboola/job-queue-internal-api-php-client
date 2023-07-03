@@ -215,7 +215,7 @@ class Job implements JsonSerializable, JobInterface
         );
     }
 
-    public function getExecutionTokenDecrypted(string $applicationToken): ?string
+    public function getExecutionTokenDecrypted(string $applicationToken): string
     {
         if (in_array(JobFactory::PROTECTED_DEFAULT_BRANCH_FEATURE, $this->getProjectFeatures())
             && ($this->getBranchType() === BranchType::DEFAULT)
@@ -223,7 +223,7 @@ class Job implements JsonSerializable, JobInterface
             return $this->executionTokenDecrypted ??= $this->createPrivilegedToken($applicationToken);
         }
 
-        return $this->executionTokenDecrypted = null;
+        return $this->getTokenDecrypted();
     }
 
     public function getComponentConfigurationDecrypted(): ?array
@@ -374,11 +374,11 @@ class Job implements JsonSerializable, JobInterface
             ->verifyToken()['owner']['features'];
     }
 
-    public function createPrivilegedToken(string $applicationToken): string
+    private function createPrivilegedToken(string $applicationToken): string
     {
-        $tokens = new Tokens($this->getStorageClientWrapper()->getBranchClientIfAvailable());
+        $tokens = new Tokens($this->getStorageClientWrapper()->getBasicClient());
         $options = new TokenCreateOptions();
-        $options->setExpiresIn(3600*24*7);
+        $options->setExpiresIn(self::EXECUTION_TOKEN_TIMEOUT_SECONDS);
         $token = $tokens->createTokenPrivilegedInProtectedDefaultBranch($options, $applicationToken);
 
         return $token['token'];

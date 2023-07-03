@@ -794,90 +794,14 @@ class JobTest extends BaseTest
         $job->getProjectFeatures();
     }
 
-    public function testGeneratePrivilegedToken(): void
+    public function testGetExecutionTokenDecryptedWithFeatureBranchDefault(): void
     {
         $applicationToken = '4pPl1cAti0nT0k3n';
         $privilegedTokenResponse = [
             'id' => '123456',
             'created' => '2023-06-29T09:49:51+0200',
             'refreshed' => '2023-06-29T09:49:51+0200',
-            'description' => 'Created by Tony Stark',
-            'uri' => 'https://connection.eu-central-1.keboola.com/v2/storage/tokens/123456',
-            'isMasterToken' => false,
-            'canManageBuckets' => false,
-            'canManageTokens' => false,
-            'canReadAllFileUploads' => false,
-            'canPurgeTrash' => false,
-            'canManageProtectedDefaultBranch' => true,
-            'canCreateJobs' => false,
             'expires' => '2023-13-29T09:49:51+0200',
-            'isExpired' => false,
-            'isDisabled' => false,
-            'dailyCapacity' => 5,
-            'token' => 'th1s-i5-pr1vIl3ged-70k3n',
-            'creatorToken' => [
-                'id' => '12345',
-                'description' => 'Tony\'s token',
-            ],
-            'bucketPermissions' => [],
-        ];
-
-        // we're testing if the parameters are passed properly to the Storage Client apiPostJson method
-        $storageClient = $this->createMock(Client::class);
-        $storageClient->expects(self::once())
-            ->method('apiPostJson')
-            ->with(
-                'tokens',
-                [
-                    'canManageProtectedDefaultBranch' => true,
-                    'expiresIn' => 604800,
-                ],
-                $applicationToken
-            )
-            ->willReturn($privilegedTokenResponse)
-        ;
-
-        $storageClientWrapperMock = $this->createMock(ClientWrapper::class);
-        $storageClientWrapperMock->expects(self::once())
-            ->method('getBranchClientIfAvailable')
-            ->willReturn($storageClient)
-        ;
-
-        $storageClientFactory = $this->createMock(StorageClientPlainFactory::class);
-        $storageClientFactory->expects(self::once())
-            ->method('createClientWrapper')
-            ->with(new ClientOptions(null, 'token', $this->jobData['branchId']))
-            ->willReturn($storageClientWrapperMock)
-        ;
-
-        $objectEncryptorMock = $this->createMock(JobObjectEncryptor::class);
-        $objectEncryptorMock->expects(self::once())
-            ->method('decrypt')
-            ->with(
-                'KBC::ProjectSecure::token',
-                $this->jobData['componentId'],
-                $this->jobData['projectId'],
-                $this->jobData['configId'],
-            )
-            ->willReturn('token')
-        ;
-
-        $job = new Job(
-            $objectEncryptorMock,
-            $storageClientFactory,
-            $this->jobData
-        );
-
-        $token = $job->createPrivilegedToken($applicationToken);
-
-        self::assertSame('th1s-i5-pr1vIl3ged-70k3n', $token);
-    }
-
-    public function testGetExecutionTokenDecryptedBranchDefault(): void
-    {
-        $applicationToken = '4pPl1cAti0nT0k3n';
-        $privilegedTokenResponse = [
-            'id' => '123456',
             'canManageProtectedDefaultBranch' => true,
             'canCreateJobs' => false,
             'token' => 'th1s-i5-pr1vIl3ged-70k3n',
@@ -900,12 +824,24 @@ class JobTest extends BaseTest
         ;
         $storageClient->expects(self::once())
             ->method('apiPostJson')
+            ->with(
+                'tokens',
+                [
+                    'canManageProtectedDefaultBranch' => true,
+                    'expiresIn' => 604800,
+                ],
+                $applicationToken
+            )
             ->willReturn($privilegedTokenResponse)
         ;
 
         $storageClientWrapperMock = $this->createMock(ClientWrapper::class);
         $storageClientWrapperMock->expects(self::atLeastOnce())
             ->method('getBranchClientIfAvailable')
+            ->willReturn($storageClient)
+        ;
+        $storageClientWrapperMock->expects(self::atLeastOnce())
+            ->method('getBasicClient')
             ->willReturn($storageClient)
         ;
 
@@ -934,20 +870,14 @@ class JobTest extends BaseTest
             array_merge($this->jobData, ['branchType' => BranchType::DEFAULT->value])
         );
 
-        $token = $job->getExecutionTokenDecrypted($applicationToken);
+        $executionToken = $job->getExecutionTokenDecrypted($applicationToken);
 
-        self::assertSame('th1s-i5-pr1vIl3ged-70k3n', $token);
+        self::assertSame('th1s-i5-pr1vIl3ged-70k3n', $executionToken);
     }
 
-    public function testGetExecutionTokenDecryptedBranchDev(): void
+    public function testGetExecutionTokenDecryptedWithFeatureBranchDev(): void
     {
         $applicationToken = '4pPl1cAti0nT0k3n';
-        $privilegedTokenResponse = [
-            'id' => '123456',
-            'canManageProtectedDefaultBranch' => true,
-            'canCreateJobs' => false,
-            'token' => 'th1s-i5-pr1vIl3ged-70k3n',
-        ];
 
         $tokenData = [
             'owner' => [
@@ -967,7 +897,6 @@ class JobTest extends BaseTest
         // the privileged token is not created
         $storageClient->expects(self::never())
             ->method('apiPostJson')
-            ->willReturn($privilegedTokenResponse)
         ;
 
         $storageClientWrapperMock = $this->createMock(ClientWrapper::class);
@@ -1001,8 +930,66 @@ class JobTest extends BaseTest
             array_merge($this->jobData, ['branchType' => BranchType::DEV->value])
         );
 
-        $token = $job->getExecutionTokenDecrypted($applicationToken);
+        $executionToken = $job->getExecutionTokenDecrypted($applicationToken);
 
-        self::assertNull($token);
+        // returned execution token is "normal" Storage token
+        self::assertSame('token', $executionToken);
+    }
+
+    public function testGetExecutionTokenDecryptedNoFeature(): void
+    {
+        $applicationToken = '4pPl1cAti0nT0k3n';
+
+        $tokenData = [
+            'owner' => [
+                'id' => 123,
+                'name' => 'dummy',
+                'features' => [],
+            ],
+        ];
+
+        $storageClient = $this->createMock(Client::class);
+        $storageClient->expects(self::once())
+            ->method('verifyToken')
+            ->willReturn($tokenData)
+        ;
+        $storageClient->expects(self::never())
+            ->method('apiPostJson')
+        ;
+
+        $storageClientWrapperMock = $this->createMock(ClientWrapper::class);
+        $storageClientWrapperMock->expects(self::atLeastOnce())
+            ->method('getBranchClientIfAvailable')
+            ->willReturn($storageClient)
+        ;
+
+        $storageClientFactory = $this->createMock(StorageClientPlainFactory::class);
+        $storageClientFactory->expects(self::atLeastOnce())
+            ->method('createClientWrapper')
+            ->with(new ClientOptions(null, 'token', $this->jobData['branchId']))
+            ->willReturn($storageClientWrapperMock)
+        ;
+
+        $objectEncryptorMock = $this->createMock(JobObjectEncryptor::class);
+        $objectEncryptorMock->expects(self::once())
+            ->method('decrypt')
+            ->with(
+                'KBC::ProjectSecure::token',
+                $this->jobData['componentId'],
+                $this->jobData['projectId'],
+                $this->jobData['configId'],
+            )
+            ->willReturn('token')
+        ;
+
+        $job = new Job(
+            $objectEncryptorMock,
+            $storageClientFactory,
+            array_merge($this->jobData, ['branchType' => BranchType::DEFAULT->value])
+        );
+
+        $executionToken = $job->getExecutionTokenDecrypted($applicationToken);
+
+        self::assertSame('token', $executionToken);
     }
 }
