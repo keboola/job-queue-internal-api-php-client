@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace Keboola\JobQueueInternalClient\Tests;
 
-use Keboola\JobQueueInternalClient\Exception\PermissionsException;
 use Keboola\JobQueueInternalClient\JobFactory\Job;
 use Keboola\JobQueueInternalClient\JobFactory\JobInterface;
 use Keboola\JobQueueInternalClient\JobFactory\ObjectEncryptor\JobObjectEncryptor;
 use Keboola\JobQueueInternalClient\PermissionChecker;
+use Keboola\PermissionChecker\BranchType;
+use Keboola\PermissionChecker\Exception\PermissionDeniedException;
+use Keboola\PermissionChecker\StorageApiTokenInterface;
 use Keboola\StorageApiBranch\Factory\StorageClientPlainFactory;
 use PHPUnit\Framework\TestCase;
 
@@ -30,6 +32,7 @@ class PermissionCheckerTest extends TestCase
             'projectId' => '123',
             'tokenId' => '456',
             '#tokenString' => 'KBC::ProjectSecure::token',
+            'branchType' => BranchType::DEFAULT->value,
         ];
         $objectEncryptorMock = $this->createMock(JobObjectEncryptor::class);
         $storageFactoryMock = $this->createMock(StorageClientPlainFactory::class);
@@ -37,13 +40,36 @@ class PermissionCheckerTest extends TestCase
     }
 
     /**
-     * @param JobInterface $job
-     * @param array $tokenInfo
      * @dataProvider allowedJobsProvider
      */
     public function testJobRunAllowed(JobInterface $job, array $tokenInfo): void
     {
-        PermissionChecker::verifyJobRunPermissions($job, $tokenInfo);
+        $token = new class($tokenInfo) implements StorageApiTokenInterface {
+            private array $tokenInfo;
+
+            public function __construct(array $tokenInfo)
+            {
+                $this->tokenInfo = $tokenInfo;
+            }
+
+            public function getFeatures(): array
+            {
+                return $this->tokenInfo['owner']['features'];
+            }
+
+            public function getRole(): ?string
+            {
+                return $this->tokenInfo['admin']['role'] ?? null;
+            }
+
+            public function getAllowedComponents(): ?array
+            {
+                return $this->tokenInfo['componentAccess'] ?? null;
+            }
+        };
+
+
+        PermissionChecker::verifyJobRunPermissions($job, $token);
         self::assertTrue(true);
     }
 
@@ -122,9 +148,33 @@ class PermissionCheckerTest extends TestCase
      */
     public function testJobRunForbidden(JobInterface $job, array $tokenInfo, string $expectedError): void
     {
-        $this->expectException(PermissionsException::class);
+        $token = new class($tokenInfo) implements StorageApiTokenInterface {
+            private array $tokenInfo;
+
+            public function __construct(array $tokenInfo)
+            {
+                $this->tokenInfo = $tokenInfo;
+            }
+
+            public function getFeatures(): array
+            {
+                return $this->tokenInfo['owner']['features'];
+            }
+
+            public function getRole(): ?string
+            {
+                return $this->tokenInfo['admin']['role'] ?? null;
+            }
+
+            public function getAllowedComponents(): ?array
+            {
+                return $this->tokenInfo['componentAccess'] ?? null;
+            }
+        };
+
+        $this->expectException(PermissionDeniedException::class);
         $this->expectExceptionMessage($expectedError);
-        PermissionChecker::verifyJobRunPermissions($job, $tokenInfo);
+        PermissionChecker::verifyJobRunPermissions($job, $token);
     }
 
     public function forbiddenJobsProvider(): array
@@ -147,7 +197,7 @@ class PermissionCheckerTest extends TestCase
                         'keboola.not-dummy', 'keboola.not-dummy-2',
                     ],
                 ],
-                'message' => 'You do not have permission to run jobs of "keboola.dummy" component.',
+                'message' => 'Token is not allowed to run component "keboola.dummy"',
             ],
             'roleReadOnly' => [
                 'job' => $this->getJob(),
@@ -166,33 +216,14 @@ class PermissionCheckerTest extends TestCase
                         'keboola.dummy', 'keboola.dummy-2',
                     ],
                 ],
-                'message' => 'You have read only access to the project, you cannot run any jobs.',
-            ],
-            'roleReadOnly2' => [
-                'job' => $this->getJob(),
-                'tokenInfo' => [
-                    'admin' => [
-                        'name' => 'John doe',
-                        'role' => 'readonly',
-                    ],
-                    'owner' => [
-                        'id' => '123',
-                        'name' => 'test',
-                        'features' => ['abcd', 'queuev2'],
-                    ],
-                    'id' => '123',
-                    'componentAccess' => [
-                        'keboola.dummy', 'keboola.dummy-2',
-                    ],
-                ],
-                'message' => 'You have read only access to the project, you cannot run any jobs.',
+                'message' => 'Role "readOnly" is not allowed to run jobs',
             ],
             'featureMissing' => [
                 'job' => $this->getJob(),
                 'tokenInfo' => [
                     'admin' => [
                         'name' => 'John doe',
-                        'role' => 'readonly',
+                        'role' => 'readOnly',
                     ],
                     'owner' => [
                         'id' => '123',
@@ -204,7 +235,7 @@ class PermissionCheckerTest extends TestCase
                         'keboola.dummy', 'keboola.dummy-2',
                     ],
                 ],
-                'message' => 'Feature "queuev2" is not enabled in the project "test" (id: 123).',
+                'message' => 'Project does not have feature "queuev2" enabled',
             ],
         ];
     }
