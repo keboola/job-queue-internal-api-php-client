@@ -68,7 +68,6 @@ class PermissionCheckerTest extends TestCase
             }
         };
 
-
         PermissionChecker::verifyJobRunPermissions($job, $token);
         self::assertTrue(true);
     }
