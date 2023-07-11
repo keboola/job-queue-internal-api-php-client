@@ -829,6 +829,9 @@ class JobTest extends BaseTest
                 [
                     'canManageProtectedDefaultBranch' => true,
                     'expiresIn' => 604800,
+                    'description' => 'Execution Token for job 123456456',
+                    'canReadAllFileUploads' => true,
+                    'canManageBuckets' => true,
                 ],
                 $applicationToken
             )
