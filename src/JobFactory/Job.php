@@ -378,6 +378,9 @@ class Job implements JsonSerializable, JobInterface
     {
         $tokens = new Tokens($this->getStorageClientWrapper()->getBasicClient());
         $options = new TokenCreateOptions();
+        $options->setDescription(sprintf('Execution Token for job %s', $this->getId()));
+        $options->setCanManageBuckets(true);
+        $options->setCanReadAllFileUploads(true);
         $options->setExpiresIn(self::EXECUTION_TOKEN_TIMEOUT_SECONDS);
         $token = $tokens->createTokenPrivilegedInProtectedDefaultBranch($options, $applicationToken);
 
