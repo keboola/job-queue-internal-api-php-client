@@ -46,7 +46,8 @@
         "keboola/coding-standard": ">=14.0",
         "phpstan/phpstan": "^1.0",
         "phpstan/phpstan-phpunit": "^1.3",
-        "phpunit/phpunit": "^9.5"
+        "phpunit/phpunit": "^9.5",
+        "symfony/dotenv": "^6.3"
     },
     "scripts": {
         "pre-autoload-dump": "Aws\\Script\\Composer\\Composer::removeUnusedServices",
