@@ -17,6 +17,7 @@ use Keboola\JobQueueInternalClient\NewJobFactory;
 use Keboola\ManageApi\Client as ManageApiClient;
 use Keboola\ObjectEncryptor\EncryptorOptions;
 use Keboola\ObjectEncryptor\ObjectEncryptorFactory;
+use Keboola\StorageApiBranch\ClientWrapper;
 use Keboola\StorageApiBranch\Factory\ClientOptions;
 use Keboola\StorageApiBranch\Factory\StorageClientPlainFactory;
 use Psr\Log\NullLogger;
@@ -27,14 +28,24 @@ abstract class BaseClientFunctionalTest extends BaseTest
     use TestEnvVarsTrait;
     use EncryptorOptionsTest;
 
+    protected string $defaultBranchId;
+
     public function setUp(): void
     {
         parent::setUp();
+
         putenv('AWS_ACCESS_KEY_ID=' . self::getRequiredEnv('TEST_AWS_ACCESS_KEY_ID'));
         putenv('AWS_SECRET_ACCESS_KEY=' . self::getRequiredEnv('TEST_AWS_SECRET_ACCESS_KEY'));
         putenv('AZURE_TENANT_ID=' . self::getRequiredEnv('TEST_AZURE_TENANT_ID'));
         putenv('AZURE_CLIENT_ID=' . self::getRequiredEnv('TEST_AZURE_CLIENT_ID'));
         putenv('AZURE_CLIENT_SECRET=' . self::getRequiredEnv('TEST_AZURE_CLIENT_SECRET'));
+
+        $clientWrapper = new ClientWrapper(new ClientOptions(
+            url: self::getRequiredEnv('TEST_STORAGE_API_URL'),
+            token: self::getRequiredEnv('TEST_STORAGE_API_TOKEN'),
+        ));
+        $this->defaultBranchId = (string) $clientWrapper->getDefaultBranch()['branchId'];
+
         $this->cleanJobs();
     }
 
@@ -53,7 +64,8 @@ abstract class BaseClientFunctionalTest extends BaseTest
         return new NewJobFactory(
             $storageClientFactory,
             new JobRuntimeResolver($storageClientFactory),
-            $objectEncryptorProvider
+            $objectEncryptorProvider,
+            new NullLogger(),
         );
     }
 

@@ -6,7 +6,6 @@ namespace Keboola\JobQueueInternalClient;
 
 use Keboola\JobQueueInternalClient\Exception\ClientException;
 use Keboola\JobQueueInternalClient\JobFactory\Behavior;
-use Keboola\JobQueueInternalClient\JobFactory\BranchTypeResolver;
 use Keboola\JobQueueInternalClient\JobFactory\FullJobDefinition;
 use Keboola\JobQueueInternalClient\JobFactory\Job;
 use Keboola\JobQueueInternalClient\JobFactory\JobInterface;
@@ -15,35 +14,47 @@ use Keboola\JobQueueInternalClient\JobFactory\NewJobDefinition;
 use Keboola\JobQueueInternalClient\JobFactory\ObjectEncryptorProvider\DataPlaneObjectEncryptorProvider;
 use Keboola\PermissionChecker\BranchType;
 use Keboola\StorageApi\ClientException as StorageClientException;
-use Keboola\StorageApi\DevBranches;
 use Keboola\StorageApiBranch\Factory\ClientOptions;
 use Keboola\StorageApiBranch\Factory\StorageClientPlainFactory;
+use Psr\Log\LoggerInterface;
 
 class NewJobFactory extends JobFactory
 {
-    private StorageClientPlainFactory $storageClientFactory;
-    private JobRuntimeResolver $jobRuntimeResolver;
-    private DataPlaneObjectEncryptorProvider $objectEncryptorProvider;
-
     public function __construct(
-        StorageClientPlainFactory $storageClientFactory,
-        JobRuntimeResolver $jobRuntimeResolver,
-        DataPlaneObjectEncryptorProvider $objectEncryptorProvider
+        private StorageClientPlainFactory $storageClientFactory,
+        private JobRuntimeResolver $jobRuntimeResolver,
+        private DataPlaneObjectEncryptorProvider $objectEncryptorProvider,
+        private LoggerInterface $logger,
     ) {
-        $this->storageClientFactory = $storageClientFactory;
-        $this->jobRuntimeResolver = $jobRuntimeResolver;
-        $this->objectEncryptorProvider = $objectEncryptorProvider;
     }
 
     public function createNewJob(array $data): JobInterface
     {
         $data = $this->validateJobData($data, NewJobDefinition::class);
 
+        $branchId = $data['branchId'] ?? null;
+        $storageClientWrapper = $this->storageClientFactory->createClientWrapper(new ClientOptions(
+            token: $data['#tokenString'],
+            branchId: $branchId ? ((string) $branchId) : null,
+        ));
+
         try {
-            $client = $this->storageClientFactory->createClientWrapper(new ClientOptions(
-                null,
-                $data['#tokenString']
-            ))->getBasicClient();
+            if ($branchId === null) {
+                $this->logger->warning('Not setting branchId is deprecated, set actual branch ID');
+                $branchId = $storageClientWrapper->getBranchId();
+                $branchType = BranchType::DEFAULT;
+            } elseif ($branchId === 'default') {
+                $this->logger->warning('Using branchId alias "default" is deprecated, set actual branch ID');
+                $branchId = $storageClientWrapper->getBranchId();
+                $branchType = BranchType::DEFAULT;
+            } else {
+                $branchType = $storageClientWrapper->getDefaultBranch()['branchId'] === (string) $branchId
+                    ? BranchType::DEFAULT
+                    : BranchType::DEV
+                ;
+            }
+
+            $client = $storageClientWrapper->getBasicClient();
             $tokenInfo = $client->verifyToken();
             $jobId = $client->generateId();
             $runId = empty($data['parentRunId']) ? $jobId :
@@ -90,7 +101,8 @@ class NewJobFactory extends JobFactory
             'result' => [],
             'usageData' => [],
             'isFinished' => false,
-            'branchId' => $data['branchId'] ?? null,
+            'branchId' => (string) $branchId,
+            'branchType' => $branchType->value,
             'type' => $data['type'] ?? null,
             'variableValuesId' => $data['variableValuesId'] ?? null,
             'variableValuesData' => $data['variableValuesData'] ?? [],

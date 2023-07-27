@@ -148,7 +148,7 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
             'startTime' => null,
             'endTime' => null,
             'durationSeconds' => 0,
-            'branchId' => null,
+            'branchId' => $this->defaultBranchId,
             'variableValuesId' => null,
             'variableValuesData' => [
                 'values' => [],
@@ -252,7 +252,7 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
                 'startTime' => null,
                 'endTime' => null,
                 'durationSeconds' => 0,
-                'branchId' => null,
+                'branchId' => $this->defaultBranchId,
                 'variableValuesId' => null,
                 'variableValuesData' => [
                     'values' => [],
@@ -525,7 +525,7 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
         /** @var Job $listedJob */
         $listedJob = $response[0];
         self::assertEquals($createdJob->jsonSerialize(), $listedJob->jsonSerialize());
-        self::assertNull($listedJob->jsonSerialize()['branchId']);
+        self::assertSame($this->defaultBranchId, $listedJob->jsonSerialize()['branchId']);
 
         // list more components
         $response = $client->listJobs(
@@ -737,20 +737,20 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
         self::assertEquals($createdJob->jsonSerialize(), $listedJob->jsonSerialize());
         self::assertEquals($branchId, $listedJob->jsonSerialize()['branchId']);
 
-        // job without branch
-        $response = $client->listJobs(
-            (new JobListOptions())
-                ->setStatuses([JobInterface::STATUS_CREATED])
-                ->setBranchIds(['null']),
-            true
-        );
-
-        self::assertCount(1, $response);
-        /** @var Job $listedJob */
-        $listedJob = $response[0];
-
-        self::assertEquals($createdJob2->jsonSerialize(), $listedJob->jsonSerialize());
-        self::assertNull($listedJob->jsonSerialize()['branchId']);
+//        // job without branch
+//        $response = $client->listJobs(
+//            (new JobListOptions())
+//                ->setStatuses([JobInterface::STATUS_CREATED])
+//                ->setBranchIds(['null']),
+//            true
+//        );
+//
+//        self::assertCount(1, $response);
+//        /** @var Job $listedJob */
+//        $listedJob = $response[0];
+//
+//        self::assertEquals($createdJob2->jsonSerialize(), $listedJob->jsonSerialize());
+//        self::assertNull($listedJob->jsonSerialize()['branchId']);
         $branchesApi->deleteBranch($branchId);
     }
 
@@ -814,7 +814,7 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
         /** @var Job $listedJob */
         $listedJob = $response[0];
         self::assertEquals($createdJob2->jsonSerialize(), $listedJob->jsonSerialize());
-        self::assertNull($listedJob->jsonSerialize()['branchId']);
+        self::assertSame($this->defaultBranchId, $listedJob->jsonSerialize()['branchId']);
 
         // no jobs
         $response = $client->listJobs(

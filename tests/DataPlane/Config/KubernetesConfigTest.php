@@ -32,6 +32,12 @@ class KubernetesConfigTest extends TestCase
 
     public function testGetDecryptedToken(): void
     {
+        putenv('AWS_ACCESS_KEY_ID=' . self::getRequiredEnv('TEST_AWS_ACCESS_KEY_ID'));
+        putenv('AWS_SECRET_ACCESS_KEY=' . self::getRequiredEnv('TEST_AWS_SECRET_ACCESS_KEY'));
+        putenv('AZURE_TENANT_ID=' . self::getRequiredEnv('TEST_AZURE_TENANT_ID'));
+        putenv('AZURE_CLIENT_ID=' . self::getRequiredEnv('TEST_AZURE_CLIENT_ID'));
+        putenv('AZURE_CLIENT_SECRET=' . self::getRequiredEnv('TEST_AZURE_CLIENT_SECRET'));
+
         $objectEncryptor = ObjectEncryptorFactory::getEncryptor(self::getEncryptorOptions());
 
         $encryptedToken = $objectEncryptor->encryptGeneric('tokenValue');
