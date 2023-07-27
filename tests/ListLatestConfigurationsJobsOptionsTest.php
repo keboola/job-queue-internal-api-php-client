@@ -29,19 +29,21 @@ class ListLatestConfigurationsJobsOptionsTest extends TestCase
         $options = new ListLatestConfigurationsJobsOptions('12345');
         $options->setOffset(6);
         $options->setLimit(7);
-        $options->setBranchId('main');
+        $options->setBranchId('main', true);
         $options->setProjectId('54321');
 
         self::assertSame('54321', $options->getProjectId());
         self::assertSame(6, $options->getOffset());
         self::assertSame(7, $options->getLimit());
         self::assertSame('main', $options->getBranchId());
+        self::assertTrue($options->isDefaultBranch());
 
         self::assertSame([
             'projectId=54321',
             'branchId=main',
             'offset=6',
             'limit=7',
+            'isDefaultBranch=1',
         ], $options->getQueryParameters());
     }
 }

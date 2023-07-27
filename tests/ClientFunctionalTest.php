@@ -694,7 +694,7 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
         $response = $client->listJobs(
             (new JobListOptions())
                 ->setStatuses([JobInterface::STATUS_CREATED])
-                ->setBranchIds([$branchId]),
+                ->setBranchIds([$branchId], false),
             true
         );
         self::assertCount(1, $response);
@@ -707,7 +707,7 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
         $response = $client->listJobs(
             (new JobListOptions())
                 ->setStatuses([JobInterface::STATUS_CREATED])
-                ->setBranchIds(['null']),
+                ->setBranchIds(['null'], false),
             true
         );
 

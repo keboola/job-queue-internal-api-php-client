@@ -18,7 +18,7 @@ class JobListOptionsTest extends TestCase
 
         $jobListOptions->setIds(['1', '2', '3']);
         $jobListOptions->setRunIds(['5', '6', '7']);
-        $jobListOptions->setBranchIds(['branch1', 'branch2', 'branch3']);
+        $jobListOptions->setBranchIds(['branch1', 'branch2', 'branch3'], true);
         $jobListOptions->setTokenIds(['8', '9', '10']);
         $jobListOptions->setTokenDescriptions(['new token', 'old token', 'bad token', 'good token']);
         $jobListOptions->setComponents(['writer', 'extractor', 'orchestrator']);
@@ -46,6 +46,7 @@ class JobListOptionsTest extends TestCase
         self::assertSame(['1', '2', '3'], $jobListOptions->getIds());
         self::assertSame(['5', '6', '7'], $jobListOptions->getRunIds());
         self::assertSame(['branch1', 'branch2', 'branch3'], $jobListOptions->getBranchIds());
+        self::assertTrue($jobListOptions->hasDefaultBranch());
         self::assertSame(['8', '9', '10'], $jobListOptions->getTokenIds());
         self::assertSame(
             ['new token', 'old token', 'bad token', 'good token'],
@@ -124,6 +125,7 @@ class JobListOptionsTest extends TestCase
             'createdTimeTo=' . urlencode('2022-02-20T01:12:23+00:00'),
             'endTimeFrom=' . urlencode('2020-02-02T01:12:23+00:00'),
             'endTimeTo=' . urlencode('2020-02-20T01:12:23+00:00'),
+            'hasDefaultBranch=1',
         ];
 
         self::assertSame($expected, $jobListOptions->getQueryParameters());

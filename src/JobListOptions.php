@@ -12,6 +12,7 @@ class JobListOptions
     private array $ids;
     private array $runIds;
     private array $branchIds;
+    private bool $hasDefaultBranch;
     private array $tokenIds;
     private array $tokenDescriptions;
     private array $components;
@@ -78,6 +79,9 @@ class JobListOptions
             'endTimeFrom' => 'endTimeFrom',
             'endTimeTo' => 'endTimeTo',
         ];
+        $boolProps = [
+            'hasDefaultBranch' => 'hasDefaultBranch',
+        ];
         $parameters = [];
         foreach ($arrayableProps as $propName => $paramName) {
             if (!empty($this->$propName)) {
@@ -99,6 +103,11 @@ class JobListOptions
         foreach ($dateTimeProps as $propName => $paramName) {
             if (!empty($this->$propName)) {
                 $parameters[] = $paramName . '=' . urlencode((string) $this->$propName->format('c'));
+            }
+        }
+        foreach ($boolProps as $propName => $paramName) {
+            if (isset($this->$propName)) {
+                $parameters[] = $paramName . '=' . ($this->$propName ? '1' : '0');
             }
         }
 
@@ -132,9 +141,15 @@ class JobListOptions
         return $this->branchIds;
     }
 
-    public function setBranchIds(array $values): JobListOptions
+    public function hasDefaultBranch(): bool
+    {
+        return $this->hasDefaultBranch;
+    }
+
+    public function setBranchIds(array $values, bool $hasDefaultBranch): JobListOptions
     {
         $this->branchIds = $values;
+        $this->hasDefaultBranch = $hasDefaultBranch;
         return $this;
     }
 

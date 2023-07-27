@@ -21,6 +21,7 @@ class ListConfigurationsJobsOptions
     private ?string $sortBy = null;
     private ?string $sortOrder = null;
     private ?string $branchId = null;
+    private ?bool $isDefaultBranch = null;
     private ?string $type = null;
     private ?string $componentId;
 
@@ -53,6 +54,10 @@ class ListConfigurationsJobsOptions
             'type' => 'type',
         ];
 
+        $boolProps = [
+            'isDefaultBranch' => 'isDefaultBranch',
+        ];
+
         $parameters = [];
         foreach ($arrayableProps as $propName => $paramName) {
             if (!empty($this->$propName)) {
@@ -64,6 +69,11 @@ class ListConfigurationsJobsOptions
         foreach ($scalarProps as $propName => $paramName) {
             if (!empty($this->$propName)) {
                 $parameters[] = $paramName . '=' . urlencode((string) $this->$propName);
+            }
+        }
+        foreach ($boolProps as $propName => $paramName) {
+            if (isset($this->$propName)) {
+                $parameters[] = $paramName . '=' . ($this->$propName ? '1' : '0');
             }
         }
 
@@ -149,9 +159,15 @@ class ListConfigurationsJobsOptions
         return $this->branchId;
     }
 
-    public function setBranchId(?string $branchId): self
+    public function isDefaultBranch(): ?bool
+    {
+        return $this->isDefaultBranch;
+    }
+
+    public function setBranchId(string $branchId, bool $isDefaultBranch): self
     {
         $this->branchId = $branchId;
+        $this->isDefaultBranch = $isDefaultBranch;
         return $this;
     }
 
