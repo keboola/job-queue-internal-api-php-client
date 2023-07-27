@@ -537,40 +537,6 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
         self::assertCount(2, $response);
     }
 
-    public function testListJobsWithBranchTypeNull(): void
-    {
-        // jobs before branchType has branchType = null
-        $newJobFactory = $this->getNewJobFactory();
-        $client = $this->getClient();
-
-        $job = $newJobFactory->createNewJob([
-            '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
-            'configId' => self::$configId1,
-            'componentId' => self::COMPONENT_ID_1,
-            'mode' => 'run',
-        ]);
-        $jobData = array_merge($job->jsonSerialize(), ['branchType' => null]);
-
-        $objectEncryptor = $this->createMock(JobObjectEncryptor::class);
-        $storageClientFactory = $this->createMock(StorageClientPlainFactory::class);
-
-        $jobWithBranchTypeNull = new Job($objectEncryptor, $storageClientFactory, $jobData);
-
-        $createdJob = $client->createJob($jobWithBranchTypeNull);
-
-        // list one component
-        $response = $client->listJobs(
-            (new JobListOptions())
-                ->setStatuses([JobInterface::STATUS_CREATED]),
-            true
-        );
-        self::assertCount(1, $response);
-        /** @var Job $listedJob */
-        $listedJob = $response[0];
-        self::assertEquals($createdJob->jsonSerialize(), $listedJob->jsonSerialize());
-        self::assertNull($listedJob->getBranchType());
-    }
-
     public function testListJobsSort(): void
     {
         $newJobFactory = $this->getNewJobFactory();

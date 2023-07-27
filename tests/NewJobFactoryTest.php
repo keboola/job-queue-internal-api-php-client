@@ -750,7 +750,7 @@ class NewJobFactoryTest extends BaseTest
             'mode' => 'run',
         ];
         $job = $factory->createNewJob($data);
-        self::assertSame($expectedBranchType, $job->getBranchType()?->value);
+        self::assertSame($expectedBranchType, $job->getBranchType()->value);
         self::assertSame($invocationCount, $trackingInvocationCount);
         self::assertStringStartsWith($expectedPrefix, $job->getTokenString());
     }

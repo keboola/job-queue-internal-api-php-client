@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Keboola\JobQueueInternalClient\Tests\JobFactory;
 
 use Keboola\JobQueueInternalClient\JobFactory\FullJobDefinition;
-use Keboola\JobQueueInternalClient\JobFactory\Job;
 use Keboola\JobQueueInternalClient\JobFactory\JobInterface;
 use Keboola\JobQueueInternalClient\Tests\BaseTest;
+use Keboola\PermissionChecker\BranchType;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\Uid\Uuid;
 
@@ -35,6 +35,7 @@ class FullJobDefinitionTest extends BaseTest
             'desiredStatus' => JobInterface::DESIRED_STATUS_PROCESSING,
             'parallelism' => null,
             'type' => 'standard',
+            'branchType' => BranchType::DEFAULT->value,
         ];
         $definition = new FullJobDefinition();
         $processedData = $definition->processData($expectedData);
@@ -43,7 +44,6 @@ class FullJobDefinitionTest extends BaseTest
         $expectedData['isFinished'] = false;
         $expectedData['orchestrationJobId'] = null;
         $expectedData['runnerId'] = null;
-        $expectedData['branchType'] = null;
         self::assertEquals($expectedData, $processedData);
     }
 
@@ -401,7 +401,7 @@ class FullJobDefinitionTest extends BaseTest
                     'mode' => 'run',
                     'branchType' => 'invalid',
                 ],
-                '#Invalid configuration for path "job.branchType": BranchType must be one of dev, default.#',
+                '#The value "invalid" is not allowed for path "job.branchType". Permissible values: "default", "dev"#',
             ],
         ];
     }

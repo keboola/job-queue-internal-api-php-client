@@ -139,16 +139,8 @@ class FullJobDefinition extends NewJobDefinition
                 ->scalarNode('branchId')
                     ->beforeNormalization()->always($this->getStringNormalizer())->end()
                 ->end()
-                ->scalarNode('branchType')
-                    ->defaultNull()
-                    ->beforeNormalization()->always($this->getStringNormalizer())->end()
-                    ->validate()
-                        ->ifNotInArray([BranchType::DEV->value, BranchType::DEFAULT->value, null])
-                        ->thenInvalid(
-                            'BranchType must be one of ' .
-                            implode(', ', [BranchType::DEV->value, BranchType::DEFAULT->value, null]) . '.'
-                        )
-                    ->end()
+                ->enumNode('branchType')
+                    ->values(array_map(fn(BranchType $t) => $t->value, BranchType::cases()))
                 ->end()
                 ->scalarNode('variableValuesId')
                     ->beforeNormalization()->always($this->getStringNormalizer())->end()

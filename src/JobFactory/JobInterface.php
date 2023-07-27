@@ -135,5 +135,5 @@ interface JobInterface
     public function getComponentConfiguration(): array;
     public function getOrchestrationJobId(): ?string;
     public function getProjectFeatures(): array;
-    public function getBranchType(): ?BranchType;
+    public function getBranchType(): BranchType;
 }

@@ -14,6 +14,7 @@ use Keboola\JobQueueInternalClient\JobFactory\JobInterface;
 use Keboola\JobQueueInternalClient\JobFactory\ObjectEncryptorProvider\DataPlaneObjectEncryptorProvider;
 use Keboola\ObjectEncryptor\EncryptorOptions;
 use Keboola\ObjectEncryptor\ObjectEncryptorFactory;
+use Keboola\PermissionChecker\BranchType;
 use Keboola\StorageApi\Client;
 use Keboola\StorageApi\Components;
 use Keboola\StorageApi\Options\Components\Configuration;
@@ -182,6 +183,7 @@ class ExistingJobFactoryTest extends BaseTest
             'id' => '123',
             'runId' => '123',
             'projectId' => self::$projectId,
+            'branchType' => BranchType::DEFAULT->value,
             'tokenId' => '1234',
             'status' => JobInterface::STATUS_CREATED,
             'desiredStatus' => JobInterface::DESIRED_STATUS_PROCESSING,
@@ -231,6 +233,7 @@ class ExistingJobFactoryTest extends BaseTest
             'id' => '123',
             'runId' => '123',
             'projectId' => self::$projectId,
+            'branchType' => BranchType::DEFAULT->value,
             'dataPlaneId' => 'dataPlaneId',
             'tokenId' => '1234',
             'status' => JobInterface::STATUS_CREATED,
