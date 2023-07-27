@@ -6,6 +6,7 @@ namespace Keboola\JobQueueInternalClient\JobFactory;
 
 use DateTimeImmutable;
 use DateTimeZone;
+use InvalidArgumentException;
 use JsonSerializable;
 use Keboola\JobQueueInternalClient\Exception\ClientException;
 use Keboola\JobQueueInternalClient\JobFactory;
@@ -47,6 +48,10 @@ class Job implements JsonSerializable, JobInterface
         StorageClientPlainFactory $storageClientFactory,
         array $data
     ) {
+        if (!isset($data['branchType'])) {
+            throw new InvalidArgumentException('Missing required parameter "branchType"');
+        }
+
         $this->objectEncryptor = $objectEncryptor;
         $this->storageClientFactory = $storageClientFactory;
         $this->data = $data;
@@ -252,9 +257,9 @@ class Job implements JsonSerializable, JobInterface
         );
     }
 
-    public function getBranchType(): ?BranchType
+    public function getBranchType(): BranchType
     {
-        return $this->data['branchType'] ? BranchType::from($this->data['branchType']) : null;
+        return BranchType::from($this->data['branchType']);
     }
 
     public function getBranchId(): ?string

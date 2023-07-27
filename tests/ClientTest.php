@@ -22,6 +22,7 @@ use Keboola\JobQueueInternalClient\Result\JobMetrics;
 use Keboola\JobQueueInternalClient\Result\JobResult;
 use Keboola\ObjectEncryptor\EncryptorOptions;
 use Keboola\ObjectEncryptor\ObjectEncryptor;
+use Keboola\PermissionChecker\BranchType;
 use Keboola\StorageApiBranch\Factory\ClientOptions;
 use Keboola\StorageApiBranch\Factory\StorageClientPlainFactory;
 use Psr\Http\Message\RequestInterface;
@@ -194,6 +195,7 @@ class ClientTest extends BaseTest
                     "usageData": {},
                     "isFinished": false,
                     "branchId": "1234",
+                    "branchType": "dev",
                     "variableValuesId": "1357",
                     "variableValuesData": {
                         "values": [{
@@ -286,7 +288,8 @@ class ClientTest extends BaseTest
                     "result": {},
                     "usageData": {},
                     "isFinished": false,
-                    "branchId": null
+                    "branchId": null,
+                    "branchType": "default"
                 }'
             ),
         ]);
@@ -342,7 +345,8 @@ class ClientTest extends BaseTest
                     "result": {},
                     "usageData": {},
                     "isFinished": false,
-                    "branchId": null
+                    "branchId": null,
+                    "branchType": "default"
                 }'
             ),
         ]);
@@ -448,7 +452,8 @@ Out of order
                     "#tokenString": "KBC::XXX",
                     "componentId": "my-component",
                     "status": "processing",
-                    "desiredStatus": "processing"
+                    "desiredStatus": "processing",
+                    "branchType": "default"
                 }'
             ),
         ]);
@@ -629,7 +634,8 @@ Out of order
                     "result": {},
                     "usageData": {},
                     "isFinished": false,
-                    "branchId": null
+                    "branchId": null,
+                    "branchType": "default"
                 }]'
             ),
         ]);
@@ -748,7 +754,8 @@ Out of order
                     "result": {},
                     "usageData": {},
                     "isFinished": false,
-                    "branchId": null
+                    "branchId": null,
+                    "branchType": "default"
                 }]'
             ),
         ]);
@@ -805,6 +812,7 @@ Out of order
             'usageData' => [],
             'isFinished' => false,
             'branchId' => '1234',
+            'branchType' => BranchType::DEV->value,
         ];
         $queue = array_fill(0, 10, function () use ($jobData): Response {
             return new Response(
@@ -901,6 +909,7 @@ Out of order
             'usageData' => [],
             'isFinished' => false,
             'branchId' => null,
+            'branchType' => BranchType::DEFAULT->value,
         ];
         $queue = array_fill(0, 10, function () use ($jobData): Response {
             return new Response(
@@ -949,7 +958,8 @@ Out of order
                     "#tokenString": "KBC::XXX",
                     "componentId": "my-component",
                     "status": "processing",
-                    "desiredStatus": "processing"    
+                    "desiredStatus": "processing",
+                    "branchType": "default"
                 }'
             ),
         ]);
@@ -992,7 +1002,8 @@ Out of order
                     "#tokenString": "KBC::XXX",
                     "componentId": "my-component",
                     "status": "processing",
-                    "desiredStatus": "processing"   
+                    "desiredStatus": "processing",
+                    "branchType": "default"
                 }'
             ),
         ]);
