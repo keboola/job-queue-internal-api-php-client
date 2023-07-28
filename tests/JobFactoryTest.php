@@ -89,6 +89,7 @@ class JobFactoryTest extends BaseTest
         $factory = $this->getJobFactory();
         $data = [
             '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+            'branchType' => 'default',
             'configData' => [],
             'componentId' => 'keboola.runner-config-test',
             'mode' => 'run',
@@ -102,9 +103,10 @@ class JobFactoryTest extends BaseTest
         self::assertEquals([], $job->getConfigDataDecrypted());
         self::assertIsArray($job->getConfigRowIds());
         self::assertEmpty($job->getConfigRowIds());
-        self::assertSame('0.0.16', $job->getTag());
+        self::assertSame('1.3.0', $job->getTag());
         self::assertEquals($job->getId(), $job->getRunId());
         self::assertSame(null, $job->getBranchId());
+        self::assertSame('default', $job->getBranchType());
         // check that the object encryptor factory is initialized (if it is not, there are no wrappers)
         self::assertStringStartsWith(
             'Keboola\\ObjectEncryptor\\Wrapper\\',
@@ -117,6 +119,7 @@ class JobFactoryTest extends BaseTest
         $factory = $this->getJobFactory();
         $data = [
             '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+            'branchType' => 'default',
             'configId' => (int) self::$configId1,
             'componentId' => self::COMPONENT_ID_1,
             'mode' => 'run',
@@ -140,6 +143,7 @@ class JobFactoryTest extends BaseTest
         self::assertSame('123', $job->jsonSerialize()['tag']);
         self::assertSame('1234.567.' . $job->getId(), $job->jsonSerialize()['runId']);
         self::assertSame(null, $job->getBranchId());
+        self::assertSame('default', $job->getBranchType());
         self::assertEquals(['values' => []], $job->getVariableValuesData());
     }
 
@@ -148,6 +152,7 @@ class JobFactoryTest extends BaseTest
         $factory = $this->getJobFactory();
         $data = [
             '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+            'branchType' => 'dev',
             'componentId' => 123,
             'mode' => 'run',
             'tag' => 123,
@@ -171,6 +176,7 @@ class JobFactoryTest extends BaseTest
         self::assertSame('123', $job->jsonSerialize()['tag']);
         self::assertSame('1234.567.' . $job->getId(), $job->jsonSerialize()['runId']);
         self::assertSame('1234', $job->getBranchId());
+        self::assertSame('dev', $job->getBranchType());
         self::assertEquals(['values' => []], $job->getVariableValuesData());
     }
 
@@ -179,6 +185,7 @@ class JobFactoryTest extends BaseTest
         $factory = $this->getJobFactory();
         $data = [
             '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+            'branchType' => 'default',
             'configId' => self::$configId1,
             'componentId' => self::COMPONENT_ID_1,
             'mode' => 'run',
@@ -199,6 +206,7 @@ class JobFactoryTest extends BaseTest
         $factory = $this->getJobFactory();
         $data = [
             '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+            'branchType' => 'default',
             'parentRunId' => '2345',
             'componentId' => 'keboola.runner-config-test',
             'mode' => 'run',
@@ -239,6 +247,7 @@ class JobFactoryTest extends BaseTest
         $factory = $this->getJobFactory();
         $data = [
             '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+            'branchType' => 'default',
             'componentId' => 'keboola.runner-config-test',
             'tag' => 'latest',
             'mode' => 'forceRun',
@@ -255,6 +264,7 @@ class JobFactoryTest extends BaseTest
         $factory = $this->getJobFactory();
         $data = [
             '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+            'branchType' => 'default',
             'parentRunId' => '2345',
             'componentId' => 'keboola.runner-config-test',
             'tag' => 'latest',
@@ -280,6 +290,7 @@ class JobFactoryTest extends BaseTest
         $factory = $this->getJobFactory();
         $data = [
             '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+            'branchType' => 'default',
             'parentRunId' => '2345',
             'componentId' => 'keboola.runner-config-test',
             'tag' => 'latest',
@@ -305,6 +316,7 @@ class JobFactoryTest extends BaseTest
         $factory = $this->getJobFactory();
         $data = [
             '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+            'branchType' => 'default',
             'parentRunId' => '2345',
             'componentId' => 'keboola.runner-config-test',
             'tag' => 'latest',
@@ -330,6 +342,7 @@ class JobFactoryTest extends BaseTest
         $factory = $this->getJobFactory();
         $data = [
             '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+            'branchType' => 'default',
             'parentRunId' => '2345',
             'componentId' => 'keboola.runner-config-test',
             'tag' => 'latest',
@@ -356,6 +369,7 @@ class JobFactoryTest extends BaseTest
         $factory = $this->getJobFactory();
         $data = [
             '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+            'branchType' => 'default',
             'componentId' => 'keboola.orchestrator',
             'tag' => 'latest',
             'mode' => 'run',
@@ -375,6 +389,7 @@ class JobFactoryTest extends BaseTest
         $factory = $this->getJobFactory();
         $data = [
             '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+            'branchType' => 'default',
             'componentId' => 'keboola.orchestrator',
             'tag' => 'latest',
             'mode' => 'run',
@@ -393,6 +408,7 @@ class JobFactoryTest extends BaseTest
         $factory = $this->getJobFactory();
         $data = [
             '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+            'branchType' => 'default',
             'componentId' => 'keboola.orchestrator',
             'tag' => 'latest',
             'mode' => 'run',
@@ -411,6 +427,7 @@ class JobFactoryTest extends BaseTest
         $factory = $this->getJobFactory();
         $data = [
             '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+            'branchType' => 'default',
             'componentId' => 'keboola.orchestrator',
             'tag' => 'latest',
             'mode' => 'run',
@@ -429,6 +446,7 @@ class JobFactoryTest extends BaseTest
         $factory = $this->getJobFactory();
         $data = [
             '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+            'branchType' => 'default',
             'parentRunId' => '2345',
             'configData' => [],
             'componentId' => 'keboola.runner-config-test',
@@ -459,6 +477,7 @@ class JobFactoryTest extends BaseTest
             'projectId' => '219',
             'tokenId' => '12345',
             '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+            'branchType' => 'default',
         ];
 
         self::expectException(ClientException::class);
@@ -481,6 +500,7 @@ class JobFactoryTest extends BaseTest
         $factory = $this->getJobFactory();
         $data = [
             '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+            'branchType' => 'default',
             'componentId' => 'keboola.runner-config-test',
             'mode' => 'run',
             'tag' => 'latest',
@@ -522,6 +542,7 @@ class JobFactoryTest extends BaseTest
     {
         $data = [
             '#tokenString' => 'invalid',
+            'branchType' => 'default',
             'configId' => '123',
             'componentId' => 'keboola.test',
             'mode' => 'run',
@@ -555,6 +576,7 @@ class JobFactoryTest extends BaseTest
         $factory = $this->getJobFactory();
         $data = [
             '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+            'branchType' => 'default',
             'configId' => self::$configId1,
             'configData' => [
                 '#foo1' => $objectEncryptorFactory->getEncryptor()->encrypt(
@@ -623,6 +645,7 @@ class JobFactoryTest extends BaseTest
             'status' => JobFactory::STATUS_CREATED,
             'desiredStatus' => JobFactory::DESIRED_STATUS_PROCESSING,
             '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+            'branchType' => 'default',
             'configId' => self::$configId1,
             'configData' => [
                 '#foo1' => $objectEncryptorFactory->getEncryptor()->encrypt(
@@ -686,6 +709,7 @@ class JobFactoryTest extends BaseTest
         $objectEncryptorFactory->setComponentId(self::COMPONENT_ID_1);
         $data = [
             '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+            'branchType' => 'default',
             'configId' => self::$configId1,
             'configData' => [
                 '#foo11' => $objectEncryptorFactory->getEncryptor()->encrypt(
@@ -712,6 +736,7 @@ class JobFactoryTest extends BaseTest
         $objectEncryptorFactory->setComponentId(self::COMPONENT_ID_2);
         $data = [
             '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+            'branchType' => 'default',
             'configId' => self::$configId2,
             'configData' => [
                 '#foo21' => $objectEncryptorFactory->getEncryptor()->encrypt(
@@ -796,6 +821,7 @@ class JobFactoryTest extends BaseTest
         $jobFactory = new JobFactory($storageClientFactory, $objectEncryptorFactory);
         $data = [
             '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+            'branchType' => 'default',
             'configId' => self::$configId1,
             'componentId' => self::COMPONENT_ID_1,
             'mode' => 'run',

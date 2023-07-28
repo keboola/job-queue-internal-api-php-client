@@ -33,6 +33,7 @@ class FullJobDefinitionTest extends BaseTest
             'desiredStatus' => JobFactory::DESIRED_STATUS_PROCESSING,
             'parallelism' => null,
             'type' => 'standard',
+            'branchType' => 'default',
         ];
         $definition = new FullJobDefinition();
         $processedData = $definition->processData($expectedData);
@@ -75,6 +76,7 @@ class FullJobDefinitionTest extends BaseTest
                     'backendExtraKey' => 'ignored',
                 ],
             ],
+            'branchType' => 'default',
         ];
         unset($data['extraKey']);
         unset($data['metrics']['storage']['storageExtraKey']);
@@ -388,6 +390,7 @@ class FullJobDefinitionTest extends BaseTest
                 'type' => 'my-backend',
                 'foo' => 'bar',
             ],
+            'branchType' => 'default',
         ];
         $definition = new FullJobDefinition();
 
@@ -419,6 +422,7 @@ class FullJobDefinitionTest extends BaseTest
             'behavior' => [
                 'onError' => 'warning',
             ],
+            'branchType' => 'default',
         ];
         $definition = new FullJobDefinition();
 

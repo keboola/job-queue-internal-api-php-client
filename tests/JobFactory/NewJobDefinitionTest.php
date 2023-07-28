@@ -25,6 +25,7 @@ class NewJobDefinitionTest extends BaseTest
             'configId' => '123',
             'componentId' => 'keboola.test',
             'result' => [],
+            'branchType' => 'default',
         ];
         $definition = new NewJobDefinition();
         $processed = $definition->processData($data);
@@ -33,6 +34,7 @@ class NewJobDefinitionTest extends BaseTest
                 'mode' => 'run',
                 'result' => [],
                 'configRowIds' => [],
+                'branchType' => 'default',
             ]),
             $processed
         );
@@ -61,6 +63,7 @@ class NewJobDefinitionTest extends BaseTest
                 'type' => 'my',
                 'foo' => 'bar',
             ],
+            'branchType' => 'default',
         ];
         $definition = new NewJobDefinition();
         $expected = $data;

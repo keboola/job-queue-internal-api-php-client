@@ -182,6 +182,7 @@ class JobFactory
             'usageData' => [],
             'isFinished' => false,
             'branchId' => $data['branchId'] ?? null,
+            'branchType' => $data['branchType'],
             'variableValuesId' => $data['variableValuesId'] ?? null,
             'variableValuesData' => $data['variableValuesData'] ?? [],
         ];

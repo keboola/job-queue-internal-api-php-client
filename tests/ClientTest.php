@@ -146,6 +146,7 @@ class ClientTest extends BaseTest
                     "usageData": {},
                     "isFinished": false,
                     "branchId": "1234",
+                    "branchType": "dev",
                     "variableValuesId": "1357",
                     "variableValuesData": {
                         "values": [{
@@ -168,6 +169,7 @@ class ClientTest extends BaseTest
         self::assertEquals('keboola.test', $job->getComponentId());
         self::assertEquals('456', $job->getProjectId());
         self::assertEquals('Test project', $job->getProjectName());
+        self::assertSame('dev', $job->getBranchType());
         self::assertEquals('run', $job->getMode());
         self::assertEquals('created', $job->getStatus());
         self::assertEquals('1234', $job->getBranchId());
@@ -238,7 +240,8 @@ class ClientTest extends BaseTest
                     "result": {},
                     "usageData": {},
                     "isFinished": false,
-                    "branchId": null
+                    "branchId": null,
+                    "branchType": "default"
                 }'
             ),
         ]);
@@ -294,7 +297,8 @@ class ClientTest extends BaseTest
                     "result": {},
                     "usageData": {},
                     "isFinished": false,
-                    "branchId": null
+                    "branchId": null,
+                    "branchType": "default"
                 }'
             ),
         ]);
@@ -382,7 +386,8 @@ class ClientTest extends BaseTest
                     "#tokenString": "KBC::XXX",
                     "componentId": "my-component",
                     "status": "processing",
-                    "desiredStatus": "processing"
+                    "desiredStatus": "processing",
+                    "branchType": "default"
                 }'
             ),
         ]);
@@ -556,7 +561,8 @@ class ClientTest extends BaseTest
                     "result": {},
                     "usageData": {},
                     "isFinished": false,
-                    "branchId": null
+                    "branchId": null,
+                    "branchType": "default"
                 }]'
             ),
         ]);
@@ -575,6 +581,7 @@ class ClientTest extends BaseTest
         self::assertEquals('123', $job->getId());
         self::assertEquals('456', $job->getProjectId());
         self::assertEquals('', $job->getBranchId());
+        self::assertSame('default', $job->getBranchType());
 
         $request = $mock->getLastRequest();
         self::assertEquals('projectId%5B%5D=456&limit=100', $request->getUri()->getQuery());
@@ -607,7 +614,8 @@ class ClientTest extends BaseTest
                     "result": {},
                     "usageData": {},
                     "isFinished": false,
-                    "branchId": null
+                    "branchId": null,
+                    "branchType": "default"
                 }]'
             ),
         ]);
@@ -662,6 +670,7 @@ class ClientTest extends BaseTest
             'usageData' => [],
             'isFinished' => false,
             'branchId' => '1234',
+            'branchType' => 'dev',
         ];
         $queue = array_fill(0, 10, function () use ($jobData): Response {
             return new Response(
@@ -756,6 +765,7 @@ class ClientTest extends BaseTest
             'usageData' => [],
             'isFinished' => false,
             'branchId' => null,
+            'branchType' => 'default',
         ];
         $queue = array_fill(0, 10, function () use ($jobData): Response {
             return new Response(
@@ -802,7 +812,8 @@ class ClientTest extends BaseTest
                     "#tokenString": "KBC::XXX",
                     "componentId": "my-component",
                     "status": "processing",
-                    "desiredStatus": "processing"    
+                    "desiredStatus": "processing",
+                    "branchType": "default"
                 }'
             ),
         ]);
@@ -845,7 +856,8 @@ class ClientTest extends BaseTest
                     "#tokenString": "KBC::XXX",
                     "componentId": "my-component",
                     "status": "processing",
-                    "desiredStatus": "processing"   
+                    "desiredStatus": "processing",
+                    "branchType": "default"
                 }'
             ),
         ]);
