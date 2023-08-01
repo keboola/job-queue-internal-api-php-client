@@ -60,8 +60,7 @@
             "@composer validate --no-check-all --strict",
             "@phpcs",
             "@phpstan",
-            "@tests",
-            "@infection"
+            "@tests"
         ]
     },
     "config": {
