@@ -55,16 +55,13 @@
         "phpstan": "phpstan analyse --no-progress -c phpstan.neon",
         "phpcs": "phpcs --extensions=php src tests",
         "phpcbf": "phpcbf --extensions=php src tests",
-        "infection": "infection --threads=4 --min-covered-msi=90 --coverage=/tmp/build-logs --only-covered",
-        "build": [
+        "infection": "infection --threads=4 --min-covered-msi=90 --coverage=/tmp/build-logs --only-covered --skip-initial-tests",
+        "ci": [
+            "@composer validate --no-check-all --strict",
             "@phpcs",
             "@phpstan",
             "@tests",
             "@infection"
-        ],
-        "ci": [
-            "@composer validate --no-check-all --strict",
-            "@build"
         ]
     },
     "config": {
