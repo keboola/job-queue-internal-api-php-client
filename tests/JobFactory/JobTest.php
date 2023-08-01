@@ -15,8 +15,6 @@ use Keboola\PermissionChecker\BranchType;
 use Keboola\StorageApi\BranchAwareClient;
 use Keboola\StorageApi\Client;
 use Keboola\StorageApi\ClientException as StorageApiClientException;
-use Keboola\StorageApi\Options\TokenCreateOptions;
-use Keboola\StorageApi\Tokens;
 use Keboola\StorageApiBranch\ClientWrapper;
 use Keboola\StorageApiBranch\Factory\ClientOptions;
 use Keboola\StorageApiBranch\Factory\StorageClientPlainFactory;
@@ -62,7 +60,7 @@ class JobTest extends BaseTest
             ],
         ],
         'orchestrationJobId' => '123456789',
-        'branchType' => null,
+        'branchType' => 'default',
     ];
 
     public function testConstants(): void
@@ -495,11 +493,6 @@ class JobTest extends BaseTest
 
     public function testGetBranchType(): void
     {
-        $jobData = $this->jobData;
-        $jobData['branchType'] = null;
-        $job = $this->getJob($jobData);
-        self::assertSame(null, $job->getBranchType());
-
         $jobData = $this->jobData;
         $jobData['branchType'] = 'default';
         $job = $this->getJob($jobData);
