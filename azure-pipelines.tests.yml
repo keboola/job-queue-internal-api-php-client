@@ -1,8 +1,14 @@
+
+
 jobs:
   - template: ../../azure-pipelines/jobs/run-tests.yml
     parameters:
       jobName: tests_php80
       serviceName: ci-internal-api-php-client
+      ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/main') }}:
+        testCommand: composer ci && composer infection
+      ${{ else }}:
+        testCommand: composer ci
       variables:
         CLOUD_PROVIDER: aws
         STORAGE_API_URL: $(STORAGE_API_URL__AWS)
