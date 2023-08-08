@@ -104,7 +104,7 @@ class JobRuntimeResolverTest extends TestCase
                 $componentData
             );
         $clientWrapperMock = self::createMock(ClientWrapper::class);
-        $clientWrapperMock->method('getBranchClientIfAvailable')->willReturn($clientMock);
+        $clientWrapperMock->method('getBranchClient')->willReturn($clientMock);
         $storageClientFactoryMock = self::createMock(StorageClientPlainFactory::class);
         $storageClientFactoryMock
             ->expects(self::exactly(1))
@@ -173,7 +173,7 @@ class JobRuntimeResolverTest extends TestCase
                 $configuration
             );
         $clientWrapperMock = self::createMock(ClientWrapper::class);
-        $clientWrapperMock->method('getBranchClientIfAvailable')->willReturn($clientMock);
+        $clientWrapperMock->method('getBranchClient')->willReturn($clientMock);
         $storageClientFactoryMock = self::createMock(StorageClientPlainFactory::class);
         $storageClientFactoryMock
             ->expects(self::exactly(2))
@@ -251,7 +251,7 @@ class JobRuntimeResolverTest extends TestCase
                 $componentData
             );
         $clientWrapperMock = self::createMock(ClientWrapper::class);
-        $clientWrapperMock->method('getBranchClientIfAvailable')->willReturn($clientMock);
+        $clientWrapperMock->method('getBranchClient')->willReturn($clientMock);
         $storageClientFactoryMock = self::createMock(StorageClientPlainFactory::class);
         $storageClientFactoryMock
             ->expects(self::once())
@@ -348,7 +348,7 @@ class JobRuntimeResolverTest extends TestCase
                 $configuration
             );
         $clientWrapperMock = self::createMock(ClientWrapper::class);
-        $clientWrapperMock->method('getBranchClientIfAvailable')->willReturn($clientMock);
+        $clientWrapperMock->method('getBranchClient')->willReturn($clientMock);
         $storageClientFactoryMock = self::createMock(StorageClientPlainFactory::class);
         $storageClientFactoryMock
             ->expects(self::exactly(2))
@@ -428,7 +428,7 @@ class JobRuntimeResolverTest extends TestCase
                 $configuration
             );
         $clientWrapperMock = self::createMock(ClientWrapper::class);
-        $clientWrapperMock->method('getBranchClientIfAvailable')->willReturn($clientMock);
+        $clientWrapperMock->method('getBranchClient')->willReturn($clientMock);
         $storageClientFactoryMock = self::createMock(StorageClientPlainFactory::class);
         $storageClientFactoryMock
             ->expects(self::exactly(2))
@@ -510,7 +510,7 @@ class JobRuntimeResolverTest extends TestCase
                 $configuration
             );
         $clientWrapperMock = self::createMock(ClientWrapper::class);
-        $clientWrapperMock->method('getBranchClientIfAvailable')->willReturn($clientMock);
+        $clientWrapperMock->method('getBranchClient')->willReturn($clientMock);
         $storageClientFactoryMock = self::createMock(StorageClientPlainFactory::class);
         $storageClientFactoryMock
             ->expects(self::exactly(2))
@@ -578,7 +578,7 @@ class JobRuntimeResolverTest extends TestCase
                 $configuration
             );
         $clientWrapperMock = self::createMock(ClientWrapper::class);
-        $clientWrapperMock->method('getBranchClientIfAvailable')->willReturn($clientMock);
+        $clientWrapperMock->method('getBranchClient')->willReturn($clientMock);
         $storageClientFactoryMock = self::createMock(StorageClientPlainFactory::class);
         $storageClientFactoryMock
             ->expects(self::exactly(2))
@@ -645,7 +645,7 @@ class JobRuntimeResolverTest extends TestCase
         ;
 
         $storageApiClientWrapper = self::createMock(ClientWrapper::class);
-        $storageApiClientWrapper->method('getBranchClientIfAvailable')->willReturn($storageApiClient);
+        $storageApiClientWrapper->method('getBranchClient')->willReturn($storageApiClient);
 
         $storageClientFactory = self::createMock(StorageClientPlainFactory::class);
         $storageClientFactory
@@ -769,7 +769,7 @@ class JobRuntimeResolverTest extends TestCase
             )
         ;
         $clientWrapperMock = self::createMock(ClientWrapper::class);
-        $clientWrapperMock->method('getBranchClientIfAvailable')->willReturn($clientMock);
+        $clientWrapperMock->method('getBranchClient')->willReturn($clientMock);
         $storageClientFactoryMock = self::createMock(StorageClientPlainFactory::class);
         $storageClientFactoryMock
             ->expects(self::exactly(1))
@@ -801,7 +801,7 @@ class JobRuntimeResolverTest extends TestCase
             })
         ;
         $clientWrapperMock = self::createMock(ClientWrapper::class);
-        $clientWrapperMock->method('getBranchClientIfAvailable')->willReturn($clientMock);
+        $clientWrapperMock->method('getBranchClient')->willReturn($clientMock);
         $storageClientFactoryMock = self::createMock(StorageClientPlainFactory::class);
         $storageClientFactoryMock
             ->expects(self::exactly(2))
@@ -827,7 +827,7 @@ class JobRuntimeResolverTest extends TestCase
             )
         ;
         $clientWrapperMock = self::createMock(ClientWrapper::class);
-        $clientWrapperMock->method('getBranchClientIfAvailable')->willReturn($clientMock);
+        $clientWrapperMock->method('getBranchClient')->willReturn($clientMock);
         $storageClientFactoryMock = self::createMock(StorageClientPlainFactory::class);
         $storageClientFactoryMock
             ->expects(self::exactly(1))
@@ -876,7 +876,7 @@ class JobRuntimeResolverTest extends TestCase
             )
         ;
         $clientWrapperMock = self::createMock(ClientWrapper::class);
-        $clientWrapperMock->method('getBranchClientIfAvailable')->willReturn($clientMock);
+        $clientWrapperMock->method('getBranchClient')->willReturn($clientMock);
         $storageClientFactoryMock = self::createMock(StorageClientPlainFactory::class);
         $storageClientFactoryMock
             ->expects(self::exactly(1))
@@ -930,7 +930,7 @@ class JobRuntimeResolverTest extends TestCase
                 ['configuration' => null]
             );
         $clientWrapperMock = self::createMock(ClientWrapper::class);
-        $clientWrapperMock->method('getBranchClientIfAvailable')->willReturn($clientMock);
+        $clientWrapperMock->method('getBranchClient')->willReturn($clientMock);
         $storageClientFactoryMock = self::createMock(StorageClientPlainFactory::class);
         $storageClientFactoryMock
             ->expects(self::exactly(2))
@@ -1007,7 +1007,7 @@ class JobRuntimeResolverTest extends TestCase
                 $configuration
             );
         $clientWrapperMock = self::createMock(ClientWrapper::class);
-        $clientWrapperMock->method('getBranchClientIfAvailable')->willReturn($clientMock);
+        $clientWrapperMock->method('getBranchClient')->willReturn($clientMock);
         $storageClientFactoryMock = self::createMock(StorageClientPlainFactory::class);
         $storageClientFactoryMock
             ->expects(self::exactly(4))
@@ -1033,7 +1033,7 @@ class JobRuntimeResolverTest extends TestCase
         $clientMock->expects(self::once())->method('apiGet')
             ->with('branch/default/components/keboola.ex-db-snowflake')->willReturn($component);
         $clientWrapperMock = self::createMock(ClientWrapper::class);
-        $clientWrapperMock->method('getBranchClientIfAvailable')->willReturn($clientMock);
+        $clientWrapperMock->method('getBranchClient')->willReturn($clientMock);
         $storageClientFactoryMock = self::createMock(StorageClientPlainFactory::class);
         $storageClientFactoryMock
             ->expects(self::once())
@@ -1088,7 +1088,7 @@ class JobRuntimeResolverTest extends TestCase
                 $configuration,
             );
         $clientWrapperMock = self::createMock(ClientWrapper::class);
-        $clientWrapperMock->method('getBranchClientIfAvailable')->willReturn($branchClientMock);
+        $clientWrapperMock->method('getBranchClient')->willReturn($branchClientMock);
         $clientWrapperMock->method('getBasicClient')->willReturn($clientMock);
         $storageClientFactoryMock = self::createMock(StorageClientPlainFactory::class);
         $storageClientFactoryMock
@@ -1161,7 +1161,7 @@ class JobRuntimeResolverTest extends TestCase
                 $configuration
             );
         $clientWrapperMock = self::createMock(ClientWrapper::class);
-        $clientWrapperMock->method('getBranchClientIfAvailable')->willReturn($clientMock);
+        $clientWrapperMock->method('getBranchClient')->willReturn($clientMock);
         $storageClientFactoryMock = self::createMock(StorageClientPlainFactory::class);
         $storageClientFactoryMock
             ->expects(self::exactly(2))
@@ -1212,7 +1212,7 @@ class JobRuntimeResolverTest extends TestCase
                 $this->getTestComponentData($stagingInput)
             );
         $clientWrapperMock = self::createMock(ClientWrapper::class);
-        $clientWrapperMock->method('getBranchClientIfAvailable')->willReturn($clientMock);
+        $clientWrapperMock->method('getBranchClient')->willReturn($clientMock);
         $storageClientFactoryMock = self::createMock(StorageClientPlainFactory::class);
         $storageClientFactoryMock
             ->expects(self::exactly($expectedApiCallCount))
@@ -1763,7 +1763,7 @@ class JobRuntimeResolverTest extends TestCase
                 ]
             );
         $clientWrapperMock = self::createMock(ClientWrapper::class);
-        $clientWrapperMock->method('getBranchClientIfAvailable')->willReturn($clientMock);
+        $clientWrapperMock->method('getBranchClient')->willReturn($clientMock);
         $storageClientFactoryMock = self::createMock(StorageClientPlainFactory::class);
         $storageClientFactoryMock
             ->expects(self::exactly(2))
@@ -1821,7 +1821,7 @@ class JobRuntimeResolverTest extends TestCase
             ->with('components/keboola.ex-db-snowflake')
             ->willReturn($this->getTestComponentData());
         $clientWrapperMock = self::createMock(ClientWrapper::class);
-        $clientWrapperMock->method('getBranchClientIfAvailable')->willReturn($branchClientMock);
+        $clientWrapperMock->method('getBranchClient')->willReturn($branchClientMock);
         $clientWrapperMock->method('getBasicClient')->willReturn($clientMock);
         $storageClientFactoryMock = self::createMock(StorageClientPlainFactory::class);
         $storageClientFactoryMock

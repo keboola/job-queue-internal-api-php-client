@@ -720,7 +720,7 @@ class NewJobFactoryTest extends BaseTest
             ->method('getBasicClient')
             ->willReturn($clientMock);
         $clientWrapperMock
-            ->method('getBranchClientIfAvailable')
+            ->method('getBranchClient')
             ->willReturn($clientMock);
         $storageClientFactoryMock = $this->createMock(StorageClientPlainFactory::class);
         $storageClientFactoryMock

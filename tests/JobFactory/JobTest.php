@@ -435,7 +435,7 @@ class JobTest extends BaseTest
 
         $storageApiClientWrapperMock = $this->createMock(ClientWrapper::class);
         $storageApiClientWrapperMock->expects(self::once())
-            ->method('getBranchClientIfAvailable')
+            ->method('getBranchClient')
             ->willReturn($storageApiClientMock)
         ;
 
@@ -519,7 +519,7 @@ class JobTest extends BaseTest
         $clientMock->method('apiGet')->willReturn($componentData);
         $clientWrapperMock = $this->createMock(ClientWrapper::class);
         $clientWrapperMock
-            ->expects(self::once())->method('getBranchClientIfAvailable')->willReturn($clientMock);
+            ->expects(self::once())->method('getBranchClient')->willReturn($clientMock);
         $factory = $this->createMock(StorageClientPlainFactory::class);
         $factory->expects(self::once())->method('createClientWrapper')
             ->with(new ClientOptions(null, 'token', '987'))
@@ -554,7 +554,7 @@ class JobTest extends BaseTest
 
         $storageClientWrapperMock = $this->createMock(ClientWrapper::class);
         $storageClientWrapperMock->expects(self::once())
-            ->method('getBranchClientIfAvailable')
+            ->method('getBranchClient')
             ->willReturn($storageClient)
         ;
 
@@ -605,7 +605,7 @@ class JobTest extends BaseTest
 
         $storageClientWrapperMock = $this->createMock(ClientWrapper::class);
         $storageClientWrapperMock->expects(self::once())
-            ->method('getBranchClientIfAvailable')
+            ->method('getBranchClient')
             ->willReturn($storageClient)
         ;
 
@@ -676,7 +676,7 @@ class JobTest extends BaseTest
 
         $storageClientWrapperMock = $this->createMock(ClientWrapper::class);
         $storageClientWrapperMock->expects(self::once())
-            ->method('getBranchClientIfAvailable')
+            ->method('getBranchClient')
             ->willReturn($storageClient)
         ;
 
@@ -750,7 +750,7 @@ class JobTest extends BaseTest
 
         $storageClientWrapperMock = $this->createMock(ClientWrapper::class);
         $storageClientWrapperMock->expects(self::once())
-            ->method('getBranchClientIfAvailable')
+            ->method('getBranchClient')
             ->willReturn($storageClient)
         ;
 
@@ -833,7 +833,7 @@ class JobTest extends BaseTest
 
         $storageClientWrapperMock = $this->createMock(ClientWrapper::class);
         $storageClientWrapperMock->expects(self::atLeastOnce())
-            ->method('getBranchClientIfAvailable')
+            ->method('getBranchClient')
             ->willReturn($storageClient)
         ;
         $storageClientWrapperMock->expects(self::atLeastOnce())
@@ -900,7 +900,7 @@ class JobTest extends BaseTest
 
         $storageClientWrapperMock = $this->createMock(ClientWrapper::class);
         $storageClientWrapperMock->expects(self::atLeastOnce())
-            ->method('getBranchClientIfAvailable')
+            ->method('getBranchClient')
             ->willReturn($storageClient)
         ;
 
@@ -958,7 +958,7 @@ class JobTest extends BaseTest
 
         $storageClientWrapperMock = $this->createMock(ClientWrapper::class);
         $storageClientWrapperMock->expects(self::atLeastOnce())
-            ->method('getBranchClientIfAvailable')
+            ->method('getBranchClient')
             ->willReturn($storageClient)
         ;
 
