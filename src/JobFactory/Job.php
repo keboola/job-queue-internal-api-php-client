@@ -364,7 +364,7 @@ class Job implements JsonSerializable, JobInterface
         }
 
         return $this->componentsApiClient = new ComponentsApiClient(
-            $this->getStorageClientWrapper()->getBranchClientIfAvailable()
+            $this->getStorageClientWrapper()->getBranchClient()
         );
     }
 
@@ -375,7 +375,7 @@ class Job implements JsonSerializable, JobInterface
         }
 
         return $this->projectFeatures = $this->getStorageClientWrapper()
-            ->getBranchClientIfAvailable()
+            ->getBranchClient()
             ->verifyToken()['owner']['features'];
     }
 
