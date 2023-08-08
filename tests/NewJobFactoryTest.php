@@ -15,6 +15,7 @@ use Keboola\JobQueueInternalClient\JobFactory\ObjectEncryptorProvider\DataPlaneO
 use Keboola\JobQueueInternalClient\NewJobFactory;
 use Keboola\ObjectEncryptor\EncryptorOptions;
 use Keboola\ObjectEncryptor\ObjectEncryptorFactory;
+use Keboola\StorageApi\BranchAwareClient;
 use Keboola\StorageApi\Client;
 use Keboola\StorageApi\Components;
 use Keboola\StorageApi\Options\Components\Configuration;
@@ -695,16 +696,8 @@ class NewJobFactoryTest extends BaseTest
     ): void {
         $trackingInvocationCount = 0;
         $objectEncryptor = ObjectEncryptorFactory::getEncryptor(self::getEncryptorOptions());
-        $clientMock = $this->createMock(Client::class);
-        $clientMock
-            ->method('verifyToken')
-            ->willReturnCallback(function () use ($features) {
-                $tokenInfo = self::$client->verifyToken();
-                $tokenInfo['owner']['features'] = $features;
-                return $tokenInfo;
-            });
-        $clientMock
-            ->method('apiGet')
+        $basicClientMock = $this->createMock(Client::class);
+        $basicClientMock->method('apiGet')
             ->willReturnCallback(function (...$args) use ($isDefault, &$trackingInvocationCount) {
                 if ($args[0] === 'dev-branches/987') {
                     $trackingInvocationCount++;
@@ -712,16 +705,31 @@ class NewJobFactoryTest extends BaseTest
                 }
                 return self::$client->apiGet(...$args);
             });
-        $clientMock
+        $basicClientMock
             ->method('generateId')
             ->willReturnCallback(fn(...$args) => self::$client->generateId());
+        $basicClientMock
+            ->method('verifyToken')
+            ->willReturnCallback(function () use ($features) {
+                $tokenInfo = self::$client->verifyToken();
+                $tokenInfo['owner']['features'] = $features;
+                return $tokenInfo;
+            });
+
+        $branchClientMock = $this->createMock(BranchAwareClient::class);
+        $branchClientMock
+            ->method('apiGet')
+            ->willReturnCallback(function (...$args) {
+                return self::$client->apiGet(...$args);
+            });
+
         $clientWrapperMock = $this->createMock(ClientWrapper::class);
         $clientWrapperMock
             ->method('getBasicClient')
-            ->willReturn($clientMock);
+            ->willReturn($basicClientMock);
         $clientWrapperMock
-            ->method('getBranchClientIfAvailable')
-            ->willReturn($clientMock);
+            ->method('getBranchClient')
+            ->willReturn($branchClientMock);
         $storageClientFactoryMock = $this->createMock(StorageClientPlainFactory::class);
         $storageClientFactoryMock
             ->method('createClientWrapper')

@@ -264,7 +264,7 @@ class JobRuntimeResolver
                 null,
                 $this->jobData['#tokenString'],
                 $branchId
-            ))->getBranchClientIfAvailable()
+            ))->getBranchClient()
         );
     }
 
