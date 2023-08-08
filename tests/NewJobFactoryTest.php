@@ -15,6 +15,7 @@ use Keboola\JobQueueInternalClient\JobFactory\ObjectEncryptorProvider\DataPlaneO
 use Keboola\JobQueueInternalClient\NewJobFactory;
 use Keboola\ObjectEncryptor\EncryptorOptions;
 use Keboola\ObjectEncryptor\ObjectEncryptorFactory;
+use Keboola\StorageApi\BranchAwareClient;
 use Keboola\StorageApi\Client;
 use Keboola\StorageApi\Components;
 use Keboola\StorageApi\Options\Components\Configuration;
@@ -695,7 +696,7 @@ class NewJobFactoryTest extends BaseTest
     ): void {
         $trackingInvocationCount = 0;
         $objectEncryptor = ObjectEncryptorFactory::getEncryptor(self::getEncryptorOptions());
-        $clientMock = $this->createMock(Client::class);
+        $clientMock = $this->createMock(BranchAwareClient::class);
         $clientMock
             ->method('verifyToken')
             ->willReturnCallback(function () use ($features) {

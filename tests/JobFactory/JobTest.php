@@ -742,7 +742,7 @@ class JobTest extends BaseTest
             ],
         ];
 
-        $storageClient = $this->createMock(Client::class);
+        $storageClient = $this->createMock(BranchAwareClient::class);
         $storageClient->expects(self::once())
             ->method('verifyToken')
             ->willReturn($tokenData)
@@ -810,7 +810,7 @@ class JobTest extends BaseTest
             ],
         ];
 
-        $storageClient = $this->createMock(Client::class);
+        $storageClient = $this->createMock(BranchAwareClient::class);
         $storageClient->expects(self::once())
             ->method('verifyToken')
             ->willReturn($tokenData)
@@ -888,7 +888,7 @@ class JobTest extends BaseTest
             ],
         ];
 
-        $storageClient = $this->createMock(Client::class);
+        $storageClient = $this->createMock(BranchAwareClient::class);
         $storageClient->expects(self::once())
             ->method('verifyToken')
             ->willReturn($tokenData)
@@ -947,7 +947,7 @@ class JobTest extends BaseTest
             ],
         ];
 
-        $storageClient = $this->createMock(Client::class);
+        $storageClient = $this->createMock(BranchAwareClient::class);
         $storageClient->expects(self::once())
             ->method('verifyToken')
             ->willReturn($tokenData)
