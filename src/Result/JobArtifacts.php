@@ -40,11 +40,11 @@ class JobArtifacts implements JsonSerializable
         return [
             'uploaded' => array_map(
                 $this->getSerializeResultCallable(),
-                $this->uploaded
+                $this->uploaded,
             ),
             'downloaded' => array_map(
                 $this->getSerializeResultCallable(),
-                $this->downloaded
+                $this->downloaded,
             ),
         ];
     }

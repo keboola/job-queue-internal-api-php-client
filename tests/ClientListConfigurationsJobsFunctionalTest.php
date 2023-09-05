@@ -31,14 +31,14 @@ class ClientListConfigurationsJobsFunctionalTest extends BaseClientFunctionalTes
             [
                 'token' => (string) getenv('TEST_STORAGE_API_TOKEN'),
                 'url' => (string) getenv('TEST_STORAGE_API_URL'),
-            ]
+            ],
         );
 
         self::$masterClient = new Client(
             [
                 'token' => (string) getenv('TEST_STORAGE_API_TOKEN_MASTER'),
                 'url' => (string) getenv('TEST_STORAGE_API_URL'),
-            ]
+            ],
         );
 
         $componentsApi = new Components(self::$client);
@@ -104,7 +104,7 @@ class ClientListConfigurationsJobsFunctionalTest extends BaseClientFunctionalTes
         $client->createJob($job2);
 
         $response = $client->listConfigurationsJobs(
-            new ListConfigurationsJobsOptions([self::$configId1], self::COMPONENT_ID_1)
+            new ListConfigurationsJobsOptions([self::$configId1], self::COMPONENT_ID_1),
         );
 
         self::assertCount(1, $response);
@@ -140,7 +140,7 @@ class ClientListConfigurationsJobsFunctionalTest extends BaseClientFunctionalTes
         ]));
 
         $response = $client->listConfigurationsJobs(
-            new ListConfigurationsJobsOptions([self::$configId1], self::COMPONENT_ID_1)
+            new ListConfigurationsJobsOptions([self::$configId1], self::COMPONENT_ID_1),
         );
 
         self::assertCount(1, $response);
@@ -162,7 +162,7 @@ class ClientListConfigurationsJobsFunctionalTest extends BaseClientFunctionalTes
 
         $response = $client->listConfigurationsJobs(
             (new ListConfigurationsJobsOptions([self::$configId1], self::COMPONENT_ID_1))
-                ->setProjectId($job1->getProjectId())
+                ->setProjectId($job1->getProjectId()),
         );
 
         self::assertCount(1, $response);
@@ -184,7 +184,7 @@ class ClientListConfigurationsJobsFunctionalTest extends BaseClientFunctionalTes
 
         $response = $client->listConfigurationsJobs(
             (new ListConfigurationsJobsOptions([self::$configId1], self::COMPONENT_ID_1))
-                ->setProjectId('other-project')
+                ->setProjectId('other-project'),
         );
 
         self::assertCount(0, $response);
@@ -213,7 +213,7 @@ class ClientListConfigurationsJobsFunctionalTest extends BaseClientFunctionalTes
 
         $response = $client->listConfigurationsJobs(
             (new ListConfigurationsJobsOptions([self::$configId1, self::$configId2], self::COMPONENT_ID_1))
-                ->setSort('componentId')
+                ->setSort('componentId'),
         );
 
         self::assertCount(2, $response);
@@ -254,7 +254,7 @@ class ClientListConfigurationsJobsFunctionalTest extends BaseClientFunctionalTes
             (new ListConfigurationsJobsOptions([self::$configId1], self::COMPONENT_ID_1))
                 ->setJobsPerConfig(3)
                 ->setLimit(1)
-                ->setOffset(1)
+                ->setOffset(1),
         );
 
         self::assertCount(1, $response);
@@ -295,7 +295,7 @@ class ClientListConfigurationsJobsFunctionalTest extends BaseClientFunctionalTes
         $response = $client->listConfigurationsJobs(
             (new ListConfigurationsJobsOptions([self::$configId1], self::COMPONENT_ID_1))
                 ->setJobsPerConfig(2)
-                ->setBranchId(self::$branchId1)
+                ->setBranchId(self::$branchId1),
         );
 
         self::assertCount(2, $response);
@@ -328,7 +328,7 @@ class ClientListConfigurationsJobsFunctionalTest extends BaseClientFunctionalTes
         $response = $client->listConfigurationsJobs(
             (new ListConfigurationsJobsOptions([self::$configId1], self::COMPONENT_ID_1))
                 ->setJobsPerConfig(2)
-                ->setBranchId('null')
+                ->setBranchId('null'),
         );
 
         self::assertCount(2, $response);

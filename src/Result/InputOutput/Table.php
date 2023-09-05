@@ -17,7 +17,7 @@ class Table implements JsonSerializable
         string $id,
         string $name,
         string $displayName,
-        ColumnCollection $columns
+        ColumnCollection $columns,
     ) {
         $this->id = $id;
         $this->name = $name;

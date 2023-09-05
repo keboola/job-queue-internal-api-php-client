@@ -135,7 +135,7 @@ class ListConfigurationsJobsOptions
             throw new ClientException(sprintf(
                 'Invalid sort order "%s", expected one of: %s',
                 $sortOrder,
-                implode(', ', self::VALID_SORT_ORDER)
+                implode(', ', self::VALID_SORT_ORDER),
             ));
         }
 

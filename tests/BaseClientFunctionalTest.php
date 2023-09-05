@@ -45,7 +45,7 @@ abstract class BaseClientFunctionalTest extends BaseTest
     protected function getNewJobFactory(?string $kmsKeyId = null, ?string $keyVaultUrl = null): NewJobFactory
     {
         $storageClientFactory = new StorageClientPlainFactory(new ClientOptions(
-            self::getRequiredEnv('TEST_STORAGE_API_URL')
+            self::getRequiredEnv('TEST_STORAGE_API_URL'),
         ));
 
         $objectEncryptorProvider = $this->getObjectEncryptorProvider($kmsKeyId, $keyVaultUrl);
@@ -53,7 +53,7 @@ abstract class BaseClientFunctionalTest extends BaseTest
         return new NewJobFactory(
             $storageClientFactory,
             new JobRuntimeResolver($storageClientFactory),
-            $objectEncryptorProvider
+            $objectEncryptorProvider,
         );
     }
 
@@ -64,14 +64,14 @@ abstract class BaseClientFunctionalTest extends BaseTest
     protected function getClient(?string $kmsKeyId = null, ?string $keyVaultUrl = null): Client
     {
         $storageClientFactory = new StorageClientPlainFactory(new ClientOptions(
-            self::getRequiredEnv('TEST_STORAGE_API_URL')
+            self::getRequiredEnv('TEST_STORAGE_API_URL'),
         ));
 
         $objectEncryptorProvider = $this->getObjectEncryptorProvider($kmsKeyId, $keyVaultUrl);
 
         $existingJobFactory = new ExistingJobFactory(
             $storageClientFactory,
-            $objectEncryptorProvider
+            $objectEncryptorProvider,
         );
 
         return new Client(
@@ -100,7 +100,7 @@ abstract class BaseClientFunctionalTest extends BaseTest
      */
     private function getObjectEncryptorProvider(
         ?string $kmsKeyId,
-        ?string $keyVaultUrl
+        ?string $keyVaultUrl,
     ): DataPlaneObjectEncryptorProvider {
         $stackId = self::getRequiredEnv('TEST_STORAGE_API_URL');
         self::assertNotEmpty($stackId);
@@ -112,7 +112,7 @@ abstract class BaseClientFunctionalTest extends BaseTest
                 self::getRequiredEnv('TEST_KMS_REGION'),
                 null,
                 $keyVaultUrl ?? self::getRequiredEnv('TEST_AZURE_KEY_VAULT_URL'),
-            )
+            ),
         );
 
         $dataPlaneConfigRepository = new DataPlaneConfigRepository(

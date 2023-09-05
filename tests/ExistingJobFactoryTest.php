@@ -39,7 +39,7 @@ class ExistingJobFactoryTest extends BaseTest
             [
                 'token' => self::getRequiredEnv('TEST_STORAGE_API_TOKEN'),
                 'url' => self::getRequiredEnv('TEST_STORAGE_API_URL'),
-            ]
+            ],
         );
 
         self::$projectId = (string) self::$client->verifyToken()['owner']['id'];
@@ -74,7 +74,7 @@ class ExistingJobFactoryTest extends BaseTest
     private function getJobFactoryWithoutDataPlaneSupport(): array
     {
         $storageClientFactory = new StorageClientPlainFactory(new ClientOptions(
-            self::getRequiredEnv('TEST_STORAGE_API_URL')
+            self::getRequiredEnv('TEST_STORAGE_API_URL'),
         ));
 
         $objectEncryptor = ObjectEncryptorFactory::getEncryptor(self::getEncryptorOptions());
@@ -85,7 +85,7 @@ class ExistingJobFactoryTest extends BaseTest
         $objectEncryptorProvider = new DataPlaneObjectEncryptorProvider(
             $objectEncryptor,
             $dataPlaneConfigRepository,
-            false
+            false,
         );
 
         $factory = new ExistingJobFactory(
@@ -99,7 +99,7 @@ class ExistingJobFactoryTest extends BaseTest
     private function getJobFactoryWithDataPlaneSupport(bool $projectHasDataPlane): array
     {
         $storageClientFactory = new StorageClientPlainFactory(new ClientOptions(
-            self::getRequiredEnv('TEST_STORAGE_API_URL')
+            self::getRequiredEnv('TEST_STORAGE_API_URL'),
         ));
 
         $controlPlaneObjectEncryptor = ObjectEncryptorFactory::getEncryptor(self::getEncryptorOptions());
@@ -142,7 +142,7 @@ class ExistingJobFactoryTest extends BaseTest
         $objectEncryptorProvider = new DataPlaneObjectEncryptorProvider(
             $controlPlaneObjectEncryptor,
             $dataPlaneConfigRepository,
-            true
+            true,
         );
 
         $factory = new ExistingJobFactory(
@@ -170,7 +170,7 @@ class ExistingJobFactoryTest extends BaseTest
 
         $this->expectException(ClientException::class);
         $this->expectExceptionMessageMatches(
-            '#The child (node|config) "componentId" (at path|under) "job" must be configured.#'
+            '#The child (node|config) "componentId" (at path|under) "job" must be configured.#',
         );
 
         $factory->loadFromExistingJobData($jobData);
@@ -203,7 +203,7 @@ class ExistingJobFactoryTest extends BaseTest
                     'bar3',
                     self::COMPONENT_ID_1,
                     self::$projectId,
-                    (string) self::$configId1
+                    (string) self::$configId1,
                 ),
             ],
             'componentId' => self::COMPONENT_ID_1,
@@ -221,7 +221,7 @@ class ExistingJobFactoryTest extends BaseTest
                 '#foo2' => 'bar2',
                 '#foo3' => 'bar3',
             ],
-            $job->getConfigDataDecrypted()
+            $job->getConfigDataDecrypted(),
         );
     }
 
@@ -254,7 +254,7 @@ class ExistingJobFactoryTest extends BaseTest
                     'bar3',
                     self::COMPONENT_ID_1,
                     self::$projectId,
-                    (string) self::$configId1
+                    (string) self::$configId1,
                 ),
             ],
             'componentId' => self::COMPONENT_ID_1,
@@ -274,7 +274,7 @@ class ExistingJobFactoryTest extends BaseTest
                 '#foo2' => 'bar2',
                 '#foo3' => 'bar3',
             ],
-            $job->getConfigDataDecrypted()
+            $job->getConfigDataDecrypted(),
         );
     }
 
@@ -306,7 +306,7 @@ class ExistingJobFactoryTest extends BaseTest
                     'bar3',
                     self::COMPONENT_ID_1,
                     self::$projectId,
-                    (string) self::$configId1
+                    (string) self::$configId1,
                 ),
             ],
             'componentId' => self::COMPONENT_ID_1,

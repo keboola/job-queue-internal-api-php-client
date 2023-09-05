@@ -49,7 +49,7 @@ class JobListOptionsTest extends TestCase
         self::assertSame(['8', '9', '10'], $jobListOptions->getTokenIds());
         self::assertSame(
             ['new token', 'old token', 'bad token', 'good token'],
-            $jobListOptions->getTokenDescriptions()
+            $jobListOptions->getTokenDescriptions(),
         );
         self::assertSame(['writer', 'extractor', 'orchestrator'], $jobListOptions->getComponents());
         self::assertSame(['a', 'b', 'c'], $jobListOptions->getConfigs());
@@ -58,7 +58,7 @@ class JobListOptionsTest extends TestCase
         self::assertSame(['run', 'debug'], $jobListOptions->getModes());
         self::assertSame(
             [JobInterface::STATUS_SUCCESS, JobInterface::STATUS_PROCESSING],
-            $jobListOptions->getStatuses()
+            $jobListOptions->getStatuses(),
         );
         self::assertSame(['1.1.1', '1.2.3'], $jobListOptions->getTags());
         self::assertSame('123', $jobListOptions->getParentRunId());
@@ -144,7 +144,7 @@ class JobListOptionsTest extends TestCase
                 'limit=100',
                 'parentRunId=',
             ],
-            $jobListOptions->getQueryParameters()
+            $jobListOptions->getQueryParameters(),
         );
         self::assertSame('', $jobListOptions->getParentRunId());
 
@@ -154,7 +154,7 @@ class JobListOptionsTest extends TestCase
             [
                 'limit=100',
             ],
-            $jobListOptions->getQueryParameters()
+            $jobListOptions->getQueryParameters(),
         );
         self::assertNull($jobListOptions->getParentRunId());
     }

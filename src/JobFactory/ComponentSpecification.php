@@ -26,7 +26,7 @@ class ComponentSpecification
                 'Component definition is invalid. Verify the deployment setup and the repository settings ' .
                 'in the Developer Portal. ' . $e->getMessage(),
                 0,
-                $e
+                $e,
             );
         }
     }

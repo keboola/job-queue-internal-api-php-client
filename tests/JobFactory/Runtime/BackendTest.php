@@ -37,7 +37,7 @@ class BackendTest extends TestCase
         ?string $expectedType,
         ?string $expectedContainerType,
         ?string $expectedContext,
-        bool $expectedEmpty
+        bool $expectedEmpty,
     ): void {
         $backend = Backend::fromDataArray($data);
 
