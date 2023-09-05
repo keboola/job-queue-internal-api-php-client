@@ -17,7 +17,7 @@ class Backend
     public function __construct(
         ?string $type,
         ?string $containerType,
-        ?string $context
+        ?string $context,
     ) {
         $this->type = $type;
         $this->containerType = $containerType;
@@ -29,7 +29,7 @@ class Backend
         return new self(
             $data[self::OPTION_TYPE] ?? null,
             $data[self::OPTION_CONTAINER_TYPE] ?? null,
-            $data[self::OPTION_CONTEXT] ?? null
+            $data[self::OPTION_CONTEXT] ?? null,
         );
     }
 

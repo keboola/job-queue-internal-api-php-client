@@ -15,7 +15,7 @@ abstract class BaseTest extends TestCase
         parent::setUp();
 
         $client = new Client(
-            ['url' => getenv('TEST_STORAGE_API_URL'), 'token' => getenv('TEST_STORAGE_API_TOKEN')]
+            ['url' => getenv('TEST_STORAGE_API_URL'), 'token' => getenv('TEST_STORAGE_API_TOKEN')],
         );
         $tokenInfo = $client->verifyToken();
         print(sprintf(
@@ -24,7 +24,7 @@ abstract class BaseTest extends TestCase
             $tokenInfo['id'],
             $tokenInfo['owner']['name'],
             $tokenInfo['owner']['id'],
-            $client->getApiUrl()
+            $client->getApiUrl(),
         ));
     }
 }

@@ -19,7 +19,7 @@ class VariableValues
         $this->variableValuesData = $variableValuesData;
         if (!empty($this->variableValuesId) && !$this->isValuesEmpty()) {
             throw new ClientException(
-                'Provide either "variableValuesId" or "variableValuesData", but not both.'
+                'Provide either "variableValuesId" or "variableValuesData", but not both.',
             );
         }
     }
@@ -28,7 +28,7 @@ class VariableValues
     {
         return new self(
             $data['variableValuesId'] ?? null,
-            $data['variableValuesData'] ?? []
+            $data['variableValuesData'] ?? [],
         );
     }
 

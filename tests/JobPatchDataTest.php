@@ -47,7 +47,7 @@ class JobPatchDataTest extends TestCase
                     'foo' => 'bar',
                 ],
             ],
-            $jobPatchData->jsonSerialize()
+            $jobPatchData->jsonSerialize(),
         );
     }
 
@@ -71,7 +71,7 @@ class JobPatchDataTest extends TestCase
         self::assertNull($jobPatchData2->getUsageData());
         self::assertSame(
             ['desiredStatus' => JobInterface::DESIRED_STATUS_TERMINATING],
-            $jobPatchData2->jsonSerialize()
+            $jobPatchData2->jsonSerialize(),
         );
     }
 

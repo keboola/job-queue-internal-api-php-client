@@ -20,8 +20,8 @@ class InvalidDataPlaneConfigurationException extends RuntimeException
             implode("\n", array_map(
                 fn (ConstraintViolationInterface $error) =>
                 sprintf('%s %s', $error->getPropertyPath(), $error->getMessage()),
-                iterator_to_array($errors)
-            ))
+                iterator_to_array($errors),
+            )),
         ));
 
         $this->errors = $errors;

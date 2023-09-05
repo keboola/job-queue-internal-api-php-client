@@ -22,7 +22,7 @@ class JobResultTest extends TestCase
             'in.c-myBucket.myTable',
             'myTable',
             'My Table',
-            (new ColumnCollection())->addColumn(new Column('street'))
+            (new ColumnCollection())->addColumn(new Column('street')),
         );
 
         $input = (new TableCollection())->addTable($inputTable);
@@ -31,7 +31,7 @@ class JobResultTest extends TestCase
             'out.c-myBucket.myOutput',
             'myOutputTable',
             'My Output Table',
-            (new ColumnCollection())->addColumn(new Column('city'))
+            (new ColumnCollection())->addColumn(new Column('city')),
         );
 
         $output = (new TableCollection())->addTable($outputTable);
@@ -55,7 +55,7 @@ class JobResultTest extends TestCase
                         new Result(12345),
                         new Result(12346),
                         new Result(12347),
-                    ])
+                    ]),
             )
         ;
         self::assertSame('123', $jobResult->getConfigVersion());
@@ -124,7 +124,7 @@ class JobResultTest extends TestCase
                     'exceptionId' => 'exception-12345',
                 ],
             ],
-            $jobResult->jsonSerialize()
+            $jobResult->jsonSerialize(),
         );
     }
 

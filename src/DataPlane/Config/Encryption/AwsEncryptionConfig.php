@@ -17,7 +17,7 @@ class AwsEncryptionConfig implements EncryptionConfigInterface
         /** @var non-empty-string */
         readonly private string $kmsKeyId,
         /** @var null|non-empty-string */
-        readonly private ?string $kmsRoleArn
+        readonly private ?string $kmsRoleArn,
     ) {
     }
 

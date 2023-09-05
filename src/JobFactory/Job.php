@@ -46,7 +46,7 @@ class Job implements JsonSerializable, JobInterface
     public function __construct(
         JobObjectEncryptorInterface $objectEncryptor,
         StorageClientPlainFactory $storageClientFactory,
-        array $data
+        array $data,
     ) {
         if (!isset($data['branchType'])) {
             throw new InvalidArgumentException('Missing required parameter "branchType"');
@@ -350,7 +350,7 @@ class Job implements JsonSerializable, JobInterface
         try {
             return $this->componentConfiguration = $this->getComponentsApiClient()->getConfiguration(
                 $this->getComponentId(),
-                $this->getConfigId()
+                $this->getConfigId(),
             );
         } catch (StorageApiClientException $e) {
             throw new ClientException('Failed to fetch component configuration: '.$e->getMessage(), 0, $e);
@@ -364,7 +364,7 @@ class Job implements JsonSerializable, JobInterface
         }
 
         return $this->componentsApiClient = new ComponentsApiClient(
-            $this->getStorageClientWrapper()->getBranchClient()
+            $this->getStorageClientWrapper()->getBranchClient(),
         );
     }
 
@@ -400,7 +400,7 @@ class Job implements JsonSerializable, JobInterface
     private function getStorageClientWrapper(): ClientWrapper
     {
         return $this->storageClientFactory->createClientWrapper(
-            new ClientOptions(null, $this->getTokenDecrypted(), $this->getBranchId())
+            new ClientOptions(null, $this->getTokenDecrypted(), $this->getBranchId()),
         );
     }
 }

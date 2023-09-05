@@ -72,7 +72,7 @@ class FullJobDefinition extends NewJobDefinition
                         ])
                         ->thenInvalid(
                             'Mode must be one of "run", "forceRun" or "debug" ' .
-                            '(or "dry-run","prepare","input","full","single").'
+                            '(or "dry-run","prepare","input","full","single").',
                         )
                     ->end()
                 ->end()
@@ -104,7 +104,7 @@ class FullJobDefinition extends NewJobDefinition
                         ->thenInvalid(
                             'DesiredStatus must be one of ' .
                             implode(', ', JobInterface::DESIRED_STATUSES_ALL) .
-                            '.'
+                            '.',
                         )
                     ->end()
                 ->end()
@@ -120,7 +120,7 @@ class FullJobDefinition extends NewJobDefinition
                     ->validate()
                         ->ifNotInArray(JobInterface::PARALLELISM_ALL)
                         ->thenInvalid(
-                            'Parallelism value must be either null, an integer from range 2-100 or "infinity".'
+                            'Parallelism value must be either null, an integer from range 2-100 or "infinity".',
                         )
                     ->end()
                 ->end()

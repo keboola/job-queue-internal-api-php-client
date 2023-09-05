@@ -31,7 +31,7 @@ class DataPlaneConfigRepository
         ManageApiClient $manageApiClient,
         DataPlaneConfigValidator $configValidator,
         string $stackId,
-        ?string $kmsRegion
+        ?string $kmsRegion,
     ) {
         $this->manageApiClient = $manageApiClient;
         $this->configValidator = $configValidator;
@@ -61,7 +61,7 @@ class DataPlaneConfigRepository
         if (!ctype_digit($dataPlaneId)) {
             throw new RuntimeException(sprintf(
                 'Invalid data plane ID "%s". The value must be an integer.',
-                $dataPlaneId
+                $dataPlaneId,
             ));
         }
 
@@ -71,7 +71,7 @@ class DataPlaneConfigRepository
             if ($e->getCode() === 404) {
                 throw new DataPlaneNotFoundException(sprintf(
                     'Data plane "%s" not found',
-                    $dataPlaneId
+                    $dataPlaneId,
                 ), 0, $e);
             }
 
@@ -91,7 +91,7 @@ class DataPlaneConfigRepository
     {
         return array_map(
             fn(array $data) => $this->mapDataPlaneConfig((string) $data['id'], $data['parameters']),
-            $this->manageApiClient->listDataPlanes()
+            $this->manageApiClient->listDataPlanes(),
         );
     }
 
@@ -125,7 +125,7 @@ class DataPlaneConfigRepository
             default:
                 throw new RuntimeException(sprintf(
                     'Invalid encryption type "%s"',
-                    $encryptionData['type']
+                    $encryptionData['type'],
                 ));
         }
 

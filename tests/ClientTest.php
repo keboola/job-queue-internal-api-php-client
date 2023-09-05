@@ -45,7 +45,7 @@ class ClientTest extends BaseTest
                 'kmsKeyId',
                 'kmsRegion',
                 null,
-                null
+                null,
             )),
         );
 
@@ -60,7 +60,7 @@ class ClientTest extends BaseTest
             'http://example.com/',
             'testToken',
             null,
-            $options
+            $options,
         );
     }
 
@@ -68,7 +68,7 @@ class ClientTest extends BaseTest
     {
         $this->expectException(ClientException::class);
         $this->expectExceptionMessage(
-            'Invalid parameters when creating client: Value "abc" is invalid: This value should be a valid number'
+            'Invalid parameters when creating client: Value "abc" is invalid: This value should be a valid number',
         );
         new Client(
             new NullLogger(),
@@ -76,7 +76,7 @@ class ClientTest extends BaseTest
             'http://example.com/',
             'testToken',
             null,
-            ['backoffMaxTries' => 'abc']
+            ['backoffMaxTries' => 'abc'],
         );
     }
 
@@ -84,7 +84,7 @@ class ClientTest extends BaseTest
     {
         $this->expectException(ClientException::class);
         $this->expectExceptionMessage(
-            'Invalid parameters when creating client: Value "-1" is invalid: This value should be between 0 and 100.'
+            'Invalid parameters when creating client: Value "-1" is invalid: This value should be between 0 and 100.',
         );
         new Client(
             new NullLogger(),
@@ -92,7 +92,7 @@ class ClientTest extends BaseTest
             'http://example.com/',
             'testToken',
             null,
-            ['backoffMaxTries' => -1]
+            ['backoffMaxTries' => -1],
         );
     }
 
@@ -100,7 +100,7 @@ class ClientTest extends BaseTest
     {
         $this->expectException(ClientException::class);
         $this->expectExceptionMessage(
-            'Invalid parameters when creating client: Value "101" is invalid: This value should be between 0 and 100.'
+            'Invalid parameters when creating client: Value "101" is invalid: This value should be between 0 and 100.',
         );
         new Client(
             new NullLogger(),
@@ -108,7 +108,7 @@ class ClientTest extends BaseTest
             'http://example.com/',
             'testToken',
             null,
-            ['backoffMaxTries' => 101]
+            ['backoffMaxTries' => 101],
         );
     }
 
@@ -116,7 +116,7 @@ class ClientTest extends BaseTest
     {
         $this->expectException(ClientException::class);
         $this->expectExceptionMessage(
-            'Invalid parameters when creating client: Value "" is invalid: This value should not be blank.'
+            'Invalid parameters when creating client: Value "" is invalid: This value should not be blank.',
         );
         new Client(new NullLogger(), $this->createMock(ExistingJobFactory::class), 'http://example.com/', '', null);
     }
@@ -125,7 +125,7 @@ class ClientTest extends BaseTest
     {
         $this->expectException(ClientException::class);
         $this->expectExceptionMessage(
-            'Invalid parameters when creating client: Value "" is invalid: This value should not be blank.'
+            'Invalid parameters when creating client: Value "" is invalid: This value should not be blank.',
         );
         new Client(new NullLogger(), $this->createMock(ExistingJobFactory::class), 'http://example.com/', null, '');
     }
@@ -134,7 +134,7 @@ class ClientTest extends BaseTest
     {
         $this->expectException(ClientException::class);
         $this->expectExceptionMessage(
-            'Both InternalApiToken and StorageAPIToken are empty.'
+            'Both InternalApiToken and StorageAPIToken are empty.',
         );
         new Client(new NullLogger(), $this->createMock(ExistingJobFactory::class), 'http://example.com/', null, null);
     }
@@ -143,7 +143,7 @@ class ClientTest extends BaseTest
     {
         $this->expectException(ClientException::class);
         $this->expectExceptionMessage(
-            'Both InternalApiToken and StorageAPIToken are non-empty. Use only one.'
+            'Both InternalApiToken and StorageAPIToken are non-empty. Use only one.',
         );
         new Client(new NullLogger(), $this->createMock(ExistingJobFactory::class), 'http://example.com/', 'a', 'b');
     }
@@ -152,7 +152,7 @@ class ClientTest extends BaseTest
     {
         $this->expectException(ClientException::class);
         $this->expectExceptionMessage(
-            'Invalid parameters when creating client: Value "invalid url" is invalid: This value is not a valid URL.'
+            'Invalid parameters when creating client: Value "invalid url" is invalid: This value is not a valid URL.',
         );
         new Client(new NullLogger(), $this->createMock(ExistingJobFactory::class), 'invalid url', 'testToken', null);
     }
@@ -162,7 +162,7 @@ class ClientTest extends BaseTest
         $this->expectException(ClientException::class);
         $this->expectExceptionMessage(
             'Invalid parameters when creating client: Value "invalid url" is invalid: This value is not a valid URL.'
-            . "\n" . 'Value "" is invalid: This value should not be blank.' . "\n"
+            . "\n" . 'Value "" is invalid: This value should not be blank.' . "\n",
         );
         new Client(new NullLogger(), $this->createMock(ExistingJobFactory::class), 'invalid url', '', null);
     }
@@ -203,7 +203,7 @@ class ClientTest extends BaseTest
                             "value": "bar"
                         }]
                     }
-                }'
+                }',
             ),
         ]);
         // Add the history middleware to the handler stack.
@@ -247,7 +247,7 @@ class ClientTest extends BaseTest
             new Response(
                 200,
                 ['Content-Type' => 'application/json'],
-                'invalid json'
+                'invalid json',
             ),
         ]);
         // Add the history middleware to the handler stack.
@@ -290,7 +290,7 @@ class ClientTest extends BaseTest
                     "isFinished": false,
                     "branchId": null,
                     "branchType": "default"
-                }'
+                }',
             ),
         ]);
         // Add the history middleware to the handler stack.
@@ -314,12 +314,12 @@ class ClientTest extends BaseTest
             new Response(
                 500,
                 ['Content-Type' => 'application/json'],
-                '{"message" => "Out of order"}'
+                '{"message" => "Out of order"}',
             ),
             new Response(
                 500,
                 ['Content-Type' => 'application/json'],
-                'Out of order'
+                'Out of order',
             ),
             new Response(
                 200,
@@ -347,7 +347,7 @@ class ClientTest extends BaseTest
                     "isFinished": false,
                     "branchId": null,
                     "branchType": "default"
-                }'
+                }',
             ),
         ]);
         // Add the history middleware to the handler stack.
@@ -385,7 +385,7 @@ Out of order
             $responses[] = new Response(
                 500,
                 ['Content-Type' => 'application/json'],
-                '{"message" => "Out of order"}'
+                '{"message" => "Out of order"}',
             );
         }
         $mock = new MockHandler($responses);
@@ -419,7 +419,7 @@ Out of order
             $responses[] = new Response(
                 500,
                 ['Content-Type' => 'application/json'],
-                '{"message" => "Out of order"}'
+                '{"message" => "Out of order"}',
             );
         }
         $mock = new MockHandler($responses);
@@ -454,7 +454,7 @@ Out of order
                     "status": "processing",
                     "desiredStatus": "processing",
                     "branchType": "default"
-                }'
+                }',
             ),
         ]);
         // Add the history middleware to the handler stack.
@@ -471,7 +471,7 @@ Out of order
                 ->setInputTablesBytesSum(112233445566)
                 ->setOutputTablesBytesSum(112233445577)
                 ->setBackendSize('small')
-                ->setBackendContext('wlm')
+                ->setBackendContext('wlm'),
         );
         self::assertInstanceOf(Job::class, $result);
         self::assertCount(1, $container);
@@ -511,7 +511,7 @@ Out of order
                     ],
                 ],
             ],
-            json_decode($request->getBody()->getContents(), true)
+            json_decode($request->getBody()->getContents(), true),
         );
         self::assertSame('testToken', $request->getHeader('X-JobQueue-InternalApi-Token')[0]);
         self::assertSame('Internal PHP Client', $request->getHeader('User-Agent')[0]);
@@ -524,7 +524,7 @@ Out of order
             new Response(
                 200,
                 ['Content-Type' => 'application/json'],
-                '{}'
+                '{}',
             ),
         ]);
         // Add the history middleware to the handler stack.
@@ -538,7 +538,7 @@ Out of order
         $client->postJobResult(
             '',
             JobInterface::STATUS_SUCCESS,
-            (new JobResult())->setImages(['digests' => ['keboola.test' => ['id' => '123']]])
+            (new JobResult())->setImages(['digests' => ['keboola.test' => ['id' => '123']]]),
         );
     }
 
@@ -548,7 +548,7 @@ Out of order
             new Response(
                 200,
                 ['Content-Type' => 'application/json'],
-                '{}'
+                '{}',
             ),
         ]);
         // Add the history middleware to the handler stack.
@@ -581,7 +581,7 @@ Out of order
                     "#tokenString": "KBC::ProjectSecure::aSdF",
                     "tokenDescription": "my token",
                     "status": "created"                    
-                }]'
+                }]',
             ),
         ]);
         // Add the history middleware to the handler stack.
@@ -594,7 +594,7 @@ Out of order
         $jobs = $client->getJobsWithIds(['123']);
         self::assertCount(0, $jobs);
         self::assertTrue($logger->hasErrorThatContains(
-            'Failed to parse Job data: The child'
+            'Failed to parse Job data: The child',
         ));
     }
 
@@ -636,7 +636,7 @@ Out of order
                     "isFinished": false,
                     "branchId": null,
                     "branchType": "default"
-                }]'
+                }]',
             ),
         ]);
 
@@ -756,7 +756,7 @@ Out of order
                     "isFinished": false,
                     "branchId": null,
                     "branchType": "default"
-                }]'
+                }]',
             ),
         ]);
 
@@ -768,7 +768,7 @@ Out of order
         $client = $this->getClient(['handler' => $stack], $logger);
         $jobs = $client->listJobs(
             (new JobListOptions())->setProjects(['šěřč!@#%^$&'])->setComponents(['th!$ |& n°t valid']),
-            true
+            true,
         );
 
         self::assertCount(1, $jobs);
@@ -783,7 +783,7 @@ Out of order
         self::assertEquals(
             'componentId%5B%5D=th%21%24+%7C%26+n%C2%B0t+valid&' .
             'projectId%5B%5D=%C5%A1%C4%9B%C5%99%C4%8D%21%40%23%25%5E%24%26&limit=100',
-            $request->getUri()->getQuery()
+            $request->getUri()->getQuery(),
         );
     }
 
@@ -821,14 +821,14 @@ Out of order
                 (string) json_encode(array_fill(
                     0,
                     100,
-                    $jobData
-                ))
+                    $jobData,
+                )),
             );
         });
         $queue[] = new Response(
             200,
             ['Content-Type' => 'application/json'],
-            (string) json_encode([$jobData])
+            (string) json_encode([$jobData]),
         );
         $mock = new MockHandler($queue);
 
@@ -875,7 +875,7 @@ Out of order
                 ['offset' => '', 'limit' => '100'],
                 ['offset' => '', 'limit' => '100'],
             ],
-            $params
+            $params,
         );
         $request = $mock->getLastRequest();
         self::assertNotNull($request);
@@ -918,14 +918,14 @@ Out of order
                 (string) json_encode(array_fill(
                     0,
                     100,
-                    $jobData
-                ))
+                    $jobData,
+                )),
             );
         });
         $queue[] = new Response(
             200,
             ['Content-Type' => 'application/json'],
-            (string) json_encode([$jobData])
+            (string) json_encode([$jobData]),
         );
         $mock = new MockHandler($queue);
 
@@ -960,7 +960,7 @@ Out of order
                     "status": "processing",
                     "desiredStatus": "processing",
                     "branchType": "default"
-                }'
+                }',
             ),
         ]);
         // Add the history middleware to the handler stack.
@@ -971,7 +971,7 @@ Out of order
         $client = $this->getClient(['handler' => $stack]);
         $result = $client->patchJob(
             '123',
-            (new JobPatchData())->setStatus(JobInterface::STATUS_PROCESSING)
+            (new JobPatchData())->setStatus(JobInterface::STATUS_PROCESSING),
         );
         self::assertInstanceOf(Job::class, $result);
         self::assertCount(1, $container);
@@ -981,7 +981,7 @@ Out of order
         self::assertEquals('PUT', $request->getMethod());
         self::assertEquals(
             '{"status":"processing"}',
-            $request->getBody()->getContents()
+            $request->getBody()->getContents(),
         );
         self::assertEquals('testToken', $request->getHeader('X-JobQueue-InternalApi-Token')[0]);
         self::assertEquals('Internal PHP Client', $request->getHeader('User-Agent')[0]);
@@ -1004,7 +1004,7 @@ Out of order
                     "status": "processing",
                     "desiredStatus": "processing",
                     "branchType": "default"
-                }'
+                }',
             ),
         ]);
         // Add the history middleware to the handler stack.
@@ -1015,7 +1015,7 @@ Out of order
         $client = $this->getClient(['handler' => $stack]);
         $result = $client->patchJob(
             '123',
-            (new JobPatchData())->setDesiredStatus(JobInterface::DESIRED_STATUS_TERMINATING)
+            (new JobPatchData())->setDesiredStatus(JobInterface::DESIRED_STATUS_TERMINATING),
         );
         self::assertInstanceOf(Job::class, $result);
         self::assertCount(1, $container);
@@ -1025,7 +1025,7 @@ Out of order
         self::assertEquals('PUT', $request->getMethod());
         self::assertEquals(
             '{"desiredStatus":"terminating"}',
-            $request->getBody()->getContents()
+            $request->getBody()->getContents(),
         );
         self::assertEquals('testToken', $request->getHeader('X-JobQueue-InternalApi-Token')[0]);
         self::assertEquals('Internal PHP Client', $request->getHeader('User-Agent')[0]);
@@ -1060,7 +1060,7 @@ Out of order
                     "stats": {
                         "durationSum": 456
                     }
-                }'
+                }',
             ),
         ]);
         // Add the history middleware to the handler stack.

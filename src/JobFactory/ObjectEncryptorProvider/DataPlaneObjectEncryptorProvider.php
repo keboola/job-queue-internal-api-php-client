@@ -21,7 +21,7 @@ class DataPlaneObjectEncryptorProvider implements ObjectEncryptorProviderInterfa
     public function __construct(
         ObjectEncryptor $controlPlaneObjectEncryptor,
         DataPlaneConfigRepository $dataPlaneConfigRepository,
-        bool $supportsDataPlanes
+        bool $supportsDataPlanes,
     ) {
         $this->controlPlaneObjectEncryptor = $controlPlaneObjectEncryptor;
         $this->dataPlaneConfigRepository = $dataPlaneConfigRepository;
@@ -42,7 +42,7 @@ class DataPlaneObjectEncryptorProvider implements ObjectEncryptorProviderInterfa
 
         return new LazyDataPlaneJobObjectObjectEncryptor(
             $this->dataPlaneConfigRepository,
-            $dataPlaneId
+            $dataPlaneId,
         );
     }
 

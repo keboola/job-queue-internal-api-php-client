@@ -31,7 +31,7 @@ class LazyDataPlaneJobObjectObjectEncryptorTest extends TestCase
             ->willReturn(new DataPlaneConfig(
                 'dataPlaneId',
                 new KubernetesConfig('', '', '', ''),
-                new TestingEncryptorConfig($internalEncryptor)
+                new TestingEncryptorConfig($internalEncryptor),
             ))
         ;
 
@@ -57,7 +57,7 @@ class LazyDataPlaneJobObjectObjectEncryptorTest extends TestCase
             ->willReturn(new DataPlaneConfig(
                 'dataPlaneId',
                 new KubernetesConfig('', '', '', ''),
-                new TestingEncryptorConfig($internalEncryptor)
+                new TestingEncryptorConfig($internalEncryptor),
             ))
         ;
 
@@ -83,7 +83,7 @@ class LazyDataPlaneJobObjectObjectEncryptorTest extends TestCase
             ->willReturn(new DataPlaneConfig(
                 'dataPlaneId',
                 new KubernetesConfig('', '', '', ''),
-                new TestingEncryptorConfig($internalEncryptor)
+                new TestingEncryptorConfig($internalEncryptor),
             ))
         ;
 
@@ -108,7 +108,7 @@ class LazyDataPlaneJobObjectObjectEncryptorTest extends TestCase
             ->willReturn(new DataPlaneConfig(
                 'dataPlaneId',
                 new KubernetesConfig('', '', '', ''),
-                new TestingEncryptorConfig($internalEncryptor)
+                new TestingEncryptorConfig($internalEncryptor),
             ))
         ;
 

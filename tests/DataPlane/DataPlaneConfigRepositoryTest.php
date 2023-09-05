@@ -53,7 +53,7 @@ class DataPlaneConfigRepositoryTest extends TestCase
             $manageApiClient,
             $configValidator,
             'stackId',
-            'kmsRegion'
+            'kmsRegion',
         );
 
         $result = $repository->fetchProjectDataPlane('projectId');
@@ -91,7 +91,7 @@ class DataPlaneConfigRepositoryTest extends TestCase
             $manageApiClient,
             $configValidator,
             'stackId',
-            'kmsRegion'
+            'kmsRegion',
         );
 
         $result = $repository->fetchProjectDataPlane('projectId');
@@ -136,12 +136,12 @@ class DataPlaneConfigRepositoryTest extends TestCase
             $manageApiClient,
             $configValidator,
             'stackId',
-            'kmsRegion'
+            'kmsRegion',
         );
 
         $this->expectException(InvalidDataPlaneConfigurationException::class);
         $this->expectExceptionMessage(
-            'Data plane "1" configuration is not valid: [encryption][type] This field is missing.'
+            'Data plane "1" configuration is not valid: [encryption][type] This field is missing.',
         );
 
         $repository->fetchProjectDataPlane('projectId');
@@ -167,7 +167,7 @@ class DataPlaneConfigRepositoryTest extends TestCase
             $manageApiClient,
             $configValidator,
             'stackId',
-            'kmsRegion'
+            'kmsRegion',
         );
 
         $result = $repository->fetchDataPlaneConfig('1');
@@ -204,7 +204,7 @@ class DataPlaneConfigRepositoryTest extends TestCase
             $manageApiClient,
             $configValidator,
             'stackId',
-            'kmsRegion'
+            'kmsRegion',
         );
 
         $this->expectException(DataPlaneNotFoundException::class);
@@ -231,12 +231,12 @@ class DataPlaneConfigRepositoryTest extends TestCase
             $manageApiClient,
             $configValidator,
             'stackId',
-            'kmsRegion'
+            'kmsRegion',
         );
 
         $this->expectException(InvalidDataPlaneConfigurationException::class);
         $this->expectExceptionMessage(
-            'Data plane "1" configuration is not valid: [encryption][type] This field is missing.'
+            'Data plane "1" configuration is not valid: [encryption][type] This field is missing.',
         );
 
         $repository->fetchDataPlaneConfig('1');
@@ -270,7 +270,7 @@ class DataPlaneConfigRepositoryTest extends TestCase
             $manageApiClient,
             $configValidator,
             'stackId',
-            'kmsRegion'
+            'kmsRegion',
         );
 
         $result = $repository->listDataPlaneConfigs();

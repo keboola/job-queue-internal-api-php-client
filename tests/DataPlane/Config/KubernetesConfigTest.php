@@ -21,7 +21,7 @@ class KubernetesConfigTest extends TestCase
             'apiUrl',
             'token',
             'cert',
-            'namespace'
+            'namespace',
         );
 
         self::assertSame('apiUrl', $config->getApiUrl());
@@ -41,7 +41,7 @@ class KubernetesConfigTest extends TestCase
             'apiUrl',
             $encryptedToken,
             'cert',
-            'namespace'
+            'namespace',
         );
 
         $decryptedToken = $config->getTokenDecrypted($objectEncryptor);

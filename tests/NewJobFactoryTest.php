@@ -41,7 +41,7 @@ class NewJobFactoryTest extends BaseTest
             [
                 'token' => self::getRequiredEnv('TEST_STORAGE_API_TOKEN'),
                 'url' => self::getRequiredEnv('TEST_STORAGE_API_URL'),
-            ]
+            ],
         );
 
         self::$projectId = (string) self::$client->verifyToken()['owner']['id'];
@@ -79,7 +79,7 @@ class NewJobFactoryTest extends BaseTest
     private function getJobFactoryWithoutDataPlaneSupport(): array
     {
         $storageClientFactory = new StorageClientPlainFactory(new ClientOptions(
-            self::getRequiredEnv('TEST_STORAGE_API_URL')
+            self::getRequiredEnv('TEST_STORAGE_API_URL'),
         ));
 
         $objectEncryptor = ObjectEncryptorFactory::getEncryptor(self::getEncryptorOptions());
@@ -90,7 +90,7 @@ class NewJobFactoryTest extends BaseTest
         $objectEncryptorProvider = new DataPlaneObjectEncryptorProvider(
             $objectEncryptor,
             $dataPlaneConfigRepository,
-            false
+            false,
         );
 
         $factory = new NewJobFactory(
@@ -105,7 +105,7 @@ class NewJobFactoryTest extends BaseTest
     private function getJobFactoryWithDataPlaneSupport(bool $projectHasDataPlane): array
     {
         $storageClientFactory = new StorageClientPlainFactory(new ClientOptions(
-            self::getRequiredEnv('TEST_STORAGE_API_URL')
+            self::getRequiredEnv('TEST_STORAGE_API_URL'),
         ));
 
         $controlPlaneObjectEncryptor = ObjectEncryptorFactory::getEncryptor(self::getEncryptorOptions());
@@ -148,7 +148,7 @@ class NewJobFactoryTest extends BaseTest
         $objectEncryptorProvider = new DataPlaneObjectEncryptorProvider(
             $controlPlaneObjectEncryptor,
             $dataPlaneConfigRepository,
-            true
+            true,
         );
 
         $factory = new NewJobFactory(
@@ -514,7 +514,7 @@ class NewJobFactoryTest extends BaseTest
 
         $this->expectException(ClientException::class);
         $this->expectExceptionMessageMatches(
-            '#The child (node|config) "\#tokenString" (at path|under) "job" must be configured.#'
+            '#The child (node|config) "\#tokenString" (at path|under) "job" must be configured.#',
         );
 
         $factory->createNewJob($jobData);
@@ -558,7 +558,7 @@ class NewJobFactoryTest extends BaseTest
                     'bar3',
                     self::COMPONENT_ID_1,
                     self::$projectId,
-                    (string) self::$configId1
+                    (string) self::$configId1,
                 ),
                 '#foo4' => 'bar4',
             ],
@@ -580,7 +580,7 @@ class NewJobFactoryTest extends BaseTest
                 '#foo3' => 'bar3',
                 '#foo4' => 'bar4',
             ],
-            $job->getConfigDataDecrypted()
+            $job->getConfigDataDecrypted(),
         );
     }
 
@@ -630,7 +630,7 @@ class NewJobFactoryTest extends BaseTest
         $decodedToken = $controlPlaneObjectEncryptor->decryptForProject(
             $job->getTokenString(),
             'keboola.runner-config-test',
-            self::$projectId
+            self::$projectId,
         );
         self::assertSame($decodedToken, $job->getTokenDecrypted());
     }
@@ -679,7 +679,7 @@ class NewJobFactoryTest extends BaseTest
         $decodedToken = $dataPlaneObjectEncryptor->decryptForProject(
             $job->getTokenString(),
             'keboola.runner-config-test',
-            self::$projectId
+            self::$projectId,
         );
         self::assertSame($decodedToken, $job->getTokenDecrypted());
     }
@@ -741,7 +741,7 @@ class NewJobFactoryTest extends BaseTest
         $objectEncryptorProvider = new DataPlaneObjectEncryptorProvider(
             $objectEncryptor,
             $dataPlaneConfigRepository,
-            false
+            false,
         );
 
         $factory = new NewJobFactory(

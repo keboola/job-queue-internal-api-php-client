@@ -77,7 +77,7 @@ class OverridesConfigurationDefinition implements ConfigurationInterface
                             ->validate()
                                 ->ifNotInArray(JobInterface::PARALLELISM_ALL)
                                 ->thenInvalid(
-                                    'Parallelism value must be either null, an integer from range 2-100 or "infinity".'
+                                    'Parallelism value must be either null, an integer from range 2-100 or "infinity".',
                                 )
                             ->end()
                         ->end()

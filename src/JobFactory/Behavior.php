@@ -20,7 +20,7 @@ class Behavior
     public static function fromDataArray(array $data): self
     {
         return new self(
-            $data['onError'] ?? null
+            $data['onError'] ?? null,
         );
     }
 

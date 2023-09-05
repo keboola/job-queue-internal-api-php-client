@@ -28,7 +28,7 @@ class NewJobFactory extends JobFactory
     public function __construct(
         StorageClientPlainFactory $storageClientFactory,
         JobRuntimeResolver $jobRuntimeResolver,
-        DataPlaneObjectEncryptorProvider $objectEncryptorProvider
+        DataPlaneObjectEncryptorProvider $objectEncryptorProvider,
     ) {
         $this->storageClientFactory = $storageClientFactory;
         $this->jobRuntimeResolver = $jobRuntimeResolver;
@@ -42,7 +42,7 @@ class NewJobFactory extends JobFactory
         try {
             $client = $this->storageClientFactory->createClientWrapper(new ClientOptions(
                 null,
-                $data['#tokenString']
+                $data['#tokenString'],
             ))->getBasicClient();
             $tokenInfo = $client->verifyToken();
             $jobId = $client->generateId();
@@ -52,13 +52,13 @@ class NewJobFactory extends JobFactory
             throw new ClientException(
                 'Cannot create job: "' . $e->getMessage() . '".',
                 $e->getCode(),
-                $e
+                $e,
             );
         }
 
         if (!empty($data['variableValuesId']) && !empty($data['variableValuesData']['values'])) {
             throw new ClientException(
-                'Provide either "variableValuesId" or "variableValuesData", but not both.'
+                'Provide either "variableValuesId" or "variableValuesData", but not both.',
             );
         }
 

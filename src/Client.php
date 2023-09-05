@@ -46,7 +46,7 @@ class Client
         string $internalQueueApiUrl,
         ?string $internalQueueToken,
         ?string $storageApiToken,
-        array $options = []
+        array $options = [],
     ) {
         $this->validateConfiguration($internalQueueApiUrl, $internalQueueToken, $storageApiToken, $options);
         if (!empty($options['backoffMaxTries'])) {
@@ -67,7 +67,7 @@ class Client
         string $internalQueueApiUrl,
         ?string $internalQueueToken,
         ?string $storageApiToken,
-        array $options
+        array $options,
     ): void {
         $validator = Validation::createValidator();
         $errors = $validator->validate($internalQueueApiUrl, [new Url()]);
@@ -79,12 +79,12 @@ class Client
         }
         if ($internalQueueToken !== null) {
             $errors->addAll(
-                $validator->validate($internalQueueToken, [new NotBlank()])
+                $validator->validate($internalQueueToken, [new NotBlank()]),
             );
         }
         if ($storageApiToken !== null) {
             $errors->addAll(
-                $validator->validate($storageApiToken, [new NotBlank()])
+                $validator->validate($storageApiToken, [new NotBlank()]),
             );
         }
         if (!empty($options['backoffMaxTries'])) {
@@ -206,7 +206,7 @@ class Client
             'PUT',
             'jobs/' . $jobId,
             [],
-            json_encode($patchData->jsonSerialize(), JSON_THROW_ON_ERROR)
+            json_encode($patchData->jsonSerialize(), JSON_THROW_ON_ERROR),
         );
         return $this->existingJobFactory->loadFromExistingJobData($this->sendRequest($request));
     }
@@ -215,7 +215,7 @@ class Client
         string $jobId,
         string $status,
         JobResult $result,
-        ?JobMetrics $metrics = null
+        ?JobMetrics $metrics = null,
     ): JobInterface {
         if (empty($jobId)) {
             throw new ClientException(sprintf('Invalid job ID: "%s".', $jobId));
@@ -227,8 +227,8 @@ class Client
             [],
             json_encode(
                 ['status' => $status, 'result' => $result, 'metrics' => $metrics],
-                JSON_THROW_ON_ERROR
-            )
+                JSON_THROW_ON_ERROR,
+            ),
         );
         return $this->existingJobFactory->loadFromExistingJobData($this->sendRequest($request));
     }
@@ -238,7 +238,7 @@ class Client
      */
     public function listConfigurationsJobs(
         ListConfigurationsJobsOptions $options,
-        bool $fetchFollowingPages = false
+        bool $fetchFollowingPages = false,
     ): array {
         $jobs = [];
         $i = 1;
@@ -259,7 +259,7 @@ class Client
      */
     public function listLatestConfigurationsJobs(
         ListLatestConfigurationsJobsOptions $options,
-        bool $fetchFollowingPages = false
+        bool $fetchFollowingPages = false,
     ): array {
         $jobs = [];
         $i = 1;
@@ -269,8 +269,8 @@ class Client
                 'GET',
                 sprintf(
                     'latest-configurations-jobs?%s',
-                    implode('&', $options->getQueryParameters())
-                )
+                    implode('&', $options->getQueryParameters()),
+                ),
             );
             $result = $this->sendRequest($request);
             $chunk = $this->mapJobsFromResponse($result);
@@ -315,7 +315,7 @@ class Client
             int $retries,
             RequestInterface $request,
             ?ResponseInterface $response = null,
-            $error = null
+            $error = null,
         ) use ($maxRetries) {
             if ($retries >= $maxRetries) {
                 $this->logger->notice(sprintf('We have tried this %d times. Giving up.', $maxRetries));
@@ -324,7 +324,7 @@ class Client
                 $this->logger->notice(sprintf(
                     'Got a %s response for this reason: %s, retrying.',
                     $response->getStatusCode(),
-                    $response->getReasonPhrase()
+                    $response->getReasonPhrase(),
                 ));
                 return true;
             } elseif ($error) {
@@ -332,7 +332,7 @@ class Client
                     $this->logger->notice(sprintf(
                         'Got a %s error with this message: %s, retrying.',
                         $error->getCode(),
-                        $error->getMessage()
+                        $error->getMessage(),
                     ));
                 }
                 return true;
@@ -346,7 +346,7 @@ class Client
         string $url,
         ?string $internalToken,
         ?string $storageToken,
-        array $options = []
+        array $options = [],
     ): GuzzleClient {
         // Initialize handlers (start with those supplied in constructor)
         if (isset($options['handler']) && is_callable($options['handler'])) {
@@ -368,7 +368,7 @@ class Client
                     $request = $request->withHeader('X-StorageApi-Token', $storageToken);
                 }
                 return $request;
-            }
+            },
         ));
         // Set client logger
         if (isset($options['logger']) && $options['logger'] instanceof LoggerInterface) {
@@ -376,8 +376,8 @@ class Client
                 $options['logger'],
                 new MessageFormatter(
                     '{hostname} {req_header_User-Agent} - [{ts}] "{method} {resource} {protocol}/{version}"' .
-                    ' {code} {res_header_Content-Length}'
-                )
+                    ' {code} {res_header_Content-Length}',
+                ),
             ));
         }
         // finally create the instance
@@ -411,7 +411,7 @@ class Client
                 (string) $response->getBody(),
                 true,
                 self::JSON_DEPTH,
-                JSON_THROW_ON_ERROR
+                JSON_THROW_ON_ERROR,
             );
         } catch (Throwable $e) {
             throw new ClientException('Unable to parse response body into JSON: ' . $e->getMessage());
@@ -429,19 +429,19 @@ class Client
                 throw new StateTargetEqualsCurrentException(
                     $previous->getMessage(),
                     $previous->getCode(),
-                    $previous
+                    $previous,
                 );
             case StateTransitionForbiddenException::STRING_CODE:
                 throw new StateTransitionForbiddenException(
                     $previous->getMessage(),
                     $previous->getCode(),
-                    $previous
+                    $previous,
                 );
             case StateTerminalException::STRING_CODE:
                 throw new StateTerminalException(
                     $previous->getMessage(),
                     $previous->getCode(),
-                    $previous
+                    $previous,
                 );
         }
     }

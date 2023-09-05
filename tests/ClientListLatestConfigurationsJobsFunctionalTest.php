@@ -30,14 +30,14 @@ class ClientListLatestConfigurationsJobsFunctionalTest extends BaseClientFunctio
             [
                 'token' => (string) getenv('TEST_STORAGE_API_TOKEN'),
                 'url' => (string) getenv('TEST_STORAGE_API_URL'),
-            ]
+            ],
         );
 
         self::$masterClient = new Client(
             [
                 'token' => (string) getenv('TEST_STORAGE_API_TOKEN_MASTER'),
                 'url' => (string) getenv('TEST_STORAGE_API_URL'),
-            ]
+            ],
         );
 
         $componentsApi = new Components(self::$client);
@@ -109,7 +109,7 @@ class ClientListLatestConfigurationsJobsFunctionalTest extends BaseClientFunctio
         $expectedJob3 = $client->createJob($job3);
 
         $response = $client->listLatestConfigurationsJobs(
-            new ListLatestConfigurationsJobsOptions($job->getProjectId(), self::$branchId1)
+            new ListLatestConfigurationsJobsOptions($job->getProjectId(), self::$branchId1),
         );
 
         self::assertCount(2, $response);
@@ -131,7 +131,7 @@ class ClientListLatestConfigurationsJobsFunctionalTest extends BaseClientFunctio
         $client->createJob($job1);
 
         $response = $client->listLatestConfigurationsJobs(
-            (new ListLatestConfigurationsJobsOptions('other-project'))
+            (new ListLatestConfigurationsJobsOptions('other-project')),
         );
 
         self::assertCount(0, $response);
@@ -167,7 +167,7 @@ class ClientListLatestConfigurationsJobsFunctionalTest extends BaseClientFunctio
         $response = $client->listLatestConfigurationsJobs(
             (new ListLatestConfigurationsJobsOptions($job1->getProjectId()))
                 ->setLimit(1)
-                ->setOffset(1)
+                ->setOffset(1),
         );
 
         self::assertCount(1, $response);
@@ -204,7 +204,7 @@ class ClientListLatestConfigurationsJobsFunctionalTest extends BaseClientFunctio
         $createdJob3 = $client->createJob($job3);
 
         $response = $client->listLatestConfigurationsJobs(
-            (new ListLatestConfigurationsJobsOptions($job1->getProjectId(), self::$branchId1))
+            (new ListLatestConfigurationsJobsOptions($job1->getProjectId(), self::$branchId1)),
         );
 
         self::assertCount(2, $response);
