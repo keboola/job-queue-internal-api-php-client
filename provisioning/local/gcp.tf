@@ -10,7 +10,7 @@ provider "google" {
 
 resource "google_kms_key_ring" "object_encryptor_keyring" {
   name     = "${var.name_prefix}-job-queue-internal-api-php-client"
-  location = "global"
+  location = "europe-west1"
 }
 
 resource "google_kms_crypto_key" "object_encryptor_key" {
