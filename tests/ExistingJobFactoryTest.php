@@ -79,7 +79,7 @@ class ExistingJobFactoryTest extends BaseTest
             self::getRequiredEnv('TEST_STORAGE_API_URL'),
         ));
 
-        $objectEncryptor = ObjectEncryptorFactory::getEncryptor(self::getEncryptorOptions());
+        $objectEncryptor = ObjectEncryptorFactory::getEncryptor($this->getEncryptorOptions());
 
         $dataPlaneConfigRepository = $this->createMock(DataPlaneConfigRepository::class);
         $dataPlaneConfigRepository->expects(self::never())->method(self::anything());
@@ -104,7 +104,7 @@ class ExistingJobFactoryTest extends BaseTest
             self::getRequiredEnv('TEST_STORAGE_API_URL'),
         ));
 
-        $controlPlaneObjectEncryptor = ObjectEncryptorFactory::getEncryptor(self::getEncryptorOptions());
+        $controlPlaneObjectEncryptor = ObjectEncryptorFactory::getEncryptor($this->getEncryptorOptions());
 
         $dataPlaneObjectEncryptor = ObjectEncryptorFactory::getEncryptor(new EncryptorOptions(
             'custom-value',

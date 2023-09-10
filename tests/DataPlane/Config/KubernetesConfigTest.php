@@ -44,7 +44,7 @@ class KubernetesConfigTest extends TestCase
 
     public function testGetDecryptedToken(): void
     {
-        $objectEncryptor = ObjectEncryptorFactory::getEncryptor(self::getEncryptorOptions());
+        $objectEncryptor = ObjectEncryptorFactory::getEncryptor($this->getEncryptorOptions());
 
         $encryptedToken = $objectEncryptor->encryptGeneric('tokenValue');
         self::assertStringStartsWith('KBC::Secure', $encryptedToken);
