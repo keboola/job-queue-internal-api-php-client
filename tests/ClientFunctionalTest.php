@@ -76,12 +76,20 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
             'azure' => [
                 'kmsKeyId' => '',
                 'keyVaultUrl' => getenv('TEST_AZURE_KEY_VAULT_URL'),
+                'gkmsKeyId' => '',
                 'KBC::ProjectSecureKV::',
             ],
             'aws' => [
                 'kmsKeyId' => getenv('TEST_KMS_KEY_ID'),
                 'keyVaultUrl' => '',
+                'gkmsKeyId' => '',
                 'KBC::ProjectSecure::',
+            ],
+            'gcp' => [
+                'kmsKeyId' => '',
+                'keyVaultUrl' => '',
+                'gkmsKeyId' => getenv('TEST_GCP_KMS_KEY_ID'),
+                'KBC::ProjectSecureGKMS::',
             ],
         ];
     }
@@ -89,12 +97,17 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
     /**
      * @param non-empty-string $kmsKeyId
      * @param non-empty-string $keyVaultUrl
+     * @param non-empty-string $gkmsKeyId
      * @param string $cipherPrefix
      * @dataProvider cipherProvider
      */
-    public function testCreateJob(string $kmsKeyId, string $keyVaultUrl, string $cipherPrefix): void
-    {
-        $newJobFactory = $this->getNewJobFactory($kmsKeyId, $keyVaultUrl);
+    public function testCreateJob(
+        string $kmsKeyId,
+        string $keyVaultUrl,
+        string $gkmsKeyId,
+        string $cipherPrefix,
+    ): void {
+        $newJobFactory = $this->getNewJobFactory($kmsKeyId, $keyVaultUrl, $gkmsKeyId);
         $client = $this->getClient($kmsKeyId, $keyVaultUrl);
 
         $job = $newJobFactory->createNewJob([
@@ -170,12 +183,17 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
     /**
      * @param non-empty-string $kmsKeyId
      * @param non-empty-string $keyVaultUrl
+     * @param non-empty-string $gkmsKeyId
      * @param string $cipherPrefix
      * @dataProvider cipherProvider
      */
-    public function testCreateJobsBatch(string $kmsKeyId, string $keyVaultUrl, string $cipherPrefix): void
-    {
-        $newJobFactory = $this->getNewJobFactory($kmsKeyId, $keyVaultUrl);
+    public function testCreateJobsBatch(
+        string $kmsKeyId,
+        string $keyVaultUrl,
+        string $gkmsKeyId,
+        string $cipherPrefix,
+    ): void {
+        $newJobFactory = $this->getNewJobFactory($kmsKeyId, $keyVaultUrl, $gkmsKeyId);
         $client = $this->getClient($kmsKeyId, $keyVaultUrl);
 
         $job1 = $newJobFactory->createNewJob([

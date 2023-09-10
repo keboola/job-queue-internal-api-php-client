@@ -35,20 +35,26 @@ abstract class BaseClientFunctionalTest extends BaseTest
         putenv('AZURE_TENANT_ID=' . self::getRequiredEnv('TEST_AZURE_TENANT_ID'));
         putenv('AZURE_CLIENT_ID=' . self::getRequiredEnv('TEST_AZURE_CLIENT_ID'));
         putenv('AZURE_CLIENT_SECRET=' . self::getRequiredEnv('TEST_AZURE_CLIENT_SECRET'));
+        putenv('GCP_KMS_KEY_ID=' . self::getRequiredEnv('TEST_GCP_KMS_KEY_ID'));
+        putenv('GOOGLE_APPLICATION_CREDENTIALS=' . self::getRequiredEnv('TEST_GOOGLE_APPLICATION_CREDENTIALS'));
         $this->cleanJobs();
     }
 
     /**
      * @param non-empty-string|null $kmsKeyId
      * @param non-empty-string|null $keyVaultUrl
+     * @param non-empty-string|null $gkmsKeyId
      */
-    protected function getNewJobFactory(?string $kmsKeyId = null, ?string $keyVaultUrl = null): NewJobFactory
-    {
+    protected function getNewJobFactory(
+        ?string $kmsKeyId = null,
+        ?string $keyVaultUrl = null,
+        ?string $gkmsKeyId = null,
+    ): NewJobFactory {
         $storageClientFactory = new StorageClientPlainFactory(new ClientOptions(
             self::getRequiredEnv('TEST_STORAGE_API_URL'),
         ));
 
-        $objectEncryptorProvider = $this->getObjectEncryptorProvider($kmsKeyId, $keyVaultUrl);
+        $objectEncryptorProvider = $this->getObjectEncryptorProvider($kmsKeyId, $keyVaultUrl, $gkmsKeyId);
 
         return new NewJobFactory(
             $storageClientFactory,
@@ -60,14 +66,18 @@ abstract class BaseClientFunctionalTest extends BaseTest
     /**
      * @param non-empty-string|null $kmsKeyId
      * @param non-empty-string|null $keyVaultUrl
+     * @param non-empty-string|null $gkmsKeyId
      */
-    protected function getClient(?string $kmsKeyId = null, ?string $keyVaultUrl = null): Client
-    {
+    protected function getClient(
+        ?string $kmsKeyId = null,
+        ?string $keyVaultUrl = null,
+        ?string $gkmsKeyId = null,
+    ): Client {
         $storageClientFactory = new StorageClientPlainFactory(new ClientOptions(
             self::getRequiredEnv('TEST_STORAGE_API_URL'),
         ));
 
-        $objectEncryptorProvider = $this->getObjectEncryptorProvider($kmsKeyId, $keyVaultUrl);
+        $objectEncryptorProvider = $this->getObjectEncryptorProvider($kmsKeyId, $keyVaultUrl, $gkmsKeyId);
 
         $existingJobFactory = new ExistingJobFactory(
             $storageClientFactory,
@@ -97,10 +107,12 @@ abstract class BaseClientFunctionalTest extends BaseTest
     /**
      * @param non-empty-string|null $kmsKeyId
      * @param non-empty-string|null $keyVaultUrl
+     * @param non-empty-string|null $gkmsKeyId
      */
     private function getObjectEncryptorProvider(
         ?string $kmsKeyId,
         ?string $keyVaultUrl,
+        ?string $gkmsKeyId,
     ): DataPlaneObjectEncryptorProvider {
         $stackId = self::getRequiredEnv('TEST_STORAGE_API_URL');
         self::assertNotEmpty($stackId);
@@ -112,6 +124,7 @@ abstract class BaseClientFunctionalTest extends BaseTest
                 self::getRequiredEnv('TEST_KMS_REGION'),
                 null,
                 $keyVaultUrl ?? self::getRequiredEnv('TEST_AZURE_KEY_VAULT_URL'),
+                $gkmsKeyId ?? self::getRequiredEnv('TEST_GCP_KMS_KEY_ID'),
             ),
         );
 
