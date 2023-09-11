@@ -26,6 +26,7 @@ $client->postJobResult('123', 'success', ['images' => ['digests' => []]]);
 ## Development
 Prerequisites:
 * configured `az` and `aws` CLI tools (run `az login` and `aws configure --profile keboola-dev-platform-services`)
+* installed GCP CLI `gcloud` (and run `gcloud auth login` or `gcloud auth application-default login`)
 * installed `terraform` (https://www.terraform.io) and `jq` (https://stedolan.github.io/jq) to setup local env
 * intalled `docker` and `docker compose` to run & develop the app
 
