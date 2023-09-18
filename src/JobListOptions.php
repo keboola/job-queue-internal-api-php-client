@@ -368,7 +368,7 @@ class JobListOptions
         $allowedValues = [self::SORT_ORDER_ASC, self::SORT_ORDER_DESC];
         if (!in_array($value, $allowedValues)) {
             throw new ClientException(
-                sprintf('Allowed values for "sortOrder" are [%s].', implode(', ', $allowedValues))
+                sprintf('Allowed values for "sortOrder" are [%s].', implode(', ', $allowedValues)),
             );
         }
         $this->sortOrder = $value;

@@ -187,7 +187,7 @@ class JobTest extends BaseTest
                     ],
                 ],
             ],
-            $this->getJob()->getVariableValuesData()
+            $this->getJob()->getVariableValuesData(),
         );
     }
 
@@ -580,7 +580,7 @@ class JobTest extends BaseTest
         $job = new Job(
             $objectEncryptorMock,
             $storageClientFactory,
-            $this->jobData
+            $this->jobData,
         );
 
         $this->expectException(ClientException::class);
@@ -631,7 +631,7 @@ class JobTest extends BaseTest
         $job = new Job(
             $objectEncryptorMock,
             $storageClientFactory,
-            $this->jobData
+            $this->jobData,
         );
 
         $result = $job->getComponentConfiguration();
@@ -656,7 +656,7 @@ class JobTest extends BaseTest
         $job = new Job(
             $objectEncryptorMock,
             $storageClientFactory,
-            $jobData
+            $jobData,
         );
 
         $this->expectException(ClientException::class);
@@ -702,7 +702,7 @@ class JobTest extends BaseTest
         $job = new Job(
             $objectEncryptorMock,
             $storageClientFactory,
-            $this->jobData
+            $this->jobData,
         );
 
         $this->expectException(ClientException::class);
@@ -776,7 +776,7 @@ class JobTest extends BaseTest
         $job = new Job(
             $objectEncryptorMock,
             $storageClientFactory,
-            $this->jobData
+            $this->jobData,
         );
 
         $result = $job->getProjectFeatures();
@@ -826,7 +826,7 @@ class JobTest extends BaseTest
                     'canReadAllFileUploads' => true,
                     'canManageBuckets' => true,
                 ],
-                $applicationToken
+                $applicationToken,
             )
             ->willReturn($privilegedTokenResponse)
         ;
@@ -863,7 +863,7 @@ class JobTest extends BaseTest
         $job = new Job(
             $objectEncryptorMock,
             $storageClientFactory,
-            array_merge($this->jobData, ['branchType' => BranchType::DEFAULT->value])
+            array_merge($this->jobData, ['branchType' => BranchType::DEFAULT->value]),
         );
 
         $executionToken = $job->getExecutionTokenDecrypted($applicationToken);
@@ -926,7 +926,7 @@ class JobTest extends BaseTest
         $job = new Job(
             $objectEncryptorMock,
             $storageClientFactory,
-            array_merge($this->jobData, ['branchType' => BranchType::DEV->value])
+            array_merge($this->jobData, ['branchType' => BranchType::DEV->value]),
         );
 
         $executionToken = $job->getExecutionTokenDecrypted($applicationToken);
@@ -984,7 +984,7 @@ class JobTest extends BaseTest
         $job = new Job(
             $objectEncryptorMock,
             $storageClientFactory,
-            array_merge($this->jobData, ['branchType' => BranchType::DEFAULT->value])
+            array_merge($this->jobData, ['branchType' => BranchType::DEFAULT->value]),
         );
 
         $executionToken = $job->getExecutionTokenDecrypted($applicationToken);

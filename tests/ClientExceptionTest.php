@@ -37,7 +37,7 @@ class ClientExceptionTest extends BaseTest
                 'kmsKeyId',
                 'kmsRegion',
                 null,
-                null
+                null,
             )),
         );
 
@@ -52,7 +52,7 @@ class ClientExceptionTest extends BaseTest
             'http://example.com/',
             'testToken',
             null,
-            $options
+            $options,
         );
     }
 
@@ -69,14 +69,14 @@ class ClientExceptionTest extends BaseTest
                 ['Content-Type' => 'application/json'],
                 (string) json_encode([
                     'context' => ['stringCode' => $stringCode],
-                ])
+                ]),
             ),
             new Response(
                 400,
                 ['Content-Type' => 'application/json'],
                 (string) json_encode([
                     'context' => ['stringCode' => $stringCode],
-                ])
+                ]),
             ),
         ]);
         // Add the history middleware to the handler stack.

@@ -17,7 +17,7 @@ class ExistingJobFactory extends JobFactory
 
     public function __construct(
         StorageClientPlainFactory $storageClientFactory,
-        ObjectEncryptorProviderInterface $objectEncryptorProvider
+        ObjectEncryptorProviderInterface $objectEncryptorProvider,
     ) {
         $this->storageClientFactory = $storageClientFactory;
         $this->objectEncryptorProvider = $objectEncryptorProvider;

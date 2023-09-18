@@ -34,7 +34,7 @@ class DataPlaneObjectEncryptorProviderTest extends TestCase
         $provider = new DataPlaneObjectEncryptorProvider(
             $controlPlaneObjectEncryptor,
             $dataPlaneConfigRepository,
-            false
+            false,
         );
 
         $result = $provider->getJobEncryptor([
@@ -66,14 +66,14 @@ class DataPlaneObjectEncryptorProviderTest extends TestCase
             ->willReturn(new DataPlaneConfig(
                 'dataPlaneId',
                 new KubernetesConfig('', '', '', ''),
-                new TestingEncryptorConfig($dataPlaneObjectEncryptor)
+                new TestingEncryptorConfig($dataPlaneObjectEncryptor),
             ))
         ;
 
         $provider = new DataPlaneObjectEncryptorProvider(
             $controlPlaneObjectEncryptor,
             $dataPlaneConfigRepository,
-            true
+            true,
         );
 
         $result = $provider->getJobEncryptor([
@@ -104,7 +104,7 @@ class DataPlaneObjectEncryptorProviderTest extends TestCase
         $provider = new DataPlaneObjectEncryptorProvider(
             $controlPlaneObjectEncryptor,
             $dataPlaneConfigRepository,
-            true
+            true,
         );
 
         $result = $provider->getJobEncryptor([
@@ -131,7 +131,7 @@ class DataPlaneObjectEncryptorProviderTest extends TestCase
         $provider = new DataPlaneObjectEncryptorProvider(
             $controlPlaneObjectEncryptor,
             $dataPlaneConfigRepository,
-            false
+            false,
         );
 
         $this->expectException(RuntimeException::class);
@@ -164,7 +164,7 @@ class DataPlaneObjectEncryptorProviderTest extends TestCase
         $provider = new DataPlaneObjectEncryptorProvider(
             $controlPlaneObjectEncryptor,
             $dataPlaneConfigRepository,
-            true
+            true,
         );
 
         $result = $provider->resolveProjectDataPlaneConfig('projectId');
@@ -182,7 +182,7 @@ class DataPlaneObjectEncryptorProviderTest extends TestCase
         $provider = new DataPlaneObjectEncryptorProvider(
             $controlPlaneObjectEncryptor,
             $dataPlaneConfigRepository,
-            false
+            false,
         );
 
         $result = $provider->resolveProjectDataPlaneConfig('projectId');
@@ -205,7 +205,7 @@ class DataPlaneObjectEncryptorProviderTest extends TestCase
         $provider = new DataPlaneObjectEncryptorProvider(
             $controlPlaneObjectEncryptor,
             $dataPlaneConfigRepository,
-            false
+            false,
         );
 
         $result = $provider->getProjectObjectEncryptor(null);
@@ -229,7 +229,7 @@ class DataPlaneObjectEncryptorProviderTest extends TestCase
         $dataPlaneConfig = new DataPlaneConfig(
             'dataPlaneId',
             new KubernetesConfig('', '', '', ''),
-            new TestingEncryptorConfig($dataPlaneObjectEncryptor)
+            new TestingEncryptorConfig($dataPlaneObjectEncryptor),
         );
 
         $dataPlaneConfigRepository = $this->createMock(DataPlaneConfigRepository::class);
@@ -238,7 +238,7 @@ class DataPlaneObjectEncryptorProviderTest extends TestCase
         $provider = new DataPlaneObjectEncryptorProvider(
             $controlPlaneObjectEncryptor,
             $dataPlaneConfigRepository,
-            true
+            true,
         );
 
         $result = $provider->getProjectObjectEncryptor($dataPlaneConfig);
@@ -263,7 +263,7 @@ class DataPlaneObjectEncryptorProviderTest extends TestCase
         $provider = new DataPlaneObjectEncryptorProvider(
             $controlPlaneObjectEncryptor,
             $dataPlaneConfigRepository,
-            true
+            true,
         );
 
         $result = $provider->getProjectObjectEncryptor(null);
@@ -283,7 +283,7 @@ class DataPlaneObjectEncryptorProviderTest extends TestCase
         $dataPlaneConfig = new DataPlaneConfig(
             'dataPlaneId',
             new KubernetesConfig('', '', '', ''),
-            new AwsEncryptionConfig('stackId', 'kmsRegion', 'kmsKeyId', null)
+            new AwsEncryptionConfig('stackId', 'kmsRegion', 'kmsKeyId', null),
         );
 
         $dataPlaneConfigRepository = $this->createMock(DataPlaneConfigRepository::class);
@@ -292,7 +292,7 @@ class DataPlaneObjectEncryptorProviderTest extends TestCase
         $provider = new DataPlaneObjectEncryptorProvider(
             $controlPlaneObjectEncryptor,
             $dataPlaneConfigRepository,
-            false
+            false,
         );
 
         $this->expectException(RuntimeException::class);

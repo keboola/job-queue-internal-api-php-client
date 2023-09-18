@@ -34,7 +34,7 @@ class NewJobDefinitionTest extends BaseTest
                 'result' => [],
                 'configRowIds' => [],
             ]),
-            $processed
+            $processed,
         );
     }
 

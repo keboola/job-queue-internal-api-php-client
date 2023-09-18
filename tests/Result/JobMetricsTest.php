@@ -32,7 +32,7 @@ class JobMetricsTest extends TestCase
                     'context' => 'wlm',
                 ],
             ],
-            $metrics->jsonSerialize()
+            $metrics->jsonSerialize(),
         );
 
         $metrics = new JobMetrics();
@@ -48,7 +48,7 @@ class JobMetricsTest extends TestCase
                     'context' => null,
                 ],
             ],
-            $metrics->jsonSerialize()
+            $metrics->jsonSerialize(),
         );
     }
 

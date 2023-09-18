@@ -15,7 +15,7 @@ class DataPlaneConfig
     public function __construct(
         string $id,
         KubernetesConfig $kubernetes,
-        EncryptionConfigInterface $encryption
+        EncryptionConfigInterface $encryption,
     ) {
         $this->id = $id;
         $this->kubernetes = $kubernetes;

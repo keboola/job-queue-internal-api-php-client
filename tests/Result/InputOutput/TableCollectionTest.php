@@ -22,7 +22,7 @@ class TableCollectionTest extends TestCase
             'in.c-bucket.table',
             'table',
             'MyTable',
-            (new ColumnCollection())->addColumn(new Column('id'))
+            (new ColumnCollection())->addColumn(new Column('id')),
         );
 
         $collection->addTable($table);
@@ -34,10 +34,10 @@ class TableCollectionTest extends TestCase
                     'in.c-bucket.table',
                     'table',
                     'MyTable',
-                    (new ColumnCollection())->addColumn(new Column('id'))
+                    (new ColumnCollection())->addColumn(new Column('id')),
                 ),
             ],
-            iterator_to_array($collection->getIterator())
+            iterator_to_array($collection->getIterator()),
         );
         self::assertSame([
             [

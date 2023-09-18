@@ -117,7 +117,7 @@ class JobRuntimeResolver
         return sprintf(
             '%s-%s',
             $jobData['projectId'],
-            $componentType
+            $componentType,
         );
     }
 
@@ -145,7 +145,7 @@ class JobRuntimeResolver
     {
         return Backend::fromDataArray(array_merge(
             array_filter($backendOne->toDataArray()),
-            array_filter($backendTwo->toDataArray())
+            array_filter($backendTwo->toDataArray()),
         ));
     }
 
@@ -171,7 +171,7 @@ class JobRuntimeResolver
             return new Backend(
                 null,
                 null,
-                $this->getDefaultBackendContext($jobData, $this->componentData['type'])
+                $this->getDefaultBackendContext($jobData, $this->componentData['type']),
             );
         }
 
@@ -179,7 +179,7 @@ class JobRuntimeResolver
         $stagingStorage = $this->componentData['data']['staging_storage']['input'] ?? '';
         $backendContext = $tempBackend->getContext() ?? $this->getDefaultBackendContext(
             $jobData,
-            $this->componentData['type']
+            $this->componentData['type'],
         );
 
         /* Possible values of staging storage: https://github.com/keboola/docker-bundle/blob/ec9a628b614a70d0ed8a6ec36f2b6003a8e07ed4/src/Docker/Configuration/Component.php#L87
@@ -231,24 +231,24 @@ class JobRuntimeResolver
                 $this->jobData['configId'] !== ''
             ) {
                 $componentsApi = $this->getComponentsApiClient(
-                    !empty($this->jobData['branchId']) ? (string) $this->jobData['branchId'] : null
+                    !empty($this->jobData['branchId']) ? (string) $this->jobData['branchId'] : null,
                 );
                 $this->configuration = $componentsApi->getConfiguration(
                     $this->jobData['componentId'],
-                    $this->jobData['configId']
+                    $this->jobData['configId'],
                 );
 
                 if (!empty($this->configuration['isDisabled']) && !$this->resolveIsForceRunMode()) {
                     throw new ConfigurationDisabledException(sprintf(
                         'Configuration "%s" of component "%s" is disabled.',
                         $this->jobData['configId'],
-                        $this->jobData['componentId']
+                        $this->jobData['componentId'],
                     ));
                 }
 
                 $configurationDefinition = new OverridesConfigurationDefinition();
                 $this->configuration = $configurationDefinition->processData(
-                    $this->configuration['configuration'] ?? []
+                    $this->configuration['configuration'] ?? [],
                 );
             } else {
                 $this->configuration = [];
@@ -263,8 +263,8 @@ class JobRuntimeResolver
             $this->storageClientFactory->createClientWrapper(new ClientOptions(
                 null,
                 $this->jobData['#tokenString'],
-                $branchId
-            ))->getBranchClient()
+                $branchId,
+            ))->getBranchClient(),
         );
     }
 
@@ -309,7 +309,7 @@ class JobRuntimeResolver
         return new DevBranches(
             $this->storageClientFactory->createClientWrapper(new ClientOptions(
                 token: $this->jobData['#tokenString'],
-            ))->getBasicClient()
+            ))->getBasicClient(),
         );
     }
 
