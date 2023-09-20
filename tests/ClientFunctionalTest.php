@@ -9,7 +9,6 @@ use Keboola\JobQueueInternalClient\Exception\ClientException;
 use Keboola\JobQueueInternalClient\Exception\StateTargetEqualsCurrentException;
 use Keboola\JobQueueInternalClient\JobFactory\Job;
 use Keboola\JobQueueInternalClient\JobFactory\JobInterface;
-use Keboola\JobQueueInternalClient\JobFactory\ObjectEncryptor\JobObjectEncryptor;
 use Keboola\JobQueueInternalClient\JobListOptions;
 use Keboola\JobQueueInternalClient\JobPatchData;
 use Keboola\JobQueueInternalClient\JobsSortOptions;
@@ -19,7 +18,6 @@ use Keboola\StorageApi\Client as StorageClient;
 use Keboola\StorageApi\Components;
 use Keboola\StorageApi\DevBranches;
 use Keboola\StorageApi\Options\Components\Configuration;
-use Keboola\StorageApiBranch\Factory\StorageClientPlainFactory;
 
 class ClientFunctionalTest extends BaseClientFunctionalTest
 {
@@ -78,12 +76,20 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
             'azure' => [
                 'kmsKeyId' => '',
                 'keyVaultUrl' => getenv('TEST_AZURE_KEY_VAULT_URL'),
+                'gkmsKeyId' => '',
                 'KBC::ProjectSecureKV::',
             ],
             'aws' => [
                 'kmsKeyId' => getenv('TEST_KMS_KEY_ID'),
                 'keyVaultUrl' => '',
+                'gkmsKeyId' => '',
                 'KBC::ProjectSecure::',
+            ],
+            'gcp' => [
+                'kmsKeyId' => '',
+                'keyVaultUrl' => '',
+                'gkmsKeyId' => getenv('TEST_GCP_KMS_KEY_ID'),
+                'KBC::ProjectSecureGKMS::',
             ],
         ];
     }
@@ -91,12 +97,17 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
     /**
      * @param non-empty-string $kmsKeyId
      * @param non-empty-string $keyVaultUrl
+     * @param non-empty-string $gkmsKeyId
      * @param string $cipherPrefix
      * @dataProvider cipherProvider
      */
-    public function testCreateJob(string $kmsKeyId, string $keyVaultUrl, string $cipherPrefix): void
-    {
-        $newJobFactory = $this->getNewJobFactory($kmsKeyId, $keyVaultUrl);
+    public function testCreateJob(
+        string $kmsKeyId,
+        string $keyVaultUrl,
+        string $gkmsKeyId,
+        string $cipherPrefix,
+    ): void {
+        $newJobFactory = $this->getNewJobFactory($kmsKeyId, $keyVaultUrl, $gkmsKeyId);
         $client = $this->getClient($kmsKeyId, $keyVaultUrl);
 
         $job = $newJobFactory->createNewJob([
@@ -172,12 +183,17 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
     /**
      * @param non-empty-string $kmsKeyId
      * @param non-empty-string $keyVaultUrl
+     * @param non-empty-string $gkmsKeyId
      * @param string $cipherPrefix
      * @dataProvider cipherProvider
      */
-    public function testCreateJobsBatch(string $kmsKeyId, string $keyVaultUrl, string $cipherPrefix): void
-    {
-        $newJobFactory = $this->getNewJobFactory($kmsKeyId, $keyVaultUrl);
+    public function testCreateJobsBatch(
+        string $kmsKeyId,
+        string $keyVaultUrl,
+        string $gkmsKeyId,
+        string $cipherPrefix,
+    ): void {
+        $newJobFactory = $this->getNewJobFactory($kmsKeyId, $keyVaultUrl, $gkmsKeyId);
         $client = $this->getClient($kmsKeyId, $keyVaultUrl);
 
         $job1 = $newJobFactory->createNewJob([

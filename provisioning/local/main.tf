@@ -22,6 +22,11 @@ terraform {
       source  = "hashicorp/azuread"
       version = "~> 2.40.0"
     }
+
+    google = {
+      source  = "hashicorp/google"
+      version = "~> 4.81.0"
+    }
   }
 
   backend "s3" {

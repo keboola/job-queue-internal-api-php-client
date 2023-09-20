@@ -74,6 +74,8 @@ class NewJobFactoryTest extends BaseTest
         putenv('AZURE_TENANT_ID=' . self::getRequiredEnv('TEST_AZURE_TENANT_ID'));
         putenv('AZURE_CLIENT_ID=' . self::getRequiredEnv('TEST_AZURE_CLIENT_ID'));
         putenv('AZURE_CLIENT_SECRET=' . self::getRequiredEnv('TEST_AZURE_CLIENT_SECRET'));
+        putenv('GCP_KMS_KEY_ID=' . self::getRequiredEnv('TEST_GCP_KMS_KEY_ID'));
+        putenv('GOOGLE_APPLICATION_CREDENTIALS=' . self::getRequiredEnv('TEST_GOOGLE_APPLICATION_CREDENTIALS'));
     }
 
     private function getJobFactoryWithoutDataPlaneSupport(): array
@@ -82,7 +84,7 @@ class NewJobFactoryTest extends BaseTest
             self::getRequiredEnv('TEST_STORAGE_API_URL'),
         ));
 
-        $objectEncryptor = ObjectEncryptorFactory::getEncryptor(self::getEncryptorOptions());
+        $objectEncryptor = ObjectEncryptorFactory::getEncryptor($this->getEncryptorOptions());
 
         $dataPlaneConfigRepository = $this->createMock(DataPlaneConfigRepository::class);
         $dataPlaneConfigRepository->expects(self::never())->method(self::anything());
@@ -108,7 +110,7 @@ class NewJobFactoryTest extends BaseTest
             self::getRequiredEnv('TEST_STORAGE_API_URL'),
         ));
 
-        $controlPlaneObjectEncryptor = ObjectEncryptorFactory::getEncryptor(self::getEncryptorOptions());
+        $controlPlaneObjectEncryptor = ObjectEncryptorFactory::getEncryptor($this->getEncryptorOptions());
 
         $dataPlaneObjectEncryptor = ObjectEncryptorFactory::getEncryptor(new EncryptorOptions(
             'custom-value',
@@ -116,6 +118,7 @@ class NewJobFactoryTest extends BaseTest
             self::getRequiredEnv('TEST_KMS_REGION'),
             null,
             self::getRequiredEnv('TEST_AZURE_KEY_VAULT_URL'),
+            self::getRequiredEnv('TEST_GCP_KMS_KEY_ID'),
         ));
 
         $dataPlaneConfigRepository = $this->createMock(DataPlaneConfigRepository::class);
@@ -538,7 +541,7 @@ class NewJobFactoryTest extends BaseTest
 
     public function testEncryption(): void
     {
-        $objectEncryptor = ObjectEncryptorFactory::getEncryptor(self::getEncryptorOptions());
+        $objectEncryptor = ObjectEncryptorFactory::getEncryptor($this->getEncryptorOptions());
 
         [$factory] = $this->getJobFactoryWithoutDataPlaneSupport();
         $data = [
@@ -695,7 +698,7 @@ class NewJobFactoryTest extends BaseTest
         string $expectedPrefix,
     ): void {
         $trackingInvocationCount = 0;
-        $objectEncryptor = ObjectEncryptorFactory::getEncryptor(self::getEncryptorOptions());
+        $objectEncryptor = ObjectEncryptorFactory::getEncryptor($this->getEncryptorOptions());
         $basicClientMock = $this->createMock(Client::class);
         $basicClientMock->method('apiGet')
             ->willReturnCallback(function (...$args) use ($isDefault, &$trackingInvocationCount) {

@@ -21,6 +21,7 @@ trait EncryptorOptionsTest
             self::getOptionalEnv('TEST_KMS_REGION'),
             null,
             self::getOptionalEnv('TEST_AZURE_KEY_VAULT_URL'),
+            self::getOptionalEnv('TEST_GCP_KMS_KEY_ID'),
         );
     }
 }
