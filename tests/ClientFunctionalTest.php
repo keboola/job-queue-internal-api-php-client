@@ -176,6 +176,9 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
             'runnerId' => null,
             'executor' => 'dind',
             'branchType' => 'default',
+            'orchestrationTaskId' => null,
+            'previousJobId' => null,
+            'onlyOrchestrationTaskIds' => null,
         ];
         self::assertEquals($expected, $response);
     }
@@ -287,6 +290,9 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
                 'runnerId' => null,
                 'executor' => 'dind',
                 'branchType' => 'default',
+                'orchestrationTaskId' => null,
+                'previousJobId' => null,
+                'onlyOrchestrationTaskIds' => null,
             ];
             self::assertEquals($expected, $responseJobJson);
         }

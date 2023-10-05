@@ -134,6 +134,16 @@ interface JobInterface
     public function getComponentSpecification(): ComponentSpecification;
     public function getComponentConfiguration(): array;
     public function getOrchestrationJobId(): ?string;
+
+    /** @return non-empty-string|null */
+    public function getOrchestrationTaskId(): ?string;
+
+    /** @return list<non-empty-list>|null */
+    public function getOnlyOrchestrationTaskIds(): ?array;
+
+    /** @return non-empty-string|null */
+    public function getPreviousJobId(): ?string;
+
     public function getProjectFeatures(): array;
     public function getBranchType(): BranchType;
 }
