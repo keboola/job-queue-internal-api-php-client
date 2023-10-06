@@ -95,6 +95,9 @@ class NewJobFactory extends JobFactory
             'variableValuesId' => $data['variableValuesId'] ?? null,
             'variableValuesData' => $data['variableValuesData'] ?? [],
             'orchestrationJobId' => $data['orchestrationJobId'] ?? null,
+            'orchestrationTaskId' => $data['orchestrationTaskId'] ?? null,
+            'onlyOrchestrationTaskIds' => $data['onlyOrchestrationTaskIds'] ?? null,
+            'previousJobId' => $data['previousJobId'] ?? null,
         ];
         $jobData = $this->jobRuntimeResolver->resolveJobData($jobData, $tokenInfo);
 

@@ -64,6 +64,9 @@ class NewJobDefinitionTest extends BaseTest
                 'extraKey' => 'ignored',
             ],
             'orchestrationJobId' => '123456789',
+            'orchestrationTaskId' => '123',
+            'onlyOrchestrationTaskIds' => ['45', '67'],
+            'previousJobId' => '789',
         ];
         $definition = new NewJobDefinition();
         $result = $definition->processData($data);
@@ -150,6 +153,96 @@ class NewJobDefinitionTest extends BaseTest
                     'tag' => ['234'],
                 ],
                 '#Invalid type for path "job.parentRunId". Expected "?scalar"?, but got "?array"?.#',
+            ],
+            'orchestrationTaskId not string' => [
+                [
+                    '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+                    'configId' => '123',
+                    'componentId' => 'keboola.test',
+                    'result' => [],
+                    'orchestrationTaskId' => 134,
+                ],
+                '/Invalid configuration for path "job.orchestrationTaskId": value must be a string/',
+            ],
+            'orchestrationTaskId empty string' => [
+                [
+                    '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+                    'configId' => '123',
+                    'componentId' => 'keboola.test',
+                    'result' => [],
+                    'orchestrationTaskId' => '',
+                ],
+                '/Invalid configuration for path "job.orchestrationTaskId": value cannot be empty string/',
+            ],
+            'onlyOrchestrationTaskIds not list' => [
+                [
+                    '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+                    'configId' => '123',
+                    'componentId' => 'keboola.test',
+                    'result' => [],
+                    'onlyOrchestrationTaskIds' => '123',
+                ],
+                '/Invalid configuration for path "job.onlyOrchestrationTaskIds": value must be an array/',
+            ],
+            'onlyOrchestrationTaskIds empty list' => [
+                [
+                    '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+                    'configId' => '123',
+                    'componentId' => 'keboola.test',
+                    'result' => [],
+                    'onlyOrchestrationTaskIds' => [],
+                ],
+                '/Invalid configuration for path "job.onlyOrchestrationTaskIds": value cannot be empty list/',
+            ],
+            'onlyOrchestrationTaskIds with non-string item' => [
+                [
+                    '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+                    'configId' => '123',
+                    'componentId' => 'keboola.test',
+                    'result' => [],
+                    'onlyOrchestrationTaskIds' => [123],
+                ],
+                '/Invalid configuration for path "job.onlyOrchestrationTaskIds": items must be strings/',
+            ],
+            'onlyOrchestrationTaskIds with null item' => [
+                [
+                    '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+                    'configId' => '123',
+                    'componentId' => 'keboola.test',
+                    'result' => [],
+                    'onlyOrchestrationTaskIds' => [null],
+                ],
+                '/Invalid configuration for path "job.onlyOrchestrationTaskIds": items must be strings/',
+            ],
+            'onlyOrchestrationTaskIds with empty item' => [
+                [
+                    '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+                    'configId' => '123',
+                    'componentId' => 'keboola.test',
+                    'result' => [],
+                    'onlyOrchestrationTaskIds' => [''],
+                ],
+                '/Invalid configuration for path "job.onlyOrchestrationTaskIds": item cannot be empty string/',
+            ],
+            'previousJobId not string' => [
+                [
+                    '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+                    'configId' => '123',
+                    'componentId' => 'keboola.test',
+                    'result' => [],
+                    'previousJobId' => 134,
+                ],
+                '/Invalid configuration for path "job.previousJobId": value must be a string/',
+            ],
+            'previousJobId empty string' => [
+                [
+                    '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+                    'configId' => '123',
+                    'componentId' => 'keboola.test',
+                    'result' => [],
+                    'previousJobId' => '',
+                ],
+                '/Invalid configuration for path "job.previousJobId": value cannot be empty string/',
             ],
         ];
     }

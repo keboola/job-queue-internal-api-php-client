@@ -317,6 +317,30 @@ class Job implements JsonSerializable, JobInterface
         return $this->data['orchestrationJobId'] ?? null;
     }
 
+    /**
+     * @return non-empty-string|null
+     */
+    public function getOrchestrationTaskId(): ?string
+    {
+        return $this->data['orchestrationTaskId'] ?? null;
+    }
+
+    /**
+     * @return list<non-empty-list>|null
+     */
+    public function getOnlyOrchestrationTaskIds(): ?array
+    {
+        return $this->data['onlyOrchestrationTaskIds'] ?? null;
+    }
+
+    /**
+     * @return non-empty-string|null
+     */
+    public function getPreviousJobId(): ?string
+    {
+        return $this->data['previousJobId'] ?? null;
+    }
+
     public function getRunnerId(): ?string
     {
         return $this->data['runnerId'] ?? null;

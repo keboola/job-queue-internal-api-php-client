@@ -24,7 +24,7 @@ resource "google_kms_crypto_key" "object_encryptor_key" {
 }
 
 resource "google_service_account" "object_encryptor_service_account" {
-  account_id   = substr("${var.name_prefix}-job-queue-internal-api-php-client", 0, 28)
+  account_id   = "${var.name_prefix}-jqiapc"
   display_name = "${var.name_prefix} Job Queue Internal API PHP Client"
 }
 

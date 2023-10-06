@@ -185,6 +185,9 @@ class NewJobFactoryTest extends BaseTest
         self::assertEquals($job->getId(), $job->getRunId());
         self::assertNull($job->getBranchId());
         self::assertNull($job->getOrchestrationJobId());
+        self::assertNull($job->getOrchestrationTaskId());
+        self::assertNull($job->getOnlyOrchestrationTaskIds());
+        self::assertNull($job->getPreviousJobId());
     }
 
     public function testCreateNewJobNormalize(): void
@@ -504,6 +507,42 @@ class NewJobFactoryTest extends BaseTest
         $this->expectException(ClientException::class);
         $this->expectExceptionMessage('Provide either "variableValuesId" or "variableValuesData", but not both.');
         $factory->createNewJob($data);
+    }
+
+    public function testCreateNewOrchestratorChildJob(): void
+    {
+        [$factory] = $this->getJobFactoryWithoutDataPlaneSupport();
+        $data = [
+            '#tokenString' => self::getRequiredEnv('TEST_STORAGE_API_TOKEN'),
+            'componentId' => self::COMPONENT_ID_1,
+            'mode' => 'run',
+            'configId' => self::$configId1,
+            'orchestrationJobId' => '333',
+            'orchestrationTaskId' => '444',
+        ];
+        $job = $factory->createNewJob($data);
+        self::assertNotEmpty($job->getId());
+        self::assertSame('keboola.runner-config-test', $job->getComponentId());
+        self::assertSame('333', $job->getOrchestrationJobId());
+        self::assertSame('444', $job->getOrchestrationTaskId());
+    }
+
+    public function testCreateRerunOrchestratorJob(): void
+    {
+        [$factory] = $this->getJobFactoryWithoutDataPlaneSupport();
+        $data = [
+            '#tokenString' => self::getRequiredEnv('TEST_STORAGE_API_TOKEN'),
+            'componentId' => 'keboola.orchestrator',
+            'mode' => 'run',
+            'configData' => [],
+            'previousJobId' => '1234',
+            'onlyOrchestrationTaskIds' => ['444'],
+        ];
+        $job = $factory->createNewJob($data);
+        self::assertNotEmpty($job->getId());
+        self::assertSame('keboola.orchestrator', $job->getComponentId());
+        self::assertSame('1234', $job->getPreviousJobId());
+        self::assertSame(['444'], $job->getOnlyOrchestrationTaskIds());
     }
 
     public function testCreateInvalidJob(): void
