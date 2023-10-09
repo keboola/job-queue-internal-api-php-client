@@ -6,17 +6,53 @@ namespace Keboola\JobQueueInternalClient\Orchestration;
 
 use Keboola\JobQueueInternalClient\Client;
 use Keboola\JobQueueInternalClient\Exception\ClientException;
+use Keboola\JobQueueInternalClient\Exception\OrchestrationJobMatcherValidationException;
 use Keboola\JobQueueInternalClient\JobFactory;
 use Keboola\JobQueueInternalClient\JobFactory\Job;
 use Keboola\JobQueueInternalClient\JobFactory\JobInterface;
 use Keboola\JobQueueInternalClient\JobListOptions;
 
 // https://keboola.atlassian.net/wiki/spaces/ENGG/pages/3074195457/DRAFT+RFC-2023-011+-+Rerun+orchestration#Pair-Jobs-and-Tasks
-class JobMatcher
+class OrchestrationJobMatcher
 {
     public function __construct(
         private readonly Client $internalClient,
     ) {
+    }
+
+    public function matchTaskJobsForOrchestrationJob(string $jobId): OrchestrationJobMatcherResults
+    {
+        $job = $this->internalClient->getJob($jobId);
+        $childJobs = $this->getOrchestrationTaskJobs($job);
+        $configuration = $this->getCurrentOrchestrationConfiguration($job);
+        $this->validateInputs($job, $configuration);
+        $matchedTasks = [];
+        foreach ($configuration['tasks'] as $task) {
+            $matched = false;
+            foreach ($childJobs as $index => $childJob) {
+                if (((string) $task['id']) === $childJob->getOrchestrationTaskId()) {
+                    $matchedTasks[] = new OrchestrationTaskMatched(
+                        (string) $task['id'],
+                        true,
+                        $childJob->getId(),
+                        $childJob->getComponentId(),
+                        $childJob->getConfigId(),
+                        $childJob->getStatus(),
+                    );
+                    unset($childJobs[$index]);
+                    $matched = true;
+                    break;
+                }
+            }
+            if (!$matched) {
+                $matchedTasks[] = new OrchestrationTaskMatched((string) $task['id'], false, null, null, null, null);
+            }
+        }
+        return new OrchestrationJobMatcherResults(
+            $jobId,
+            $job->getConfigId(),
+            $matchedTasks,
+        );
     }
 
     /**
@@ -24,11 +60,10 @@ class JobMatcher
      */
     private function getOrchestrationTaskJobs(JobInterface $job): array
     {
-        $childJobs = $this->internalClient->listJobs(
+        return $this->internalClient->listJobs(
             (new JobListOptions())->setParentRunId($job->getId()),
             true,
         );
-        return $childJobs;
     }
 
     private function getCurrentOrchestrationConfiguration(JobInterface $job): array
@@ -46,53 +81,24 @@ class JobMatcher
             the main use case is root orchestration job, but it seems that a phaseContainer might be
             equally valid input. */
         if ($job->getComponentId() !== JobFactory::ORCHESTRATOR_COMPONENT) {
-            throw new ClientException(sprintf(
+            throw new OrchestrationJobMatcherValidationException(sprintf(
                 'Job "%s" is not an orchestration job.',
                 $job->getId(),
             ));
         }
         if (!isset($configuration['tasks']) || !is_array($configuration['tasks'])) {
-            throw new ClientException(sprintf(
-                'Orchestration "%s" does not have tasks.',
+            throw new OrchestrationJobMatcherValidationException(sprintf(
+                'Orchestration "%s" tasks must be an array.',
                 $job->getId(),
             ));
         }
         array_walk($configuration['tasks'], function (array $task) {
             if (!isset($task['id'])) {
-                throw new ClientException(sprintf(
+                throw new OrchestrationJobMatcherValidationException(sprintf(
                     'Task does not have an id. (%s)',
                     json_encode($task),
                 ));
             }
         });
-    }
-
-    public function matchTaskJobsForOrchestrationJob(string $jobId): JobMatcherResults
-    {
-        $job = $this->internalClient->getJob($jobId);
-        $childJobs = $this->getOrchestrationTaskJobs($job);
-        $configuration = $this->getCurrentOrchestrationConfiguration($job);
-        $this->validateInputs($job, $configuration);
-        $matchedTasks = [];
-        foreach ($configuration['tasks'] as $task) {
-            foreach ($childJobs as $index => $childJob) {
-                if ((string) $task['id'] === $childJob->getOrchestrationTaskId()) {
-                    $matchedTasks[] = new MatchedTask(
-                        (string) $task['id'],
-                        $childJob->getId(),
-                        $childJob->getComponentId(),
-                        $childJob->getConfigId(),
-                        $childJob->getStatus(),
-                    );
-                    unset($childJobs[$index]);
-                    break;
-                }
-            }
-        }
-        return new JobMatcherResults(
-            $jobId,
-            $job->getConfigId(),
-            $matchedTasks,
-        );
     }
 }

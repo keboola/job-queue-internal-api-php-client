@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Keboola\JobQueueInternalClient\Orchestration;
 
-class JobMatcherResults
+class OrchestrationJobMatcherResults
 {
     /**
-     * @param array<MatchedTask> $matchedTasks
+     * @param array<OrchestrationTaskMatched> $matchedTasks
      */
     public function __construct(
         public readonly string $jobId,
