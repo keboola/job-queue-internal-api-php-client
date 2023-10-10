@@ -17,6 +17,22 @@ use Keboola\StorageApi\Options\Components\Configuration;
 
 class OrchestrationJobMatcherTest extends BaseClientFunctionalTest
 {
+    private ?string $configurationId = null;
+    private ?string $componentId = null;
+
+    public function tearDown(): void
+    {
+        if ($this->configurationId !== null && $this->componentId !== null) {
+            $storageClient = new StorageClient([
+                'token' => (string) getenv('TEST_STORAGE_API_TOKEN'),
+                'url' => (string) getenv('TEST_STORAGE_API_URL'),
+            ]);
+            $componentsApi = new Components($storageClient);
+            $componentsApi->deleteConfiguration($this->componentId, $this->configurationId);
+        }
+        parent::tearDown();
+    }
+
     private function getOrchestrationConfiguration(): array
     {
         return [
@@ -89,13 +105,14 @@ class OrchestrationJobMatcherTest extends BaseClientFunctionalTest
         $configuration->setConfiguration($configurationData);
         $configuration->setName($this->getName());
         $configuration->setComponentId(JobFactory::ORCHESTRATOR_COMPONENT);
-        $orchestrationConfigurationId = $componentsApi->addConfiguration($configuration)['id'];
+        $this->componentId = JobFactory::ORCHESTRATOR_COMPONENT;
+        $this->configurationId = $componentsApi->addConfiguration($configuration)['id'];
         $orchestrationJob = $this->getNewJobFactory()->createNewJob(
             [
                 '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
                 'configData' => [],
                 'componentId' => JobFactory::ORCHESTRATOR_COMPONENT,
-                'configId' => $orchestrationConfigurationId,
+                'configId' => $this->configurationId,
                 'mode' => 'run',
                 'parentRunId' => '',
                 'orchestrationJobId' => null,
@@ -119,7 +136,7 @@ class OrchestrationJobMatcherTest extends BaseClientFunctionalTest
                     '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
                     'configData' => $configData,
                     'componentId' => JobFactory::ORCHESTRATOR_COMPONENT,
-                    'configId' => $orchestrationConfigurationId,
+                    'configId' => $this->configurationId,
                     'mode' => 'run',
                     'orchestrationJobId' => $orchestrationJob->getId(),
                     'parentRunId' => $orchestrationJob->getId(),
@@ -147,7 +164,7 @@ class OrchestrationJobMatcherTest extends BaseClientFunctionalTest
 
         return [
             'orchestrationJobId' => $orchestrationJob->getId(),
-            'orchestrationConfigurationId' => $orchestrationConfigurationId,
+            'orchestrationConfigurationId' => $this->configurationId,
             'jobIds' => $jobIds,
         ];
     }
@@ -155,12 +172,11 @@ class OrchestrationJobMatcherTest extends BaseClientFunctionalTest
     public function testMatcherFull(): void
     {
         $client = $this->getClient();
-        $result = $this->createOrchestrationLikeJobs($this->getOrchestrationConfiguration(), []);
         [
             'orchestrationJobId' => $orchestrationJobId,
             'orchestrationConfigurationId' => $orchestrationConfigurationId,
             'jobIds' => $jobIds,
-        ] = $result;
+        ] = $this->createOrchestrationLikeJobs($this->getOrchestrationConfiguration(), []);
 
         $matcher = new OrchestrationJobMatcher($client);
         $results = $matcher->matchTaskJobsForOrchestrationJob($orchestrationJobId);
@@ -197,24 +213,16 @@ class OrchestrationJobMatcherTest extends BaseClientFunctionalTest
             ),
             $results,
         );
-
-        $storageClient = new StorageClient([
-            'token' => (string) getenv('TEST_STORAGE_API_TOKEN'),
-            'url' => (string) getenv('TEST_STORAGE_API_URL'),
-        ]);
-        $componentsApi = new Components($storageClient);
-        $componentsApi->deleteConfiguration(JobFactory::ORCHESTRATOR_COMPONENT, $orchestrationConfigurationId);
     }
 
     public function testMatcherPartial(): void
     {
         $client = $this->getClient();
-        $result = $this->createOrchestrationLikeJobs($this->getOrchestrationConfiguration(), ['92543']);
         [
             'orchestrationJobId' => $orchestrationJobId,
             'orchestrationConfigurationId' => $orchestrationConfigurationId,
             'jobIds' => $jobIds,
-        ] = $result;
+        ] = $this->createOrchestrationLikeJobs($this->getOrchestrationConfiguration(), ['92543']);
 
         $matcher = new OrchestrationJobMatcher($client);
         $results = $matcher->matchTaskJobsForOrchestrationJob($orchestrationJobId);
@@ -268,7 +276,6 @@ class OrchestrationJobMatcherTest extends BaseClientFunctionalTest
         array $configurationData,
         string $expectedMessage,
     ): void {
-        $client = $this->getClient();
         $storageClient = new StorageClient([
             'token' => (string) getenv('TEST_STORAGE_API_TOKEN'),
             'url' => (string) getenv('TEST_STORAGE_API_URL'),
@@ -279,27 +286,24 @@ class OrchestrationJobMatcherTest extends BaseClientFunctionalTest
         $configuration->setConfiguration($configurationData);
         $configuration->setName($this->getName());
         $configuration->setComponentId($componentId);
-        $orchestrationConfigurationId = $componentsApi->addConfiguration($configuration)['id'];
+        $this->componentId = $componentId;
+        $this->configurationId = $componentsApi->addConfiguration($configuration)['id'];
         $orchestrationJob = $this->getNewJobFactory()->createNewJob(
             [
                 '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
                 'configData' => [],
-                'componentId' => $componentId,
-                'configId' => $orchestrationConfigurationId,
+                    'componentId' => $componentId,
+                'configId' => $this->configurationId,
                 'mode' => 'run',
                 'parentRunId' => '',
                 'orchestrationJobId' => null,
             ],
         );
         $orchestrationJobId = $queueClient->createJob($orchestrationJob)->getId();
-        $matcher = new OrchestrationJobMatcher($client);
-        try {
-            $this->expectException(OrchestrationJobMatcherValidationException::class);
-            $this->expectExceptionMessageMatches($expectedMessage);
-            $matcher->matchTaskJobsForOrchestrationJob($orchestrationJobId);
-        } finally {
-            $componentsApi->deleteConfiguration($componentId, $orchestrationConfigurationId);
-        }
+        $matcher = new OrchestrationJobMatcher($queueClient);
+        $this->expectException(OrchestrationJobMatcherValidationException::class);
+        $this->expectExceptionMessageMatches($expectedMessage);
+        $matcher->matchTaskJobsForOrchestrationJob($orchestrationJobId);
     }
 
     public function invalidConfigurationProvider(): Generator
