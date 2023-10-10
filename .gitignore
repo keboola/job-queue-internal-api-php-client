@@ -10,3 +10,4 @@
 /build/logs
 /infection.log
 /.phpunit.result.cache
+/var/
