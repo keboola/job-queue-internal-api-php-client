@@ -224,6 +224,16 @@ class NewJobDefinitionTest extends BaseTest
                 ],
                 '/Invalid configuration for path "job.onlyOrchestrationTaskIds": item cannot be empty string/',
             ],
+            'onlyOrchestrationTaskIds with duplicated item' => [
+                [
+                    '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+                    'configId' => '123',
+                    'componentId' => 'keboola.test',
+                    'result' => [],
+                    'onlyOrchestrationTaskIds' => ['11', '22', '11'],
+                ],
+                '/Invalid configuration for path "job.onlyOrchestrationTaskIds": items must be unique/',
+            ],
             'previousJobId not string' => [
                 [
                     '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
