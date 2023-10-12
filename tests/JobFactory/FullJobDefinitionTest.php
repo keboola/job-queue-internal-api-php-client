@@ -37,7 +37,7 @@ class FullJobDefinitionTest extends BaseTest
             'type' => 'standard',
             'branchType' => BranchType::DEFAULT->value,
             'orchestrationTaskId' => '123',
-            'onlyOrchestrationTaskIds' => ['45', '67'],
+            'onlyOrchestrationTaskIds' => ['45', 67],
             'previousJobId' => '789',
         ];
         $definition = new FullJobDefinition();
@@ -473,23 +473,7 @@ class FullJobDefinitionTest extends BaseTest
                 ],
                 '/Invalid configuration for path "job.onlyOrchestrationTaskIds": value cannot be empty list/',
             ],
-            'onlyOrchestrationTaskIds with non-string item' => [
-                [
-                    '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
-                    'id' => '12345',
-                    'runId' => '12345',
-                    'tokenId' => '1234',
-                    'projectId' => '123',
-                    'status' => 'created',
-                    'desiredStatus' => 'processing',
-                    'configId' => '123',
-                    'componentId' => 'keboola.test',
-                    'mode' => 'run',
-                    'onlyOrchestrationTaskIds' => [123],
-                ],
-                '/Invalid configuration for path "job.onlyOrchestrationTaskIds": items must be strings/',
-            ],
-            'onlyOrchestrationTaskIds with null item' => [
+            'onlyOrchestrationTaskIds with non-scalar item' => [
                 [
                     '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
                     'id' => '12345',
@@ -503,7 +487,7 @@ class FullJobDefinitionTest extends BaseTest
                     'mode' => 'run',
                     'onlyOrchestrationTaskIds' => [null],
                 ],
-                '/Invalid configuration for path "job.onlyOrchestrationTaskIds": items must be strings/',
+                '/Invalid configuration for path "job.onlyOrchestrationTaskIds": items must be scalars/',
             ],
             'onlyOrchestrationTaskIds with empty item' => [
                 [

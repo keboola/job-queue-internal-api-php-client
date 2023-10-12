@@ -65,7 +65,7 @@ class NewJobDefinitionTest extends BaseTest
             ],
             'orchestrationJobId' => '123456789',
             'orchestrationTaskId' => '123',
-            'onlyOrchestrationTaskIds' => ['45', '67'],
+            'onlyOrchestrationTaskIds' => ['45', 67],
             'previousJobId' => '789',
         ];
         $definition = new NewJobDefinition();
@@ -194,17 +194,7 @@ class NewJobDefinitionTest extends BaseTest
                 ],
                 '/Invalid configuration for path "job.onlyOrchestrationTaskIds": value cannot be empty list/',
             ],
-            'onlyOrchestrationTaskIds with non-string item' => [
-                [
-                    '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
-                    'configId' => '123',
-                    'componentId' => 'keboola.test',
-                    'result' => [],
-                    'onlyOrchestrationTaskIds' => [123],
-                ],
-                '/Invalid configuration for path "job.onlyOrchestrationTaskIds": items must be strings/',
-            ],
-            'onlyOrchestrationTaskIds with null item' => [
+            'onlyOrchestrationTaskIds with non-scalar item' => [
                 [
                     '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
                     'configId' => '123',
@@ -212,7 +202,7 @@ class NewJobDefinitionTest extends BaseTest
                     'result' => [],
                     'onlyOrchestrationTaskIds' => [null],
                 ],
-                '/Invalid configuration for path "job.onlyOrchestrationTaskIds": items must be strings/',
+                '/Invalid configuration for path "job.onlyOrchestrationTaskIds": items must be scalars/',
             ],
             'onlyOrchestrationTaskIds with empty item' => [
                 [
