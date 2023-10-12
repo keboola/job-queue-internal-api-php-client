@@ -154,15 +154,15 @@ class NewJobDefinitionTest extends BaseTest
                 ],
                 '#Invalid type for path "job.parentRunId". Expected "?scalar"?, but got "?array"?.#',
             ],
-            'orchestrationTaskId not string' => [
+            'orchestrationTaskId not scalar' => [
                 [
                     '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
                     'configId' => '123',
                     'componentId' => 'keboola.test',
                     'result' => [],
-                    'orchestrationTaskId' => 134,
+                    'orchestrationTaskId' => [134],
                 ],
-                '/Invalid configuration for path "job.orchestrationTaskId": value must be a string/',
+                '/Invalid configuration for path "job.orchestrationTaskId": value must be a scalar/',
             ],
             'orchestrationTaskId empty string' => [
                 [

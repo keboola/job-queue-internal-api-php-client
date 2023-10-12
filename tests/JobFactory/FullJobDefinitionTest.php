@@ -409,7 +409,7 @@ class FullJobDefinitionTest extends BaseTest
                 ],
                 '#The value "invalid" is not allowed for path "job.branchType". Permissible values: "default", "dev"#',
             ],
-            'orchestrationTaskId not string' => [
+            'orchestrationTaskId not scalar' => [
                 [
                     '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
                     'id' => '12345',
@@ -421,9 +421,9 @@ class FullJobDefinitionTest extends BaseTest
                     'configId' => '123',
                     'componentId' => 'keboola.test',
                     'mode' => 'run',
-                    'orchestrationTaskId' => 134,
+                    'orchestrationTaskId' => [123],
                 ],
-                '/Invalid configuration for path "job.orchestrationTaskId": value must be a string/',
+                '/Invalid configuration for path "job.orchestrationTaskId": value must be a scalar/',
             ],
             'orchestrationTaskId empty string' => [
                 [
