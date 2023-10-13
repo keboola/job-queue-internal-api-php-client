@@ -423,7 +423,7 @@ class FullJobDefinitionTest extends BaseTest
                     'mode' => 'run',
                     'orchestrationTaskId' => [123],
                 ],
-                '/Invalid configuration for path "job.orchestrationTaskId": value must be a scalar/',
+                '#Invalid type for path "job.orchestrationTaskId". Expected "?scalar"?, but got "?array"?.#',
             ],
             'orchestrationTaskId empty string' => [
                 [
