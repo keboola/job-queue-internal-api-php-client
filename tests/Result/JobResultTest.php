@@ -12,6 +12,8 @@ use Keboola\JobQueueInternalClient\Result\InputOutput\Table;
 use Keboola\JobQueueInternalClient\Result\InputOutput\TableCollection;
 use Keboola\JobQueueInternalClient\Result\JobArtifacts;
 use Keboola\JobQueueInternalClient\Result\JobResult;
+use Keboola\JobQueueInternalClient\Result\Variable\Variable;
+use Keboola\JobQueueInternalClient\Result\Variable\VariableCollection;
 use PHPUnit\Framework\TestCase;
 
 class JobResultTest extends TestCase
@@ -36,6 +38,9 @@ class JobResultTest extends TestCase
 
         $output = (new TableCollection())->addTable($outputTable);
 
+        $variable = new Variable('vault.foo', 'bar');
+        $variables = (new VariableCollection())->addVariable($variable);
+
         $jobResult = new JobResult();
         $jobResult
             ->setConfigVersion('123')
@@ -45,6 +50,7 @@ class JobResultTest extends TestCase
             ->setExceptionId('exception-12345')
             ->setInputTables($input)
             ->setOutputTables($output)
+            ->setVariables($variables)
             ->setArtifacts(
                 (new JobArtifacts())
                     ->setUploaded([
@@ -65,6 +71,7 @@ class JobResultTest extends TestCase
         self::assertSame('exception-12345', $jobResult->getExceptionId());
         self::assertSame($input, $jobResult->getInputTables());
         self::assertSame($output, $jobResult->getOutputTables());
+        self::assertSame($variables, $jobResult->getVariables());
         self::assertSame(
             [
                 'message' => 'test',
@@ -119,6 +126,12 @@ class JobResultTest extends TestCase
                         ],
                     ],
                 ],
+                'variables' => [
+                    [
+                        'name' => 'vault.foo',
+                        'value' => 'bar',
+                    ],
+                ],
                 'error' => [
                     'type' => 'application',
                     'exceptionId' => 'exception-12345',
@@ -139,6 +152,7 @@ class JobResultTest extends TestCase
         self::assertNull($result->getMessage());
         self::assertNull($result->getInputTables());
         self::assertNull($result->getOutputTables());
+        self::assertNull($result->getVariables());
 
         self::assertSame([
             'message' => null,

@@ -7,6 +7,8 @@ namespace Keboola\JobQueueInternalClient\Result;
 use JsonSerializable;
 use Keboola\JobQueueInternalClient\Exception\ClientException;
 use Keboola\JobQueueInternalClient\Result\InputOutput\TableCollection;
+use Keboola\JobQueueInternalClient\Result\Variable\Variable;
+use Keboola\JobQueueInternalClient\Result\Variable\VariableCollection;
 
 class JobResult implements JsonSerializable
 {
@@ -23,6 +25,7 @@ class JobResult implements JsonSerializable
     private ?TableCollection $outputTables = null;
 
     private ?JobArtifacts $artifacts = null;
+    private ?VariableCollection $variables = null;
 
     public function jsonSerialize(): array
     {
@@ -45,6 +48,9 @@ class JobResult implements JsonSerializable
         }
         if ($this->artifacts) {
             $result['artifacts'] = $this->artifacts->jsonSerialize();
+        }
+        if ($this->variables) {
+            $result['variables'] = $this->variables->jsonSerialize();
         }
         if ($this->errorType) {
             $result['error']['type'] = $this->errorType;
@@ -150,5 +156,16 @@ class JobResult implements JsonSerializable
     public function getArtifacts(): ?JobArtifacts
     {
         return $this->artifacts;
+    }
+
+    public function setVariables(VariableCollection $variables): JobResult
+    {
+        $this->variables = $variables;
+        return $this;
+    }
+
+    public function getVariables(): ?VariableCollection
+    {
+        return $this->variables;
     }
 }
