@@ -97,6 +97,7 @@ class NewJobFactory extends JobFactory
             'variableValuesData' => $data['variableValuesData'] ?? [],
             'orchestrationJobId' => $data['orchestrationJobId'] ?? null,
             'orchestrationTaskId' => $data['orchestrationTaskId'] ?? null,
+            'orchestrationPhaseId' => $data['orchestrationPhaseId'] ?? null,
             'onlyOrchestrationTaskIds' => $data['onlyOrchestrationTaskIds'] ?? null,
             'previousJobId' => $data['previousJobId'] ?? null,
         ];
