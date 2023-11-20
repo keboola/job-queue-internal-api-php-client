@@ -81,6 +81,11 @@ class Job implements JsonSerializable, JobInterface
         return $this->data['id'];
     }
 
+    public function getDeduplicationId(): ?string
+    {
+        return $this->data['deduplicationId'] ?? null;
+    }
+
     public function getComponentId(): string
     {
         return $this->data['componentId'] ?? '';
@@ -325,6 +330,14 @@ class Job implements JsonSerializable, JobInterface
     public function getOrchestrationTaskId(): ?string
     {
         return $this->data['orchestrationTaskId'] ?? null;
+    }
+
+    /**
+     * @return non-empty-string|null
+     */
+    public function getOrchestrationPhaseId(): ?string
+    {
+        return $this->data['orchestrationPhaseId'] ?? null;
     }
 
     /**

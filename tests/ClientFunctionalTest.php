@@ -139,6 +139,7 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
 
         $expected = [
             'id' => $job->getId(),
+            'deduplicationId' => null,
             'runId' => $job->getRunId(),
             'parentRunId' => $job->getParentRunId(),
             'configId' => null,
@@ -177,6 +178,7 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
             'executor' => 'dind',
             'branchType' => 'default',
             'orchestrationTaskId' => null,
+            'orchestrationPhaseId' => null,
             'previousJobId' => null,
             'onlyOrchestrationTaskIds' => null,
         ];
@@ -253,6 +255,7 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
             self::assertStringStartsWith($cipherPrefix, $responseJobJson['#tokenString']);
             unset($responseJobJson['#tokenString']);
             $expected = [
+                'deduplicationId' => null,
                 'configId' => null,
                 'componentId' => self::COMPONENT_ID_1,
                 'mode' => 'run',
@@ -291,6 +294,7 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
                 'executor' => 'dind',
                 'branchType' => 'default',
                 'orchestrationTaskId' => null,
+                'orchestrationPhaseId' => null,
                 'previousJobId' => null,
                 'onlyOrchestrationTaskIds' => null,
             ];
