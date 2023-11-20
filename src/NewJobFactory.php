@@ -68,6 +68,7 @@ class NewJobFactory extends JobFactory
 
         $jobData = [
             'id' => $jobId,
+            'deduplicationId' => $data['deduplicationId'] ?? null,
             'runId' => $runId,
             'projectId' => $projectId,
             'projectName' => $tokenInfo['owner']['name'],
