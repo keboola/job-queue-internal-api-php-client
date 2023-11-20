@@ -14,6 +14,7 @@ use GuzzleHttp\Middleware;
 use GuzzleHttp\Psr7\Request;
 use JsonException;
 use Keboola\JobQueueInternalClient\Exception\ClientException;
+use Keboola\JobQueueInternalClient\Exception\DeduplicationIdConflictException;
 use Keboola\JobQueueInternalClient\Exception\StateTargetEqualsCurrentException;
 use Keboola\JobQueueInternalClient\Exception\StateTerminalException;
 use Keboola\JobQueueInternalClient\Exception\StateTransitionForbiddenException;
@@ -439,6 +440,12 @@ class Client
                 );
             case StateTerminalException::STRING_CODE:
                 throw new StateTerminalException(
+                    $previous->getMessage(),
+                    $previous->getCode(),
+                    $previous,
+                );
+            case DeduplicationIdConflictException::STRING_CODE:
+                throw new DeduplicationIdConflictException(
                     $previous->getMessage(),
                     $previous->getCode(),
                     $previous,

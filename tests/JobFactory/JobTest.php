@@ -13,7 +13,6 @@ use Keboola\JobQueueInternalClient\JobFactory\Runtime\Executor;
 use Keboola\JobQueueInternalClient\Tests\BaseTest;
 use Keboola\PermissionChecker\BranchType;
 use Keboola\StorageApi\BranchAwareClient;
-use Keboola\StorageApi\Client;
 use Keboola\StorageApi\ClientException as StorageApiClientException;
 use Keboola\StorageApiBranch\ClientWrapper;
 use Keboola\StorageApiBranch\Factory\ClientOptions;
@@ -68,6 +67,15 @@ class JobTest extends BaseTest
         self::assertCount(9, JobInterface::STATUSES_ALL);
         self::assertCount(5, JobInterface::STATUSES_FINISHED);
         self::assertCount(3, JobInterface::STATUSES_KILLABLE);
+    }
+
+    public function testGetDeduplicationId(): void
+    {
+        $jobData = $this->jobData;
+        self::assertNull($this->getJob($jobData)->getDeduplicationId());
+
+        $jobData['deduplicationId'] = '123-456';
+        self::assertSame('123-456', $this->getJob($jobData)->getDeduplicationId());
     }
 
     public function testGetComponentId(): void
