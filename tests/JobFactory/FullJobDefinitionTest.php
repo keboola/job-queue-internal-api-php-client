@@ -374,7 +374,8 @@ class FullJobDefinitionTest extends BaseTest
                     'mode' => 'run',
                     'type' => 'orchestration',
                 ],
-                '#Invalid configuration for path "job.type": Type must be one of standard, container.#',
+                '#The value "orchestration" is not allowed for path "job.type". Permissible values: ' .
+                '"standard", "container", "phaseContainer", "orchestrationContainer"#',
             ],
             'Invalid parallelism' => [
                 [

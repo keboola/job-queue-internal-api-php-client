@@ -23,7 +23,7 @@ use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 class JobRuntimeResolver
 {
     private const JOB_TYPES_WITH_DEFAULT_BACKEND = [
-        JobInterface::TYPE_STANDARD,
+        JobType::STANDARD->value,
     ];
 
     private const PAY_AS_YOU_GO_FEATURE = 'pay-as-you-go';
@@ -53,7 +53,7 @@ class JobRuntimeResolver
             $jobData['branchType'] = $this->resolveBranchType($jobData)->value;
 
             // set type after resolving parallelism
-            $jobData['type'] = $this->resolveJobType($jobData);
+            $jobData['type'] = $this->resolveJobType($jobData)->value;
 
             // set backend after resolving type
             $jobData['backend'] = $this->resolveBackend($jobData, $tokenInfo)->toDataArray();
@@ -273,24 +273,24 @@ class JobRuntimeResolver
         return isset($this->jobData['mode']) && $this->jobData['mode'] === JobInterface::MODE_FORCE_RUN;
     }
 
-    private function resolveJobType(array $jobData): string
+    private function resolveJobType(array $jobData): JobType
     {
         if (!empty($jobData['type'])) {
-            return (string) $jobData['type'];
+            return JobType::from((string) $jobData['type']);
         }
 
         if ((intval($jobData['parallelism']) > 0) || $jobData['parallelism'] === JobInterface::PARALLELISM_INFINITY) {
-            return JobInterface::TYPE_ROW_CONTAINER;
+            return JobType::ROW_CONTAINER;
         } else {
             if ($jobData['componentId'] === JobFactory::ORCHESTRATOR_COMPONENT) {
                 if (isset($jobData['configData']['phaseId']) && (string) ($jobData['configData']['phaseId']) !== '') {
-                    return JobInterface::TYPE_PHASE_CONTAINER;
+                    return JobType::PHASE_CONTAINER;
                 } else {
-                    return JobInterface::TYPE_ORCHESTRATION_CONTAINER;
+                    return JobType::ORCHESTRATION_CONTAINER;
                 }
             }
         }
-        return JobInterface::TYPE_STANDARD;
+        return JobType::STANDARD;
     }
 
     private function resolveExecutor(array $jobData): Executor

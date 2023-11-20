@@ -6,6 +6,7 @@ namespace Keboola\JobQueueInternalClient\Tests;
 
 use Keboola\JobQueueInternalClient\Exception\ClientException;
 use Keboola\JobQueueInternalClient\JobFactory\JobInterface;
+use Keboola\JobQueueInternalClient\JobFactory\JobType;
 use Keboola\JobQueueInternalClient\JobListOptions;
 use PHPUnit\Framework\TestCase;
 use Safe\DateTime;
@@ -29,7 +30,7 @@ class JobListOptionsTest extends TestCase
         $jobListOptions->setStatuses([JobInterface::STATUS_SUCCESS, JobInterface::STATUS_PROCESSING]);
         $jobListOptions->setTags(['1.1.1', '1.2.3']);
         $jobListOptions->setParentRunId('123');
-        $jobListOptions->setType(JobInterface::TYPE_STANDARD);
+        $jobListOptions->setType(JobType::STANDARD);
         $jobListOptions->setCreatedTimeFrom(DateTime::createFromFormat('Y-m-d H:i:s', '2022-02-02 1:12:23'));
         $jobListOptions->setCreatedTimeTo(DateTime::createFromFormat('Y-m-d H:i:s', '2022-02-20 1:12:23'));
         $jobListOptions->setStartTimeFrom(DateTime::createFromFormat('Y-m-d H:i:s', '2021-02-02 1:12:23'));
@@ -62,7 +63,7 @@ class JobListOptionsTest extends TestCase
         );
         self::assertSame(['1.1.1', '1.2.3'], $jobListOptions->getTags());
         self::assertSame('123', $jobListOptions->getParentRunId());
-        self::assertSame(JobInterface::TYPE_STANDARD, $jobListOptions->getType());
+        self::assertSame(JobType::STANDARD, $jobListOptions->getType());
         self::assertSame('2022-02-02 01:12:23', $jobListOptions->getCreatedTimeFrom()->format('Y-m-d H:i:s'));
         self::assertSame('2022-02-20 01:12:23', $jobListOptions->getCreatedTimeTo()->format('Y-m-d H:i:s'));
         self::assertSame('2021-02-02 01:12:23', $jobListOptions->getStartTimeFrom()->format('Y-m-d H:i:s'));

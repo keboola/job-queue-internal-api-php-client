@@ -10,6 +10,7 @@ use Keboola\JobQueueInternalClient\Exception\ConfigurationDisabledException;
 use Keboola\JobQueueInternalClient\JobFactory;
 use Keboola\JobQueueInternalClient\JobFactory\JobInterface;
 use Keboola\JobQueueInternalClient\JobFactory\JobRuntimeResolver;
+use Keboola\JobQueueInternalClient\JobFactory\JobType;
 use Keboola\StorageApi\BranchAwareClient;
 use Keboola\StorageApi\Client;
 use Keboola\StorageApi\ClientException as StorageClientException;
@@ -41,7 +42,7 @@ class JobRuntimeResolverTest extends TestCase
         yield 'standard job' => [
             'keboola.ex-db-snowflake',
             [],
-            JobInterface::TYPE_STANDARD,
+            JobType::STANDARD,
             '123-dummy-component-type',
         ];
         yield 'row container job' => [
@@ -49,7 +50,7 @@ class JobRuntimeResolverTest extends TestCase
             [
                 'parallelism' => '5',
             ],
-            JobInterface::TYPE_ROW_CONTAINER,
+            JobType::ROW_CONTAINER,
             null,
         ];
         yield 'phase container job' => [
@@ -59,13 +60,13 @@ class JobRuntimeResolverTest extends TestCase
                     'phaseId' => '123',
                 ],
             ],
-            JobInterface::TYPE_PHASE_CONTAINER,
+            JobType::PHASE_CONTAINER,
             null,
         ];
         yield 'orchestration job' => [
             JobFactory::ORCHESTRATOR_COMPONENT,
             [],
-            JobInterface::TYPE_ORCHESTRATION_CONTAINER,
+            JobType::ORCHESTRATION_CONTAINER,
             null,
         ];
     }
@@ -76,7 +77,7 @@ class JobRuntimeResolverTest extends TestCase
     public function testResolveDefaultBackendContext(
         string $componentId,
         array $customJobData,
-        string $expectedJobType,
+        JobType $expectedJobType,
         ?string $expectedContext,
     ): void {
         $jobData = $this::JOB_DATA;
@@ -113,7 +114,7 @@ class JobRuntimeResolverTest extends TestCase
         $jobRuntimeResolver = new JobRuntimeResolver($storageClientFactoryMock);
 
         $jobData = $jobRuntimeResolver->resolveJobData($jobData, ['owner' => ['features' => []]]);
-        self::assertSame($expectedJobType, $jobData['type']);
+        self::assertSame($expectedJobType->value, $jobData['type']);
         self::assertSame($expectedContext, $jobData['backend']['context']);
     }
 

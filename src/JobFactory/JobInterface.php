@@ -62,18 +62,6 @@ interface JobInterface
         self::DESIRED_STATUS_TERMINATING,
     ];
 
-    public const TYPE_STANDARD = 'standard';
-    public const TYPE_ROW_CONTAINER = 'container';
-    public const TYPE_PHASE_CONTAINER = 'phaseContainer';
-    public const TYPE_ORCHESTRATION_CONTAINER = 'orchestrationContainer';
-
-    public const TYPES_ALL = [
-        self::TYPE_STANDARD,
-        self::TYPE_ROW_CONTAINER,
-        self::TYPE_PHASE_CONTAINER,
-        self::TYPE_ORCHESTRATION_CONTAINER,
-    ];
-
     public const PARALLELISM_INFINITY = 'infinity';
     public const PARALLELISM_ALL = [
         '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10',
@@ -114,7 +102,7 @@ interface JobInterface
     public function getUsageData(): array;
     public function getBackend(): Backend;
     public function getExecutor(): Executor;
-    public function getType(): string;
+    public function getType(): JobType;
     public function getParallelism(): ?string;
     public function getBehavior(): Behavior;
     public function jsonSerialize(): array;

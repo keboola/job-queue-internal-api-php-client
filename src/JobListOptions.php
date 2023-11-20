@@ -6,6 +6,7 @@ namespace Keboola\JobQueueInternalClient;
 
 use DateTimeInterface;
 use Keboola\JobQueueInternalClient\Exception\ClientException;
+use Keboola\JobQueueInternalClient\JobFactory\JobType;
 
 class JobListOptions
 {
@@ -34,7 +35,7 @@ class JobListOptions
     private string $sortBy;
     private string $sortOrder;
     private ?string $parentRunId = null;
-    private string $type;
+    private JobType $type;
 
     /** @var string */
     public const SORT_ORDER_ASC = 'asc';
@@ -65,6 +66,8 @@ class JobListOptions
             'limit' => 'limit',
             'sortBy' => 'sortBy',
             'sortOrder' => 'sortOrder',
+        ];
+        $enumProps = [
             'type' => 'type',
         ];
         $scalarPropsWithEmptyValueAllowed = [
@@ -89,6 +92,11 @@ class JobListOptions
         foreach ($scalarProps as $propName => $paramName) {
             if (!empty($this->$propName)) {
                 $parameters[] = $paramName . '=' . urlencode((string) $this->$propName);
+            }
+        }
+        foreach ($enumProps as $propName => $paramName) {
+            if (!empty($this->$propName)) {
+                $parameters[] = $paramName . '=' . urlencode((string) $this->$propName->value);
             }
         }
         foreach ($scalarPropsWithEmptyValueAllowed as $propName => $paramName) {
@@ -386,12 +394,12 @@ class JobListOptions
         return $this;
     }
 
-    public function getType(): string
+    public function getType(): JobType
     {
         return $this->type;
     }
 
-    public function setType(string $type): JobListOptions
+    public function setType(JobType $type): JobListOptions
     {
         $this->type = $type;
         return $this;
