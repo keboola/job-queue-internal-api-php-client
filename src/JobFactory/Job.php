@@ -188,9 +188,11 @@ class Job implements JsonSerializable, JobInterface
         return isset($this->data['executor']) ? Executor::from($this->data['executor']) : Executor::getDefault();
     }
 
-    public function getType(): string
+    public function getType(): JobType
     {
-        return $this->data['type'] ?? JobInterface::TYPE_STANDARD;
+        return isset($this->data['type']) ?
+            JobType::from($this->data['type']) :
+            JobType::STANDARD;
     }
 
     public function getParallelism(): ?string

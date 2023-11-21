@@ -11,6 +11,7 @@ use Keboola\JobQueueInternalClient\DataPlane\Config\KubernetesConfig;
 use Keboola\JobQueueInternalClient\DataPlane\DataPlaneConfigRepository;
 use Keboola\JobQueueInternalClient\Exception\ClientException;
 use Keboola\JobQueueInternalClient\JobFactory\JobRuntimeResolver;
+use Keboola\JobQueueInternalClient\JobFactory\JobType;
 use Keboola\JobQueueInternalClient\JobFactory\ObjectEncryptorProvider\DataPlaneObjectEncryptorProvider;
 use Keboola\JobQueueInternalClient\NewJobFactory;
 use Keboola\ObjectEncryptor\EncryptorOptions;
@@ -292,7 +293,7 @@ class NewJobFactoryTest extends BaseTest
         self::assertEquals(['values' => [['name' => 'bar', 'value' => 'Kochba']]], $job->getVariableValuesData());
         self::assertSame(null, $job->getBackend()->getType());
         self::assertSame('custom', $job->getBackend()->getContainerType());
-        self::assertSame('standard', $job->getType());
+        self::assertSame(JobType::STANDARD, $job->getType());
     }
 
     public function testCreateJobForceRun(): void
@@ -308,7 +309,7 @@ class NewJobFactoryTest extends BaseTest
         $job = $factory->createNewJob($data);
         self::assertNotEmpty($job->getId());
         self::assertSame('forceRun', $job->getMode());
-        self::assertSame('standard', $job->getType());
+        self::assertSame(JobType::STANDARD, $job->getType());
     }
 
     public function testCreateNewJobParallelismNumeric(): void
@@ -333,7 +334,7 @@ class NewJobFactoryTest extends BaseTest
         self::assertEquals('2345.' . $job->getId(), $job->getRunId());
         self::assertEquals(['values' => []], $job->getVariableValuesData());
         self::assertSame(null, $job->getBackend()->getType());
-        self::assertSame('container', $job->getType());
+        self::assertSame(JobType::ROW_CONTAINER, $job->getType());
     }
 
     public function testCreateNewJobParallelismInfinity(): void
@@ -358,7 +359,7 @@ class NewJobFactoryTest extends BaseTest
         self::assertEquals('2345.' . $job->getId(), $job->getRunId());
         self::assertEquals(['values' => []], $job->getVariableValuesData());
         self::assertSame(null, $job->getBackend()->getType());
-        self::assertSame('container', $job->getType());
+        self::assertSame(JobType::ROW_CONTAINER, $job->getType());
     }
 
     public function testCreateNewJobParallelismZero(): void
@@ -383,7 +384,7 @@ class NewJobFactoryTest extends BaseTest
         self::assertEquals('2345.' . $job->getId(), $job->getRunId());
         self::assertEquals(['values' => []], $job->getVariableValuesData());
         self::assertSame(null, $job->getBackend()->getType());
-        self::assertSame('standard', $job->getType());
+        self::assertSame(JobType::STANDARD, $job->getType());
     }
 
     public function testCreateNewJobParallelismForcedType(): void
@@ -409,7 +410,7 @@ class NewJobFactoryTest extends BaseTest
         self::assertEquals('2345.' . $job->getId(), $job->getRunId());
         self::assertEquals(['values' => []], $job->getVariableValuesData());
         self::assertSame(null, $job->getBackend()->getType());
-        self::assertSame('standard', $job->getType());
+        self::assertSame(JobType::STANDARD, $job->getType());
     }
 
     public function testCreateNewOrchestratorJob(): void
@@ -428,7 +429,7 @@ class NewJobFactoryTest extends BaseTest
         self::assertStringStartsWith('KBC::ProjectSecure', $job->getTokenString());
         self::assertEquals([], $job->getConfigData());
         self::assertEquals('keboola.orchestrator', $job->getComponentId());
-        self::assertSame('orchestrationContainer', $job->getType());
+        self::assertSame(JobType::ORCHESTRATION_CONTAINER, $job->getType());
     }
 
     public function testCreateNewOrchestratorPhaseJob(): void
@@ -446,7 +447,7 @@ class NewJobFactoryTest extends BaseTest
         self::assertNull($job->getConfigId());
         self::assertEquals(['phaseId' => '123'], $job->getConfigData());
         self::assertEquals('keboola.orchestrator', $job->getComponentId());
-        self::assertSame('phaseContainer', $job->getType());
+        self::assertSame(JobType::PHASE_CONTAINER, $job->getType());
     }
 
     public function testCreateNewOrchestratorPhaseJobZeroPhase(): void
@@ -464,7 +465,7 @@ class NewJobFactoryTest extends BaseTest
         self::assertNull($job->getConfigId());
         self::assertEquals(['phaseId' => 0], $job->getConfigData());
         self::assertEquals('keboola.orchestrator', $job->getComponentId());
-        self::assertSame('phaseContainer', $job->getType());
+        self::assertSame(JobType::PHASE_CONTAINER, $job->getType());
     }
 
     public function testCreateNewOrchestratorPhaseJobEmptyPhase(): void
@@ -482,7 +483,7 @@ class NewJobFactoryTest extends BaseTest
         self::assertNull($job->getConfigId());
         self::assertEquals(['phaseId' => ''], $job->getConfigData());
         self::assertEquals('keboola.orchestrator', $job->getComponentId());
-        self::assertSame('orchestrationContainer', $job->getType());
+        self::assertSame(JobType::ORCHESTRATION_CONTAINER, $job->getType());
     }
 
     public function testCreateNewJobInvalidVariables(): void
@@ -667,7 +668,7 @@ class NewJobFactoryTest extends BaseTest
         self::assertEquals(['values' => [['name' => 'bar', 'value' => 'Kochba']]], $job->getVariableValuesData());
         self::assertNull($job->getBackend()->getType());
         self::assertSame('custom', $job->getBackend()->getContainerType());
-        self::assertSame('standard', $job->getType());
+        self::assertSame(JobType::STANDARD, $job->getType());
 
         $decodedToken = $controlPlaneObjectEncryptor->decryptForProject(
             $job->getTokenString(),
@@ -716,7 +717,7 @@ class NewJobFactoryTest extends BaseTest
         self::assertEquals(['values' => [['name' => 'bar', 'value' => 'Kochba']]], $job->getVariableValuesData());
         self::assertNull($job->getBackend()->getType());
         self::assertSame('custom', $job->getBackend()->getContainerType());
-        self::assertSame('standard', $job->getType());
+        self::assertSame(JobType::STANDARD, $job->getType());
 
         $decodedToken = $dataPlaneObjectEncryptor->decryptForProject(
             $job->getTokenString(),
