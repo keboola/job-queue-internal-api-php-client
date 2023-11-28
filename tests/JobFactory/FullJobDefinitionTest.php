@@ -37,6 +37,7 @@ class FullJobDefinitionTest extends BaseTest
             'type' => 'standard',
             'branchType' => BranchType::DEFAULT->value,
             'orchestrationTaskId' => '123',
+            'orchestrationPhaseId' => '951',
             'onlyOrchestrationTaskIds' => ['45', 67],
             'previousJobId' => '789',
         ];
@@ -97,6 +98,7 @@ class FullJobDefinitionTest extends BaseTest
             'runnerId' => $runnerId,
             'branchType' => 'dev',
             'orchestrationTaskId' => null,
+            'orchestrationPhaseId' => null,
             'onlyOrchestrationTaskIds' => null,
             'previousJobId' => null,
         ];
@@ -197,6 +199,34 @@ class FullJobDefinitionTest extends BaseTest
                     'mode' => 'run',
                 ],
                 '#The child (node|config) "id" (at path|under) "job" must be configured.#',
+            ],
+            'Invalid deduplicationId - empty value' => [
+                [
+                    '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+                    'tokenId' => '1234',
+                    'projectId' => '123',
+                    'id' => '12345',
+                    'deduplicationId' => '',
+                    'status' => 'created',
+                    'configId' => '123',
+                    'componentId' => 'keboola.test',
+                    'mode' => 'run',
+                ],
+                '/Invalid configuration for path "job.deduplicationId": value cannot be empty string/',
+            ],
+            'Invalid deduplicationId - non-string value' => [
+                [
+                    '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+                    'tokenId' => '1234',
+                    'projectId' => '123',
+                    'id' => '12345',
+                    'deduplicationId' => 7,
+                    'status' => 'created',
+                    'configId' => '123',
+                    'componentId' => 'keboola.test',
+                    'mode' => 'run',
+                ],
+                '/Invalid configuration for path "job.deduplicationId": value must be a string/',
             ],
             'Missing status' => [
                 [
@@ -441,6 +471,38 @@ class FullJobDefinitionTest extends BaseTest
                     'orchestrationTaskId' => '',
                 ],
                 '/Invalid configuration for path "job.orchestrationTaskId": value cannot be empty string/',
+            ],
+            'orchestrationPhaseId not string' => [
+                [
+                    '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+                    'id' => '12345',
+                    'runId' => '12345',
+                    'tokenId' => '1234',
+                    'projectId' => '123',
+                    'status' => 'created',
+                    'desiredStatus' => 'processing',
+                    'configId' => '123',
+                    'componentId' => 'keboola.test',
+                    'mode' => 'run',
+                    'orchestrationPhaseId' => 134,
+                ],
+                '/Invalid configuration for path "job.orchestrationPhaseId": value must be a string/',
+            ],
+            'orchestrationPhaseId empty string' => [
+                [
+                    '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+                    'id' => '12345',
+                    'runId' => '12345',
+                    'tokenId' => '1234',
+                    'projectId' => '123',
+                    'status' => 'created',
+                    'desiredStatus' => 'processing',
+                    'configId' => '123',
+                    'componentId' => 'keboola.test',
+                    'mode' => 'run',
+                    'orchestrationPhaseId' => '',
+                ],
+                '/Invalid configuration for path "job.orchestrationPhaseId": value cannot be empty string/',
             ],
             'onlyOrchestrationTaskIds not list' => [
                 [

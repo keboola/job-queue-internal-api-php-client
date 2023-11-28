@@ -65,6 +65,7 @@ class NewJobDefinitionTest extends BaseTest
             ],
             'orchestrationJobId' => '123456789',
             'orchestrationTaskId' => '123',
+            'orchestrationPhaseId' => '951',
             'onlyOrchestrationTaskIds' => ['45', 67],
             'previousJobId' => '789',
         ];
@@ -77,6 +78,25 @@ class NewJobDefinitionTest extends BaseTest
     public function invalidJobProvider(): array
     {
         return [
+            'Invalid deduplicationId - empty value' => [
+                [
+                    'configId' => '123',
+                    'componentId' => 'keboola.test',
+                    'mode' => 'run',
+                    'deduplicationId' => '',
+                ],
+                '/Invalid configuration for path "job.deduplicationId": value cannot be empty string/',
+            ],
+            'Invalid deduplicationId - non-string value' => [
+                [
+                    '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+                    'configId' => '123',
+                    'componentId' => 'keboola.test',
+                    'mode' => 'run',
+                    'deduplicationId' => 7,
+                ],
+                '/Invalid configuration for path "job.deduplicationId": value must be a string/',
+            ],
             'Missing token' => [
                 [
                     'configId' => '123',
@@ -173,6 +193,26 @@ class NewJobDefinitionTest extends BaseTest
                     'orchestrationTaskId' => '',
                 ],
                 '/Invalid configuration for path "job.orchestrationTaskId": value cannot be empty string/',
+            ],
+            'orchestrationPhaseId not string' => [
+                [
+                    '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+                    'configId' => '123',
+                    'componentId' => 'keboola.test',
+                    'result' => [],
+                    'orchestrationPhaseId' => 134,
+                ],
+                '/Invalid configuration for path "job.orchestrationPhaseId": value must be a string/',
+            ],
+            'orchestrationPhaseId empty string' => [
+                [
+                    '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+                    'configId' => '123',
+                    'componentId' => 'keboola.test',
+                    'result' => [],
+                    'orchestrationPhaseId' => '',
+                ],
+                '/Invalid configuration for path "job.orchestrationPhaseId": value cannot be empty string/',
             ],
             'onlyOrchestrationTaskIds not list' => [
                 [

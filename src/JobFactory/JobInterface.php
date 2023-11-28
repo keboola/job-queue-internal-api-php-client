@@ -80,6 +80,7 @@ interface JobInterface
     public const EXECUTION_TOKEN_TIMEOUT_SECONDS = 3600*24*7;
 
     public function getId(): string;
+    public function getDeduplicationId(): ?string;
     public function getComponentId(): string;
     public function getConfigData(): array;
     public function getConfigId(): ?string;
@@ -125,6 +126,9 @@ interface JobInterface
 
     /** @return non-empty-string|null */
     public function getOrchestrationTaskId(): ?string;
+
+    /** @return non-empty-string|null */
+    public function getOrchestrationPhaseId(): ?string;
 
     /** @return list<non-empty-list>|null */
     public function getOnlyOrchestrationTaskIds(): ?array;
