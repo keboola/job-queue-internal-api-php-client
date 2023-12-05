@@ -5,24 +5,25 @@ declare(strict_types=1);
 namespace Keboola\JobQueueInternalClient\Orchestration;
 
 use Keboola\JobQueueInternalClient\Client;
-use Keboola\JobQueueInternalClient\Exception\ClientException;
 use Keboola\JobQueueInternalClient\Exception\OrchestrationJobMatcherValidationException;
 use Keboola\JobQueueInternalClient\JobFactory;
-use Keboola\JobQueueInternalClient\JobFactory\Job;
 use Keboola\JobQueueInternalClient\JobFactory\JobInterface;
 use Keboola\JobQueueInternalClient\JobListOptions;
+use Keboola\StorageApi\Components;
 
 // https://keboola.atlassian.net/wiki/spaces/ENGG/pages/3074195457/DRAFT+RFC-2023-011+-+Rerun+orchestration#Pair-Jobs-and-Tasks
 class OrchestrationJobMatcher
 {
     public function __construct(
         private readonly Client $internalClient,
+        private readonly ?Components $componentsApi = null,
     ) {
     }
 
     public function matchTaskJobsForOrchestrationJob(string $jobId): OrchestrationJobMatcherResults
     {
         $job = $this->internalClient->getJob($jobId);
+
         $childJobs = $this->getOrchestrationTaskJobs($job);
         $configuration = $this->getCurrentOrchestrationConfiguration($job);
         $this->validateInputs($job, $configuration);
@@ -49,7 +50,7 @@ class OrchestrationJobMatcher
             }
         }
         return new OrchestrationJobMatcherResults(
-            $jobId,
+            $job->getId(),
             $job->getConfigId(),
             $matchedTasks,
         );
@@ -69,10 +70,19 @@ class OrchestrationJobMatcher
     private function getCurrentOrchestrationConfiguration(JobInterface $job): array
     {
         $configuration = $job->getConfigData();
-        if (!$configuration) {
-            $configuration = $job->getComponentConfiguration()['configuration'];
-        };
-        return $configuration;
+        if ($configuration) {
+            return $configuration;
+        }
+
+        // for situations where job token is expired/deleted
+        if ($this->componentsApi) {
+            return JobFactory\JobConfigurationResolver::resolveJobConfiguration(
+                $job,
+                $this->componentsApi,
+            )['configuration'];
+        }
+
+        return $job->getComponentConfiguration()['configuration'];
     }
 
     private function validateInputs(JobInterface $job, array $configuration): void

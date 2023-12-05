@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Keboola\JobQueueInternalClient\Tests\Orchestration;
 
 use Generator;
+use Keboola\JobQueueInternalClient\Client;
 use Keboola\JobQueueInternalClient\Exception\OrchestrationJobMatcherValidationException;
 use Keboola\JobQueueInternalClient\JobFactory;
 use Keboola\JobQueueInternalClient\Orchestration\OrchestrationJobMatcher;
@@ -339,5 +340,55 @@ class OrchestrationJobMatcherTest extends BaseClientFunctionalTest
             // phpcs:ignore Generic.Files.LineLength
             'expectedMessage' => '#Task does not have an id\. \({"name":"foo","phase":1,"task":{"componentId":"keboola.ex-db-snowflake","configData":\[\],"mode":"run"}}\)#',
         ];
+    }
+
+    public function testMatcherLoadsConfigurationDirectlyFromComponentsApi(): void
+    {
+        $jobMock = $this->createMock(JobFactory\JobInterface::class);
+        $jobMock->expects(self::exactly(2))
+            ->method('getId')
+            ->willReturn('123')
+        ;
+        $jobMock->expects(self::exactly(3))
+            ->method('getConfigId')
+            ->willReturn('456')
+        ;
+        $jobMock->expects(self::exactly(2))
+            ->method('getComponentId')
+            ->willReturn('keboola.orchestrator')
+        ;
+
+        $queueClientMock = $this->createMock(Client::class);
+        $queueClientMock->expects(self::once())
+            ->method('getJob')
+            ->with('123')
+            ->willReturn($jobMock)
+        ;
+
+        $componentsApiMock = $this->createMock(Components::class);
+        $componentsApiMock->expects(self::once())
+            ->method('getConfiguration')
+            ->with('keboola.orchestrator', '456')
+            ->willReturn([
+                'configuration' => [
+                    'tasks' => [
+                        [
+                            'id' => '789',
+                        ],
+                    ],
+                ],
+            ])
+        ;
+
+        $matcher = new OrchestrationJobMatcher($queueClientMock, $componentsApiMock);
+
+        $results = $matcher->matchTaskJobsForOrchestrationJob('123');
+
+        self::assertSame('123', $results->jobId);
+        self::assertSame('456', $results->configId);
+        self::assertCount(1, $results->matchedTasks);
+
+        $task = $results->matchedTasks[0];
+        self::assertSame('789', $task->taskId);
     }
 }
