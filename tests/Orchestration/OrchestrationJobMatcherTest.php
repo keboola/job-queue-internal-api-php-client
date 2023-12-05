@@ -380,9 +380,9 @@ class OrchestrationJobMatcherTest extends BaseClientFunctionalTest
             ])
         ;
 
-        $matcher = new OrchestrationJobMatcher($queueClientMock, $componentsApiMock);
+        $matcher = new OrchestrationJobMatcher($queueClientMock);
 
-        $results = $matcher->matchTaskJobsForOrchestrationJob('123');
+        $results = $matcher->matchTaskJobsForOrchestrationJob('123', $componentsApiMock);
 
         self::assertSame('123', $results->jobId);
         self::assertSame('456', $results->configId);

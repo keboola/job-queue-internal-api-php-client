@@ -16,16 +16,17 @@ class OrchestrationJobMatcher
 {
     public function __construct(
         private readonly Client $internalClient,
-        private readonly ?Components $componentsApi = null,
     ) {
     }
 
-    public function matchTaskJobsForOrchestrationJob(string $jobId): OrchestrationJobMatcherResults
-    {
+    public function matchTaskJobsForOrchestrationJob(
+        string $jobId,
+        ?Components $componentsApi = null,
+    ): OrchestrationJobMatcherResults {
         $job = $this->internalClient->getJob($jobId);
 
         $childJobs = $this->getOrchestrationTaskJobs($job);
-        $configuration = $this->getCurrentOrchestrationConfiguration($job);
+        $configuration = $this->getCurrentOrchestrationConfiguration($job, $componentsApi);
         $this->validateInputs($job, $configuration);
         $matchedTasks = [];
         foreach ($configuration['tasks'] as $task) {
@@ -67,7 +68,7 @@ class OrchestrationJobMatcher
         );
     }
 
-    private function getCurrentOrchestrationConfiguration(JobInterface $job): array
+    private function getCurrentOrchestrationConfiguration(JobInterface $job, ?Components $componentsApi = null): array
     {
         $configuration = $job->getConfigData();
         if ($configuration) {
@@ -75,10 +76,10 @@ class OrchestrationJobMatcher
         }
 
         // for situations where job token is expired/deleted
-        if ($this->componentsApi) {
+        if ($componentsApi) {
             return JobFactory\JobConfigurationResolver::resolveJobConfiguration(
                 $job,
-                $this->componentsApi,
+                $componentsApi,
             )['configuration'];
         }
 
