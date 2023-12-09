@@ -10,23 +10,28 @@ use Keboola\JobQueueInternalClient\JobFactory;
 use Keboola\JobQueueInternalClient\JobFactory\JobInterface;
 use Keboola\JobQueueInternalClient\JobListOptions;
 use Keboola\StorageApi\Components;
+use Keboola\StorageApiBranch\Factory\ClientOptions;
+use Keboola\StorageApiBranch\Factory\StorageClientPlainFactory;
 
 // https://keboola.atlassian.net/wiki/spaces/ENGG/pages/3074195457/DRAFT+RFC-2023-011+-+Rerun+orchestration#Pair-Jobs-and-Tasks
 class OrchestrationJobMatcher
 {
     public function __construct(
         private readonly Client $internalClient,
+        private readonly StorageClientPlainFactory $storageClientFactory,
     ) {
     }
 
     public function matchTaskJobsForOrchestrationJob(
         string $jobId,
-        ?Components $componentsApi = null,
+        string $token,
     ): OrchestrationJobMatcherResults {
         $job = $this->internalClient->getJob($jobId);
-
         $childJobs = $this->getOrchestrationTaskJobs($job);
-        $configuration = $this->getCurrentOrchestrationConfiguration($job, $componentsApi);
+        $configuration = $this->getCurrentOrchestrationConfiguration(
+            $job,
+            $this->createComponentsApi($token, $job->getBranchId()),
+        );
         $this->validateInputs($job, $configuration);
         $matchedTasks = [];
         foreach ($configuration['tasks'] as $task) {
@@ -68,22 +73,17 @@ class OrchestrationJobMatcher
         );
     }
 
-    private function getCurrentOrchestrationConfiguration(JobInterface $job, ?Components $componentsApi = null): array
+    private function getCurrentOrchestrationConfiguration(JobInterface $job, Components $componentsApi): array
     {
         $configuration = $job->getConfigData();
         if ($configuration) {
             return $configuration;
         }
 
-        // for situations where job token is expired/deleted
-        if ($componentsApi) {
-            return JobFactory\JobConfigurationResolver::resolveJobConfiguration(
-                $job,
-                $componentsApi,
-            )['configuration'];
-        }
-
-        return $job->getComponentConfiguration()['configuration'];
+        return JobFactory\JobConfigurationResolver::resolveJobConfiguration(
+            $job,
+            $componentsApi,
+        )['configuration'];
     }
 
     private function validateInputs(JobInterface $job, array $configuration): void
@@ -111,5 +111,16 @@ class OrchestrationJobMatcher
                 ));
             }
         });
+    }
+
+    private function createComponentsApi(string $token, ?string $branchId): Components
+    {
+        return new Components(
+            $this->storageClientFactory->createClientWrapper(
+                (new ClientOptions())
+                    ->setBranchId($branchId)
+                    ->setToken($token),
+            )->getBranchClient(),
+        );
     }
 }
