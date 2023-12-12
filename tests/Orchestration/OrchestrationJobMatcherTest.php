@@ -113,7 +113,7 @@ class OrchestrationJobMatcherTest extends BaseClientFunctionalTest
         ;
 
         $tokens = new Tokens($storageClient);
-        $token = $tokens->createToken($tokenOptions);
+        $token = $tokens->createToken($tokenOptions); // new token, created specially for this job
 
         $queueClient = $this->getClient();
         $componentsApi = new Components($storageClient);
@@ -179,7 +179,7 @@ class OrchestrationJobMatcherTest extends BaseClientFunctionalTest
             ))->getId();
         }
 
-        $tokens->dropToken($token['id']); // frop job token
+        $tokens->dropToken($token['id']); // drob token
 
         return [
             'orchestrationJobId' => $orchestrationJob->getId(),
