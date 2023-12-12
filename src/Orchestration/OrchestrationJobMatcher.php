@@ -12,6 +12,7 @@ use Keboola\JobQueueInternalClient\JobListOptions;
 use Keboola\StorageApi\Components;
 use Keboola\StorageApiBranch\Factory\ClientOptions;
 use Keboola\StorageApiBranch\Factory\StorageClientPlainFactory;
+use SensitiveParameter;
 
 // https://keboola.atlassian.net/wiki/spaces/ENGG/pages/3074195457/DRAFT+RFC-2023-011+-+Rerun+orchestration#Pair-Jobs-and-Tasks
 class OrchestrationJobMatcher
@@ -24,7 +25,7 @@ class OrchestrationJobMatcher
 
     public function matchTaskJobsForOrchestrationJob(
         string $jobId,
-        string $token,
+        #[SensitiveParameter] string $token,
     ): OrchestrationJobMatcherResults {
         $job = $this->internalClient->getJob($jobId);
         $childJobs = $this->getOrchestrationTaskJobs($job);
