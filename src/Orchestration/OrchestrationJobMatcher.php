@@ -114,8 +114,10 @@ class OrchestrationJobMatcher
         });
     }
 
-    private function createComponentsApi(string $token, ?string $branchId): Components
-    {
+    private function createComponentsApi(
+        #[SensitiveParameter] string $token,
+        ?string $branchId,
+    ): Components {
         return new Components(
             $this->storageClientFactory->createClientWrapper(
                 (new ClientOptions())
