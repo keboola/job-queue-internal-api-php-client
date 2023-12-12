@@ -5,26 +5,34 @@ declare(strict_types=1);
 namespace Keboola\JobQueueInternalClient\Orchestration;
 
 use Keboola\JobQueueInternalClient\Client;
-use Keboola\JobQueueInternalClient\Exception\ClientException;
 use Keboola\JobQueueInternalClient\Exception\OrchestrationJobMatcherValidationException;
 use Keboola\JobQueueInternalClient\JobFactory;
-use Keboola\JobQueueInternalClient\JobFactory\Job;
 use Keboola\JobQueueInternalClient\JobFactory\JobInterface;
 use Keboola\JobQueueInternalClient\JobListOptions;
+use Keboola\StorageApi\Components;
+use Keboola\StorageApiBranch\Factory\ClientOptions;
+use Keboola\StorageApiBranch\Factory\StorageClientPlainFactory;
+use SensitiveParameter;
 
 // https://keboola.atlassian.net/wiki/spaces/ENGG/pages/3074195457/DRAFT+RFC-2023-011+-+Rerun+orchestration#Pair-Jobs-and-Tasks
 class OrchestrationJobMatcher
 {
     public function __construct(
         private readonly Client $internalClient,
+        private readonly StorageClientPlainFactory $storageClientFactory,
     ) {
     }
 
-    public function matchTaskJobsForOrchestrationJob(string $jobId): OrchestrationJobMatcherResults
-    {
+    public function matchTaskJobsForOrchestrationJob(
+        string $jobId,
+        #[SensitiveParameter] string $token,
+    ): OrchestrationJobMatcherResults {
         $job = $this->internalClient->getJob($jobId);
         $childJobs = $this->getOrchestrationTaskJobs($job);
-        $configuration = $this->getCurrentOrchestrationConfiguration($job);
+        $configuration = $this->getCurrentOrchestrationConfiguration(
+            $job,
+            $this->createComponentsApi($token, $job->getBranchId()),
+        );
         $this->validateInputs($job, $configuration);
         $matchedTasks = [];
         foreach ($configuration['tasks'] as $task) {
@@ -49,7 +57,7 @@ class OrchestrationJobMatcher
             }
         }
         return new OrchestrationJobMatcherResults(
-            $jobId,
+            $job->getId(),
             $job->getConfigId(),
             $matchedTasks,
         );
@@ -66,13 +74,17 @@ class OrchestrationJobMatcher
         );
     }
 
-    private function getCurrentOrchestrationConfiguration(JobInterface $job): array
+    private function getCurrentOrchestrationConfiguration(JobInterface $job, Components $componentsApi): array
     {
         $configuration = $job->getConfigData();
-        if (!$configuration) {
-            $configuration = $job->getComponentConfiguration()['configuration'];
-        };
-        return $configuration;
+        if ($configuration) {
+            return $configuration;
+        }
+
+        return JobFactory\JobConfigurationResolver::resolveJobConfiguration(
+            $job,
+            $componentsApi,
+        )['configuration'];
     }
 
     private function validateInputs(JobInterface $job, array $configuration): void
@@ -100,5 +112,18 @@ class OrchestrationJobMatcher
                 ));
             }
         });
+    }
+
+    private function createComponentsApi(
+        #[SensitiveParameter] string $token,
+        ?string $branchId,
+    ): Components {
+        return new Components(
+            $this->storageClientFactory->createClientWrapper(
+                (new ClientOptions())
+                    ->setBranchId($branchId)
+                    ->setToken($token),
+            )->getBranchClient(),
+        );
     }
 }

@@ -381,19 +381,10 @@ class Job implements JsonSerializable, JobInterface
         if ($this->componentConfiguration !== null) {
             return $this->componentConfiguration;
         }
-
-        if (!$this->getConfigId()) {
-            throw new ClientException('Can\'t fetch component configuration: job has no configId set');
-        }
-
-        try {
-            return $this->componentConfiguration = $this->getComponentsApiClient()->getConfiguration(
-                $this->getComponentId(),
-                $this->getConfigId(),
-            );
-        } catch (StorageApiClientException $e) {
-            throw new ClientException('Failed to fetch component configuration: '.$e->getMessage(), 0, $e);
-        }
+        return $this->componentConfiguration = JobConfigurationResolver::resolveJobConfiguration(
+            $this,
+            $this->getComponentsApiClient(),
+        );
     }
 
     private function getComponentsApiClient(): ComponentsApiClient

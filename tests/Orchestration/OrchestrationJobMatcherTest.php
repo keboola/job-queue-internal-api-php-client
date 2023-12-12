@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Keboola\JobQueueInternalClient\Tests\Orchestration;
 
 use Generator;
+use Keboola\JobQueueInternalClient\Client;
 use Keboola\JobQueueInternalClient\Exception\OrchestrationJobMatcherValidationException;
 use Keboola\JobQueueInternalClient\JobFactory;
 use Keboola\JobQueueInternalClient\Orchestration\OrchestrationJobMatcher;
@@ -14,6 +15,10 @@ use Keboola\JobQueueInternalClient\Tests\BaseClientFunctionalTest;
 use Keboola\StorageApi\Client as StorageClient;
 use Keboola\StorageApi\Components;
 use Keboola\StorageApi\Options\Components\Configuration;
+use Keboola\StorageApi\Options\TokenCreateOptions;
+use Keboola\StorageApi\Tokens;
+use Keboola\StorageApiBranch\Factory\ClientOptions;
+use Keboola\StorageApiBranch\Factory\StorageClientPlainFactory;
 
 class OrchestrationJobMatcherTest extends BaseClientFunctionalTest
 {
@@ -96,9 +101,20 @@ class OrchestrationJobMatcherTest extends BaseClientFunctionalTest
     private function createOrchestrationLikeJobs(array $configurationData, array $createOnlyTasks): array
     {
         $storageClient = new StorageClient([
-            'token' => (string) getenv('TEST_STORAGE_API_TOKEN'),
-            'url' => (string) getenv('TEST_STORAGE_API_URL'),
+            'token' => self::getRequiredEnv('TEST_STORAGE_API_TOKEN_MASTER'),
+            'url' => self::getRequiredEnv('TEST_STORAGE_API_URL'),
         ]);
+
+        // create token for job
+        $tokenOptions = (new TokenCreateOptions())
+            ->setDescription(__CLASS__)
+            ->setCanManageBuckets(true) // access to all components :)
+            ->setExpiresIn(60 * 5)
+        ;
+
+        $tokens = new Tokens($storageClient);
+        $token = $tokens->createToken($tokenOptions); // new token, created specially for this job
+
         $queueClient = $this->getClient();
         $componentsApi = new Components($storageClient);
         $configuration = new Configuration();
@@ -107,9 +123,10 @@ class OrchestrationJobMatcherTest extends BaseClientFunctionalTest
         $configuration->setComponentId(JobFactory::ORCHESTRATOR_COMPONENT);
         $this->componentId = JobFactory::ORCHESTRATOR_COMPONENT;
         $this->configurationId = $componentsApi->addConfiguration($configuration)['id'];
+
         $orchestrationJob = $this->getNewJobFactory()->createNewJob(
             [
-                '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+                '#tokenString' => $token['token'],
                 'configData' => [],
                 'componentId' => JobFactory::ORCHESTRATOR_COMPONENT,
                 'configId' => $this->configurationId,
@@ -133,7 +150,7 @@ class OrchestrationJobMatcherTest extends BaseClientFunctionalTest
             ];
             $phaseJob = $queueClient->createJob($this->getNewJobFactory()->createNewJob(
                 [
-                    '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+                    '#tokenString' => $token['token'],
                     'configData' => $configData,
                     'componentId' => JobFactory::ORCHESTRATOR_COMPONENT,
                     'configId' => $this->configurationId,
@@ -151,7 +168,7 @@ class OrchestrationJobMatcherTest extends BaseClientFunctionalTest
             }
             $jobIds[] = $queueClient->createJob($this->getNewJobFactory()->createNewJob(
                 [
-                    '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+                    '#tokenString' => $token['token'],
                     'componentId' => $task['task']['componentId'],
                     'configData' => $task['task']['configData'],
                     'mode' => $task['task']['mode'],
@@ -161,6 +178,8 @@ class OrchestrationJobMatcherTest extends BaseClientFunctionalTest
                 ],
             ))->getId();
         }
+
+        $tokens->dropToken($token['id']); // drob token
 
         return [
             'orchestrationJobId' => $orchestrationJob->getId(),
@@ -178,8 +197,11 @@ class OrchestrationJobMatcherTest extends BaseClientFunctionalTest
             'jobIds' => $jobIds,
         ] = $this->createOrchestrationLikeJobs($this->getOrchestrationConfiguration(), []);
 
-        $matcher = new OrchestrationJobMatcher($client);
-        $results = $matcher->matchTaskJobsForOrchestrationJob($orchestrationJobId);
+        $matcher = new OrchestrationJobMatcher($client, $this->createStorageClientPlainFactory());
+        $results = $matcher->matchTaskJobsForOrchestrationJob(
+            $orchestrationJobId,
+            self::getRequiredEnv('TEST_STORAGE_API_TOKEN'),
+        );
         self::assertEquals(
             new OrchestrationJobMatcherResults(
                 $orchestrationJobId,
@@ -224,8 +246,11 @@ class OrchestrationJobMatcherTest extends BaseClientFunctionalTest
             'jobIds' => $jobIds,
         ] = $this->createOrchestrationLikeJobs($this->getOrchestrationConfiguration(), ['92543']);
 
-        $matcher = new OrchestrationJobMatcher($client);
-        $results = $matcher->matchTaskJobsForOrchestrationJob($orchestrationJobId);
+        $matcher = new OrchestrationJobMatcher($client, $this->createStorageClientPlainFactory());
+        $results = $matcher->matchTaskJobsForOrchestrationJob(
+            $orchestrationJobId,
+            self::getRequiredEnv('TEST_STORAGE_API_TOKEN'),
+        );
         self::assertEquals(
             new OrchestrationJobMatcherResults(
                 $orchestrationJobId,
@@ -277,8 +302,8 @@ class OrchestrationJobMatcherTest extends BaseClientFunctionalTest
         string $expectedMessage,
     ): void {
         $storageClient = new StorageClient([
-            'token' => (string) getenv('TEST_STORAGE_API_TOKEN'),
-            'url' => (string) getenv('TEST_STORAGE_API_URL'),
+            'token' => self::getRequiredEnv('TEST_STORAGE_API_TOKEN'),
+            'url' => self::getRequiredEnv('TEST_STORAGE_API_URL'),
         ]);
         $queueClient = $this->getClient();
         $componentsApi = new Components($storageClient);
@@ -290,7 +315,7 @@ class OrchestrationJobMatcherTest extends BaseClientFunctionalTest
         $this->configurationId = $componentsApi->addConfiguration($configuration)['id'];
         $orchestrationJob = $this->getNewJobFactory()->createNewJob(
             [
-                '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+                '#tokenString' => self::getRequiredEnv('TEST_STORAGE_API_TOKEN'),
                 'configData' => [],
                     'componentId' => $componentId,
                 'configId' => $this->configurationId,
@@ -300,10 +325,10 @@ class OrchestrationJobMatcherTest extends BaseClientFunctionalTest
             ],
         );
         $orchestrationJobId = $queueClient->createJob($orchestrationJob)->getId();
-        $matcher = new OrchestrationJobMatcher($queueClient);
+        $matcher = new OrchestrationJobMatcher($queueClient, $this->createStorageClientPlainFactory());
         $this->expectException(OrchestrationJobMatcherValidationException::class);
         $this->expectExceptionMessageMatches($expectedMessage);
-        $matcher->matchTaskJobsForOrchestrationJob($orchestrationJobId);
+        $matcher->matchTaskJobsForOrchestrationJob($orchestrationJobId, self::getRequiredEnv('TEST_STORAGE_API_TOKEN'));
     }
 
     public function invalidConfigurationProvider(): Generator
@@ -339,5 +364,12 @@ class OrchestrationJobMatcherTest extends BaseClientFunctionalTest
             // phpcs:ignore Generic.Files.LineLength
             'expectedMessage' => '#Task does not have an id\. \({"name":"foo","phase":1,"task":{"componentId":"keboola.ex-db-snowflake","configData":\[\],"mode":"run"}}\)#',
         ];
+    }
+
+    private function createStorageClientPlainFactory(): StorageClientPlainFactory
+    {
+        return new StorageClientPlainFactory(new ClientOptions(
+            self::getRequiredEnv('TEST_STORAGE_API_URL'),
+        ));
     }
 }

@@ -653,10 +653,17 @@ class JobTest extends BaseTest
     public function testGetComponentConfigurationWhenJobHasNoConfigIdSet(): void
     {
         $storageClientFactory = $this->createMock(StorageClientPlainFactory::class);
-        $storageClientFactory->expects(self::never())->method(self::anything());
+        $storageClientFactory->expects(self::once())
+            ->method('createClientWrapper')
+            ->willReturn($this->createMock(ClientWrapper::class))
+        ;
 
         $objectEncryptorMock = $this->createMock(JobObjectEncryptor::class);
-        $objectEncryptorMock->expects(self::never())->method('decrypt');
+        $objectEncryptorMock->expects(self::once())
+            ->method('decrypt')
+            ->with('KBC::ProjectSecure::token')
+            ->willReturn('token-decrypted')
+        ;
 
         $jobData = $this->jobData;
         $jobData['configId'] = null;
