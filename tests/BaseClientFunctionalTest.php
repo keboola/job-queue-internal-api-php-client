@@ -90,6 +90,7 @@ abstract class BaseClientFunctionalTest extends BaseTest
             self::getRequiredEnv('TEST_QUEUE_API_URL'),
             self::getRequiredEnv('TEST_QUEUE_API_TOKEN'),
             null,
+            null,
         );
     }
 

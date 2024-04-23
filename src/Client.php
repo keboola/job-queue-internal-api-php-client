@@ -47,9 +47,16 @@ class Client
         string $internalQueueApiUrl,
         ?string $internalQueueToken,
         ?string $storageApiToken,
+        ?string $applicationToken,
         array $options = [],
     ) {
-        $this->validateConfiguration($internalQueueApiUrl, $internalQueueToken, $storageApiToken, $options);
+        $this->validateConfiguration(
+            $internalQueueApiUrl,
+            $internalQueueToken,
+            $storageApiToken,
+            $applicationToken,
+            $options,
+        );
         if (!empty($options['backoffMaxTries'])) {
             $options['backoffMaxTries'] = intval($options['backoffMaxTries']);
         } else {
@@ -59,7 +66,13 @@ class Client
             $options['userAgent'] = self::DEFAULT_USER_AGENT;
         }
 
-        $this->guzzle = $this->initClient($internalQueueApiUrl, $internalQueueToken, $storageApiToken, $options);
+        $this->guzzle = $this->initClient(
+            $internalQueueApiUrl,
+            $internalQueueToken,
+            $storageApiToken,
+            $applicationToken,
+            $options,
+        );
         $this->existingJobFactory = $existingJobFactory;
         $this->logger = $logger;
     }
@@ -68,15 +81,24 @@ class Client
         string $internalQueueApiUrl,
         ?string $internalQueueToken,
         ?string $storageApiToken,
+        ?string $applicationToken,
         array $options,
     ): void {
         $validator = Validation::createValidator();
         $errors = $validator->validate($internalQueueApiUrl, [new Url()]);
-        if ($internalQueueToken === null && $storageApiToken === null) {
-            throw new ClientException('Both InternalApiToken and StorageAPIToken are empty.');
+
+        $providedTokens = array_filter(
+            [$internalQueueToken, $storageApiToken, $applicationToken],
+            fn(?string $token) => $token !== null,
+        );
+
+        if (count($providedTokens) === 0) {
+            throw new ClientException(
+                'No token provided (internalQueueToken, storageApiToken and applicationToken are empty)',
+            );
         }
-        if ($internalQueueToken !== null && $storageApiToken !== null) {
-            throw new ClientException('Both InternalApiToken and StorageAPIToken are non-empty. Use only one.');
+        if (count($providedTokens) > 1) {
+            throw new ClientException('More than one authentication token provided');
         }
         if ($internalQueueToken !== null) {
             $errors->addAll(
@@ -86,6 +108,11 @@ class Client
         if ($storageApiToken !== null) {
             $errors->addAll(
                 $validator->validate($storageApiToken, [new NotBlank()]),
+            );
+        }
+        if ($applicationToken !== null) {
+            $errors->addAll(
+                $validator->validate($applicationToken, [new NotBlank()]),
             );
         }
         if (!empty($options['backoffMaxTries'])) {
@@ -347,6 +374,7 @@ class Client
         string $url,
         ?string $internalToken,
         ?string $storageToken,
+        ?string $applicationToken,
         array $options = [],
     ): GuzzleClient {
         // Initialize handlers (start with those supplied in constructor)
@@ -359,7 +387,7 @@ class Client
         $handlerStack->push(Middleware::retry($this->createDefaultDecider($options['backoffMaxTries'])));
         // Set handler to set default headers
         $handlerStack->push(Middleware::mapRequest(
-            function (RequestInterface $request) use ($internalToken, $storageToken, $options) {
+            function (RequestInterface $request) use ($internalToken, $storageToken, $applicationToken, $options) {
                 $request = $request->withHeader('User-Agent', $options['userAgent'])
                         ->withHeader('Content-type', 'application/json');
                 if ($internalToken !== null) {
@@ -367,6 +395,9 @@ class Client
                 }
                 if ($storageToken !== null) {
                     $request = $request->withHeader('X-StorageApi-Token', $storageToken);
+                }
+                if ($applicationToken !== null) {
+                    $request = $request->withHeader('X-KBC-ManageApiToken', $applicationToken);
                 }
                 return $request;
             },

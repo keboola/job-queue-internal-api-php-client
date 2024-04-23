@@ -33,8 +33,13 @@ use stdClass;
 
 class ClientTest extends BaseTest
 {
-    private function getClient(array $options, ?LoggerInterface $logger = null): Client
-    {
+    private function createClient(
+        ?string $internalAuthToken = null,
+        ?string $storageApiToken = null,
+        ?string $applicationToken = null,
+        array $options = [],
+        ?LoggerInterface $logger = null,
+    ): Client {
         $storageClientFactory = new StorageClientPlainFactory(new ClientOptions(
             'http://example.com/',
         ));
@@ -58,9 +63,21 @@ class ClientTest extends BaseTest
             $logger ?? new NullLogger(),
             $jobFactory,
             'http://example.com/',
-            'testToken',
-            null,
+            $internalAuthToken,
+            $storageApiToken,
+            $applicationToken,
             $options,
+        );
+    }
+
+    private function createClientWithInternalToken(
+        array $options = [],
+        ?LoggerInterface $logger = null,
+    ): Client {
+        return $this->createClient(
+            internalAuthToken: 'testToken',
+            options: $options,
+            logger: $logger,
         );
     }
 
@@ -75,6 +92,7 @@ class ClientTest extends BaseTest
             $this->createMock(ExistingJobFactory::class),
             'http://example.com/',
             'testToken',
+            null,
             null,
             ['backoffMaxTries' => 'abc'],
         );
@@ -92,6 +110,7 @@ class ClientTest extends BaseTest
             'http://example.com/',
             'testToken',
             null,
+            null,
             ['backoffMaxTries' => -1],
         );
     }
@@ -108,44 +127,80 @@ class ClientTest extends BaseTest
             'http://example.com/',
             'testToken',
             null,
+            null,
             ['backoffMaxTries' => 101],
         );
     }
 
-    public function testCreateClientInvalidQueueToken(): void
+    public static function provideInvalidTokensConfiguration(): iterable
     {
-        $this->expectException(ClientException::class);
-        $this->expectExceptionMessage(
-            'Invalid parameters when creating client: Value "" is invalid: This value should not be blank.',
-        );
-        new Client(new NullLogger(), $this->createMock(ExistingJobFactory::class), 'http://example.com/', '', null);
+        yield 'no token' => [
+            'storageApiToken' => null,
+            'internalAuthToken' => null,
+            'applicationToken' => null,
+            'expectedError' => 'No token provided (internalQueueToken, storageApiToken and applicationToken are empty)',
+        ];
+
+        yield 'storage + internal token' => [
+            'storageApiToken' => 'storageToken',
+            'internalAuthToken' => 'internalToken',
+            'applicationToken' => null,
+            'expectedError' => 'More than one authentication token provided',
+        ];
+
+        yield 'storage + application token' => [
+            'storageApiToken' => 'storageToken',
+            'internalAuthToken' => null,
+            'applicationToken' => 'applicationToken',
+            'expectedError' => 'More than one authentication token provided',
+        ];
+
+        yield 'internal + application token' => [
+            'storageApiToken' => null,
+            'internalAuthToken' => 'internalToken',
+            'applicationToken' => 'applicationToken',
+            'expectedError' => 'More than one authentication token provided',
+        ];
+
+        yield 'empty storage token' => [
+            'storageApiToken' => '',
+            'internalAuthToken' => null,
+            'applicationToken' => null,
+            'expectedError' => 'Value "" is invalid: This value should not be blank.',
+        ];
+
+        yield 'empty internal token' => [
+            'storageApiToken' => null,
+            'internalAuthToken' => '',
+            'applicationToken' => null,
+            'expectedError' => 'Value "" is invalid: This value should not be blank.',
+        ];
+
+        yield 'empty application token' => [
+            'storageApiToken' => null,
+            'internalAuthToken' => null,
+            'applicationToken' => '',
+            'expectedError' => 'Value "" is invalid: This value should not be blank.',
+        ];
     }
 
-    public function testCreateClientInvalidStorageToken(): void
-    {
+    /** @dataProvider provideInvalidTokensConfiguration */
+    public function testCreateClientInvalidTokens(
+        ?string $storageApiToken,
+        ?string $internalAuthToken,
+        ?string $applicationToken,
+        string $expectedError,
+    ): void {
         $this->expectException(ClientException::class);
-        $this->expectExceptionMessage(
-            'Invalid parameters when creating client: Value "" is invalid: This value should not be blank.',
+        $this->expectExceptionMessage($expectedError);
+        new Client(
+            new NullLogger(),
+            $this->createMock(ExistingJobFactory::class),
+            'http://example.com/',
+            $storageApiToken,
+            $internalAuthToken,
+            $applicationToken,
         );
-        new Client(new NullLogger(), $this->createMock(ExistingJobFactory::class), 'http://example.com/', null, '');
-    }
-
-    public function testCreateClientNoToken(): void
-    {
-        $this->expectException(ClientException::class);
-        $this->expectExceptionMessage(
-            'Both InternalApiToken and StorageAPIToken are empty.',
-        );
-        new Client(new NullLogger(), $this->createMock(ExistingJobFactory::class), 'http://example.com/', null, null);
-    }
-
-    public function testCreateClientBothTokens(): void
-    {
-        $this->expectException(ClientException::class);
-        $this->expectExceptionMessage(
-            'Both InternalApiToken and StorageAPIToken are non-empty. Use only one.',
-        );
-        new Client(new NullLogger(), $this->createMock(ExistingJobFactory::class), 'http://example.com/', 'a', 'b');
     }
 
     public function testCreateClientInvalidUrl(): void
@@ -154,7 +209,14 @@ class ClientTest extends BaseTest
         $this->expectExceptionMessage(
             'Invalid parameters when creating client: Value "invalid url" is invalid: This value is not a valid URL.',
         );
-        new Client(new NullLogger(), $this->createMock(ExistingJobFactory::class), 'invalid url', 'testToken', null);
+        new Client(
+            new NullLogger(),
+            $this->createMock(ExistingJobFactory::class),
+            'invalid url',
+            'testToken',
+            null,
+            null,
+        );
     }
 
     public function testCreateClientMultipleErrors(): void
@@ -164,11 +226,47 @@ class ClientTest extends BaseTest
             'Invalid parameters when creating client: Value "invalid url" is invalid: This value is not a valid URL.'
             . "\n" . 'Value "" is invalid: This value should not be blank.' . "\n",
         );
-        new Client(new NullLogger(), $this->createMock(ExistingJobFactory::class), 'invalid url', '', null);
+        new Client(
+            new NullLogger(),
+            $this->createMock(ExistingJobFactory::class),
+            'invalid url',
+            '',
+            null,
+            null,
+        );
     }
 
-    public function testClientRequestResponse(): void
+    public function provideRequestResponseTestData(): iterable
     {
+        yield 'storage token auth' => [
+            'storageApiToken' => 'testToken',
+            'internalAuthToken' => null,
+            'applicationToken' => null,
+            'expectedAuthHeader' => 'X-StorageApi-Token',
+        ];
+
+        yield 'internal token auth' => [
+            'storageApiToken' => null,
+            'internalAuthToken' => 'testToken',
+            'applicationToken' => null,
+            'expectedAuthHeader' => 'X-JobQueue-InternalApi-Token',
+        ];
+
+        yield 'application token auth' => [
+            'storageApiToken' => null,
+            'internalAuthToken' => null,
+            'applicationToken' => 'testToken',
+            'expectedAuthHeader' => 'X-KBC-ManageApiToken',
+        ];
+    }
+
+    /** @dataProvider provideRequestResponseTestData */
+    public function testClientRequestResponse(
+        ?string $storageApiToken,
+        ?string $internalAuthToken,
+        ?string $applicationToken,
+        string $expectedAuthHeader,
+    ): void {
         $mock = new MockHandler([
             new Response(
                 200,
@@ -211,34 +309,42 @@ class ClientTest extends BaseTest
         $history = Middleware::history($requestHistory);
         $stack = HandlerStack::create($mock);
         $stack->push($history);
-        $client = $this->getClient(['handler' => $stack]);
+
+        $client = $this->createClient(
+            internalAuthToken: $internalAuthToken,
+            storageApiToken: $storageApiToken,
+            applicationToken: $applicationToken,
+            options: ['handler' => $stack],
+        );
         $job = $client->getJob('123');
-        self::assertEquals('123', $job->getId());
-        self::assertEquals('123456', $job->getConfigId());
-        self::assertEquals('keboola.test', $job->getComponentId());
-        self::assertEquals('456', $job->getProjectId());
-        self::assertEquals('Test project', $job->getProjectName());
-        self::assertEquals('run', $job->getMode());
-        self::assertEquals('created', $job->getStatus());
-        self::assertEquals('1234', $job->getBranchId());
-        self::assertEquals('1357', $job->getVariableValuesId());
-        self::assertEquals(['values' => [['name' => 'boo', 'value' => 'bar']]], $job->getVariableValuesData());
-        self::assertEquals([], $job->getResult());
-        self::assertEquals([], $job->getUsageData());
+
+        self::assertSame('123', $job->getId());
+        self::assertSame('123456', $job->getConfigId());
+        self::assertSame('keboola.test', $job->getComponentId());
+        self::assertSame('456', $job->getProjectId());
+        self::assertSame('Test project', $job->getProjectName());
+        self::assertSame('run', $job->getMode());
+        self::assertSame('created', $job->getStatus());
+        self::assertSame('1234', $job->getBranchId());
+        self::assertSame('1357', $job->getVariableValuesId());
+        self::assertSame(['values' => [['name' => 'boo', 'value' => 'bar']]], $job->getVariableValuesData());
+        self::assertSame([], $job->getResult());
+        self::assertSame([], $job->getUsageData());
         self::assertNull($job->getTag());
         self::assertIsArray($job->getConfigRowIds());
         self::assertEmpty($job->getConfigRowIds());
         self::assertFalse($job->isFinished());
         self::assertStringStartsWith('KBC::ProjectSecure::', $job->getTokenString());
-        self::assertEquals(['parameters' => ['foo' => 'bar']], $job->getConfigData());
+        self::assertSame(['parameters' => ['foo' => 'bar']], $job->getConfigData());
+
         self::assertCount(1, $requestHistory);
         /** @var Request $request */
         $request = $requestHistory[0]['request'];
-        self::assertEquals('http://example.com/jobs/123', $request->getUri()->__toString());
-        self::assertEquals('GET', $request->getMethod());
-        self::assertEquals('testToken', $request->getHeader('X-JobQueue-InternalApi-Token')[0]);
-        self::assertEquals('Internal PHP Client', $request->getHeader('User-Agent')[0]);
-        self::assertEquals('application/json', $request->getHeader('Content-type')[0]);
+        self::assertSame('http://example.com/jobs/123', $request->getUri()->__toString());
+        self::assertSame('GET', $request->getMethod());
+        self::assertSame('testToken', $request->getHeaderLine($expectedAuthHeader));
+        self::assertSame('Internal PHP Client', $request->getHeaderLine('User-Agent'));
+        self::assertSame('application/json', $request->getHeaderLine('Content-type'));
     }
 
     public function testInvalidResponse(): void
@@ -255,7 +361,9 @@ class ClientTest extends BaseTest
         $history = Middleware::history($requestHistory);
         $stack = HandlerStack::create($mock);
         $stack->push($history);
-        $client = $this->getClient(['handler' => $stack]);
+        $client = $this->createClientWithInternalToken(
+            options: ['handler' => $stack],
+        );
         $this->expectException(ClientException::class);
         $this->expectExceptionMessage('Unable to parse response body into JSON: Syntax error');
         $client->getJob('123');
@@ -299,7 +407,13 @@ class ClientTest extends BaseTest
         $stack = HandlerStack::create($mock);
         $stack->push($history);
         $logger = new TestLogger();
-        $client = $this->getClient(['handler' => $stack, 'logger' => $logger, 'userAgent' => 'test agent']);
+        $client = $this->createClientWithInternalToken(
+            options: [
+                'handler' => $stack,
+                'logger' => $logger,
+                'userAgent' => 'test agent',
+            ],
+        );
         $client->getJob('123');
         /** @var Request $request */
         $request = $requestHistory[0]['request'];
@@ -356,7 +470,10 @@ class ClientTest extends BaseTest
         $stack = HandlerStack::create($mock);
         $stack->push($history);
         $logger = new TestLogger();
-        $client = $this->getClient(['handler' => $stack], $logger);
+        $client = $this->createClientWithInternalToken(
+            options: ['handler' => $stack],
+            logger: $logger,
+        );
         $job = $client->getJob('123');
         self::assertEquals('123', $job->getId());
         self::assertCount(3, $requestHistory);
@@ -395,7 +512,13 @@ Out of order
         $stack = HandlerStack::create($mock);
         $stack->push($history);
         $logger = new TestLogger();
-        $client = $this->getClient(['handler' => $stack, 'backoffMaxTries' => 1], $logger);
+        $client = $this->createClientWithInternalToken(
+            options: [
+                'handler' => $stack,
+                'backoffMaxTries' => 1,
+            ],
+            logger: $logger,
+        );
         try {
             $client->getJob('123');
             self::fail('Must throw exception');
@@ -428,7 +551,12 @@ Out of order
         $history = Middleware::history($requestHistory);
         $stack = HandlerStack::create($mock);
         $stack->push($history);
-        $client = $this->getClient(['handler' => $stack, 'backoffMaxTries' => 3]);
+        $client = $this->createClientWithInternalToken(
+            options: [
+                'handler' => $stack,
+                'backoffMaxTries' => 3,
+            ],
+        );
         try {
             $client->getJob('123');
             self::fail('Must throw exception');
@@ -462,7 +590,9 @@ Out of order
         $history = Middleware::history($container);
         $stack = HandlerStack::create($mock);
         $stack->push($history);
-        $client = $this->getClient(['handler' => $stack]);
+        $client = $this->createClientWithInternalToken(
+            options: ['handler' => $stack],
+        );
         $result = $client->postJobResult(
             '123',
             JobInterface::STATUS_SUCCESS,
@@ -532,7 +662,9 @@ Out of order
         $history = Middleware::history($container);
         $stack = HandlerStack::create($mock);
         $stack->push($history);
-        $client = $this->getClient(['handler' => $stack]);
+        $client = $this->createClientWithInternalToken(
+            options: ['handler' => $stack],
+        );
         $this->expectException(ClientException::class);
         $this->expectExceptionMessage('Invalid job ID: "".');
         $client->postJobResult(
@@ -556,7 +688,9 @@ Out of order
         $history = Middleware::history($container);
         $stack = HandlerStack::create($mock);
         $stack->push($history);
-        $client = $this->getClient(['handler' => $stack]);
+        $client = $this->createClientWithInternalToken(
+            options: ['handler' => $stack],
+        );
         $job = $this->getMockBuilder(Job::class)
             ->disableOriginalConstructor()
             ->onlyMethods(['jsonSerialize'])
@@ -590,7 +724,10 @@ Out of order
         $stack = HandlerStack::create($mock);
         $stack->push($history);
         $logger = new TestLogger();
-        $client = $this->getClient(['handler' => $stack], $logger);
+        $client = $this->createClientWithInternalToken(
+            options: ['handler' => $stack],
+            logger: $logger,
+        );
         $jobs = $client->getJobsWithIds(['123']);
         self::assertCount(0, $jobs);
         self::assertTrue($logger->hasErrorThatContains(
@@ -600,7 +737,7 @@ Out of order
 
     public function testClientGetJobWithEmptyIdThrowsException(): void
     {
-        $client = $this->getClient([]);
+        $client = $this->createClientWithInternalToken();
 
         $this->expectException(ClientException::class);
         $this->expectExceptionMessage('Invalid job ID: "".');
@@ -645,7 +782,10 @@ Out of order
         $stack = HandlerStack::create($mock);
         $stack->push($history);
         $logger = new TestLogger();
-        $client = $this->getClient(['handler' => $stack], $logger);
+        $client = $this->createClientWithInternalToken(
+            options: ['handler' => $stack],
+            logger: $logger,
+        );
         $jobs = $client->listJobs((new JobListOptions())->setProjects(['456']), true);
 
         self::assertCount(1, $jobs);
@@ -697,7 +837,9 @@ Out of order
         $stack = HandlerStack::create($mock);
         $stack->push($history);
 
-        $client = $this->getClient(['handler' => $stack]);
+        $client = $this->createClientWithInternalToken(
+            options: ['handler' => $stack],
+        );
         $client->listJobs($jobListOptions, true);
 
         $request = $requestHistory[0]['request'];
@@ -765,7 +907,10 @@ Out of order
         $stack = HandlerStack::create($mock);
         $stack->push($history);
         $logger = new TestLogger();
-        $client = $this->getClient(['handler' => $stack], $logger);
+        $client = $this->createClientWithInternalToken(
+            options: ['handler' => $stack],
+            logger: $logger,
+        );
         $jobs = $client->listJobs(
             (new JobListOptions())->setProjects(['šěřč!@#%^$&'])->setComponents(['th!$ |& n°t valid']),
             true,
@@ -837,7 +982,10 @@ Out of order
         $stack = HandlerStack::create($mock);
         $stack->push($history);
         $logger = new TestLogger();
-        $client = $this->getClient(['handler' => $stack], $logger);
+        $client = $this->createClientWithInternalToken(
+            options: ['handler' => $stack],
+            logger: $logger,
+        );
 
         $startId = 1000000;
         $endId = $startId + $count - 1;
@@ -934,7 +1082,10 @@ Out of order
         $stack = HandlerStack::create($mock);
         $stack->push($history);
         $logger = new TestLogger();
-        $client = $this->getClient(['handler' => $stack], $logger);
+        $client = $this->createClientWithInternalToken(
+            options: ['handler' => $stack],
+            logger: $logger,
+        );
         $jobs = $client->listJobs((new JobListOptions()), true);
         self::assertCount(1001, $jobs);
         $request = $mock->getLastRequest();
@@ -968,7 +1119,9 @@ Out of order
         $history = Middleware::history($container);
         $stack = HandlerStack::create($mock);
         $stack->push($history);
-        $client = $this->getClient(['handler' => $stack]);
+        $client = $this->createClientWithInternalToken(
+            options: ['handler' => $stack],
+        );
         $result = $client->patchJob(
             '123',
             (new JobPatchData())->setStatus(JobInterface::STATUS_PROCESSING),
@@ -1012,7 +1165,9 @@ Out of order
         $history = Middleware::history($container);
         $stack = HandlerStack::create($mock);
         $stack->push($history);
-        $client = $this->getClient(['handler' => $stack]);
+        $client = $this->createClientWithInternalToken(
+            options: ['handler' => $stack],
+        );
         $result = $client->patchJob(
             '123',
             (new JobPatchData())->setDesiredStatus(JobInterface::DESIRED_STATUS_TERMINATING),
@@ -1034,7 +1189,7 @@ Out of order
 
     public function testPatchJobInvalidJobId(): void
     {
-        $client = $this->getClient([]);
+        $client = $this->createClientWithInternalToken();
 
         $this->expectException(ClientException::class);
         $this->expectExceptionMessage('Invalid job ID: "".');
@@ -1043,7 +1198,7 @@ Out of order
 
     public function testClientGetJobsDurationSumWithEmptyIdThrowsException(): void
     {
-        $client = $this->getClient([]);
+        $client = $this->createClientWithInternalToken();
 
         $this->expectException(ClientException::class);
         $this->expectExceptionMessage('Invalid project ID: "".');
@@ -1068,7 +1223,9 @@ Out of order
         $history = Middleware::history($requestHistory);
         $stack = HandlerStack::create($mock);
         $stack->push($history);
-        $client = $this->getClient(['handler' => $stack]);
+        $client = $this->createClientWithInternalToken(
+            options: ['handler' => $stack],
+        );
         $durationSum = $client->getJobsDurationSum('123');
         self::assertSame(456, $durationSum);
 

@@ -52,6 +52,7 @@ class ClientExceptionTest extends BaseTest
             'http://example.com/',
             'testToken',
             null,
+            null,
             $options,
         );
     }

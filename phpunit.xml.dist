@@ -8,6 +8,7 @@
          bootstrap="tests/bootstrap.php"
          convertDeprecationsToExceptions="false"
          cacheResultFile="/tmp/phpunit.result.cache"
+         printerClass="Sempro\PHPUnitPrettyPrinter\PrettyPrinterForPhpUnit9"
 >
   <php>
     <ini name="display_errors" value="1" />
