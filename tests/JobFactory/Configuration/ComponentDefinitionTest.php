@@ -127,6 +127,14 @@ class ComponentDefinitionTest extends TestCase
                 'features' => [
                     'some-feature',
                 ],
+                'dataTypesConfiguration' => [
+                    'dataTypesSupport' => 'hints',
+                    'somethingElse' => 'should be ignored',
+                ],
+                'processorConfiguration' => [
+                    'allowedProcessorPosition' => 'after',
+                    'somethingElse' => 'should be ignored',
+                ],
             ],
             'expected' => [
                 'id' => 'test',
@@ -177,6 +185,12 @@ class ComponentDefinitionTest extends TestCase
                 ],
                 'features' => [
                     'some-feature',
+                ],
+                'dataTypesConfiguration' => [
+                    'dataTypesSupport' => 'hints',
+                ],
+                'processorConfiguration' => [
+                    'allowedProcessorPosition' => 'after',
                 ],
             ],
         ];
@@ -411,6 +425,22 @@ class ComponentDefinitionTest extends TestCase
             ],
             'expected' => 'The value -1 is too small for path "component.data.process_timeout". ' .
                 'Should be greater than or equal to 0',
+        ];
+        yield 'invalid dataTypeSupport' => [
+            'data' => [
+                'id' => 'test',
+                'data' => [
+                    'definition' => [
+                        'type' => 'aws-ecr',
+                        'uri' => 'some-uri',
+                    ],
+                ],
+                'dataTypesConfiguration' => [
+                    'dataTypesSupport' => 'invalid',
+                ],
+            ],
+            'expected' => 'The value "invalid" is not allowed for path ' .
+                '"component.dataTypesConfiguration.dataTypesSupport"',
         ];
     }
 }
