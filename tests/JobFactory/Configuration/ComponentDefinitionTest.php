@@ -442,5 +442,21 @@ class ComponentDefinitionTest extends TestCase
             'expected' => 'The value "invalid" is not allowed for path ' .
                 '"component.dataTypesConfiguration.dataTypesSupport"',
         ];
+        yield 'invalid allowedProcessorPosition' => [
+            'data' => [
+                'id' => 'test',
+                'data' => [
+                    'definition' => [
+                        'type' => 'aws-ecr',
+                        'uri' => 'some-uri',
+                    ],
+                ],
+                'processorConfiguration' => [
+                    'allowedProcessorPosition' => 'invalid',
+                ],
+            ],
+            'expected' => 'The value "invalid" is not allowed for path ' .
+                '"component.processorConfiguration.allowedProcessorPosition"',
+        ];
     }
 }
