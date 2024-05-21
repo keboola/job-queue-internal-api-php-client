@@ -188,6 +188,22 @@ class Client
         return $jobs;
     }
 
+    public function searchJobs(JobListOptions $listOptions, bool $fetchAllPages): array
+    {
+        $jobs = [];
+        $i = 1;
+        $listOptions = clone $listOptions;
+        do {
+            $request = new Request('GET', 'search/jobs?' . implode('&', $listOptions->getQueryParameters()));
+            $result = $this->sendRequest($request);
+            $chunk = $this->mapJobsFromResponse($result);
+            $jobs = array_merge($jobs, $chunk);
+            $listOptions->setOffset($i * $listOptions->getLimit());
+            $i++;
+        } while ($fetchAllPages && count($chunk) === $listOptions->getLimit());
+        return $jobs;
+    }
+
     /**
      * @return array<JobInterface>
      */
