@@ -5,22 +5,18 @@ declare(strict_types=1);
 namespace Keboola\JobQueueInternalClient\Tests;
 
 use Keboola\JobQueueInternalClient\Client;
-use Keboola\JobQueueInternalClient\DataPlane\DataPlaneConfigRepository;
-use Keboola\JobQueueInternalClient\DataPlane\DataPlaneConfigValidator;
 use Keboola\JobQueueInternalClient\ExistingJobFactory;
 use Keboola\JobQueueInternalClient\JobFactory\Job;
 use Keboola\JobQueueInternalClient\JobFactory\JobInterface;
 use Keboola\JobQueueInternalClient\JobFactory\JobRuntimeResolver;
-use Keboola\JobQueueInternalClient\JobFactory\ObjectEncryptorProvider\DataPlaneObjectEncryptorProvider;
+use Keboola\JobQueueInternalClient\JobFactory\ObjectEncryptor\JobObjectEncryptor;
 use Keboola\JobQueueInternalClient\JobPatchData;
 use Keboola\JobQueueInternalClient\NewJobFactory;
-use Keboola\ManageApi\Client as ManageApiClient;
 use Keboola\ObjectEncryptor\EncryptorOptions;
 use Keboola\ObjectEncryptor\ObjectEncryptorFactory;
 use Keboola\StorageApiBranch\Factory\ClientOptions;
 use Keboola\StorageApiBranch\Factory\StorageClientPlainFactory;
 use Psr\Log\NullLogger;
-use Symfony\Component\Validator\Validation;
 
 abstract class BaseClientFunctionalTest extends BaseTest
 {
@@ -54,12 +50,10 @@ abstract class BaseClientFunctionalTest extends BaseTest
             self::getRequiredEnv('TEST_STORAGE_API_URL'),
         ));
 
-        $objectEncryptorProvider = $this->getObjectEncryptorProvider($kmsKeyId, $keyVaultUrl, $gkmsKeyId);
-
         return new NewJobFactory(
             $storageClientFactory,
             new JobRuntimeResolver($storageClientFactory),
-            $objectEncryptorProvider,
+            $this->getJobObjectEncryptor($kmsKeyId, $keyVaultUrl, $gkmsKeyId),
         );
     }
 
@@ -77,11 +71,9 @@ abstract class BaseClientFunctionalTest extends BaseTest
             self::getRequiredEnv('TEST_STORAGE_API_URL'),
         ));
 
-        $objectEncryptorProvider = $this->getObjectEncryptorProvider($kmsKeyId, $keyVaultUrl, $gkmsKeyId);
-
         $existingJobFactory = new ExistingJobFactory(
             $storageClientFactory,
-            $objectEncryptorProvider,
+            $this->getJobObjectEncryptor($kmsKeyId, $keyVaultUrl, $gkmsKeyId),
         );
 
         return new Client(
@@ -110,15 +102,15 @@ abstract class BaseClientFunctionalTest extends BaseTest
      * @param non-empty-string|null $keyVaultUrl
      * @param non-empty-string|null $gkmsKeyId
      */
-    private function getObjectEncryptorProvider(
+    private function getJobObjectEncryptor(
         ?string $kmsKeyId,
         ?string $keyVaultUrl,
         ?string $gkmsKeyId,
-    ): DataPlaneObjectEncryptorProvider {
+    ): JobObjectEncryptor {
         $stackId = self::getRequiredEnv('TEST_STORAGE_API_URL');
         self::assertNotEmpty($stackId);
 
-        $controlPlaneObjectEncryptor = ObjectEncryptorFactory::getEncryptor(
+        $objectEncryptor = ObjectEncryptorFactory::getEncryptor(
             new EncryptorOptions(
                 $stackId,
                 $kmsKeyId ?? self::getRequiredEnv('TEST_KMS_KEY_ID'),
@@ -129,20 +121,6 @@ abstract class BaseClientFunctionalTest extends BaseTest
             ),
         );
 
-        $dataPlaneConfigRepository = new DataPlaneConfigRepository(
-            new ManageApiClient([
-                'url' => self::getRequiredEnv('TEST_STORAGE_API_URL'),
-                'token' => '',
-            ]),
-            new DataPlaneConfigValidator(Validation::createValidator()),
-            $stackId,
-            self::getRequiredEnv('TEST_KMS_REGION'),
-        );
-
-        return new DataPlaneObjectEncryptorProvider(
-            $controlPlaneObjectEncryptor,
-            $dataPlaneConfigRepository,
-            self::getOptionalEnv('SUPPORTS_DATA_PLANE') === 'true',
-        );
+        return new JobObjectEncryptor($objectEncryptor);
     }
 }

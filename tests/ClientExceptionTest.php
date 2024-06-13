@@ -14,7 +14,8 @@ use Keboola\JobQueueInternalClient\Exception\StateTargetEqualsCurrentException;
 use Keboola\JobQueueInternalClient\Exception\StateTerminalException;
 use Keboola\JobQueueInternalClient\Exception\StateTransitionForbiddenException;
 use Keboola\JobQueueInternalClient\ExistingJobFactory;
-use Keboola\JobQueueInternalClient\JobFactory\ObjectEncryptorProvider\GenericObjectEncryptorProvider;
+use Keboola\JobQueueInternalClient\JobFactory\Job;
+use Keboola\JobQueueInternalClient\JobFactory\ObjectEncryptor\JobObjectEncryptor;
 use Keboola\JobQueueInternalClient\Result\JobResult;
 use Keboola\ObjectEncryptor\EncryptorOptions;
 use Keboola\ObjectEncryptor\ObjectEncryptor;
@@ -31,19 +32,17 @@ class ClientExceptionTest extends BaseTest
             'http://example.com/',
         ));
 
-        $jobObjectEncryptorProvider = new GenericObjectEncryptorProvider(
-            new ObjectEncryptor(new EncryptorOptions(
-                'stackId',
-                'kmsKeyId',
-                'kmsRegion',
-                null,
-                null,
-            )),
-        );
+        $objectEncryptor = new ObjectEncryptor(new EncryptorOptions(
+            'stackId',
+            'kmsKeyId',
+            'kmsRegion',
+            null,
+            null,
+        ));
 
         $existingJobFactory = new ExistingJobFactory(
             $storageClientFactory,
-            $jobObjectEncryptorProvider,
+            new JobObjectEncryptor($objectEncryptor),
         );
 
         return new Client(

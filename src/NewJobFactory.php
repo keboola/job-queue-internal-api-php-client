@@ -6,33 +6,24 @@ namespace Keboola\JobQueueInternalClient;
 
 use Keboola\JobQueueInternalClient\Exception\ClientException;
 use Keboola\JobQueueInternalClient\JobFactory\Behavior;
-use Keboola\JobQueueInternalClient\JobFactory\BranchTypeResolver;
 use Keboola\JobQueueInternalClient\JobFactory\FullJobDefinition;
 use Keboola\JobQueueInternalClient\JobFactory\Job;
 use Keboola\JobQueueInternalClient\JobFactory\JobInterface;
 use Keboola\JobQueueInternalClient\JobFactory\JobRuntimeResolver;
 use Keboola\JobQueueInternalClient\JobFactory\NewJobDefinition;
-use Keboola\JobQueueInternalClient\JobFactory\ObjectEncryptorProvider\DataPlaneObjectEncryptorProvider;
+use Keboola\JobQueueInternalClient\JobFactory\ObjectEncryptor\JobObjectEncryptor;
 use Keboola\PermissionChecker\BranchType;
 use Keboola\StorageApi\ClientException as StorageClientException;
-use Keboola\StorageApi\DevBranches;
 use Keboola\StorageApiBranch\Factory\ClientOptions;
 use Keboola\StorageApiBranch\Factory\StorageClientPlainFactory;
 
 class NewJobFactory extends JobFactory
 {
-    private StorageClientPlainFactory $storageClientFactory;
-    private JobRuntimeResolver $jobRuntimeResolver;
-    private DataPlaneObjectEncryptorProvider $objectEncryptorProvider;
-
     public function __construct(
-        StorageClientPlainFactory $storageClientFactory,
-        JobRuntimeResolver $jobRuntimeResolver,
-        DataPlaneObjectEncryptorProvider $objectEncryptorProvider,
+        private readonly StorageClientPlainFactory $storageClientFactory,
+        private readonly JobRuntimeResolver $jobRuntimeResolver,
+        private readonly JobObjectEncryptor $objectEncryptor,
     ) {
-        $this->storageClientFactory = $storageClientFactory;
-        $this->jobRuntimeResolver = $jobRuntimeResolver;
-        $this->objectEncryptorProvider = $objectEncryptorProvider;
     }
 
     public function createNewJob(array $data): JobInterface
@@ -63,8 +54,6 @@ class NewJobFactory extends JobFactory
         }
 
         $projectId = (string) $tokenInfo['owner']['id'];
-        $dataPlaneConfig = $this->objectEncryptorProvider->resolveProjectDataPlaneConfig($projectId);
-        $encryptor = $this->objectEncryptorProvider->getProjectObjectEncryptor($dataPlaneConfig);
 
         $jobData = [
             'id' => $jobId,
@@ -72,7 +61,6 @@ class NewJobFactory extends JobFactory
             'runId' => $runId,
             'projectId' => $projectId,
             'projectName' => $tokenInfo['owner']['name'],
-            'dataPlaneId' => $dataPlaneConfig ? $dataPlaneConfig->getId() : null,
             'tokenId' => $tokenInfo['id'],
             '#tokenString' => $data['#tokenString'],
             'tokenDescription' => $tokenInfo['description'],
@@ -104,14 +92,14 @@ class NewJobFactory extends JobFactory
         $jobData = $this->jobRuntimeResolver->resolveJobData($jobData, $tokenInfo);
 
         if (in_array(self::PROTECTED_DEFAULT_BRANCH_FEATURE, $tokenInfo['owner']['features'])) {
-            $data = $encryptor->encrypt(
+            $data = $this->objectEncryptor->encrypt(
                 $jobData,
                 (string) $data['componentId'],
                 (string) $tokenInfo['owner']['id'],
                 BranchType::from($jobData['branchType']),
             );
         } else {
-            $data = $encryptor->encrypt(
+            $data = $this->objectEncryptor->encrypt(
                 $jobData,
                 (string) $data['componentId'],
                 (string) $tokenInfo['owner']['id'],
@@ -120,6 +108,6 @@ class NewJobFactory extends JobFactory
         }
 
         $data = $this->validateJobData($data, FullJobDefinition::class);
-        return new Job($encryptor, $this->storageClientFactory, $data);
+        return new Job($this->objectEncryptor, $this->storageClientFactory, $data);
     }
 }

@@ -369,6 +369,7 @@ class JobTest extends BaseTest
                 $this->jobData['componentId'],
                 $this->jobData['projectId'],
                 $this->jobData['configId'],
+                BranchType::from($this->jobData['branchType']),
             )
             ->willReturn($tokenDecrypted)
         ;
@@ -420,6 +421,7 @@ class JobTest extends BaseTest
                 $this->jobData['componentId'],
                 $this->jobData['projectId'],
                 $this->jobData['configId'],
+                BranchType::from($this->jobData['branchType']),
             )
             ->willReturnCallback(function (mixed $encrypted) use (
                 $tokenEncrypted,
@@ -481,6 +483,7 @@ class JobTest extends BaseTest
                 $this->jobData['componentId'],
                 $this->jobData['projectId'],
                 $this->jobData['configId'],
+                BranchType::from($this->jobData['branchType']),
             )
             ->willReturn($configDataDecrypted)
         ;
@@ -541,6 +544,7 @@ class JobTest extends BaseTest
                 $this->jobData['componentId'],
                 $this->jobData['projectId'],
                 $this->jobData['configId'],
+                BranchType::from($this->jobData['branchType']),
             )
             ->willReturn('token')
         ;
@@ -581,6 +585,7 @@ class JobTest extends BaseTest
                 $this->jobData['componentId'],
                 $this->jobData['projectId'],
                 $this->jobData['configId'],
+                BranchType::from($this->jobData['branchType']),
             )
             ->willReturn('token')
         ;
@@ -632,6 +637,7 @@ class JobTest extends BaseTest
                 $this->jobData['componentId'],
                 $this->jobData['projectId'],
                 $this->jobData['configId'],
+                BranchType::from($this->jobData['branchType']),
             )
             ->willReturn('token')
         ;
@@ -710,6 +716,7 @@ class JobTest extends BaseTest
                 $this->jobData['componentId'],
                 $this->jobData['projectId'],
                 $this->jobData['configId'],
+                BranchType::from($this->jobData['branchType']),
             )
             ->willReturn('token')
         ;
@@ -784,6 +791,7 @@ class JobTest extends BaseTest
                 $this->jobData['componentId'],
                 $this->jobData['projectId'],
                 $this->jobData['configId'],
+                BranchType::from($this->jobData['branchType']),
             )
             ->willReturn('token')
         ;
@@ -871,6 +879,7 @@ class JobTest extends BaseTest
                 $this->jobData['componentId'],
                 $this->jobData['projectId'],
                 $this->jobData['configId'],
+                BranchType::from($this->jobData['branchType']),
             )
             ->willReturn('token')
         ;
@@ -934,6 +943,7 @@ class JobTest extends BaseTest
                 $this->jobData['componentId'],
                 $this->jobData['projectId'],
                 $this->jobData['configId'],
+                BranchType::DEV,
             )
             ->willReturn('token')
         ;
@@ -992,6 +1002,7 @@ class JobTest extends BaseTest
                 $this->jobData['componentId'],
                 $this->jobData['projectId'],
                 $this->jobData['configId'],
+                BranchType::from($this->jobData['branchType']),
             )
             ->willReturn('token')
         ;

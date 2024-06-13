@@ -10,7 +10,7 @@ use InvalidArgumentException;
 use JsonSerializable;
 use Keboola\JobQueueInternalClient\Exception\ClientException;
 use Keboola\JobQueueInternalClient\JobFactory;
-use Keboola\JobQueueInternalClient\JobFactory\ObjectEncryptor\JobObjectEncryptorInterface;
+use Keboola\JobQueueInternalClient\JobFactory\ObjectEncryptor\JobObjectEncryptor;
 use Keboola\JobQueueInternalClient\JobFactory\Runtime\Backend;
 use Keboola\JobQueueInternalClient\JobFactory\Runtime\Executor;
 use Keboola\JobQueueInternalClient\Result\JobMetrics;
@@ -27,10 +27,6 @@ use Throwable;
 
 class Job implements JsonSerializable, JobInterface
 {
-    private JobObjectEncryptorInterface $objectEncryptor;
-    private StorageClientPlainFactory $storageClientFactory;
-    private array $data;
-
     private ?DateTimeImmutable $endTime;
     private ?DateTimeImmutable $startTime;
     private ?string $tokenDecrypted = null;
@@ -44,17 +40,13 @@ class Job implements JsonSerializable, JobInterface
     private ?array $projectFeatures = null;
 
     public function __construct(
-        JobObjectEncryptorInterface $objectEncryptor,
-        StorageClientPlainFactory $storageClientFactory,
-        array $data,
+        private readonly JobObjectEncryptor $objectEncryptor,
+        private readonly StorageClientPlainFactory $storageClientFactory,
+        private array $data,
     ) {
         if (!isset($data['branchType'])) {
             throw new InvalidArgumentException('Missing required parameter "branchType"');
         }
-
-        $this->objectEncryptor = $objectEncryptor;
-        $this->storageClientFactory = $storageClientFactory;
-        $this->data = $data;
 
         $this->data['isFinished'] = in_array($this->getStatus(), JobInterface::STATUSES_FINISHED);
         $this->data['parentRunId'] = $this->getParentRunId();
@@ -114,11 +106,6 @@ class Job implements JsonSerializable, JobInterface
     public function getProjectName(): string
     {
         return $this->data['projectName'];
-    }
-
-    public function getDataPlaneId(): ?string
-    {
-        return $this->data['dataPlaneId'] ?? null;
     }
 
     public function getResult(): array

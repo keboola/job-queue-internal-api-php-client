@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Keboola\JobQueueInternalClient\Tests\JobFactory\ObjectEncryptor;
 
-use Generator;
 use Keboola\JobQueueInternalClient\JobFactory\ObjectEncryptor\JobObjectEncryptor;
 use Keboola\ObjectEncryptor\ObjectEncryptor;
 use Keboola\PermissionChecker\BranchType;
@@ -42,43 +41,33 @@ class JobObjectEncryptorTest extends TestCase
         self::assertSame('encryptedData', $result);
     }
 
-    /** @dataProvider argumentsProvider */
-    public function testDecrypt(array $arguments, array $expectedArguments, string $expectedMethod): void
+    public function testDecryptWithConfig(): void
     {
         $internalEncryptor = $this->createMock(ObjectEncryptor::class);
         $internalEncryptor->expects(self::once())
-            ->method($expectedMethod)
-            ->with(...$expectedArguments)
+            ->method('decryptForBranchTypeConfiguration')
+            ->with('encryptedData', 'componentId', 'projectId', 'configId', 'dev')
             ->willReturn('data')
         ;
 
         $encryptor = new JobObjectEncryptor($internalEncryptor);
-        $result = $encryptor->decrypt(...$arguments);
+        $result = $encryptor->decrypt('encryptedData', 'componentId', 'projectId', 'configId', BranchType::DEV);
 
         self::assertSame('data', $result);
     }
 
-    public function argumentsProvider(): Generator
+    public function testDecryptWithoutConfig(): void
     {
-        yield 'without branch without configuration' => [
-            'arguments' => ['encryptedData', 'componentId', 'projectId', null, null],
-            'expectedArguments' => ['encryptedData', 'componentId', 'projectId'],
-            'expectedMethod' => 'decryptForProject',
-        ];
-        yield 'with branch without configuration' => [
-            'arguments' => ['encryptedData', 'componentId', 'projectId', null, BranchType::DEFAULT],
-            'expectedArguments' => ['encryptedData', 'componentId', 'projectId', 'default'],
-            'expectedMethod' => 'decryptForBranchType',
-        ];
-        yield 'without branch with configuration' => [
-            'arguments' => ['encryptedData', 'componentId', 'projectId', 'configId', null],
-            'expectedArguments' => ['encryptedData', 'componentId', 'projectId', 'configId'],
-            'expectedMethod' => 'decryptForConfiguration',
-        ];
-        yield 'with branch with configuration' => [
-            'arguments' => ['encryptedData', 'componentId', 'projectId', 'configId', BranchType::DEV],
-            'expectedArguments' => ['encryptedData', 'componentId', 'projectId', 'configId', 'dev'],
-            'expectedMethod' => 'decryptForBranchTypeConfiguration',
-        ];
+        $internalEncryptor = $this->createMock(ObjectEncryptor::class);
+        $internalEncryptor->expects(self::once())
+            ->method('decryptForBranchType')
+            ->with('encryptedData', 'componentId', 'projectId', 'default')
+            ->willReturn('data')
+        ;
+
+        $encryptor = new JobObjectEncryptor($internalEncryptor);
+        $result = $encryptor->decrypt('encryptedData', 'componentId', 'projectId', null, BranchType::DEFAULT);
+
+        self::assertSame('data', $result);
     }
 }
