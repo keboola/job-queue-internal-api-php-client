@@ -7,7 +7,7 @@ namespace Keboola\JobQueueInternalClient;
 use Keboola\JobQueueInternalClient\JobFactory\FullJobDefinition;
 use Keboola\JobQueueInternalClient\JobFactory\Job;
 use Keboola\JobQueueInternalClient\JobFactory\JobInterface;
-use Keboola\JobQueueInternalClient\JobFactory\ObjectEncryptor\JobObjectEncryptor;
+use Keboola\JobQueueInternalClient\JobFactory\JobObjectEncryptor;
 use Keboola\StorageApiBranch\Factory\StorageClientPlainFactory;
 
 class ExistingJobFactory extends JobFactory

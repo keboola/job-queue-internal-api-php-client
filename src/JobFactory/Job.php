@@ -10,7 +10,7 @@ use InvalidArgumentException;
 use JsonSerializable;
 use Keboola\JobQueueInternalClient\Exception\ClientException;
 use Keboola\JobQueueInternalClient\JobFactory;
-use Keboola\JobQueueInternalClient\JobFactory\ObjectEncryptor\JobObjectEncryptor;
+use Keboola\JobQueueInternalClient\JobFactory\JobObjectEncryptor;
 use Keboola\JobQueueInternalClient\JobFactory\Runtime\Backend;
 use Keboola\JobQueueInternalClient\JobFactory\Runtime\Executor;
 use Keboola\JobQueueInternalClient\Result\JobMetrics;

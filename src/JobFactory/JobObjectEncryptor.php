@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Keboola\JobQueueInternalClient\JobFactory\ObjectEncryptor;
+namespace Keboola\JobQueueInternalClient\JobFactory;
 
 use Keboola\ObjectEncryptor\ObjectEncryptor;
 use Keboola\PermissionChecker\BranchType;

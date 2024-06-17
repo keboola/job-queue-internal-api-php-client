@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Keboola\JobQueueInternalClient\Tests\JobFactory\ObjectEncryptor;
+namespace Keboola\JobQueueInternalClient\Tests\ObjectEncryptor;
 
-use Keboola\JobQueueInternalClient\JobFactory\ObjectEncryptor\JobObjectEncryptor;
+use Keboola\JobQueueInternalClient\JobFactory\JobObjectEncryptor;
 use Keboola\ObjectEncryptor\ObjectEncryptor;
 use Keboola\PermissionChecker\BranchType;
 use PHPUnit\Framework\TestCase;
