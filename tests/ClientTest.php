@@ -15,7 +15,7 @@ use Keboola\JobQueueInternalClient\Exception\ClientException;
 use Keboola\JobQueueInternalClient\ExistingJobFactory;
 use Keboola\JobQueueInternalClient\JobFactory\Job;
 use Keboola\JobQueueInternalClient\JobFactory\JobInterface;
-use Keboola\JobQueueInternalClient\JobFactory\ObjectEncryptorProvider\GenericObjectEncryptorProvider;
+use Keboola\JobQueueInternalClient\JobFactory\JobObjectEncryptor;
 use Keboola\JobQueueInternalClient\JobListOptions;
 use Keboola\JobQueueInternalClient\JobPatchData;
 use Keboola\JobQueueInternalClient\Result\JobMetrics;
@@ -44,19 +44,17 @@ class ClientTest extends BaseTest
             'http://example.com/',
         ));
 
-        $objectEncryptorProvider = new GenericObjectEncryptorProvider(
-            new ObjectEncryptor(new EncryptorOptions(
-                'stackId',
-                'kmsKeyId',
-                'kmsRegion',
-                null,
-                null,
-            )),
-        );
+        $objectEncryptor = new ObjectEncryptor(new EncryptorOptions(
+            'stackId',
+            'kmsKeyId',
+            'kmsRegion',
+            null,
+            null,
+        ));
 
         $jobFactory = new ExistingJobFactory(
             $storageClientFactory,
-            $objectEncryptorProvider,
+            new JobObjectEncryptor($objectEncryptor),
         );
 
         return new Client(

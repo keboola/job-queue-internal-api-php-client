@@ -5,16 +5,11 @@ declare(strict_types=1);
 namespace Keboola\JobQueueInternalClient\Tests;
 
 use Generator;
-use Keboola\JobQueueInternalClient\DataPlane\Config\DataPlaneConfig;
-use Keboola\JobQueueInternalClient\DataPlane\Config\Encryption\TestingEncryptorConfig;
-use Keboola\JobQueueInternalClient\DataPlane\Config\KubernetesConfig;
-use Keboola\JobQueueInternalClient\DataPlane\DataPlaneConfigRepository;
 use Keboola\JobQueueInternalClient\Exception\ClientException;
+use Keboola\JobQueueInternalClient\JobFactory\JobObjectEncryptor;
 use Keboola\JobQueueInternalClient\JobFactory\JobRuntimeResolver;
 use Keboola\JobQueueInternalClient\JobFactory\JobType;
-use Keboola\JobQueueInternalClient\JobFactory\ObjectEncryptorProvider\DataPlaneObjectEncryptorProvider;
 use Keboola\JobQueueInternalClient\NewJobFactory;
-use Keboola\ObjectEncryptor\EncryptorOptions;
 use Keboola\ObjectEncryptor\ObjectEncryptorFactory;
 use Keboola\StorageApi\BranchAwareClient;
 use Keboola\StorageApi\Client;
@@ -79,7 +74,7 @@ class NewJobFactoryTest extends BaseTest
         putenv('GOOGLE_APPLICATION_CREDENTIALS=' . self::getRequiredEnv('TEST_GOOGLE_APPLICATION_CREDENTIALS'));
     }
 
-    private function getJobFactoryWithoutDataPlaneSupport(): array
+    private function getJobFactory(): NewJobFactory
     {
         $storageClientFactory = new StorageClientPlainFactory(new ClientOptions(
             self::getRequiredEnv('TEST_STORAGE_API_URL'),
@@ -87,86 +82,16 @@ class NewJobFactoryTest extends BaseTest
 
         $objectEncryptor = ObjectEncryptorFactory::getEncryptor($this->getEncryptorOptions());
 
-        $dataPlaneConfigRepository = $this->createMock(DataPlaneConfigRepository::class);
-        $dataPlaneConfigRepository->expects(self::never())->method(self::anything());
-
-        $objectEncryptorProvider = new DataPlaneObjectEncryptorProvider(
-            $objectEncryptor,
-            $dataPlaneConfigRepository,
-            false,
-        );
-
-        $factory = new NewJobFactory(
+        return new NewJobFactory(
             $storageClientFactory,
             new JobRuntimeResolver($storageClientFactory),
-            $objectEncryptorProvider,
+            new JobObjectEncryptor($objectEncryptor),
         );
-
-        return [$factory, $objectEncryptor];
-    }
-
-    private function getJobFactoryWithDataPlaneSupport(bool $projectHasDataPlane): array
-    {
-        $storageClientFactory = new StorageClientPlainFactory(new ClientOptions(
-            self::getRequiredEnv('TEST_STORAGE_API_URL'),
-        ));
-
-        $controlPlaneObjectEncryptor = ObjectEncryptorFactory::getEncryptor($this->getEncryptorOptions());
-
-        $dataPlaneObjectEncryptor = ObjectEncryptorFactory::getEncryptor(new EncryptorOptions(
-            'custom-value',
-            self::getRequiredEnv('TEST_KMS_KEY_ID'),
-            self::getRequiredEnv('TEST_KMS_REGION'),
-            null,
-            self::getRequiredEnv('TEST_AZURE_KEY_VAULT_URL'),
-            self::getRequiredEnv('TEST_GCP_KMS_KEY_ID'),
-        ));
-
-        $dataPlaneConfigRepository = $this->createMock(DataPlaneConfigRepository::class);
-
-        if ($projectHasDataPlane) {
-            $dataPlaneConfig = new DataPlaneConfig(
-                'dataPlaneId',
-                new KubernetesConfig('', '', '', ''),
-                new TestingEncryptorConfig($dataPlaneObjectEncryptor),
-            );
-
-            $dataPlaneConfigRepository
-                ->method('fetchProjectDataPlane')
-                ->with(self::$projectId)
-                ->willReturn($dataPlaneConfig)
-            ;
-
-            $dataPlaneConfigRepository
-                ->method('fetchDataPlaneConfig')
-                ->with('dataPlaneId')
-                ->willReturn($dataPlaneConfig)
-            ;
-        } else {
-            $dataPlaneConfigRepository
-                ->method('fetchProjectDataPlane')
-                ->willReturn(null)
-            ;
-        }
-
-        $objectEncryptorProvider = new DataPlaneObjectEncryptorProvider(
-            $controlPlaneObjectEncryptor,
-            $dataPlaneConfigRepository,
-            true,
-        );
-
-        $factory = new NewJobFactory(
-            $storageClientFactory,
-            new JobRuntimeResolver($storageClientFactory),
-            $objectEncryptorProvider,
-        );
-
-        return [$factory, $controlPlaneObjectEncryptor, $dataPlaneObjectEncryptor];
     }
 
     public function testCreateNewJob(): void
     {
-        [$factory] = $this->getJobFactoryWithoutDataPlaneSupport();
+        $factory = $this->getJobFactory();
         $data = [
             '#tokenString' => self::getRequiredEnv('TEST_STORAGE_API_TOKEN'),
             'configData' => [],
@@ -193,7 +118,7 @@ class NewJobFactoryTest extends BaseTest
 
     public function testCreateNewJobNormalize(): void
     {
-        [$factory] = $this->getJobFactoryWithoutDataPlaneSupport();
+        $factory = $this->getJobFactory();
         $data = [
             '#tokenString' => self::getRequiredEnv('TEST_STORAGE_API_TOKEN'),
             'configId' => (int) self::$configId1,
@@ -226,7 +151,7 @@ class NewJobFactoryTest extends BaseTest
 
     public function testCreateNewJobNormalizeBranch(): void
     {
-        [$factory] = $this->getJobFactoryWithoutDataPlaneSupport();
+        $factory = $this->getJobFactory();
         $data = [
             '#tokenString' => self::getRequiredEnv('TEST_STORAGE_API_TOKEN'),
             'componentId' => self::COMPONENT_ID_1,
@@ -257,7 +182,7 @@ class NewJobFactoryTest extends BaseTest
 
     public function testCreateNewJobFull(): void
     {
-        [$factory] = $this->getJobFactoryWithoutDataPlaneSupport();
+        $factory = $this->getJobFactory();
         $data = [
             '#tokenString' => self::getRequiredEnv('TEST_STORAGE_API_TOKEN'),
             'parentRunId' => '2345',
@@ -298,7 +223,7 @@ class NewJobFactoryTest extends BaseTest
 
     public function testCreateJobForceRun(): void
     {
-        [$factory] = $this->getJobFactoryWithoutDataPlaneSupport();
+        $factory = $this->getJobFactory();
         $data = [
             '#tokenString' => self::getRequiredEnv('TEST_STORAGE_API_TOKEN'),
             'componentId' => 'keboola.runner-config-test',
@@ -314,7 +239,7 @@ class NewJobFactoryTest extends BaseTest
 
     public function testCreateNewJobParallelismNumeric(): void
     {
-        [$factory] = $this->getJobFactoryWithoutDataPlaneSupport();
+        $factory = $this->getJobFactory();
         $data = [
             '#tokenString' => self::getRequiredEnv('TEST_STORAGE_API_TOKEN'),
             'parentRunId' => '2345',
@@ -339,7 +264,7 @@ class NewJobFactoryTest extends BaseTest
 
     public function testCreateNewJobParallelismInfinity(): void
     {
-        [$factory] = $this->getJobFactoryWithoutDataPlaneSupport();
+        $factory = $this->getJobFactory();
         $data = [
             '#tokenString' => self::getRequiredEnv('TEST_STORAGE_API_TOKEN'),
             'parentRunId' => '2345',
@@ -364,7 +289,7 @@ class NewJobFactoryTest extends BaseTest
 
     public function testCreateNewJobParallelismZero(): void
     {
-        [$factory] = $this->getJobFactoryWithoutDataPlaneSupport();
+        $factory = $this->getJobFactory();
         $data = [
             '#tokenString' => self::getRequiredEnv('TEST_STORAGE_API_TOKEN'),
             'parentRunId' => '2345',
@@ -389,7 +314,7 @@ class NewJobFactoryTest extends BaseTest
 
     public function testCreateNewJobParallelismForcedType(): void
     {
-        [$factory] = $this->getJobFactoryWithoutDataPlaneSupport();
+        $factory = $this->getJobFactory();
         $data = [
             '#tokenString' => self::getRequiredEnv('TEST_STORAGE_API_TOKEN'),
             'parentRunId' => '2345',
@@ -415,7 +340,7 @@ class NewJobFactoryTest extends BaseTest
 
     public function testCreateNewOrchestratorJob(): void
     {
-        [$factory] = $this->getJobFactoryWithoutDataPlaneSupport();
+        $factory = $this->getJobFactory();
         $data = [
             '#tokenString' => self::getRequiredEnv('TEST_STORAGE_API_TOKEN'),
             'componentId' => 'keboola.orchestrator',
@@ -434,7 +359,7 @@ class NewJobFactoryTest extends BaseTest
 
     public function testCreateNewOrchestratorPhaseJob(): void
     {
-        [$factory] = $this->getJobFactoryWithoutDataPlaneSupport();
+        $factory = $this->getJobFactory();
         $data = [
             '#tokenString' => self::getRequiredEnv('TEST_STORAGE_API_TOKEN'),
             'componentId' => 'keboola.orchestrator',
@@ -452,7 +377,7 @@ class NewJobFactoryTest extends BaseTest
 
     public function testCreateNewOrchestratorPhaseJobZeroPhase(): void
     {
-        [$factory] = $this->getJobFactoryWithoutDataPlaneSupport();
+        $factory = $this->getJobFactory();
         $data = [
             '#tokenString' => self::getRequiredEnv('TEST_STORAGE_API_TOKEN'),
             'componentId' => 'keboola.orchestrator',
@@ -470,7 +395,7 @@ class NewJobFactoryTest extends BaseTest
 
     public function testCreateNewOrchestratorPhaseJobEmptyPhase(): void
     {
-        [$factory] = $this->getJobFactoryWithoutDataPlaneSupport();
+        $factory = $this->getJobFactory();
         $data = [
             '#tokenString' => self::getRequiredEnv('TEST_STORAGE_API_TOKEN'),
             'componentId' => 'keboola.orchestrator',
@@ -488,7 +413,7 @@ class NewJobFactoryTest extends BaseTest
 
     public function testCreateNewJobInvalidVariables(): void
     {
-        [$factory] = $this->getJobFactoryWithoutDataPlaneSupport();
+        $factory = $this->getJobFactory();
         $data = [
             '#tokenString' => self::getRequiredEnv('TEST_STORAGE_API_TOKEN'),
             'parentRunId' => '2345',
@@ -512,7 +437,7 @@ class NewJobFactoryTest extends BaseTest
 
     public function testCreateNewOrchestratorChildJob(): void
     {
-        [$factory] = $this->getJobFactoryWithoutDataPlaneSupport();
+        $factory = $this->getJobFactory();
         $data = [
             '#tokenString' => self::getRequiredEnv('TEST_STORAGE_API_TOKEN'),
             'componentId' => self::COMPONENT_ID_1,
@@ -530,7 +455,7 @@ class NewJobFactoryTest extends BaseTest
 
     public function testCreateRerunOrchestratorJob(): void
     {
-        [$factory] = $this->getJobFactoryWithoutDataPlaneSupport();
+        $factory = $this->getJobFactory();
         $data = [
             '#tokenString' => self::getRequiredEnv('TEST_STORAGE_API_TOKEN'),
             'componentId' => 'keboola.orchestrator',
@@ -553,7 +478,7 @@ class NewJobFactoryTest extends BaseTest
             'componentId' => 'keboola.test',
             'mode' => 'run',
         ];
-        [$factory] = $this->getJobFactoryWithoutDataPlaneSupport();
+        $factory = $this->getJobFactory();
 
         $this->expectException(ClientException::class);
         $this->expectExceptionMessageMatches(
@@ -571,7 +496,7 @@ class NewJobFactoryTest extends BaseTest
             'componentId' => 'keboola.test',
             'mode' => 'run',
         ];
-        [$factory] = $this->getJobFactoryWithoutDataPlaneSupport();
+        $factory = $this->getJobFactory();
 
         $this->expectException(ClientException::class);
         $this->expectExceptionMessage('Cannot create job: "Invalid access token".');
@@ -583,7 +508,7 @@ class NewJobFactoryTest extends BaseTest
     {
         $objectEncryptor = ObjectEncryptorFactory::getEncryptor($this->getEncryptorOptions());
 
-        [$factory] = $this->getJobFactoryWithoutDataPlaneSupport();
+        $factory = $this->getJobFactory();
         $data = [
             '#tokenString' => self::getRequiredEnv('TEST_STORAGE_API_TOKEN'),
             'configId' => self::$configId1,
@@ -626,107 +551,6 @@ class NewJobFactoryTest extends BaseTest
             $job->getConfigDataDecrypted(),
         );
     }
-
-    public function testCreateNewControlPlaneJob(): void
-    {
-        [$factory, $controlPlaneObjectEncryptor] = $this->getJobFactoryWithDataPlaneSupport(false);
-
-        $data = [
-            '#tokenString' => self::getRequiredEnv('TEST_STORAGE_API_TOKEN'),
-            'parentRunId' => '2345',
-            'componentId' => 'keboola.runner-config-test',
-            'mode' => 'run',
-            'configRowIds' => ['234'],
-            'configData' => [
-                'parameters' => [
-                    'foo' => 'bar',
-                ],
-            ],
-            'tag' => 'latest',
-            'variableValuesData' => [
-                'values' => [
-                    [
-                        'name' => 'bar',
-                        'value' => 'Kochba',
-                    ],
-                ],
-            ],
-            'backend' => [
-                'type' => 'custom',
-            ],
-        ];
-
-        $job = $factory->createNewJob($data);
-
-        self::assertNotEmpty($job->getId());
-        self::assertNull($job->getConfigId());
-        self::assertStringStartsWith('KBC::ProjectSecure', $job->getTokenString());
-        self::assertEquals(['234'], $job->getConfigRowIds());
-        self::assertEquals(['parameters' => ['foo' => 'bar']], $job->getConfigData());
-        self::assertEquals('latest', $job->getTag());
-        self::assertEquals('2345.' . $job->getId(), $job->getRunId());
-        self::assertEquals(['values' => [['name' => 'bar', 'value' => 'Kochba']]], $job->getVariableValuesData());
-        self::assertNull($job->getBackend()->getType());
-        self::assertSame('custom', $job->getBackend()->getContainerType());
-        self::assertSame(JobType::STANDARD, $job->getType());
-
-        $decodedToken = $controlPlaneObjectEncryptor->decryptForProject(
-            $job->getTokenString(),
-            'keboola.runner-config-test',
-            self::$projectId,
-        );
-        self::assertSame($decodedToken, $job->getTokenDecrypted());
-    }
-
-    public function testCreateNewDataPlaneJob(): void
-    {
-        [$factory, , $dataPlaneObjectEncryptor] = $this->getJobFactoryWithDataPlaneSupport(true);
-
-        $data = [
-            '#tokenString' => self::getRequiredEnv('TEST_STORAGE_API_TOKEN'),
-            'parentRunId' => '2345',
-            'componentId' => 'keboola.runner-config-test',
-            'mode' => 'run',
-            'configRowIds' => ['234'],
-            'configData' => [
-                'parameters' => [
-                    'foo' => 'bar',
-                ],
-            ],
-            'tag' => 'latest',
-            'variableValuesData' => [
-                'values' => [
-                    [
-                        'name' => 'bar',
-                        'value' => 'Kochba',
-                    ],
-                ],
-            ],
-            'backend' => [
-                'type' => 'custom',
-            ],
-        ];
-        $job = $factory->createNewJob($data);
-        self::assertNotEmpty($job->getId());
-        self::assertNull($job->getConfigId());
-        self::assertStringStartsWith('KBC::ProjectSecure', $job->getTokenString());
-        self::assertEquals(['234'], $job->getConfigRowIds());
-        self::assertEquals(['parameters' => ['foo' => 'bar']], $job->getConfigData());
-        self::assertEquals('latest', $job->getTag());
-        self::assertEquals('2345.' . $job->getId(), $job->getRunId());
-        self::assertEquals(['values' => [['name' => 'bar', 'value' => 'Kochba']]], $job->getVariableValuesData());
-        self::assertNull($job->getBackend()->getType());
-        self::assertSame('custom', $job->getBackend()->getContainerType());
-        self::assertSame(JobType::STANDARD, $job->getType());
-
-        $decodedToken = $dataPlaneObjectEncryptor->decryptForProject(
-            $job->getTokenString(),
-            'keboola.runner-config-test',
-            self::$projectId,
-        );
-        self::assertSame($decodedToken, $job->getTokenDecrypted());
-    }
-
 
     /** @dataProvider provideBranchIds */
     public function testCreateJobBranchType(
@@ -778,19 +602,10 @@ class NewJobFactoryTest extends BaseTest
             ->method('createClientWrapper')
             ->willReturn($clientWrapperMock);
 
-        $dataPlaneConfigRepository = $this->createMock(DataPlaneConfigRepository::class);
-        $dataPlaneConfigRepository->expects(self::never())->method(self::anything());
-
-        $objectEncryptorProvider = new DataPlaneObjectEncryptorProvider(
-            $objectEncryptor,
-            $dataPlaneConfigRepository,
-            false,
-        );
-
         $factory = new NewJobFactory(
             $storageClientFactoryMock,
             new JobRuntimeResolver($storageClientFactoryMock),
-            $objectEncryptorProvider,
+            new JobObjectEncryptor($objectEncryptor),
         );
 
         $data = [
