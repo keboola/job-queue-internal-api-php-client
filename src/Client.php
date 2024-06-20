@@ -381,6 +381,7 @@ class Client
     }
 
     /**
+     * @param non-empty-array<non-empty-string> $groupBy
      * @param non-empty-string|null $sortBy
      * @param "asc"|"desc"|null $sortOrder
      * @param int<1, 500>|null $jobsPerGroup
@@ -388,13 +389,16 @@ class Client
      * @return array<JobInterface>
      */
     public function searchJobsGrouped(
+        array $groupBy,
         ?SearchJobsFilters $filters = null,
         ?string $sortBy = null,
         ?string $sortOrder = null,
         ?int $jobsPerGroup = null,
         ?int $limit = null,
     ): array {
-        $query = [];
+        $query = [
+            'groupBy' => $groupBy,
+        ];
         if ($filters !== null) {
             $query['filters'] = $filters->toQueryParams();
         }

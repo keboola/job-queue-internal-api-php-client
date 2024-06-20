@@ -132,15 +132,19 @@ class ClientSearchTest extends TestCase
     public static function provideSearchJobsGroupedTestData(): iterable
     {
         yield 'no params' => [
+            'groupBy' => ['componentId'],
             'filters' => null,
             'sortBy' => null,
             'sortOrder' => null,
             'jobsPerGroup' => null,
             'limit' => null,
-            'expectedQuery' => '',
+            'expectedQuery' => http_build_query([
+                'groupBy' => ['componentId'],
+            ]),
         ];
 
         yield 'with filters' => [
+            'groupBy' => ['projectId'],
             'filters' => new SearchJobsFilters(
                 id: [1, 2],
                 startTimeFrom: new DateTimeImmutable('2021-01-01'),
@@ -155,6 +159,7 @@ class ClientSearchTest extends TestCase
             'jobsPerGroup' => null,
             'limit' => null,
             'expectedQuery' => http_build_query([
+                'groupBy' => ['projectId'],
                 'filters' => [
                     'id' => [1, 2],
                     'startTimeFrom' => '2021-01-01T00:00:00+00:00',
@@ -168,6 +173,7 @@ class ClientSearchTest extends TestCase
         ];
 
         yield 'sorting' => [
+            'groupBy' => ['componentId', 'projectId'],
             'filters' => new SearchJobsFilters(
                 id: [1],
             ),
@@ -176,6 +182,7 @@ class ClientSearchTest extends TestCase
             'jobsPerGroup' => null,
             'limit' => null,
             'expectedQuery' => http_build_query([
+                'groupBy' => ['componentId', 'projectId'],
                 'filters' => [
                     'id' => [1],
                 ],
@@ -185,6 +192,7 @@ class ClientSearchTest extends TestCase
         ];
 
         yield 'jobsPerGroup' => [
+            'groupBy' => ['componentId'],
             'filters' => new SearchJobsFilters(
                 id: [1],
             ),
@@ -193,6 +201,7 @@ class ClientSearchTest extends TestCase
             'jobsPerGroup' => 10,
             'limit' => 100,
             'expectedQuery' => http_build_query([
+                'groupBy' => ['componentId'],
                 'filters' => [
                     'id' => [1],
                 ],
@@ -204,12 +213,14 @@ class ClientSearchTest extends TestCase
 
     /**
      * @dataProvider provideSearchJobsGroupedTestData
+     * @param non-empty-array<non-empty-string> $groupBy
      * @param non-empty-string|null $sortBy
      * @param "asc"|"desc"|null $sortOrder
      * @param int<1, 500>|null $jobsPerGroup
      * @param int<1, 500>|null $limit
      */
     public function testSearchJobsGrouped(
+        array $groupBy,
         ?SearchJobsFilters $filters,
         ?string $sortBy,
         ?string $sortOrder,
@@ -226,7 +237,7 @@ class ClientSearchTest extends TestCase
         ];
 
         $client = $this->createClient($requests, $responses);
-        $jobs = $client->searchJobsGrouped($filters, $sortBy, $sortOrder, $jobsPerGroup, $limit);
+        $jobs = $client->searchJobsGrouped($groupBy, $filters, $sortBy, $sortOrder, $jobsPerGroup, $limit);
 
         self::assertCount(2, $jobs);
         self::assertSame('1', $jobs[0]->getId());

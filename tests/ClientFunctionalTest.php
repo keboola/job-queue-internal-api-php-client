@@ -1150,6 +1150,6 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
         // instead we test just that endpoint can be called, does not fail and filters are covered by unit test
 
         $client = $this->getClient();
-        $client->searchJobsGrouped();
+        $client->searchJobsGrouped(groupBy: ['componentId']);
     }
 }
