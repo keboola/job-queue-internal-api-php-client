@@ -321,6 +321,107 @@ class Client
     }
 
     /**
+     * @param non-empty-string|null $sortBy
+     * @param "asc"|"desc"|null $sortOrder
+     * @param int<0, max>|null $offset
+     * @param int<1, 500>|null $limit
+     * @return array<JobInterface>
+     */
+    public function searchJobs(
+        ?SearchJobsFilters $filters = null,
+        ?string $sortBy = null,
+        ?string $sortOrder = null,
+        ?int $offset = null,
+        ?int $limit = null,
+    ): array {
+        $query = [];
+        if ($filters !== null) {
+            $query['filters'] = $filters->toQueryParams();
+        }
+        if ($sortBy !== null) {
+            $query['sortBy'] = $sortBy;
+        }
+        if ($sortOrder !== null) {
+            $query['sortOrder'] = $sortOrder;
+        }
+        if ($offset !== null) {
+            $query['offset'] = $offset;
+        }
+        if ($limit !== null) {
+            $query['limit'] = $limit;
+        }
+
+        $request = new Request('GET', 'search/jobs?' . http_build_query($query));
+        $response = $this->sendRequest($request);
+
+        return $this->mapJobsFromResponse($response);
+    }
+
+    /**
+     * @param non-empty-string|null $sortBy
+     * @param "asc"|"desc"|null $sortOrder
+     * @return iterable<JobInterface>
+     */
+    public function searchAllJobs(
+        ?SearchJobsFilters $filters = null,
+        ?string $sortBy = null,
+        ?string $sortOrder = null,
+    ): iterable {
+        $offset = 0;
+        $limit = 100;
+
+        do {
+            $jobs = $this->searchJobs($filters, $sortBy, $sortOrder, $offset, $limit);
+            foreach ($jobs as $job) {
+                yield $job;
+            }
+
+            $offset += $limit;
+        } while (count($jobs) === $limit);
+    }
+
+    /**
+     * @param non-empty-array<non-empty-string> $groupBy
+     * @param non-empty-string|null $sortBy
+     * @param "asc"|"desc"|null $sortOrder
+     * @param int<1, 500>|null $jobsPerGroup
+     * @param int<1, 500>|null $limit
+     * @return array<JobInterface>
+     */
+    public function searchJobsGrouped(
+        array $groupBy,
+        ?SearchJobsFilters $filters = null,
+        ?string $sortBy = null,
+        ?string $sortOrder = null,
+        ?int $jobsPerGroup = null,
+        ?int $limit = null,
+    ): array {
+        $query = [
+            'groupBy' => $groupBy,
+        ];
+        if ($filters !== null) {
+            $query['filters'] = $filters->toQueryParams();
+        }
+        if ($sortBy !== null) {
+            $query['sortBy'] = $sortBy;
+        }
+        if ($sortOrder !== null) {
+            $query['sortOrder'] = $sortOrder;
+        }
+        if ($jobsPerGroup !== null) {
+            $query['jobsPerGroup'] = $jobsPerGroup;
+        }
+        if ($limit !== null) {
+            $query['limit'] = $limit;
+        }
+
+        $request = new Request('GET', 'search/grouped-jobs?' . http_build_query($query));
+        $response = $this->sendRequest($request);
+
+        return $this->mapJobsFromResponse($response);
+    }
+
+    /**
      * @return array<JobInterface>
      */
     private function mapJobsFromResponse(array $responseBody): array

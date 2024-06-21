@@ -1132,4 +1132,24 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
 
         self::assertSame($durationSum + $job->getDurationSeconds(), $client->getJobsDurationSum($job->getProjectId()));
     }
+
+    public function testSearchJobs(): void
+    {
+        // real functional tests for search would quite complicate as it would require setting up full internal API
+        // with logstash replication + a way to truncate the index between tests
+        // instead we test just that endpoint can be called, does not fail and filters are covered by unit test
+
+        $client = $this->getClient();
+        $client->searchJobs();
+    }
+
+    public function testSearchJobsGrouped(): void
+    {
+        // real functional tests for search would quite complicate as it would require setting up full internal API
+        // with logstash replication + a way to truncate the index between tests
+        // instead we test just that endpoint can be called, does not fail and filters are covered by unit test
+
+        $client = $this->getClient();
+        $client->searchJobsGrouped(groupBy: ['componentId']);
+    }
 }
