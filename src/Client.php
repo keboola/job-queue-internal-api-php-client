@@ -354,7 +354,7 @@ class Client
         $request = new Request('GET', 'search/jobs?' . http_build_query($query));
         $response = $this->sendRequest($request);
 
-        return $this->mapJobsFromResponse($response);
+        return $this->mapJobsFromSearchResponse($response);
     }
 
     /**
@@ -418,7 +418,16 @@ class Client
         $request = new Request('GET', 'search/grouped-jobs?' . http_build_query($query));
         $response = $this->sendRequest($request);
 
-        return $this->mapJobsFromResponse($response);
+        return $this->mapJobsFromSearchResponse($response);
+    }
+
+    /** @return JobInterface[] */
+    private function mapJobsFromSearchResponse(array $responseBody): array
+    {
+        return array_map(
+            fn(array $jobData): JobInterface => $this->existingJobFactory->loadFromElasticJobData($jobData),
+            $responseBody,
+        );
     }
 
     /**

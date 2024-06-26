@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Keboola\JobQueueInternalClient;
 
+use Keboola\JobQueueInternalClient\JobFactory\ElasticJobDefinition;
 use Keboola\JobQueueInternalClient\JobFactory\FullJobDefinition;
 use Keboola\JobQueueInternalClient\JobFactory\Job;
 use Keboola\JobQueueInternalClient\JobFactory\JobInterface;
@@ -21,6 +22,13 @@ class ExistingJobFactory extends JobFactory
     public function loadFromExistingJobData(array $data): JobInterface
     {
         $data = $this->validateJobData($data, FullJobDefinition::class);
+
+        return new Job($this->objectEncryptor, $this->storageClientFactory, $data);
+    }
+
+    public function loadFromElasticJobData(array $data): JobInterface
+    {
+        $data = $this->validateJobData($data, ElasticJobDefinition::class);
 
         return new Job($this->objectEncryptor, $this->storageClientFactory, $data);
     }

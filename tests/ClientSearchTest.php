@@ -311,7 +311,7 @@ class ClientSearchTest extends TestCase
         $handlerStack->push(Middleware::history($requests));
 
         $existingJobFactory = $this->createMock(ExistingJobFactory::class);
-        $existingJobFactory->method('loadFromExistingJobData')
+        $existingJobFactory->method('loadFromElasticJobData')
             ->willReturnCallback(function (array $data) {
                 $job = $this->createMock(Job::class);
                 $job->method('getId')->willReturn((string) $data['id']);
