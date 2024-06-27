@@ -386,7 +386,10 @@ class Client
      * @param "asc"|"desc"|null $sortOrder
      * @param int<1, 500>|null $jobsPerGroup
      * @param int<1, 500>|null $limit
-     * @return array<JobInterface>
+     * @return array<int, array{
+     *     group: array<string, string>,
+     *     jobs: JobInterface[]
+     * }>
      */
     public function searchJobsGrouped(
         array $groupBy,
@@ -416,9 +419,20 @@ class Client
         }
 
         $request = new Request('GET', 'search/grouped-jobs?' . http_build_query($query));
+        /** @var array<int, array{
+         *     group: array<string, string>,
+         *     jobs: array
+         * }> $response
+         */
         $response = $this->sendRequest($request);
 
-        return $this->mapJobsFromSearchResponse($response);
+        return array_map(
+            function (array $group): array {
+                $group['jobs'] = $this->mapJobsFromSearchResponse($group['jobs']);
+                return $group;
+            },
+            $response,
+        );
     }
 
     /** @return JobInterface[] */

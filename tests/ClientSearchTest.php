@@ -231,17 +231,27 @@ class ClientSearchTest extends TestCase
         $requests = [];
         $responses = [
             new Response(200, body: (string) json_encode([
-                $this->createJobData(1),
-                $this->createJobData(2),
+                [
+                    'group' => array_fill_keys($groupBy, true),
+                    'jobs' => [
+                        $this->createJobData(1),
+                        $this->createJobData(2),
+                    ],
+                ],
             ])),
         ];
 
         $client = $this->createClient($requests, $responses);
-        $jobs = $client->searchJobsGrouped($groupBy, $filters, $sortBy, $sortOrder, $jobsPerGroup, $limit);
+        $jobsGrouped = $client->searchJobsGrouped($groupBy, $filters, $sortBy, $sortOrder, $jobsPerGroup, $limit);
 
+        $jobs = $jobsGrouped[0]['jobs'];
         self::assertCount(2, $jobs);
         self::assertSame('1', $jobs[0]->getId());
         self::assertSame('2', $jobs[1]->getId());
+
+        $groups = $jobsGrouped[0]['group'];
+        self::assertCount(count($groupBy), $groups);
+        self::assertSame($groupBy, array_keys($groups));
 
         self::assertCount(1, $requests);
         $request = $requests[0]['request'];
