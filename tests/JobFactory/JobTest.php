@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Keboola\JobQueueInternalClient\Tests\JobFactory;
 
+use DateTimeImmutable;
 use Keboola\JobQueueInternalClient\Exception\ClientException;
 use Keboola\JobQueueInternalClient\JobFactory;
 use Keboola\JobQueueInternalClient\JobFactory\Job;
@@ -1016,5 +1017,47 @@ class JobTest extends BaseTest
         $executionToken = $job->getExecutionTokenDecrypted($applicationToken);
 
         self::assertSame('token', $executionToken);
+    }
+
+    public static function provideDatetimeStrings(): iterable
+    {
+        yield 'endTime - MySQL offset' => [
+            'datetimeString' => '2024-06-11T10:11:37+00:00',
+            'timeField' => 'endTime',
+        ];
+        yield 'endTime - Elastic offset' => [
+            'datetimeString' => '2024-06-11T10:11:37.000Z',
+            'timeField' => 'endTime',
+        ];
+        yield 'startTime - MySQL offset' => [
+            'datetimeString' => '2024-06-11T10:11:37+00:00',
+            'timeField' => 'startTime',
+        ];
+        yield 'startTime - Elastic offset' => [
+            'datetimeString' => '2024-06-11T10:11:37.000Z',
+            'timeField' => 'startTime',
+        ];
+        yield 'createdTime - MySQL offset' => [
+            'datetimeString' => '2024-06-11T10:11:37+00:00',
+            'timeField' => 'createdTime',
+        ];
+        yield 'createdTime - Elastic offset' => [
+            'datetimeString' => '2024-06-11T10:11:37.000Z',
+            'timeField' => 'createdTime',
+        ];
+    }
+
+    /** @dataProvider provideDatetimeStrings */
+    public function testTimeGetters(string $datetimeString, string $timeField): void
+    {
+        $jobData = $this->jobData;
+        $getterMethodName = 'get' . ucfirst($timeField);
+        self::assertNull($this->getJob($jobData)->$getterMethodName());
+
+        $jobData[$timeField] = $datetimeString;
+        $job = $this->getJob($jobData);
+
+        self::assertEquals(new DateTimeImmutable('2024-06-11T10:11:37+00:00'), $job->$getterMethodName());
+        self::assertEquals('+00:00', $job->$getterMethodName()->getTimezone()->getName());
     }
 }

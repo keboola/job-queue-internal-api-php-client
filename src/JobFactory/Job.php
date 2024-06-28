@@ -29,6 +29,7 @@ class Job implements JsonSerializable, JobInterface
 {
     private ?DateTimeImmutable $endTime;
     private ?DateTimeImmutable $startTime;
+    private ?DateTimeImmutable $createdTime = null;
     private ?string $tokenDecrypted = null;
     private ?string $executionTokenDecrypted = null;
     private ?array $componentConfigurationDecrypted = null;
@@ -50,21 +51,19 @@ class Job implements JsonSerializable, JobInterface
 
         $this->data['isFinished'] = in_array($this->getStatus(), JobInterface::STATUSES_FINISHED);
         $this->data['parentRunId'] = $this->getParentRunId();
+
         $this->startTime = null;
         $this->endTime = null;
-        try {
-            if (!empty($this->data['startTime'])) {
-                $this->startTime = new DateTimeImmutable($this->data['startTime'], new DateTimeZone('utc'));
-            }
-        } catch (Throwable $e) {
-            // intentionally empty
+
+        if (!empty($this->data['startTime'])) {
+            $this->startTime = $this->data['startTime'] = $this->createNormalizedDatetime($this->data['startTime']);
         }
-        try {
-            if (!empty($this->data['endTime'])) {
-                $this->endTime = new DateTimeImmutable($this->data['endTime'], new DateTimeZone('utc'));
-            }
-        } catch (Throwable $e) {
-            // intentionally empty
+        if (!empty($this->data['endTime'])) {
+            $this->endTime = $this->data['endTime']= $this->createNormalizedDatetime($this->data['endTime']);
+        }
+        if (!empty($this->data['createdTime'])) {
+            $this->createdTime = $this->data['createdTime'] =
+                $this->createNormalizedDatetime($this->data['createdTime']);
         }
     }
 
@@ -419,5 +418,20 @@ class Job implements JsonSerializable, JobInterface
         return $this->storageClientFactory->createClientWrapper(
             new ClientOptions(null, $this->getTokenDecrypted(), $this->getBranchId()),
         );
+    }
+    public function getCreatedTime(): ?DateTimeImmutable
+    {
+        return $this->createdTime;
+    }
+
+    private function createNormalizedDatetime(string $datetimeString): ?DateTimeImmutable
+    {
+        try {
+            $date = new DateTimeImmutable($datetimeString, new DateTimeZone('utc'));
+            $timezoneOffset = $date->format('P'); // e.g. Z => +00:00
+            return $date->setTimezone(new DateTimeZone($timezoneOffset));
+        } catch (Throwable) {
+            return null;
+        }
     }
 }
