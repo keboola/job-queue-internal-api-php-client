@@ -10,7 +10,6 @@ use InvalidArgumentException;
 use JsonSerializable;
 use Keboola\JobQueueInternalClient\Exception\ClientException;
 use Keboola\JobQueueInternalClient\JobFactory;
-use Keboola\JobQueueInternalClient\JobFactory\JobObjectEncryptor;
 use Keboola\JobQueueInternalClient\JobFactory\Runtime\Backend;
 use Keboola\JobQueueInternalClient\JobFactory\Runtime\Executor;
 use Keboola\JobQueueInternalClient\Result\JobMetrics;
@@ -27,8 +26,8 @@ use Throwable;
 
 class Job implements JsonSerializable, JobInterface
 {
-    private ?DateTimeImmutable $endTime;
-    private ?DateTimeImmutable $startTime;
+    private ?DateTimeImmutable $endTime = null;
+    private ?DateTimeImmutable $startTime = null;
     private ?DateTimeImmutable $createdTime = null;
     private ?string $tokenDecrypted = null;
     private ?string $executionTokenDecrypted = null;
@@ -52,18 +51,17 @@ class Job implements JsonSerializable, JobInterface
         $this->data['isFinished'] = in_array($this->getStatus(), JobInterface::STATUSES_FINISHED);
         $this->data['parentRunId'] = $this->getParentRunId();
 
-        $this->startTime = null;
-        $this->endTime = null;
-
         if (!empty($this->data['startTime'])) {
-            $this->startTime = $this->data['startTime'] = $this->createNormalizedDatetime($this->data['startTime']);
+            $this->startTime = new DateTimeImmutable($this->data['startTime'], new DateTimeZone('utc'));
+            $this->data['startTime'] = $this->startTime->format('c');
         }
         if (!empty($this->data['endTime'])) {
-            $this->endTime = $this->data['endTime']= $this->createNormalizedDatetime($this->data['endTime']);
+            $this->endTime = new DateTimeImmutable($this->data['endTime'], new DateTimeZone('utc'));
+            $this->data['endTime'] = $this->endTime->format('c');
         }
         if (!empty($this->data['createdTime'])) {
-            $this->createdTime = $this->data['createdTime'] =
-                $this->createNormalizedDatetime($this->data['createdTime']);
+            $this->createdTime = new DateTimeImmutable($this->data['createdTime'], new DateTimeZone('utc'));
+            $this->data['createdTime'] = $this->createdTime->format('c');
         }
     }
 
@@ -422,16 +420,5 @@ class Job implements JsonSerializable, JobInterface
     public function getCreatedTime(): ?DateTimeImmutable
     {
         return $this->createdTime;
-    }
-
-    private function createNormalizedDatetime(string $datetimeString): ?DateTimeImmutable
-    {
-        try {
-            $date = new DateTimeImmutable($datetimeString, new DateTimeZone('utc'));
-            $timezoneOffset = $date->format('P'); // e.g. Z => +00:00
-            return $date->setTimezone(new DateTimeZone($timezoneOffset));
-        } catch (Throwable) {
-            return null;
-        }
     }
 }

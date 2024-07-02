@@ -20,6 +20,7 @@ use Keboola\StorageApiBranch\Factory\ClientOptions;
 use Keboola\StorageApiBranch\Factory\StorageClientPlainFactory;
 use RuntimeException;
 use Symfony\Component\Uid\Uuid;
+use Throwable;
 
 class JobTest extends BaseTest
 {
@@ -1019,45 +1020,81 @@ class JobTest extends BaseTest
         self::assertSame('token', $executionToken);
     }
 
-    public static function provideDatetimeStrings(): iterable
+    public static function provideValidDatetimeStrings(): iterable
     {
         yield 'endTime - MySQL offset' => [
             'datetimeString' => '2024-06-11T10:11:37+00:00',
-            'timeField' => 'endTime',
+            'datetimeField' => 'endTime',
         ];
         yield 'endTime - Elastic offset' => [
             'datetimeString' => '2024-06-11T10:11:37.000Z',
-            'timeField' => 'endTime',
+            'datetimeField' => 'endTime',
         ];
         yield 'startTime - MySQL offset' => [
             'datetimeString' => '2024-06-11T10:11:37+00:00',
-            'timeField' => 'startTime',
+            'datetimeField' => 'startTime',
         ];
         yield 'startTime - Elastic offset' => [
             'datetimeString' => '2024-06-11T10:11:37.000Z',
-            'timeField' => 'startTime',
+            'datetimeField' => 'startTime',
         ];
         yield 'createdTime - MySQL offset' => [
             'datetimeString' => '2024-06-11T10:11:37+00:00',
-            'timeField' => 'createdTime',
+            'datetimeField' => 'createdTime',
         ];
         yield 'createdTime - Elastic offset' => [
             'datetimeString' => '2024-06-11T10:11:37.000Z',
-            'timeField' => 'createdTime',
+            'datetimeField' => 'createdTime',
         ];
     }
 
-    /** @dataProvider provideDatetimeStrings */
-    public function testTimeGetters(string $datetimeString, string $timeField): void
+    /** @dataProvider provideValidDatetimeStrings */
+    public function testDatetimeFields(string $datetimeString, string $datetimeField): void
     {
         $jobData = $this->jobData;
-        $getterMethodName = 'get' . ucfirst($timeField);
-        self::assertNull($this->getJob($jobData)->$getterMethodName());
+        $fieldGetterName = 'get' . ucfirst($datetimeField);
+        self::assertNull($this->getJob($jobData)->$fieldGetterName());
 
-        $jobData[$timeField] = $datetimeString;
+        $jobData[$datetimeField] = $datetimeString;
         $job = $this->getJob($jobData);
 
-        self::assertEquals(new DateTimeImmutable('2024-06-11T10:11:37+00:00'), $job->$getterMethodName());
-        self::assertEquals('+00:00', $job->$getterMethodName()->getTimezone()->getName());
+        self::assertEquals(new DateTimeImmutable('2024-06-11T10:11:37+00:00'), $job->$fieldGetterName());
+        self::assertEquals('2024-06-11T10:11:37+00:00', $job->jsonSerialize()[$datetimeField]);
+    }
+
+    public static function provideDatetimeFields(): iterable
+    {
+        yield 'endTime' => ['datetimeField' => 'endTime'];
+        yield 'startTime' => ['datetimeField' => 'startTime'];
+        yield 'createdTime' => ['datetimeField' => 'createdTime'];
+    }
+
+    /** @dataProvider provideDatetimeFields */
+    public function testDatetimeFieldsEmpty(string $datetimeField): void
+    {
+        $jobData = $this->jobData;
+        $fieldGetterName = 'get' . ucfirst($datetimeField);
+        self::assertNull($this->getJob($jobData)->$fieldGetterName());
+
+        $jobData[$datetimeField] = null;
+        $job = $this->getJob($jobData);
+
+        self::assertNull($job->$fieldGetterName());
+        self::assertNull($job->jsonSerialize()[$datetimeField]);
+    }
+
+    /** @dataProvider provideDatetimeFields */
+    public function testDatetimeFieldsException(string $datetimeField): void
+    {
+        $jobData = $this->jobData;
+        $fieldGetterName = 'get' . ucfirst($datetimeField);
+        self::assertNull($this->getJob($jobData)->$fieldGetterName());
+
+        $jobData[$datetimeField] = 'invalid datetime string';
+
+        self::expectException(Throwable::class);
+        self::expectExceptionMessage('Failed to parse time string');
+
+        $this->getJob($jobData);
     }
 }
