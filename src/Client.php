@@ -351,7 +351,13 @@ class Client
             $query['limit'] = $limit;
         }
 
-        $request = new Request('GET', 'search/jobs?' . http_build_query($query));
+        return $this->searchJobsRaw($query);
+    }
+
+    /** @return JobInterface[] */
+    public function searchJobsRaw(array $rawQuery): array
+    {
+        $request = new Request('GET', 'search/jobs?' . http_build_query($rawQuery));
         $response = $this->sendRequest($request);
 
         return $this->mapJobsFromSearchResponse($response);
@@ -418,10 +424,22 @@ class Client
             $query['limit'] = $limit;
         }
 
+        return $this->searchJobsGroupedRaw($query);
+    }
+
+    /**
+     * @return array<int, array{
+     *     group: array<string, string>,
+     *     jobs: JobInterface[]
+     * }>
+     */
+    public function searchJobsGroupedRaw(array $query): array
+    {
         $request = new Request('GET', 'search/grouped-jobs?' . http_build_query($query));
-        /** @var array<int, array{
+        /**
+         * @var array<int, array{
          *     group: array<string, string>,
-         *     jobs: array
+         *     jobs: JobInterface[]
          * }> $response
          */
         $response = $this->sendRequest($request);

@@ -1143,6 +1143,16 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
         $client->searchJobs();
     }
 
+    public function testSearchJobsRaw(): void
+    {
+        // real functional tests for search would quite complicate as it would require setting up full internal API
+        // with logstash replication + a way to truncate the index between tests
+        // instead we test just that endpoint can be called, does not fail and filters are covered by unit test
+
+        $client = $this->getClient();
+        $client->searchJobsRaw([]);
+    }
+
     public function testSearchJobsGrouped(): void
     {
         // real functional tests for search would quite complicate as it would require setting up full internal API
@@ -1151,5 +1161,15 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
 
         $client = $this->getClient();
         $client->searchJobsGrouped(groupBy: ['componentId']);
+    }
+
+    public function testSearchJobsGroupedRaw(): void
+    {
+        // real functional tests for search would quite complicate as it would require setting up full internal API
+        // with logstash replication + a way to truncate the index between tests
+        // instead we test just that endpoint can be called, does not fail and filters are covered by unit test
+
+        $client = $this->getClient();
+        $client->searchJobsGroupedRaw(['groupBy' => ['componentId']]);
     }
 }

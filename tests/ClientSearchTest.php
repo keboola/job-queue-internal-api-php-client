@@ -313,6 +313,113 @@ class ClientSearchTest extends TestCase
         );
     }
 
+    public function testSearchJobsRawQueryParametersPropagation(): void
+    {
+        $requests = [];
+        $responses = [new Response(body: '[]')];
+
+        $client = $this->createClient($requests, $responses);
+        $client->searchJobsRaw([
+            'sortBy' => '1',
+            'sortOrder' => '1',
+            'offset' => '1',
+            'limit' => '1',
+            'filters' => [
+                'id' => ['1'],
+                'runId' => ['1'],
+                'branchId' => ['1'],
+                'configId' => ['1'],
+                'configRowIds' => ['1'],
+                'projectId' => ['1'],
+                'tokenId' => ['1'],
+                'tokenDescription' => ['1'],
+                'componentId' => ['1'],
+                'status' => ['1'],
+                'desiredStatus' => ['1'],
+                'mode' => ['1'],
+                'tag' => ['1'],
+                'startTimeFrom' => '1',
+                'startTimeTo' => '1',
+                'createdTimeFrom' => '1',
+                'createdTimeTo' => '1',
+                'endTimeFrom' => '1',
+                'endTimeTo' => '1',
+                'durationSecondsFrom' => '1',
+                'durationSecondsTo' => '1',
+                'variableValuesId' => ['1'],
+                'parentRunId' => ['1'],
+                'type' => ['1'],
+            ],
+        ]);
+
+        self::assertSame(
+            'sortBy=1&sortOrder=1&offset=1&limit=1&filters%5Bid%5D%5B0%5D=1&' .
+            'filters%5BrunId%5D%5B0%5D=1&filters%5BbranchId%5D%5B0%5D=1&filters%5BconfigId%5D%5B0%5D=1&' .
+            'filters%5BconfigRowIds%5D%5B0%5D=1&filters%5BprojectId%5D%5B0%5D=1&filters%5BtokenId%5D%5B0%5D=1&' .
+            'filters%5BtokenDescription%5D%5B0%5D=1&filters%5BcomponentId%5D%5B0%5D=1&filters%5Bstatus%5D%5B0%5D=1&' .
+            'filters%5BdesiredStatus%5D%5B0%5D=1&filters%5Bmode%5D%5B0%5D=1&filters%5Btag%5D%5B0%5D=1&' .
+            'filters%5BstartTimeFrom%5D=1&filters%5BstartTimeTo%5D=1&filters%5BcreatedTimeFrom%5D=1&' .
+            'filters%5BcreatedTimeTo%5D=1&filters%5BendTimeFrom%5D=1&filters%5BendTimeTo%5D=1&' .
+            'filters%5BdurationSecondsFrom%5D=1&filters%5BdurationSecondsTo%5D=1&' .
+            'filters%5BvariableValuesId%5D%5B0%5D=1&filters%5BparentRunId%5D%5B0%5D=1&filters%5Btype%5D%5B0%5D=1',
+            $requests[0]['request']->getUri()->getQuery(),
+        );
+    }
+
+    public function testSearchJobsGroupedRawQueryParametersPropagation(): void
+    {
+        $requests = [];
+        $responses = [new Response(body: '[]')];
+
+        $client = $this->createClient($requests, $responses);
+        $client->searchJobsGroupedRaw([
+            'sortBy' => '1',
+            'sortOrder' => '1',
+            'jobsPerGroup' => '1',
+            'limit' => '1',
+            'groupBy' => ['1'],
+            'filters' => [
+                'id' => ['1'],
+                'runId' => ['1'],
+                'branchId' => ['1'],
+                'configId' => ['1'],
+                'configRowIds' => ['1'],
+                'projectId' => ['1'],
+                'tokenId' => ['1'],
+                'tokenDescription' => ['1'],
+                'componentId' => ['1'],
+                'status' => ['1'],
+                'desiredStatus' => ['1'],
+                'mode' => ['1'],
+                'tag' => ['1'],
+                'startTimeFrom' => '1',
+                'startTimeTo' => '1',
+                'createdTimeFrom' => '1',
+                'createdTimeTo' => '1',
+                'endTimeFrom' => '1',
+                'endTimeTo' => '1',
+                'durationSecondsFrom' => '1',
+                'durationSecondsTo' => '1',
+                'variableValuesId' => ['1'],
+                'parentRunId' => ['1'],
+                'type' => ['1'],
+            ],
+        ]);
+
+        self::assertSame(
+            'sortBy=1&sortOrder=1&jobsPerGroup=1&limit=1&groupBy%5B0%5D=1&filters%5Bid%5D%5B0%5D=1&' .
+            'filters%5BrunId%5D%5B0%5D=1&filters%5BbranchId%5D%5B0%5D=1&filters%5BconfigId%5D%5B0%5D=1&' .
+            'filters%5BconfigRowIds%5D%5B0%5D=1&filters%5BprojectId%5D%5B0%5D=1&filters%5BtokenId%5D%5B0%5D=1&' .
+            'filters%5BtokenDescription%5D%5B0%5D=1&filters%5BcomponentId%5D%5B0%5D=1&filters%5Bstatus%5D%5B0%5D=1&' .
+            'filters%5BdesiredStatus%5D%5B0%5D=1&filters%5Bmode%5D%5B0%5D=1&filters%5Btag%5D%5B0%5D=1&' .
+            'filters%5BstartTimeFrom%5D=1&filters%5BstartTimeTo%5D=1&filters%5BcreatedTimeFrom%5D=1&' .
+            'filters%5BcreatedTimeTo%5D=1&filters%5BendTimeFrom%5D=1&filters%5BendTimeTo%5D=1&' .
+            'filters%5BdurationSecondsFrom%5D=1&filters%5BdurationSecondsTo%5D=1&' .
+            'filters%5BvariableValuesId%5D%5B0%5D=1&filters%5BparentRunId%5D%5B0%5D=1&filters%5Btype%5D%5B0%5D=1',
+            $requests[0]['request']->getUri()->getQuery(),
+        );
+    }
+
     private function createClient(array &$requests, array $responses): Client
     {
         $httpHandler = new MockHandler($responses);
