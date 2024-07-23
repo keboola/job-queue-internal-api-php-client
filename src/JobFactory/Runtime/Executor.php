@@ -11,6 +11,7 @@ enum Executor: string
 
     public static function getDefault(): self
     {
-        return self::DIND;
+        $defaultValue = getenv('JOB_EXECUTOR_DEFAULT') ?: self::DIND->value;
+        return self::from($defaultValue);
     }
 }
