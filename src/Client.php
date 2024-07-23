@@ -572,7 +572,7 @@ class Client
         } catch (GuzzleClientException $e) {
             $body = $this->decodeRequestBody($e->getResponse());
             $this->throwExceptionByStringCode($body, $e);
-            throw new ClientException($e->getMessage(), $e->getCode(), $e);
+            throw new ClientException($e->getMessage(), $e->getCode(), $e, $body);
         } catch (GuzzleException $e) {
             throw new ClientException($e->getMessage(), $e->getCode(), $e);
         }
@@ -604,24 +604,28 @@ class Client
                     $previous->getMessage(),
                     $previous->getCode(),
                     $previous,
+                    $body,
                 );
             case StateTransitionForbiddenException::STRING_CODE:
                 throw new StateTransitionForbiddenException(
                     $previous->getMessage(),
                     $previous->getCode(),
                     $previous,
+                    $body,
                 );
             case StateTerminalException::STRING_CODE:
                 throw new StateTerminalException(
                     $previous->getMessage(),
                     $previous->getCode(),
                     $previous,
+                    $body,
                 );
             case DeduplicationIdConflictException::STRING_CODE:
                 throw new DeduplicationIdConflictException(
                     $previous->getMessage(),
                     $previous->getCode(),
                     $previous,
+                    $body,
                 );
         }
     }

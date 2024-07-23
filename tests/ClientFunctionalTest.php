@@ -393,9 +393,19 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
     public function testGetInvalidJob(): void
     {
         $client = $this->getClient();
-        $this->expectException(ClientException::class);
-        $this->expectExceptionMessage('404 Not Found');
-        $client->getJob('123456');
+
+        try {
+            $client->getJob('123456');
+            self::fail('Request should fail');
+        } catch (ClientException $e) {
+            self::assertStringContainsString('404 Not Found', $e->getMessage());
+            self::assertSame(404, $e->getCode());
+
+            self::assertIsArray($e->getResponseData());
+            self::assertSame('error', $e->getResponseData()['status'] ?? null);
+            self::assertSame('Job "123456" not found', $e->getResponseData()['error'] ?? null);
+            self::assertSame([], $e->getResponseData()['context'] ?? null);
+        }
     }
 
     public function testGetJobsWithStatuses(): void
