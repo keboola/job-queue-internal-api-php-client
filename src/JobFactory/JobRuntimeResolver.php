@@ -12,7 +12,7 @@ use Keboola\JobQueueInternalClient\JobFactory\Runtime\Executor;
 use Keboola\PermissionChecker\BranchType;
 use Keboola\StorageApi\ClientException as StorageClientException;
 use Keboola\StorageApi\Components;
-use Keboola\StorageApi\DevBranches;
+use Keboola\StorageApiBranch\ClientWrapper;
 use Keboola\StorageApiBranch\Factory\ClientOptions;
 use Keboola\StorageApiBranch\Factory\StorageClientPlainFactory;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
@@ -28,14 +28,15 @@ class JobRuntimeResolver
 
     private const PAY_AS_YOU_GO_FEATURE = 'pay-as-you-go';
 
-    private StorageClientPlainFactory $storageClientFactory;
+    private ClientWrapper $clientWrapper;
+    private Components $componentsApiClient;
     private ?array $configuration;
     private array $componentData;
     private array $jobData;
 
-    public function __construct(StorageClientPlainFactory $storageClientFactory)
-    {
-        $this->storageClientFactory = $storageClientFactory;
+    public function __construct(
+        private readonly StorageClientPlainFactory $storageClientFactory,
+    ) {
     }
 
     public function resolveJobData(array $jobData, array $tokenInfo): array
@@ -44,13 +45,19 @@ class JobRuntimeResolver
         $this->jobData = $jobData;
 
         try {
-            $this->componentData = $this->getComponentsApiClient(null)
-                ->getComponent($jobData['componentId']);
+            $this->clientWrapper = $this->storageClientFactory->createClientWrapper(new ClientOptions(
+                token: $jobData['#tokenString'],
+                branchId: ((string) $jobData['branchId']) ?: null,
+            ));
+
+            $this->componentsApiClient = new Components($this->clientWrapper->getBranchClient());
+            $this->componentData = $this->componentsApiClient->getComponent($jobData['componentId']);
+
             $jobData['tag'] = $this->resolveTag($jobData);
             $variableValues = $this->resolveVariables();
             $jobData['parallelism'] = $this->resolveParallelism($jobData);
             $jobData['executor'] = $this->resolveExecutor($jobData)->value;
-            $jobData['branchType'] = $this->resolveBranchType($jobData)->value;
+            $jobData = $this->resolveBranchType($jobData);
 
             // set type after resolving parallelism
             $jobData['type'] = $this->resolveJobType($jobData)->value;
@@ -230,10 +237,7 @@ class JobRuntimeResolver
                 $this->jobData['configId'] !== null &&
                 $this->jobData['configId'] !== ''
             ) {
-                $componentsApi = $this->getComponentsApiClient(
-                    !empty($this->jobData['branchId']) ? (string) $this->jobData['branchId'] : null,
-                );
-                $this->configuration = $componentsApi->getConfiguration(
+                $this->configuration = $this->componentsApiClient->getConfiguration(
                     $this->jobData['componentId'],
                     $this->jobData['configId'],
                 );
@@ -255,17 +259,6 @@ class JobRuntimeResolver
             }
         }
         return $this->configuration;
-    }
-
-    private function getComponentsApiClient(?string $branchId): Components
-    {
-        return new Components(
-            $this->storageClientFactory->createClientWrapper(new ClientOptions(
-                null,
-                $this->jobData['#tokenString'],
-                $branchId,
-            ))->getBranchClient(),
-        );
     }
 
     private function resolveIsForceRunMode(): bool
@@ -304,21 +297,13 @@ class JobRuntimeResolver
         return Executor::from($value);
     }
 
-    private function getBranchesApiClient(): DevBranches
+    public function resolveBranchType(array $jobData): array
     {
-        return new DevBranches(
-            $this->storageClientFactory->createClientWrapper(new ClientOptions(
-                token: $this->jobData['#tokenString'],
-            ))->getBasicClient(),
-        );
-    }
+        $branchType = $this->clientWrapper->isDefaultBranch() ? BranchType::DEFAULT : BranchType::DEV;
 
-    public function resolveBranchType(array $jobData): BranchType
-    {
-        if ($jobData['branchId'] === 'default' || $jobData['branchId'] === null) {
-            return BranchType::DEFAULT;
-        }
-        $branch = $this->getBranchesApiClient()->getBranch((int) $jobData['branchId']);
-        return $branch['isDefault'] ? BranchType::DEFAULT : BranchType::DEV;
+        $jobData['branchType'] = $branchType->value;
+        $jobData['branchId'] = $this->clientWrapper->getBranchId();
+
+        return $jobData;
     }
 }

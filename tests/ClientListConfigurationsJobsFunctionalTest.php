@@ -9,6 +9,8 @@ use Keboola\StorageApi\Client;
 use Keboola\StorageApi\Components;
 use Keboola\StorageApi\DevBranches;
 use Keboola\StorageApi\Options\Components\Configuration;
+use Keboola\StorageApiBranch\ClientWrapper;
+use Keboola\StorageApiBranch\Factory\ClientOptions;
 
 class ClientListConfigurationsJobsFunctionalTest extends BaseClientFunctionalTest
 {
@@ -334,7 +336,12 @@ class ClientListConfigurationsJobsFunctionalTest extends BaseClientFunctionalTes
         self::assertCount(2, $response);
         self::assertEquals($createdJob2->jsonSerialize(), $response[0]->jsonSerialize());
 
+        $defaultBranchId = (new ClientWrapper(new ClientOptions(
+            url: self::getRequiredEnv('TEST_STORAGE_API_URL'),
+            token: self::getRequiredEnv('TEST_STORAGE_API_TOKEN'),
+        )))->getDefaultBranch()->id;
+
         self::assertNotSame($createdJob1->getId(), $response[1]->getId());
-        self::assertNull($response[1]->getBranchId());
+        self::assertSame($defaultBranchId, $response[1]->getBranchId());
     }
 }
