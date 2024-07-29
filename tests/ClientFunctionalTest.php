@@ -18,6 +18,8 @@ use Keboola\StorageApi\Client as StorageClient;
 use Keboola\StorageApi\Components;
 use Keboola\StorageApi\DevBranches;
 use Keboola\StorageApi\Options\Components\Configuration;
+use Keboola\StorageApiBranch\ClientWrapper;
+use Keboola\StorageApiBranch\Factory\ClientOptions;
 
 class ClientFunctionalTest extends BaseClientFunctionalTest
 {
@@ -29,16 +31,19 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
     private static string $componentId1Tag;
 
     private static StorageClient $client;
+    private static string $defaultBranchId;
 
     public static function setUpBeforeClass(): void
     {
         parent::setUpBeforeClass();
-        self::$client = new StorageClient(
-            [
-                'token' => (string) getenv('TEST_STORAGE_API_TOKEN'),
-                'url' => (string) getenv('TEST_STORAGE_API_URL'),
-            ],
-        );
+
+        $clientWrapper = new ClientWrapper(new ClientOptions(
+            url: self::getRequiredEnv('TEST_STORAGE_API_URL'),
+            token: self::getRequiredEnv('TEST_STORAGE_API_TOKEN'),
+        ));
+        self::$defaultBranchId = $clientWrapper->getDefaultBranch()->id;
+
+        self::$client = $clientWrapper->getBasicClient();
         $componentsApi = new Components(self::$client);
         $configuration = new Configuration();
         $configuration->setConfiguration([]);
@@ -160,7 +165,7 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
             'startTime' => null,
             'endTime' => null,
             'durationSeconds' => 0,
-            'branchId' => null,
+            'branchId' => self::$defaultBranchId,
             'variableValuesId' => null,
             'variableValuesData' => [
                 'values' => [],
@@ -273,7 +278,7 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
                 'startTime' => null,
                 'endTime' => null,
                 'durationSeconds' => 0,
-                'branchId' => null,
+                'branchId' => self::$defaultBranchId,
                 'variableValuesId' => null,
                 'variableValuesData' => [
                     'values' => [],
@@ -559,7 +564,7 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
         /** @var Job $listedJob */
         $listedJob = $response[0];
         self::assertEquals($createdJob->jsonSerialize(), $listedJob->jsonSerialize());
-        self::assertNull($listedJob->jsonSerialize()['branchId']);
+        self::assertSame(self::$defaultBranchId, $listedJob->jsonSerialize()['branchId']);
 
         // list more components
         $response = $client->listJobs(
@@ -750,7 +755,7 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
         $listedJob = $response[0];
 
         self::assertEquals($createdJob2->jsonSerialize(), $listedJob->jsonSerialize());
-        self::assertNull($listedJob->jsonSerialize()['branchId']);
+        self::assertSame(self::$defaultBranchId, $listedJob->jsonSerialize()['branchId']);
         $branchesApi->deleteBranch($branchId);
     }
 
@@ -814,7 +819,7 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
         /** @var Job $listedJob */
         $listedJob = $response[0];
         self::assertEquals($createdJob2->jsonSerialize(), $listedJob->jsonSerialize());
-        self::assertNull($listedJob->jsonSerialize()['branchId']);
+        self::assertSame(self::$defaultBranchId, $listedJob->jsonSerialize()['branchId']);
 
         // no jobs
         $response = $client->listJobs(
