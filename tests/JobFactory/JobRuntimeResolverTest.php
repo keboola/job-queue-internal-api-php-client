@@ -8,11 +8,9 @@ use Generator;
 use Keboola\JobQueueInternalClient\Exception\ClientException;
 use Keboola\JobQueueInternalClient\Exception\ConfigurationDisabledException;
 use Keboola\JobQueueInternalClient\JobFactory;
-use Keboola\JobQueueInternalClient\JobFactory\JobInterface;
 use Keboola\JobQueueInternalClient\JobFactory\JobRuntimeResolver;
 use Keboola\JobQueueInternalClient\JobFactory\JobType;
 use Keboola\StorageApi\BranchAwareClient;
-use Keboola\StorageApi\Client;
 use Keboola\StorageApi\ClientException as StorageClientException;
 use Keboola\StorageApiBranch\ClientWrapper;
 use Keboola\StorageApiBranch\Factory\ClientOptions;
@@ -21,6 +19,8 @@ use PHPUnit\Framework\TestCase;
 
 class JobRuntimeResolverTest extends TestCase
 {
+    private const DEFAULT_BRANCH_ID = '9999';
+
     /** @var array */
     private const JOB_DATA = [
         'id' => '123456456',
@@ -195,7 +195,7 @@ class JobRuntimeResolverTest extends TestCase
                     'containerType' => 'custom',
                     'context' => 'wml',
                 ],
-                'branchId' => 'default',
+                'branchId' => self::DEFAULT_BRANCH_ID,
                 'tag' => '1.2.3',
                 'variableValuesData' => [
                     'values' => [
@@ -268,7 +268,7 @@ class JobRuntimeResolverTest extends TestCase
                     'containerType' => 'mass-produced',
                     'context' => 'wml',
                 ],
-                'branchId' => 'default',
+                'branchId' => self::DEFAULT_BRANCH_ID,
                 'configData' => [
                     'variableValuesId' => '123',
                     'runtime' => [
@@ -362,7 +362,7 @@ class JobRuntimeResolverTest extends TestCase
                     'containerType' => 'stereotyped',
                     'context' => 'wml',
                 ],
-                'branchId' => 'default',
+                'branchId' => self::DEFAULT_BRANCH_ID,
                 'tag' => '4.5.6',
                 'parallelism' => '5',
                 'executor' => 'dind',
@@ -437,7 +437,7 @@ class JobRuntimeResolverTest extends TestCase
                     'containerType' => null,
                     'context' => 'wml',
                 ],
-                'branchId' => 'default',
+                'branchId' => self::DEFAULT_BRANCH_ID,
                 'tag' => '4.5.6',
                 'parallelism' => '5',
                 'executor' => 'dind',
@@ -514,7 +514,7 @@ class JobRuntimeResolverTest extends TestCase
                     'containerType' => 'stereotyped',
                     'context' => '123-extractor',
                 ],
-                'branchId' => 'default',
+                'branchId' => self::DEFAULT_BRANCH_ID,
                 'variableValuesId' => '123',
                 'configData' => [
                     'variableValuesId' => '456',
@@ -578,7 +578,7 @@ class JobRuntimeResolverTest extends TestCase
                     'containerType' => null,
                     'context' => '123-extractor',
                 ],
-                'branchId' => 'default',
+                'branchId' => self::DEFAULT_BRANCH_ID,
                 'tag' => '9.9.9',
                 'parallelism' => null,
                 'executor' => 'dind',
@@ -627,7 +627,7 @@ class JobRuntimeResolverTest extends TestCase
             'id' => '123456456',
             'runId' => '123456456',
             'configId' => '454124290',
-            'branchId' => 'default',
+            'branchId' => self::DEFAULT_BRANCH_ID,
             'branchType' => 'default',
             'componentId' => 'keboola.ex-db-snowflake',
             'mode' => 'run',
@@ -800,7 +800,7 @@ class JobRuntimeResolverTest extends TestCase
                     'containerType' => null,
                     'context' => '123-extractor',
                 ],
-                'branchId' => 'default',
+                'branchId' => self::DEFAULT_BRANCH_ID,
                 'tag' => '9.9.9',
                 'parallelism' => null,
                 'executor' => 'dind',
@@ -844,7 +844,7 @@ class JobRuntimeResolverTest extends TestCase
                     'containerType' => null,
                     'context' => '123-extractor',
                 ],
-                'branchId' => 'default',
+                'branchId' => self::DEFAULT_BRANCH_ID,
                 'tag' => '9.9.9',
                 'parallelism' => null,
                 'executor' => 'dind',
@@ -893,7 +893,7 @@ class JobRuntimeResolverTest extends TestCase
                     'containerType' => null,
                     'context' => '123-extractor',
                 ],
-                'branchId' => 'default',
+                'branchId' => self::DEFAULT_BRANCH_ID,
                 'tag' => '9.9.9',
                 'parallelism' => null,
                 'executor' => 'dind',
@@ -1145,7 +1145,7 @@ class JobRuntimeResolverTest extends TestCase
                     'containerType' => $expectedContainerType,
                     'context' => $expectedContext,
                 ],
-                'branchId' => 'default',
+                'branchId' => self::DEFAULT_BRANCH_ID,
                 'tag' => '1.2.3',
                 'variableValuesData' => [
                     'values' => [
@@ -1688,7 +1688,7 @@ class JobRuntimeResolverTest extends TestCase
                 'tokenId' => '456',
                 '#tokenString' => 'KBC::ProjectSecure::token',
                 'backend' => $expectedBackend,
-                'branchId' => 'default',
+                'branchId' => self::DEFAULT_BRANCH_ID,
                 'tag' => '1.2.3',
                 'configData' => $jobData['configData'],
                 'parallelism' => null,
@@ -1789,7 +1789,7 @@ class JobRuntimeResolverTest extends TestCase
         BranchAwareClient $storageClient,
         int $expectedInvocationCount = 1,
         ?string $expectedBranchId = 'default',
-        string $actualBranchId = 'default',
+        string $actualBranchId = self::DEFAULT_BRANCH_ID,
         bool $actualBranchIsDefault = true,
     ): StorageClientPlainFactory {
         $clientWrapper = self::createMock(ClientWrapper::class);
