@@ -1005,7 +1005,7 @@ Out of order
                 $offset = '';
             }
             preg_match('#limit=([0-9]+)#', $requestUri, $matches);
-            $params[] = ['offset' => $offset, 'limit' => $matches[1]];
+            $params[] = ['offset' => $offset, 'limit' => $matches[1] ?? ''];
         }
         self::assertEquals(
             [
