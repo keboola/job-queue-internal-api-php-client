@@ -51,6 +51,7 @@ class OverridesConfigurationDefinitionTest extends TestCase
         unset($expected['variableValuesData']['extra']);
         $expected['variableValuesId'] = '123';
         $expected['runtime']['tag'] = '1';
+        $expected['runtime']['process_timeout'] = null;
         $expected['runtime']['parallelism'] = null;
         self::assertSame($expected, $definition->processData($data));
     }
@@ -102,6 +103,33 @@ class OverridesConfigurationDefinitionTest extends TestCase
                 ],
             ],
             'message' => '#The value "foo" is not allowed for path "overrides.runtime.executor". Permissible values: null, "dind", "k8sContainers"#',
+        ];
+
+        yield 'process_timeout zero' => [
+            'jobData' => [
+                'runtime' => [
+                    'process_timeout' => 0,
+                ],
+            ],
+            'message' => '#^Invalid configuration for path "overrides.runtime.process_timeout": must be greater than 0$#',
+        ];
+
+        yield 'process_timeout negative' => [
+            'jobData' => [
+                'runtime' => [
+                    'process_timeout' => -10,
+                ],
+            ],
+            'message' => '#^Invalid configuration for path "overrides.runtime.process_timeout": must be greater than 0$#',
+        ];
+
+        yield 'process_timeout float' => [
+            'jobData' => [
+                'runtime' => [
+                    'process_timeout' => 10.0,
+                ],
+            ],
+            'message' => '#^Invalid type for path "overrides.runtime.process_timeout". Expected "int", but got "float".$#',
         ];
         // phpcs:enable Generic.Files.LineLength
     }
