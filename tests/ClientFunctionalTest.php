@@ -11,6 +11,7 @@ use Keboola\JobQueueInternalClient\JobFactory\Job;
 use Keboola\JobQueueInternalClient\JobFactory\JobInterface;
 use Keboola\JobQueueInternalClient\JobListOptions;
 use Keboola\JobQueueInternalClient\JobPatchData;
+use Keboola\JobQueueInternalClient\JobResultPatchData;
 use Keboola\JobQueueInternalClient\JobsSortOptions;
 use Keboola\JobQueueInternalClient\Result\JobMetrics;
 use Keboola\JobQueueInternalClient\Result\JobResult;
@@ -1186,5 +1187,81 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
 
         $client = $this->getClient();
         $client->searchJobsGroupedRaw(['groupBy' => ['componentId']]);
+    }
+
+    public function testPatchJobResult(): void
+    {
+        $newJobFactory = $this->getNewJobFactory();
+        $client = $this->getClient();
+
+        $job = $newJobFactory->createNewJob([
+            '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+            'configData' => [],
+            'componentId' => self::COMPONENT_ID_1,
+            'mode' => 'run',
+        ]);
+        $createdJob = $client->createJob($job);
+
+        $patchData = [
+            'configVersion' => '2',
+        ];
+        $updatedJob = $client->patchJobResult(
+            $createdJob->getId(),
+            $patchData,
+        );
+
+        self::assertEquals($patchData, $updatedJob->getResult());
+    }
+
+    public function testPatchJobResultMerge(): void
+    {
+        $newJobFactory = $this->getNewJobFactory();
+        $client = $this->getClient();
+
+        $job = $newJobFactory->createNewJob([
+            '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+            'configData' => [],
+            'componentId' => self::COMPONENT_ID_1,
+            'mode' => 'run',
+        ]);
+        $createdJob = $client->createJob($job);
+
+        $initialResult = (new JobResult())
+            ->setMessage('bar')
+            ->setImages(['image1', 'image2'])
+        ;
+        $createdJobWithInitialResult = $client->patchJob(
+            $createdJob->getId(),
+            (new JobPatchData())->setResult($initialResult),
+        );
+
+        $patchData = [
+            'message' => 'baz',
+            'images' => [
+                'key' => 0,
+            ],
+            'configVersion' => '2',
+        ];
+
+        $updatedJob = $client->patchJobResult(
+            $createdJobWithInitialResult->getId(),
+            $patchData,
+        );
+
+        $expectedResult = [
+            'message' => 'baz',
+            'configVersion' => '2',
+            'images' => [
+                'key' => 0,
+            ],
+            'input' => [
+                'tables' => [],
+            ],
+            'output' => [
+                'tables' => [],
+            ],
+        ];
+
+        self::assertEquals($expectedResult, $updatedJob->getResult());
     }
 }
