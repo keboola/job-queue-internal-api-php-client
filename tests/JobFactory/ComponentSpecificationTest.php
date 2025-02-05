@@ -59,9 +59,7 @@ class ComponentSpecificationTest extends TestCase
             'emptyConfigurationRow' => [],
             'uiOptions' => [],
             'configurationDescription' => null,
-            'features' => [
-                'mlflow-artifacts-access',
-            ],
+            'features' => [],
             'expiredOn' => null,
             'uri' => 'https://syrup.keboola.com/docker/keboola.runner-config-test',
         ];
