@@ -18,6 +18,7 @@ use Keboola\JobQueueInternalClient\JobFactory\JobInterface;
 use Keboola\JobQueueInternalClient\JobFactory\JobObjectEncryptor;
 use Keboola\JobQueueInternalClient\JobListOptions;
 use Keboola\JobQueueInternalClient\JobPatchData;
+use Keboola\JobQueueInternalClient\JobResultPatchData;
 use Keboola\JobQueueInternalClient\Result\JobMetrics;
 use Keboola\JobQueueInternalClient\Result\JobResult;
 use Keboola\ObjectEncryptor\EncryptorOptions;
@@ -1235,5 +1236,67 @@ Out of order
         self::assertEquals('testToken', $request->getHeader('X-JobQueue-InternalApi-Token')[0]);
         self::assertEquals('Internal PHP Client', $request->getHeader('User-Agent')[0]);
         self::assertEquals('application/json', $request->getHeader('Content-type')[0]);
+    }
+
+    public function testPatchJobResult(): void
+    {
+        $mock = new MockHandler([
+            new Response(
+                200,
+                ['Content-Type' => 'application/json'],
+                '{
+                    "id": "123",
+                    "runId": "123",
+                    "projectId": "123",
+                    "tokenId": "123",
+                    "#tokenString": "KBC::XXX",
+                    "componentId": "my-component",
+                    "status": "processing",
+                    "desiredStatus": "processing",
+                    "branchType": "default"
+                }',
+            ),
+        ]);
+
+        $container = [];
+        $history = Middleware::history($container);
+        $stack = HandlerStack::create($mock);
+        $stack->push($history);
+        $client = $this->createClientWithInternalToken(
+            options: ['handler' => $stack],
+        );
+
+        $patchData = [
+            'message' => 'xyz',
+            'configVersion' => '2',
+        ];
+        $result = $client->patchJobResult(
+            '123',
+            $patchData,
+        );
+
+        self::assertInstanceOf(Job::class, $result);
+        self::assertCount(1, $container);
+        /** @var Request $request */
+        $request = $container[0]['request'];
+        self::assertEquals('http://example.com/jobs/123/result', $request->getUri()->__toString());
+        self::assertEquals('PATCH', $request->getMethod());
+        self::assertEquals(
+            json_encode($patchData),
+            $request->getBody()->getContents(),
+        );
+        self::assertEquals('testToken', $request->getHeader('X-JobQueue-InternalApi-Token')[0]);
+        self::assertEquals('Internal PHP Client', $request->getHeader('User-Agent')[0]);
+        self::assertEquals('application/json', $request->getHeader('Content-type')[0]);
+    }
+
+    public function testPatchJobResultInvalidJobId(): void
+    {
+        $client = $this->createClientWithInternalToken();
+
+        $this->expectException(ClientException::class);
+        $this->expectExceptionMessage('Invalid job ID: "".');
+
+        $client->patchJobResult('', []);
     }
 }

@@ -261,6 +261,20 @@ class Client
         return $this->existingJobFactory->loadFromExistingJobData($this->sendRequest($request));
     }
 
+    public function patchJobResult(string $jobId, array $patchData): JobInterface
+    {
+        if ($jobId === '') {
+            throw new ClientException(sprintf('Invalid job ID: "%s".', $jobId));
+        }
+        $request = new Request(
+            'PATCH',
+            'jobs/' . $jobId . '/result',
+            [],
+            json_encode($patchData, JSON_THROW_ON_ERROR),
+        );
+        return $this->existingJobFactory->loadFromExistingJobData($this->sendRequest($request));
+    }
+
     /**
      * @return array<JobInterface>
      */
