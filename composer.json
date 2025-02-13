@@ -35,11 +35,11 @@
         "keboola/permission-checker": "^2.0",
         "keboola/storage-api-client": "^15.2",
         "keboola/storage-api-php-client-branch-wrapper": "^6.0",
-        "monolog/monolog": "^2.6",
+        "monolog/monolog": "^2.6|^3.0",
         "psr/log": "^1.1|^2.0|^3.0",
-        "symfony/config": "^5.4|^6.0",
-        "symfony/uid": "^5.4|^6.2",
-        "symfony/validator": "^5.4|^6.0"
+        "symfony/config": "^5.4|^6.0|^7.0",
+        "symfony/uid": "^5.4|^6.2|^7.0",
+        "symfony/validator": "^5.4|^6.0|^7.0"
     },
     "require-dev": {
         "infection/infection": "^0.27",
