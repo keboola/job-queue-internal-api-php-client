@@ -92,7 +92,7 @@ class OrchestrationJobMatcher
         /* since the matcher accepts a jobId, we need to check that it is a sort of sensible input -
             the main use case is root orchestration job, but it seems that a phaseContainer might be
             equally valid input. */
-        if ($job->getComponentId() !== JobFactory::ORCHESTRATOR_COMPONENT) {
+        if (!in_array($job->getComponentId(), [JobFactory::ORCHESTRATOR_COMPONENT, JobFactory::FLOW_COMPONENT], true)) {
             throw new OrchestrationJobMatcherValidationException(sprintf(
                 'Job "%s" is not an orchestration job.',
                 $job->getId(),
