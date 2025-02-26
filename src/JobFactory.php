@@ -12,6 +12,9 @@ use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 abstract class JobFactory
 {
     public const ORCHESTRATOR_COMPONENT = 'keboola.orchestrator';
+
+    public const FLOW_COMPONENT = 'keboola.flow';
+
     public const PROTECTED_DEFAULT_BRANCH_FEATURE = 'protected-default-branch';
 
     /**
