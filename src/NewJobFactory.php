@@ -91,21 +91,13 @@ class NewJobFactory extends JobFactory
         ];
         $jobData = $this->jobRuntimeResolver->resolveJobData($jobData, $tokenInfo);
 
-        if (in_array(self::PROTECTED_DEFAULT_BRANCH_FEATURE, $tokenInfo['owner']['features'])) {
-            $data = $this->objectEncryptor->encrypt(
-                $jobData,
-                (string) $data['componentId'],
-                (string) $tokenInfo['owner']['id'],
-                BranchType::from($jobData['branchType']),
-            );
-        } else {
-            $data = $this->objectEncryptor->encrypt(
-                $jobData,
-                (string) $data['componentId'],
-                (string) $tokenInfo['owner']['id'],
-                null,
-            );
-        }
+        $data = $this->objectEncryptor->encrypt(
+            $jobData,
+            (string) $data['componentId'],
+            (string) $tokenInfo['owner']['id'],
+            BranchType::from($jobData['branchType']),
+            $tokenInfo['owner']['features'],
+        );
 
         $data = $this->validateJobData($data, FullJobDefinition::class);
         return new Job($this->objectEncryptor, $this->storageClientFactory, $data);

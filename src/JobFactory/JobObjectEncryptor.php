@@ -4,17 +4,18 @@ declare(strict_types=1);
 
 namespace Keboola\JobQueueInternalClient\JobFactory;
 
+use InvalidArgumentException;
 use Keboola\ObjectEncryptor\ObjectEncryptor;
 use Keboola\PermissionChecker\BranchType;
 use stdClass;
 
 class JobObjectEncryptor
 {
-    private ObjectEncryptor $objectEncryptor;
+    private const PROTECTED_DEFAULT_BRANCH_FEATURE = 'protected-default-branch';
 
-    public function __construct(ObjectEncryptor $objectEncryptor)
-    {
-        $this->objectEncryptor = $objectEncryptor;
+    public function __construct(
+        private readonly ObjectEncryptor $objectEncryptor,
+    ) {
     }
 
     /**
@@ -22,9 +23,21 @@ class JobObjectEncryptor
      * @param T $data
      * @return T
      */
-    public function encrypt($data, string $componentId, string $projectId, ?BranchType $branchType)
-    {
-        if ($branchType !== null) {
+    public function encrypt(
+        string|array|stdClass $data,
+        string $componentId,
+        string $projectId,
+        ?BranchType $branchType,
+        array $projectFeatures,
+    ): string|array|stdClass {
+        $hasProtectedDefaultBranch = in_array(self::PROTECTED_DEFAULT_BRANCH_FEATURE, $projectFeatures, true);
+        if ($hasProtectedDefaultBranch && $branchType === null) {
+            throw new InvalidArgumentException(
+                'Protected default branch feature is enabled, but branch type is not set.',
+            );
+        }
+
+        if ($hasProtectedDefaultBranch) {
             return $this->objectEncryptor->encryptForBranchType(
                 $data,
                 $componentId,
@@ -45,8 +58,13 @@ class JobObjectEncryptor
      * @param T $data
      * @return T
      */
-    public function decrypt($data, string $componentId, string $projectId, ?string $configId, BranchType $branchType)
-    {
+    public function decrypt(
+        string|array|stdClass $data,
+        string $componentId,
+        string $projectId,
+        ?string $configId,
+        BranchType $branchType,
+    ): string|array|stdClass {
         /* When configId is null, the decryptForBranchType has to be used, because configId is required parameter.
             This is what drives the logic here, not the contents of the cipher! The contents of any cipher can be
             decrypted with decryptForBranchTypeConfiguration which encapsulates all wrappers that might come in use
