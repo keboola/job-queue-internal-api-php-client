@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Keboola\JobQueueInternalClient\Tests;
 
 use Keboola\JobQueueInternalClient\Exception\ClientException;
-use Keboola\JobQueueInternalClient\JobFactory\Job;
 use Keboola\JobQueueInternalClient\JobFactory\JobInterface;
 use Keboola\JobQueueInternalClient\JobPatchData;
+use Keboola\JobQueueInternalClient\Result\JobMetrics;
 use Keboola\JobQueueInternalClient\Result\JobResult;
 use PHPUnit\Framework\TestCase;
 
@@ -20,7 +20,9 @@ class JobPatchDataTest extends TestCase
             ->setStatus(JobInterface::STATUS_PROCESSING)
             ->setDesiredStatus(JobInterface::DESIRED_STATUS_PROCESSING)
             ->setResult((new JobResult())->setMessage('processing'))
-            ->setUsageData(['foo' => 'bar']);
+            ->setMetrics((new JobMetrics())->setBackendSize('large'))
+            ->setUsageData(['foo' => 'bar'])
+            ->setRunnerId('runner-id');
 
         $expectedResult = [
             'message' => 'processing',
@@ -33,19 +35,33 @@ class JobPatchDataTest extends TestCase
                 'tables' => [],
             ],
         ];
+        $expectedMetrics = [
+            'storage' => [
+                'inputTablesBytesSum' => null,
+                'outputTablesBytesSum' => null,
+            ],
+            'backend' => [
+                'size' => 'large',
+                'containerSize' => null,
+                'context' => null,
+            ],
+        ];
         self::assertSame(JobInterface::STATUS_PROCESSING, $jobPatchData->getStatus());
         self::assertSame(JobInterface::DESIRED_STATUS_PROCESSING, $jobPatchData->getDesiredStatus());
-        $result = is_null($jobPatchData->getResult()) ?: $jobPatchData->getResult()->jsonSerialize();
-        self::assertSame($expectedResult, $result);
+        self::assertSame($expectedResult, $jobPatchData->getResult()?->jsonSerialize());
+        self::assertSame($expectedMetrics, $jobPatchData->getMetrics()?->jsonSerialize());
         self::assertSame(['foo' => 'bar'], $jobPatchData->getUsageData());
+        self::assertSame('runner-id', $jobPatchData->getRunnerId());
         self::assertSame(
             [
                 'status' => JobInterface::STATUS_PROCESSING,
                 'desiredStatus' => JobInterface::DESIRED_STATUS_PROCESSING,
                 'result' => $expectedResult,
+                'metrics' => $expectedMetrics,
                 'usageData' => [
                     'foo' => 'bar',
                 ],
+                'runnerId' => 'runner-id',
             ],
             $jobPatchData->jsonSerialize(),
         );

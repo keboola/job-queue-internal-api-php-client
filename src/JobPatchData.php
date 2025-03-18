@@ -6,32 +6,25 @@ namespace Keboola\JobQueueInternalClient;
 
 use JsonSerializable;
 use Keboola\JobQueueInternalClient\Exception\ClientException;
-use Keboola\JobQueueInternalClient\JobFactory\Job;
+use Keboola\JobQueueInternalClient\Result\JobMetrics;
 use Keboola\JobQueueInternalClient\Result\JobResult;
 
 class JobPatchData implements JsonSerializable
 {
-    /** @var string */
-    private $status;
-
-    /** @var string */
-    private $desiredStatus;
-
-    /** @var JobResult|null */
-    private $result;
-
-    /** @var array */
-    private $usageData;
-
-    /** @var string|null */
-    private $runnerId;
+    private ?string $status = null;
+    private ?string $desiredStatus = null;
+    private ?JobResult $result = null;
+    private ?JobMetrics $metrics = null;
+    private ?array $usageData = null;
+    private ?string $runnerId = null;
 
     public function jsonSerialize(): array
     {
         return array_filter([
             'status' => $this->status,
             'desiredStatus' => $this->desiredStatus,
-            'result' => is_null($this->result) ? null : $this->result->jsonSerialize(),
+            'result' => $this->result?->jsonSerialize(),
+            'metrics' => $this->metrics?->jsonSerialize(),
             'usageData' => $this->usageData,
             'runnerId' => $this->runnerId,
         ]);
@@ -89,6 +82,17 @@ class JobPatchData implements JsonSerializable
     public function getResult(): ?JobResult
     {
         return $this->result;
+    }
+
+    public function setMetrics(?JobMetrics $metrics): JobPatchData
+    {
+        $this->metrics = $metrics;
+        return $this;
+    }
+
+    public function getMetrics(): ?JobMetrics
+    {
+        return $this->metrics;
     }
 
     public function setUsageData(array $usageData): JobPatchData
