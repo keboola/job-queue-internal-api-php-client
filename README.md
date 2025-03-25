@@ -40,6 +40,7 @@ EOF
 
 cat <<EOF > .env.local
 TEST_HOSTNAME_SUFFIX=keboola.com
+TEST_STORAGE_API_URL=https://connection.keboola.com
 TEST_STORAGE_API_TOKEN=
 TEST_STORAGE_API_TOKEN_MASTER=
 EOF
