@@ -293,6 +293,106 @@ class OrchestrationJobMatcherTest extends BaseClientFunctionalTest
         $componentsApi->deleteConfiguration(JobFactory::ORCHESTRATOR_COMPONENT, $orchestrationConfigurationId);
     }
 
+    public function testMatcherFlowComponent(): void
+    {
+        $client = $this->getClient();
+        $configuration = $this->getOrchestrationConfiguration();
+
+        // Vytvoříme nový job s FLOW_COMPONENT
+        $storageClient = new StorageClient([
+            'token' => self::getRequiredEnv('TEST_STORAGE_API_TOKEN_MASTER'),
+            'url' => self::getRequiredEnv('TEST_STORAGE_API_URL'),
+        ]);
+
+        // create token for job
+        $tokenOptions = (new TokenCreateOptions())
+            ->setDescription(__CLASS__)
+            ->setCanManageBuckets(true)
+            ->setExpiresIn(60 * 5)
+        ;
+
+        $tokens = new Tokens($storageClient);
+        $token = $tokens->createToken($tokenOptions);
+
+        $componentsApi = new Components($storageClient);
+        $componentConfig = new Configuration();
+        $componentConfig->setConfiguration($configuration);
+        $componentConfig->setName('testMatcherFlowComponent');
+        $componentConfig->setComponentId(JobFactory::FLOW_COMPONENT);
+        $this->componentId = JobFactory::FLOW_COMPONENT;
+        $this->configurationId = $componentsApi->addConfiguration($componentConfig)['id'];
+
+        $flowJob = $this->getNewJobFactory()->createNewJob(
+            [
+                '#tokenString' => $token['token'],
+                'configData' => [],
+                'componentId' => JobFactory::FLOW_COMPONENT,
+                'configId' => $this->configurationId,
+                'mode' => 'run',
+                'parentRunId' => '',
+                'orchestrationJobId' => null,
+            ],
+        );
+        $client->createJob($flowJob);
+
+        // Vytvoříme child jobs
+        $jobIds = [];
+        foreach ($configuration['tasks'] as $task) {
+            $jobIds[] = $client->createJob($this->getNewJobFactory()->createNewJob(
+                [
+                    '#tokenString' => $token['token'],
+                    'componentId' => $task['task']['componentId'],
+                    'configData' => $task['task']['configData'],
+                    'mode' => $task['task']['mode'],
+                    'orchestrationJobId' => $flowJob->getId(),
+                    'orchestrationTaskId' => (string) $task['id'],
+                    'parentRunId' => $flowJob->getId(),
+                ],
+            ))->getId();
+        }
+
+        $tokens->dropToken($token['id']);
+
+        $matcher = new OrchestrationJobMatcher($client, $this->createStorageClientPlainFactory());
+        $results = $matcher->matchTaskJobsForOrchestrationJob(
+            $flowJob->getId(),
+            self::getRequiredEnv('TEST_STORAGE_API_TOKEN'),
+        );
+        self::assertEquals(
+            new OrchestrationJobMatcherResults(
+                $flowJob->getId(),
+                $this->configurationId,
+                [
+                    new OrchestrationTaskMatched(
+                        '30679',
+                        true,
+                        $jobIds[0],
+                        'keboola.ex-db-snowflake',
+                        null,
+                        'created',
+                    ),
+                    new OrchestrationTaskMatched(
+                        '92543',
+                        true,
+                        $jobIds[1],
+                        'keboola.snowflake-transformation',
+                        null,
+                        'created',
+                    ),
+                    new OrchestrationTaskMatched(
+                        '25052',
+                        true,
+                        $jobIds[2],
+                        'keboola.ex-sample-data',
+                        null,
+                        'created',
+                    ),
+                ],
+            ),
+            $results,
+        );
+    }
+
     /**
      * @dataProvider invalidConfigurationProvider
      */
