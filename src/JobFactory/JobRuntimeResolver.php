@@ -275,7 +275,9 @@ class JobRuntimeResolver
         if ((intval($jobData['parallelism']) > 0) || $jobData['parallelism'] === JobInterface::PARALLELISM_INFINITY) {
             return JobType::ROW_CONTAINER;
         } else {
-            if ($jobData['componentId'] === JobFactory::ORCHESTRATOR_COMPONENT) {
+            if ($jobData['componentId'] === JobFactory::FLOW_COMPONENT) {
+                return JobType::ORCHESTRATION_CONTAINER;
+            } elseif ($jobData['componentId'] === JobFactory::ORCHESTRATOR_COMPONENT) {
                 if (isset($jobData['configData']['phaseId']) && (string) ($jobData['configData']['phaseId']) !== '') {
                     return JobType::PHASE_CONTAINER;
                 } else {

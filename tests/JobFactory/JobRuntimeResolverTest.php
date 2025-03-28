@@ -69,6 +69,12 @@ class JobRuntimeResolverTest extends TestCase
             JobType::ORCHESTRATION_CONTAINER,
             null,
         ];
+        yield 'flow job' => [
+            JobFactory::FLOW_COMPONENT,
+            [],
+            JobType::ORCHESTRATION_CONTAINER,
+            null,
+        ];
     }
 
     /**
