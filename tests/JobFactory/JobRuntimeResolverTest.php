@@ -600,6 +600,7 @@ class JobRuntimeResolverTest extends TestCase
 
     /** @dataProvider provideExecutorResolutionTestData */
     public function testResolveExecutor(
+        array $features,
         array $configuration,
         array $configData,
         array $jobData,
@@ -628,7 +629,7 @@ class JobRuntimeResolverTest extends TestCase
         $jobRuntimeResolver = new JobRuntimeResolver(
             $this->prepareStorageClientFactoryMock($storageClient),
         );
-        $actualResolvedData = $jobRuntimeResolver->resolveJobData($jobData, $this->createToken());
+        $actualResolvedData = $jobRuntimeResolver->resolveJobData($jobData, $this->createToken($features));
 
         $expectedResolvedData = [
             'id' => '123456456',
@@ -666,6 +667,7 @@ class JobRuntimeResolverTest extends TestCase
     public function provideExecutorResolutionTestData(): iterable
     {
         yield 'no executor' => [
+            'features' => [],
             'config' => [
                 'id' => '454124290',
             ],
@@ -674,7 +676,18 @@ class JobRuntimeResolverTest extends TestCase
             'result' => 'dind',
         ];
 
+        yield 'no-dind feature' => [
+            'features' => ['job-queue-no-dind'],
+            'config' => [
+                'id' => '454124290',
+            ],
+            'configData' => [],
+            'jobData' => [],
+            'result' => 'k8sContainers',
+        ];
+
         yield 'executor in config' => [
+            'features' => [],
             'config' => [
                 'id' => '454124290',
                 'configuration' => [
@@ -688,7 +701,23 @@ class JobRuntimeResolverTest extends TestCase
             'result' => 'k8sContainers',
         ];
 
+        yield 'config overrules feature' => [
+            'features' => ['job-queue-no-dind'],
+            'config' => [
+                'id' => '454124290',
+                'configuration' => [
+                    'runtime' => [
+                        'executor' => 'dind',
+                    ],
+                ],
+            ],
+            'configData' => [],
+            'jobData' => [],
+            'result' => 'dind',
+        ];
+
         yield 'executor in config data' => [
+            'features' => [],
             'config' => [
                 'id' => '454124290',
                 'configuration' => [
@@ -706,7 +735,22 @@ class JobRuntimeResolverTest extends TestCase
             'result' => 'k8sContainers',
         ];
 
+        yield 'config data overrules feature' => [
+            'features' => ['job-queue-no-dind'],
+            'config' => [
+                'id' => '454124290',
+            ],
+            'configData' => [
+                'runtime' => [
+                    'executor' => 'dind',
+                ],
+            ],
+            'jobData' => [],
+            'result' => 'dind',
+        ];
+
         yield 'executor in job data' => [
+            'features' => [],
             'config' => [
                 'id' => '454124290',
                 'configuration' => [
@@ -724,6 +768,18 @@ class JobRuntimeResolverTest extends TestCase
                 'executor' => 'k8sContainers',
             ],
             'result' => 'k8sContainers',
+        ];
+
+        yield 'job data overrules feature' => [
+            'features' => ['job-queue-no-dind'],
+            'config' => [
+                'id' => '454124290',
+            ],
+            'configData' => [],
+            'jobData' => [
+                'executor' => 'dind',
+            ],
+            'result' => 'dind',
         ];
     }
 

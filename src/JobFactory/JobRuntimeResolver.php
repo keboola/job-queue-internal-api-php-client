@@ -28,6 +28,7 @@ class JobRuntimeResolver
     ];
 
     private const PAY_AS_YOU_GO_FEATURE = 'pay-as-you-go';
+    private const NO_DIND_FEATURE = 'job-queue-no-dind';
 
     private ClientWrapper $clientWrapper;
     private Components $componentsApiClient;
@@ -57,7 +58,7 @@ class JobRuntimeResolver
             $jobData['tag'] = $this->resolveTag($jobData);
             $variableValues = $this->resolveVariables();
             $jobData['parallelism'] = $this->resolveParallelism($jobData);
-            $jobData['executor'] = $this->resolveExecutor($jobData)->value;
+            $jobData['executor'] = $this->resolveExecutor($jobData, $token)->value;
             $jobData = $this->resolveBranchType($jobData);
 
             // set type after resolving parallelism
@@ -289,11 +290,12 @@ class JobRuntimeResolver
         return JobType::STANDARD;
     }
 
-    private function resolveExecutor(array $jobData): Executor
+    private function resolveExecutor(array $jobData, StorageApiToken $token): Executor
     {
         $value = $jobData['executor'] ??
             $this->getConfigData()['runtime']['executor'] ??
             $this->getConfiguration()['runtime']['executor'] ??
+            ($token->hasFeature(self::NO_DIND_FEATURE) ? Executor::K8S_CONTAINERS->value : null) ??
             Executor::getDefault()->value
         ;
 

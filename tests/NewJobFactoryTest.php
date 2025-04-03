@@ -18,6 +18,7 @@ use Keboola\StorageApi\Options\Components\Configuration;
 use Keboola\StorageApiBranch\ClientWrapper;
 use Keboola\StorageApiBranch\Factory\ClientOptions;
 use Keboola\StorageApiBranch\Factory\StorageClientPlainFactory;
+use Keboola\StorageApiBranch\StorageApiToken;
 
 class NewJobFactoryTest extends BaseTest
 {
@@ -577,13 +578,6 @@ class NewJobFactoryTest extends BaseTest
         $basicClientMock
             ->method('generateId')
             ->willReturnCallback(fn(...$args) => self::$client->generateId());
-        $basicClientMock
-            ->method('verifyToken')
-            ->willReturnCallback(function () use ($features) {
-                $tokenInfo = self::$client->verifyToken();
-                $tokenInfo['owner']['features'] = $features;
-                return $tokenInfo;
-            });
 
         $branchClientMock = $this->createMock(BranchAwareClient::class);
         $branchClientMock
@@ -597,6 +591,15 @@ class NewJobFactoryTest extends BaseTest
         $clientWrapperMock->method('getBranchClient')->willReturn($branchClientMock);
         $clientWrapperMock->method('getBranchId')->willReturn($actualBranchId);
         $clientWrapperMock->method('isDefaultBranch')->willReturn($isDefault);
+        $clientWrapperMock->method('getToken')->willReturnCallback(function () use ($features) {
+            $tokenInfo = self::$client->verifyToken();
+            $tokenInfo['owner']['features'] = $features;
+
+            return new StorageApiToken(
+                $tokenInfo,
+                self::getRequiredEnv('TEST_STORAGE_API_TOKEN'),
+            );
+        });
 
         $storageClientFactoryMock = $this->createMock(StorageClientPlainFactory::class);
         $storageClientFactoryMock
