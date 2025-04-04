@@ -15,6 +15,7 @@ use Keboola\StorageApi\Components;
 use Keboola\StorageApiBranch\ClientWrapper;
 use Keboola\StorageApiBranch\Factory\ClientOptions;
 use Keboola\StorageApiBranch\Factory\StorageClientPlainFactory;
+use Keboola\StorageApiBranch\StorageApiToken;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 
 /**
@@ -27,6 +28,7 @@ class JobRuntimeResolver
     ];
 
     private const PAY_AS_YOU_GO_FEATURE = 'pay-as-you-go';
+    private const NO_DIND_FEATURE = 'job-queue-no-dind';
 
     private ClientWrapper $clientWrapper;
     private Components $componentsApiClient;
@@ -39,7 +41,7 @@ class JobRuntimeResolver
     ) {
     }
 
-    public function resolveJobData(array $jobData, array $tokenInfo): array
+    public function resolveJobData(array $jobData, StorageApiToken $token): array
     {
         $this->configuration = null;
         $this->jobData = $jobData;
@@ -56,14 +58,14 @@ class JobRuntimeResolver
             $jobData['tag'] = $this->resolveTag($jobData);
             $variableValues = $this->resolveVariables();
             $jobData['parallelism'] = $this->resolveParallelism($jobData);
-            $jobData['executor'] = $this->resolveExecutor($jobData)->value;
+            $jobData['executor'] = $this->resolveExecutor($jobData, $token)->value;
             $jobData = $this->resolveBranchType($jobData);
 
             // set type after resolving parallelism
             $jobData['type'] = $this->resolveJobType($jobData)->value;
 
             // set backend after resolving type
-            $jobData['backend'] = $this->resolveBackend($jobData, $tokenInfo)->toDataArray();
+            $jobData['backend'] = $this->resolveBackend($jobData, $token)->toDataArray();
 
             foreach ($variableValues->asDataArray() as $key => $value) {
                 $jobData[$key] = $value;
@@ -170,7 +172,7 @@ class JobRuntimeResolver
         return $this->mergeBackendsData($backend, $overrideByBackend);
     }
 
-    private function resolveBackend(array $jobData, array $tokenInfo): Backend
+    private function resolveBackend(array $jobData, StorageApiToken $token): Backend
     {
         $tempBackend = $this->getBackend($jobData);
 
@@ -196,7 +198,7 @@ class JobRuntimeResolver
         We also ignore backend settings for other workspace types, as they do not make any sense at the moment.
         */
         if (in_array($stagingStorage, ['local', 's3', 'abs', 'none']) &&
-            !in_array(self::PAY_AS_YOU_GO_FEATURE, $tokenInfo['owner']['features'] ?? [])
+            !$token->hasFeature(self::PAY_AS_YOU_GO_FEATURE)
         ) {
             return new Backend(null, $tempBackend->getType(), $backendContext);
         }
@@ -288,11 +290,12 @@ class JobRuntimeResolver
         return JobType::STANDARD;
     }
 
-    private function resolveExecutor(array $jobData): Executor
+    private function resolveExecutor(array $jobData, StorageApiToken $token): Executor
     {
         $value = $jobData['executor'] ??
             $this->getConfigData()['runtime']['executor'] ??
             $this->getConfiguration()['runtime']['executor'] ??
+            ($token->hasFeature(self::NO_DIND_FEATURE) ? Executor::K8S_CONTAINERS->value : null) ??
             Executor::getDefault()->value
         ;
 

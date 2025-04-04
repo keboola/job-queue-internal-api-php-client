@@ -15,6 +15,7 @@ use Keboola\StorageApi\ClientException as StorageClientException;
 use Keboola\StorageApiBranch\ClientWrapper;
 use Keboola\StorageApiBranch\Factory\ClientOptions;
 use Keboola\StorageApiBranch\Factory\StorageClientPlainFactory;
+use Keboola\StorageApiBranch\StorageApiToken;
 use PHPUnit\Framework\TestCase;
 
 class JobRuntimeResolverTest extends TestCase
@@ -119,7 +120,7 @@ class JobRuntimeResolverTest extends TestCase
             ->willReturn($clientWrapperMock);
         $jobRuntimeResolver = new JobRuntimeResolver($storageClientFactoryMock);
 
-        $jobData = $jobRuntimeResolver->resolveJobData($jobData, ['owner' => ['features' => []]]);
+        $jobData = $jobRuntimeResolver->resolveJobData($jobData, $this->createToken([]));
         self::assertSame($expectedJobType->value, $jobData['type']);
         self::assertSame($expectedContext, $jobData['backend']['context']);
     }
@@ -217,7 +218,7 @@ class JobRuntimeResolverTest extends TestCase
                 'type' => 'container',
                 'variableValuesId' => null,
             ],
-            $jobRuntimeResolver->resolveJobData($jobData, ['owner' => ['features' => []]]),
+            $jobRuntimeResolver->resolveJobData($jobData, $this->createToken([])),
         );
     }
 
@@ -297,7 +298,7 @@ class JobRuntimeResolverTest extends TestCase
                 'variableValuesId' => '123',
                 'variableValuesData' => [],
             ],
-            $jobRuntimeResolver->resolveJobData($jobData, ['owner' => ['features' => []]]),
+            $jobRuntimeResolver->resolveJobData($jobData, $this->createToken([])),
         );
     }
 
@@ -384,7 +385,7 @@ class JobRuntimeResolverTest extends TestCase
                     ],
                 ],
             ],
-            $jobRuntimeResolver->resolveJobData($jobData, ['owner' => ['features' => []]]),
+            $jobRuntimeResolver->resolveJobData($jobData, $this->createToken([])),
         );
     }
 
@@ -452,7 +453,7 @@ class JobRuntimeResolverTest extends TestCase
                 'variableValuesId' => null,
                 'variableValuesData' => [],
             ],
-            $jobRuntimeResolver->resolveJobData($jobData, ['owner' => ['features' => []]]),
+            $jobRuntimeResolver->resolveJobData($jobData, $this->createToken([])),
         );
     }
 
@@ -539,7 +540,7 @@ class JobRuntimeResolverTest extends TestCase
                 'type' => 'standard',
                 'variableValuesData' => [],
             ],
-            $jobRuntimeResolver->resolveJobData($jobData, ['owner' => ['features' => []]]),
+            $jobRuntimeResolver->resolveJobData($jobData, $this->createToken([])),
         );
     }
 
@@ -593,12 +594,13 @@ class JobRuntimeResolverTest extends TestCase
                 'variableValuesId' => null,
                 'variableValuesData' => [],
             ],
-            $jobRuntimeResolver->resolveJobData($jobData, []),
+            $jobRuntimeResolver->resolveJobData($jobData, $this->createToken()),
         );
     }
 
     /** @dataProvider provideExecutorResolutionTestData */
     public function testResolveExecutor(
+        array $features,
         array $configuration,
         array $configData,
         array $jobData,
@@ -627,7 +629,7 @@ class JobRuntimeResolverTest extends TestCase
         $jobRuntimeResolver = new JobRuntimeResolver(
             $this->prepareStorageClientFactoryMock($storageClient),
         );
-        $actualResolvedData = $jobRuntimeResolver->resolveJobData($jobData, []);
+        $actualResolvedData = $jobRuntimeResolver->resolveJobData($jobData, $this->createToken($features));
 
         $expectedResolvedData = [
             'id' => '123456456',
@@ -665,6 +667,7 @@ class JobRuntimeResolverTest extends TestCase
     public function provideExecutorResolutionTestData(): iterable
     {
         yield 'no executor' => [
+            'features' => [],
             'config' => [
                 'id' => '454124290',
             ],
@@ -673,7 +676,18 @@ class JobRuntimeResolverTest extends TestCase
             'result' => 'dind',
         ];
 
+        yield 'no-dind feature' => [
+            'features' => ['job-queue-no-dind'],
+            'config' => [
+                'id' => '454124290',
+            ],
+            'configData' => [],
+            'jobData' => [],
+            'result' => 'k8sContainers',
+        ];
+
         yield 'executor in config' => [
+            'features' => [],
             'config' => [
                 'id' => '454124290',
                 'configuration' => [
@@ -687,7 +701,23 @@ class JobRuntimeResolverTest extends TestCase
             'result' => 'k8sContainers',
         ];
 
+        yield 'config overrules feature' => [
+            'features' => ['job-queue-no-dind'],
+            'config' => [
+                'id' => '454124290',
+                'configuration' => [
+                    'runtime' => [
+                        'executor' => 'dind',
+                    ],
+                ],
+            ],
+            'configData' => [],
+            'jobData' => [],
+            'result' => 'dind',
+        ];
+
         yield 'executor in config data' => [
+            'features' => [],
             'config' => [
                 'id' => '454124290',
                 'configuration' => [
@@ -705,7 +735,22 @@ class JobRuntimeResolverTest extends TestCase
             'result' => 'k8sContainers',
         ];
 
+        yield 'config data overrules feature' => [
+            'features' => ['job-queue-no-dind'],
+            'config' => [
+                'id' => '454124290',
+            ],
+            'configData' => [
+                'runtime' => [
+                    'executor' => 'dind',
+                ],
+            ],
+            'jobData' => [],
+            'result' => 'dind',
+        ];
+
         yield 'executor in job data' => [
+            'features' => [],
             'config' => [
                 'id' => '454124290',
                 'configuration' => [
@@ -723,6 +768,18 @@ class JobRuntimeResolverTest extends TestCase
                 'executor' => 'k8sContainers',
             ],
             'result' => 'k8sContainers',
+        ];
+
+        yield 'job data overrules feature' => [
+            'features' => ['job-queue-no-dind'],
+            'config' => [
+                'id' => '454124290',
+            ],
+            'configData' => [],
+            'jobData' => [
+                'executor' => 'dind',
+            ],
+            'result' => 'dind',
         ];
     }
 
@@ -746,7 +803,7 @@ class JobRuntimeResolverTest extends TestCase
         self::expectException(ClientException::class);
         self::expectExceptionCode(0);
         self::expectExceptionMessage('Invalid configuration: Invalid type for path "overrides.variableValuesData".');
-        $jobRuntimeResolver->resolveJobData($jobData, []);
+        $jobRuntimeResolver->resolveJobData($jobData, $this->createToken());
     }
 
     public function testResolveRuntimeSettingsConfigurationNotFound(): void
@@ -773,7 +830,7 @@ class JobRuntimeResolverTest extends TestCase
         self::expectExceptionMessage('Cannot resolve job parameters: Configuration "454124290" not found');
         self::expectExceptionCode(0);
         self::expectException(ClientException::class);
-        $jobRuntimeResolver->resolveJobData($jobData, []);
+        $jobRuntimeResolver->resolveJobData($jobData, $this->createToken());
     }
 
     public function testResolveNoConfiguration(): void
@@ -815,7 +872,7 @@ class JobRuntimeResolverTest extends TestCase
                 'variableValuesId' => null,
                 'variableValuesData' => [],
             ],
-            $jobRuntimeResolver->resolveJobData($jobData, []),
+            $jobRuntimeResolver->resolveJobData($jobData, $this->createToken()),
         );
     }
 
@@ -859,7 +916,7 @@ class JobRuntimeResolverTest extends TestCase
                 'variableValuesId' => null,
                 'variableValuesData' => [],
             ],
-            $jobRuntimeResolver->resolveJobData($jobData, []),
+            $jobRuntimeResolver->resolveJobData($jobData, $this->createToken()),
         );
     }
 
@@ -908,7 +965,7 @@ class JobRuntimeResolverTest extends TestCase
                 'variableValuesId' => null,
                 'variableValuesData' => [],
             ],
-            $jobRuntimeResolver->resolveJobData($jobData, []),
+            $jobRuntimeResolver->resolveJobData($jobData, $this->createToken()),
         );
     }
 
@@ -957,8 +1014,8 @@ class JobRuntimeResolverTest extends TestCase
                 expectedInvocationCount: 2,
             ),
         );
-        $jobRuntimeResolver->resolveJobData($jobData, []);
-        $jobRuntimeResolver->resolveJobData($jobData, []);
+        $jobRuntimeResolver->resolveJobData($jobData, $this->createToken());
+        $jobRuntimeResolver->resolveJobData($jobData, $this->createToken());
     }
 
     public function testResolveInvalidComponent(): void
@@ -980,7 +1037,7 @@ class JobRuntimeResolverTest extends TestCase
         );
         self::expectExceptionMessage('The component "keboola.ex-db-snowflake" is not runnable.');
         self::expectException(ClientException::class);
-        $jobRuntimeResolver->resolveJobData($jobData, []);
+        $jobRuntimeResolver->resolveJobData($jobData, $this->createToken());
     }
 
     public function testResolveBranchConfiguration(): void
@@ -1059,7 +1116,7 @@ class JobRuntimeResolverTest extends TestCase
                     ],
                 ],
             ],
-            $jobRuntimeResolver->resolveJobData($jobData, ['owner' => ['features' => []]]),
+            $jobRuntimeResolver->resolveJobData($jobData, $this->createToken([])),
         );
     }
 
@@ -1090,7 +1147,7 @@ class JobRuntimeResolverTest extends TestCase
 
         self::expectException(ConfigurationDisabledException::class);
         self::expectExceptionMessage('Configuration "454124290" of component "keboola.ex-db-snowflake" is disabled.');
-        $jobRuntimeResolver->resolveJobData($jobData, []);
+        $jobRuntimeResolver->resolveJobData($jobData, $this->createToken());
     }
 
     /**
@@ -1104,7 +1161,7 @@ class JobRuntimeResolverTest extends TestCase
         ?string $expectedType,
         ?string $expectedContainerType,
         ?string $expectedContext,
-        array $tokenInfo,
+        array $tokenFeatures,
     ): void {
         $jobData = $this::JOB_DATA;
         $jobData['configId'] = null;
@@ -1167,7 +1224,7 @@ class JobRuntimeResolverTest extends TestCase
                 'type' => 'container',
                 'variableValuesId' => null,
             ],
-            $jobRuntimeResolver->resolveJobData($jobData, $tokenInfo),
+            $jobRuntimeResolver->resolveJobData($jobData, $this->createToken($tokenFeatures)),
         );
     }
 
@@ -1211,7 +1268,7 @@ class JobRuntimeResolverTest extends TestCase
             null,
             null, // no container backend is set
             null,
-            ['owner' => ['features' => ['pay-as-you-go']]],
+            ['pay-as-you-go'],
         ];
         yield 'custom s3' => [
             'custom',
@@ -1221,7 +1278,7 @@ class JobRuntimeResolverTest extends TestCase
             null,
             'custom',
             null,
-            ['owner' => ['features' => []]],
+            [],
         ];
         yield 'custom abs' => [
             'custom',
@@ -1231,7 +1288,7 @@ class JobRuntimeResolverTest extends TestCase
             null,
             'custom',
             null,
-            ['owner' => ['features' => []]],
+            [],
         ];
         yield 'custom none' => [
             'custom',
@@ -1241,7 +1298,7 @@ class JobRuntimeResolverTest extends TestCase
             null,
             'custom',
             null,
-            ['owner' => ['features' => []]],
+            [],
         ];
         yield 'custom workspace-snowflake' => [
             'custom',
@@ -1251,7 +1308,7 @@ class JobRuntimeResolverTest extends TestCase
             'custom',
             null,
             null,
-            ['owner' => ['features' => []]],
+            [],
         ];
         yield 'custom workspace-snowflake without feature' => [
             'custom',
@@ -1261,7 +1318,7 @@ class JobRuntimeResolverTest extends TestCase
             'custom',
             null,
             null,
-            ['owner' => ['features' => ['pay-as-you-go']]],
+            ['pay-as-you-go'],
         ];
         yield 'custom workspace-redshift' => [
             'custom',
@@ -1271,7 +1328,7 @@ class JobRuntimeResolverTest extends TestCase
             null,
             null,
             null,
-            ['owner' => ['features' => []]],
+            [],
         ];
         yield 'custom workspace-synapse' => [
             'custom',
@@ -1281,7 +1338,7 @@ class JobRuntimeResolverTest extends TestCase
             null,
             null,
             null,
-            ['owner' => ['features' => []]],
+            [],
         ];
         yield 'custom workspace-abs' => [
             'custom',
@@ -1291,7 +1348,7 @@ class JobRuntimeResolverTest extends TestCase
             null,
             null,
             null,
-            ['owner' => ['features' => []]],
+            [],
         ];
         yield 'custom workspace-exasol' => [
             'custom',
@@ -1301,7 +1358,7 @@ class JobRuntimeResolverTest extends TestCase
             null,
             null,
             null,
-            ['owner' => ['features' => []]],
+            [],
         ];
         yield 'custom workspace-teradata' => [
             'custom',
@@ -1311,7 +1368,7 @@ class JobRuntimeResolverTest extends TestCase
             null,
             null,
             null,
-            ['owner' => ['features' => []]],
+            [],
         ];
         yield 'custom workspace-bigquery' => [
             'custom',
@@ -1321,7 +1378,7 @@ class JobRuntimeResolverTest extends TestCase
             null,
             null,
             null,
-            ['owner' => ['features' => []]],
+            [],
         ];
         yield 'custom unknown' => [
             'custom',
@@ -1331,7 +1388,7 @@ class JobRuntimeResolverTest extends TestCase
             null,
             null,
             null,
-            ['owner' => ['features' => []]],
+            [],
         ];
         yield 'custom invalid' => [
             'custom',
@@ -1341,7 +1398,7 @@ class JobRuntimeResolverTest extends TestCase
             null,
             null,
             null,
-            ['owner' => ['features' => []]],
+            [],
         ];
     }
 
@@ -1704,7 +1761,7 @@ class JobRuntimeResolverTest extends TestCase
                 'variableValuesId' => null,
                 'variableValuesData' => [],
             ],
-            $jobRuntimeResolver->resolveJobData($jobData, ['owner' => ['features' => []]]),
+            $jobRuntimeResolver->resolveJobData($jobData, $this->createToken([])),
         );
     }
 
@@ -1759,7 +1816,7 @@ class JobRuntimeResolverTest extends TestCase
                 'variableValuesId' => null,
                 'variableValuesData' => [],
             ],
-            $jobRuntimeResolver->resolveJobData($jobData, ['owner' => ['features' => []]]),
+            $jobRuntimeResolver->resolveJobData($jobData, $this->createToken([])),
         );
     }
 
@@ -1817,5 +1874,17 @@ class JobRuntimeResolverTest extends TestCase
         ;
 
         return $storageClientFactory;
+    }
+
+    private function createToken(array $features = []): StorageApiToken
+    {
+        return new StorageApiToken(
+            [
+                'owner' => [
+                    'features' => $features,
+                ],
+            ],
+            'test-token',
+        );
     }
 }

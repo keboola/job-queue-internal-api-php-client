@@ -31,12 +31,12 @@ class NewJobFactory extends JobFactory
         $data = $this->validateJobData($data, NewJobDefinition::class);
 
         try {
-            $client = $this->storageClientFactory->createClientWrapper(new ClientOptions(
-                null,
-                $data['#tokenString'],
-            ))->getBasicClient();
-            $tokenInfo = $client->verifyToken();
-            $jobId = $client->generateId();
+            $clientWrapper = $this->storageClientFactory->createClientWrapper(new ClientOptions(
+                token: $data['#tokenString'],
+            ));
+            $token = $clientWrapper->getToken();
+
+            $jobId = $clientWrapper->getBasicClient()->generateId();
             $runId = empty($data['parentRunId']) ? $jobId :
                 $data['parentRunId'] . JobInterface::RUN_ID_DELIMITER . $jobId;
         } catch (StorageClientException $e) {
@@ -53,17 +53,15 @@ class NewJobFactory extends JobFactory
             );
         }
 
-        $projectId = (string) $tokenInfo['owner']['id'];
-
         $jobData = [
             'id' => $jobId,
             'deduplicationId' => $data['deduplicationId'] ?? null,
             'runId' => $runId,
-            'projectId' => $projectId,
-            'projectName' => $tokenInfo['owner']['name'],
-            'tokenId' => $tokenInfo['id'],
+            'projectId' => $token->getProjectId(),
+            'projectName' => $token->getProjectName(),
+            'tokenId' => $token->getTokenId(),
             '#tokenString' => $data['#tokenString'],
-            'tokenDescription' => $tokenInfo['description'],
+            'tokenDescription' => $token->getTokenDesc(),
             'status' => JobInterface::STATUS_CREATED,
             'desiredStatus' => JobInterface::DESIRED_STATUS_PROCESSING,
             'mode' => $data['mode'],
@@ -89,14 +87,14 @@ class NewJobFactory extends JobFactory
             'onlyOrchestrationTaskIds' => $data['onlyOrchestrationTaskIds'] ?? null,
             'previousJobId' => $data['previousJobId'] ?? null,
         ];
-        $jobData = $this->jobRuntimeResolver->resolveJobData($jobData, $tokenInfo);
+        $jobData = $this->jobRuntimeResolver->resolveJobData($jobData, $token);
 
         $data = $this->objectEncryptor->encrypt(
             $jobData,
             (string) $data['componentId'],
-            (string) $tokenInfo['owner']['id'],
+            $token->getProjectId(),
             BranchType::from($jobData['branchType']),
-            $tokenInfo['owner']['features'],
+            $token->getFeatures(),
         );
 
         $data = $this->validateJobData($data, FullJobDefinition::class);
