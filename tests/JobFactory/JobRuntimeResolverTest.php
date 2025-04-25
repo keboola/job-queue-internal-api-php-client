@@ -1162,8 +1162,10 @@ class JobRuntimeResolverTest extends TestCase
         ?string $expectedContainerType,
         ?string $expectedContext,
         array $tokenFeatures,
+        string $componentId = 'keboola.ex-db-snowflake',
     ): void {
         $jobData = $this::JOB_DATA;
+        $jobData['componentId'] = $componentId;
         $jobData['configId'] = null;
         $jobData['tag'] = '1.2.3';
         $jobData['variableValuesData'] = [
@@ -1182,7 +1184,7 @@ class JobRuntimeResolverTest extends TestCase
 
         $storageClient = self::createMock(BranchAwareClient::class);
         $storageClient->expects(self::exactly($expectedApiCallCount))->method('apiGet')
-            ->with('components/keboola.ex-db-snowflake')
+            ->with(sprintf('components/%s', $componentId))
             ->willReturn(
                 $this->getTestComponentData($stagingInput),
             );
@@ -1196,7 +1198,7 @@ class JobRuntimeResolverTest extends TestCase
                 'id' => '123456456',
                 'runId' => '123456456',
                 'configId' => null,
-                'componentId' => 'keboola.ex-db-snowflake',
+                'componentId' => $componentId,
                 'mode' => 'run',
                 'status' => 'created',
                 'desiredStatus' => 'processing',
@@ -1399,6 +1401,28 @@ class JobRuntimeResolverTest extends TestCase
             null,
             null,
             [],
+        ];
+        yield 'legacy transformation - large' => [
+            'large',
+            null,
+            'none',
+            1,
+            'large',
+            null,
+            null,
+            [],
+            'keboola.legacy-transformation',
+        ];
+        yield 'legacy transformation - default' => [
+            null,
+            null,
+            'none',
+            1,
+            null,
+            null,
+            null,
+            [],
+            'keboola.legacy-transformation',
         ];
     }
 
