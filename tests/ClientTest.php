@@ -18,7 +18,6 @@ use Keboola\JobQueueInternalClient\JobFactory\JobInterface;
 use Keboola\JobQueueInternalClient\JobFactory\JobObjectEncryptor;
 use Keboola\JobQueueInternalClient\JobListOptions;
 use Keboola\JobQueueInternalClient\JobPatchData;
-use Keboola\JobQueueInternalClient\JobResultPatchData;
 use Keboola\JobQueueInternalClient\Result\JobMetrics;
 use Keboola\JobQueueInternalClient\Result\JobResult;
 use Keboola\ObjectEncryptor\EncryptorOptions;
@@ -26,10 +25,11 @@ use Keboola\ObjectEncryptor\ObjectEncryptor;
 use Keboola\PermissionChecker\BranchType;
 use Keboola\StorageApiBranch\Factory\ClientOptions;
 use Keboola\StorageApiBranch\Factory\StorageClientPlainFactory;
+use Monolog\Handler\TestHandler;
+use Monolog\Logger;
 use Psr\Http\Message\RequestInterface;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
-use Psr\Log\Test\TestLogger;
 use stdClass;
 
 class ClientTest extends BaseTest
@@ -405,7 +405,10 @@ class ClientTest extends BaseTest
         $history = Middleware::history($requestHistory);
         $stack = HandlerStack::create($mock);
         $stack->push($history);
-        $logger = new TestLogger();
+
+        $logsHandler = new TestHandler();
+        $logger = new Logger('test', [$logsHandler]);
+
         $client = $this->createClientWithInternalToken(
             options: [
                 'handler' => $stack,
@@ -417,8 +420,8 @@ class ClientTest extends BaseTest
         /** @var Request $request */
         $request = $requestHistory[0]['request'];
         self::assertEquals('test agent', $request->getHeader('User-Agent')[0]);
-        self::assertTrue($logger->hasInfoThatContains('"GET  /1.1" 200 '));
-        self::assertTrue($logger->hasInfoThatContains('test agent'));
+        self::assertTrue($logsHandler->hasInfoThatContains('"GET  /1.1" 200 '));
+        self::assertTrue($logsHandler->hasInfoThatContains('test agent'));
     }
 
     public function testRetrySuccess(): void
@@ -468,7 +471,10 @@ class ClientTest extends BaseTest
         $history = Middleware::history($requestHistory);
         $stack = HandlerStack::create($mock);
         $stack->push($history);
-        $logger = new TestLogger();
+
+        $logsHandler = new TestHandler();
+        $logger = new Logger('test', [$logsHandler]);
+
         $client = $this->createClientWithInternalToken(
             options: ['handler' => $stack],
             logger: $logger,
@@ -485,10 +491,10 @@ class ClientTest extends BaseTest
         self::assertEquals('http://example.com/jobs/123', $request->getUri()->__toString());
 
         //phpcs:disable Generic.Files.LineLength.MaxExceeded
-        self::assertTrue($logger->hasNoticeThatContains('Got a 500 error with this message: Server error: `GET http://example.com/jobs/123` resulted in a `500 Internal Server Error` response:
+        self::assertTrue($logsHandler->hasNoticeThatContains('Got a 500 error with this message: Server error: `GET http://example.com/jobs/123` resulted in a `500 Internal Server Error` response:
 {"message" => "Out of order"}
 , retrying.'));
-        self::assertTrue($logger->hasNoticeThatContains('Got a 500 error with this message: Server error: `GET http://example.com/jobs/123` resulted in a `500 Internal Server Error` response:
+        self::assertTrue($logsHandler->hasNoticeThatContains('Got a 500 error with this message: Server error: `GET http://example.com/jobs/123` resulted in a `500 Internal Server Error` response:
 Out of order
 , retrying.'));
         //phpcs:enable Generic.Files.LineLength.MaxExceeded
@@ -510,7 +516,10 @@ Out of order
         $history = Middleware::history($requestHistory);
         $stack = HandlerStack::create($mock);
         $stack->push($history);
-        $logger = new TestLogger();
+
+        $logsHandler = new TestHandler();
+        $logger = new Logger('test', [$logsHandler]);
+
         $client = $this->createClientWithInternalToken(
             options: [
                 'handler' => $stack,
@@ -527,10 +536,10 @@ Out of order
         self::assertCount(2, $requestHistory);
 
         //phpcs:disable Generic.Files.LineLength.MaxExceeded
-        self::assertTrue($logger->hasNoticeThatContains('Got a 500 error with this message: Server error: `GET http://example.com/jobs/123` resulted in a `500 Internal Server Error` response:
+        self::assertTrue($logsHandler->hasNoticeThatContains('Got a 500 error with this message: Server error: `GET http://example.com/jobs/123` resulted in a `500 Internal Server Error` response:
 {"message" => "Out of order"}
 , retrying.'));
-        self::assertTrue($logger->hasNoticeThatMatches('#We have tried this 1 times.\s*Giving up.#'));
+        self::assertTrue($logsHandler->hasNoticeThatMatches('#We have tried this 1 times.\s*Giving up.#'));
         //phpcs:enable Generic.Files.LineLength.MaxExceeded
     }
 
@@ -722,14 +731,17 @@ Out of order
         $history = Middleware::history($requestHistory);
         $stack = HandlerStack::create($mock);
         $stack->push($history);
-        $logger = new TestLogger();
+
+        $logsHandler = new TestHandler();
+        $logger = new Logger('test', [$logsHandler]);
+
         $client = $this->createClientWithInternalToken(
             options: ['handler' => $stack],
             logger: $logger,
         );
         $jobs = $client->getJobsWithIds(['123']);
         self::assertCount(0, $jobs);
-        self::assertTrue($logger->hasErrorThatContains(
+        self::assertTrue($logsHandler->hasErrorThatContains(
             'Failed to parse Job data: The child',
         ));
     }
@@ -780,7 +792,10 @@ Out of order
         $history = Middleware::history($requestHistory);
         $stack = HandlerStack::create($mock);
         $stack->push($history);
-        $logger = new TestLogger();
+
+        $logsHandler = new TestHandler();
+        $logger = new Logger('test', [$logsHandler]);
+
         $client = $this->createClientWithInternalToken(
             options: ['handler' => $stack],
             logger: $logger,
@@ -905,7 +920,10 @@ Out of order
         $history = Middleware::history($requestHistory);
         $stack = HandlerStack::create($mock);
         $stack->push($history);
-        $logger = new TestLogger();
+
+        $logsHandler = new TestHandler();
+        $logger = new Logger('test', [$logsHandler]);
+
         $client = $this->createClientWithInternalToken(
             options: ['handler' => $stack],
             logger: $logger,
@@ -980,7 +998,10 @@ Out of order
         $history = Middleware::history($requestHistory);
         $stack = HandlerStack::create($mock);
         $stack->push($history);
-        $logger = new TestLogger();
+
+        $logsHandler = new TestHandler();
+        $logger = new Logger('test', [$logsHandler]);
+
         $client = $this->createClientWithInternalToken(
             options: ['handler' => $stack],
             logger: $logger,
@@ -1080,7 +1101,10 @@ Out of order
         $history = Middleware::history($requestHistory);
         $stack = HandlerStack::create($mock);
         $stack->push($history);
-        $logger = new TestLogger();
+
+        $logsHandler = new TestHandler();
+        $logger = new Logger('test', [$logsHandler]);
+
         $client = $this->createClientWithInternalToken(
             options: ['handler' => $stack],
             logger: $logger,
