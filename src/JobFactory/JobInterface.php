@@ -115,6 +115,7 @@ interface JobInterface
     public function getVariableValues(): VariableValues;
     public function hasVariables(): bool;
     public function getStartTime(): ?DateTimeImmutable;
+    public function getDelayedStartTime(): ?DateTimeImmutable;
     public function getEndTime(): ?DateTimeImmutable;
     public function getDurationSeconds(): ?int;
     public function getMetrics(): JobMetrics;

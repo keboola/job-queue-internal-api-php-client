@@ -9,6 +9,7 @@ use Keboola\JobQueueInternalClient\JobFactory\Runtime\Executor;
 use Keboola\PermissionChecker\BranchType;
 use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
+use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 
 class FullJobDefinition extends NewJobDefinition
 {
@@ -96,6 +97,8 @@ class FullJobDefinition extends NewJobDefinition
                 ->scalarNode('createdTime')->end()
                 ->scalarNode('startTime')->end()
                 ->scalarNode('endTime')->end()
+                ->scalarNode('delayedStartTime')->end()
+                ->scalarNode('delay')->end()
                 ->scalarNode('durationSeconds')->end()
                 ->arrayNode('result')->ignoreExtraKeys(false)->end()
                 ->arrayNode('usageData')->ignoreExtraKeys(false)->end()
@@ -254,6 +257,13 @@ class FullJobDefinition extends NewJobDefinition
                 ->end()
             ->end();
         // @formatter:on
+
+        $rootNode->validate()
+            ->ifTrue(function ($v) {
+                return isset($v['delayedStartTime']) && $v['delayedStartTime'] !== null
+                    && isset($v['delay']) && $v['delay'] !== null;
+            })
+            ->thenInvalid('delayedStartTime and delay cannot be set simultaneously');
 
         return $rootNode;
     }
