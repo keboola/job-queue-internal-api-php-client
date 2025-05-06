@@ -126,7 +126,15 @@ class ClientSearchTest extends TestCase
 
         self::assertSame('GET', $request->getMethod());
         self::assertSame('/search/jobs', $request->getUri()->getPath());
-        self::assertSame($expectedQuery, $request->getUri()->getQuery());
+
+        $query = $request->getUri()->getQuery();
+        if ($expectedQuery !== '') {
+            self::assertStringStartsWith($expectedQuery, $query);
+        }
+        self::assertMatchesRegularExpression(
+            '/delayedStartTimeTo=\d{4}-\d{2}-\d{2}T\d{2}%3A\d{2}%3A\d{2}%2B\d{2}%3A\d{2}/',
+            $query,
+        );
     }
 
     public static function provideSearchJobsGroupedTestData(): iterable
@@ -291,26 +299,26 @@ class ClientSearchTest extends TestCase
         self::assertCount(3, $requests);
 
         // all requests should be the same filter, sort & limit, but different offset
-        self::assertSame('GET', $requests[0]['request']->getMethod());
-        self::assertSame('/search/jobs', $requests[0]['request']->getUri()->getPath());
-        self::assertSame(
-            'filters%5BbranchId%5D%5B0%5D=123&sortBy=id&sortOrder=asc&offset=0&limit=100',
-            $requests[0]['request']->getUri()->getQuery(),
-        );
+        foreach ($requests as $i => $request) {
+            self::assertSame('GET', $request['request']->getMethod());
+            self::assertSame('/search/jobs', $request['request']->getUri()->getPath());
 
-        self::assertSame('GET', $requests[1]['request']->getMethod());
-        self::assertSame('/search/jobs', $requests[1]['request']->getUri()->getPath());
-        self::assertSame(
-            'filters%5BbranchId%5D%5B0%5D=123&sortBy=id&sortOrder=asc&offset=100&limit=100',
-            $requests[1]['request']->getUri()->getQuery(),
-        );
-
-        self::assertSame('GET', $requests[2]['request']->getMethod());
-        self::assertSame('/search/jobs', $requests[2]['request']->getUri()->getPath());
-        self::assertSame(
-            'filters%5BbranchId%5D%5B0%5D=123&sortBy=id&sortOrder=asc&offset=200&limit=100',
-            $requests[2]['request']->getUri()->getQuery(),
-        );
+            $query = $request['request']->getUri()->getQuery();
+            $expectedQuery = http_build_query([
+                'filters' => [
+                    'branchId' => ['123'],
+                ],
+                'sortBy' => 'id',
+                'sortOrder' => 'asc',
+                'offset' => $i * 100,
+                'limit' => 100,
+            ]);
+            self::assertStringStartsWith($expectedQuery, $query);
+            self::assertMatchesRegularExpression(
+                '/delayedStartTimeTo=\d{4}-\d{2}-\d{2}T\d{2}%3A\d{2}%3A\d{2}%2B\d{2}%3A\d{2}/',
+                $query,
+            );
+        }
     }
 
     public function testSearchJobsRawQueryParametersPropagation(): void
