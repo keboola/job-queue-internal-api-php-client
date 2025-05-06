@@ -37,6 +37,7 @@ class JobListOptionsTest extends TestCase
         $jobListOptions->setStartTimeTo(DateTime::createFromFormat('Y-m-d H:i:s', '2021-02-20 1:12:23'));
         $jobListOptions->setEndTimeFrom(DateTime::createFromFormat('Y-m-d H:i:s', '2020-02-02 1:12:23'));
         $jobListOptions->setEndTimeTo(DateTime::createFromFormat('Y-m-d H:i:s', '2020-02-20 1:12:23'));
+        $jobListOptions->setDelayedStartTimeTo(DateTime::createFromFormat('Y-m-d H:i:s', '2023-02-20 1:12:23'));
         $jobListOptions->setDurationSecondsFrom(5);
         $jobListOptions->setDurationSecondsTo(7200);
         $jobListOptions->setSortOrder(JobListOptions::SORT_ORDER_DESC);
@@ -70,6 +71,7 @@ class JobListOptionsTest extends TestCase
         self::assertSame('2021-02-20 01:12:23', $jobListOptions->getStartTimeTo()->format('Y-m-d H:i:s'));
         self::assertSame('2020-02-02 01:12:23', $jobListOptions->getEndTimeFrom()->format('Y-m-d H:i:s'));
         self::assertSame('2020-02-20 01:12:23', $jobListOptions->getEndTimeTo()->format('Y-m-d H:i:s'));
+        self::assertSame('2023-02-20 01:12:23', $jobListOptions->getDelayedStartTimeTo()->format('Y-m-d H:i:s'));
         self::assertSame(5, $jobListOptions->getDurationSecondsFrom());
         self::assertSame(7200, $jobListOptions->getDurationSecondsTo());
         self::assertSame('id', $jobListOptions->getSortBy());
@@ -125,6 +127,8 @@ class JobListOptionsTest extends TestCase
             'createdTimeTo=' . urlencode('2022-02-20T01:12:23+00:00'),
             'endTimeFrom=' . urlencode('2020-02-02T01:12:23+00:00'),
             'endTimeTo=' . urlencode('2020-02-20T01:12:23+00:00'),
+            'delayedStartTimeTo=' . urlencode('2023-02-20T01:12:23+00:00'),
+            'delayedStartTimeToIncludeNull=true',
         ];
 
         self::assertSame($expected, $jobListOptions->getQueryParameters());

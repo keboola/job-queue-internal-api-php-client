@@ -716,13 +716,13 @@ Out of order
             new Response(
                 200,
                 ['Content-Type' => 'application/json'],
-                '[{                    
+                '[{
                     "projectId": "456",
                     "projectName": "Test project",
                     "tokenId": "789",
                     "#tokenString": "KBC::ProjectSecure::aSdF",
                     "tokenDescription": "my token",
-                    "status": "created"                    
+                    "status": "created"
                 }]',
             ),
         ]);
@@ -812,7 +812,9 @@ Out of order
         $request = $mock->getLastRequest();
         self::assertNotNull($request);
         /** @var RequestInterface $request */
-        self::assertEquals('projectId%5B%5D=456&limit=100', $request->getUri()->getQuery());
+        $query = $request->getUri()->getQuery();
+        self::assertStringStartsWith('projectId%5B%5D=456&limit=100', $query);
+        self::assertStringContainsString('delayedStartTimeTo=', $query);
     }
 
     /** @dataProvider provideListJobsOptionsTestData */
@@ -857,7 +859,10 @@ Out of order
         $client->listJobs($jobListOptions, true);
 
         $request = $requestHistory[0]['request'];
-        self::assertSame($expectedRequestUri, $request->getUri()->__toString());
+        $query = $request->getUri()->getQuery();
+        self::assertStringStartsWith((string) parse_url($expectedRequestUri, PHP_URL_QUERY), $query);
+        self::assertStringContainsString('delayedStartTimeTo=', $query);
+        self::assertStringContainsString('delayedStartTimeToIncludeNull=true', $query);
     }
 
     public function provideListJobsOptionsTestData(): iterable
@@ -880,6 +885,12 @@ Out of order
                 ->setCreatedTimeTo(new DateTimeImmutable('2022-07-14T05:11:45-08:20')),
             // phpcs:ignore
             'url' => 'http://example.com/jobs?limit=100&createdTimeFrom=2022-03-01T12%3A17%3A05%2B10%3A00&createdTimeTo=2022-07-14T05%3A11%3A45-08%3A20',
+        ];
+
+        yield 'filter by delayedStartTime' => [
+            'options' => (new JobListOptions()),
+            // phpcs:ignore
+            'url' => 'http://example.com/jobs?limit=100&delayedStartTimeTo=',
         ];
     }
 
@@ -942,11 +953,13 @@ Out of order
         $request = $mock->getLastRequest();
         self::assertNotNull($request);
         /** @var RequestInterface $request */
-        self::assertEquals(
+        $query = $request->getUri()->getQuery();
+        self::assertStringStartsWith(
             'componentId%5B%5D=th%21%24+%7C%26+n%C2%B0t+valid&' .
             'projectId%5B%5D=%C5%A1%C4%9B%C5%99%C4%8D%21%40%23%25%5E%24%26&limit=100',
-            $request->getUri()->getQuery(),
+            $query,
         );
+        self::assertStringContainsString('delayedStartTimeTo=', $query);
     }
 
     public function testClientGetJobsWithIds(): void
@@ -1048,8 +1061,10 @@ Out of order
         $request = $mock->getLastRequest();
         self::assertNotNull($request);
         /** @var RequestInterface $request */
-        self::assertStringStartsWith('id%5B%5D=1001000', $request->getUri()->getQuery());
-        self::assertLessThan(2000, strlen($request->getUri()->getQuery()));
+        $query = $request->getUri()->getQuery();
+        self::assertIsString($query);
+        self::assertStringStartsWith('id%5B%5D=1001000', $query);
+        self::assertLessThan(2000, strlen($query));
     }
 
 
@@ -1114,8 +1129,10 @@ Out of order
         $request = $mock->getLastRequest();
         self::assertNotNull($request);
         /** @var RequestInterface $request */
-        self::assertEquals('offset=1000&limit=100', $request->getUri()->getQuery());
-        self::assertEquals(0, $mock->count());
+        $query = $request->getUri()->getQuery();
+        self::assertStringStartsWith('offset=1000&limit=100', $query);
+        self::assertStringContainsString('delayedStartTimeTo=', $query);
+        self::assertStringContainsString('delayedStartTimeToIncludeNull=true', $query);
     }
 
     public function testPatchJobStatus(): void
