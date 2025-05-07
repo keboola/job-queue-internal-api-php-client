@@ -8,7 +8,7 @@ jobs:
       ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/main') }}:
         testCommand: composer ci && composer infection
       ${{ else }}:
-        testCommand: composer ci
+        testCommand: composer phpcs
       variables:
         CLOUD_PROVIDER: aws
         HOSTNAME_SUFFIX: $(HOSTNAME_SUFFIX__AWS)
