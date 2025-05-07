@@ -107,12 +107,7 @@ class JobListOptions
             }
         }
         foreach ($dateTimeProps as $propName => $paramName) {
-            if ($propName === 'delayedStartTimeTo') {
-                if (isset($this->$propName)) {
-                    $parameters[] = $paramName . '=' . urlencode((string) $this->$propName->format('c'));
-                    $parameters[] = $paramName . 'IncludeNull=true';
-                }
-            } elseif (!empty($this->$propName)) {
+            if (!empty($this->$propName)) {
                 $parameters[] = $paramName . '=' . urlencode((string) $this->$propName->format('c'));
             }
         }
