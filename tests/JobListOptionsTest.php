@@ -128,7 +128,6 @@ class JobListOptionsTest extends TestCase
             'endTimeFrom=' . urlencode('2020-02-02T01:12:23+00:00'),
             'endTimeTo=' . urlencode('2020-02-20T01:12:23+00:00'),
             'delayedStartTimeTo=' . urlencode('2023-02-20T01:12:23+00:00'),
-            'delayedStartTimeToIncludeNull=true',
         ];
 
         self::assertSame($expected, $jobListOptions->getQueryParameters());

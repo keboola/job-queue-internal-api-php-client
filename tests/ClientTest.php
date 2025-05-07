@@ -862,7 +862,6 @@ Out of order
         $query = $request->getUri()->getQuery();
         self::assertStringStartsWith((string) parse_url($expectedRequestUri, PHP_URL_QUERY), $query);
         self::assertStringContainsString('delayedStartTimeTo=', $query);
-        self::assertStringContainsString('delayedStartTimeToIncludeNull=true', $query);
     }
 
     public function provideListJobsOptionsTestData(): iterable
@@ -1132,7 +1131,6 @@ Out of order
         $query = $request->getUri()->getQuery();
         self::assertStringStartsWith('offset=1000&limit=100', $query);
         self::assertStringContainsString('delayedStartTimeTo=', $query);
-        self::assertStringContainsString('delayedStartTimeToIncludeNull=true', $query);
     }
 
     public function testPatchJobStatus(): void
