@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Keboola\JobQueueInternalClient;
 
 use Closure;
+use DateTime;
 use GuzzleHttp\Client as GuzzleClient;
 use GuzzleHttp\Exception\ClientException as GuzzleClientException;
 use GuzzleHttp\Exception\GuzzleException;
@@ -177,6 +178,7 @@ class Client
         $jobs = [];
         $i = 1;
         $listOptions = clone $listOptions;
+        $listOptions->setDelayedStartTime(new DateTime());
         do {
             $request = new Request('GET', 'jobs?' . implode('&', $listOptions->getQueryParameters()));
             $result = $this->sendRequest($request);
@@ -201,7 +203,9 @@ class Client
         }
         $chunks = array_chunk($jobIds, $chunkSize);
         $jobs = [];
-        $listOptions = (new JobListOptions())->setLimit($chunkSize);
+        $listOptions = (new JobListOptions())
+            ->setLimit($chunkSize)
+            ->setDelayedStartTime(new DateTime());
         if ($sortOptions) {
             $listOptions->setSortBy($sortOptions->getSortBy())->setSortOrder($sortOptions->getSortOrder());
         }
@@ -217,7 +221,9 @@ class Client
         if (!$statuses) {
             return [];
         }
-        $listOptions = (new JobListOptions())->setStatuses($statuses);
+        $listOptions = (new JobListOptions())
+            ->setStatuses($statuses)
+            ->setDelayedStartTime(new DateTime());
         if ($sortOptions) {
             $listOptions->setSortBy($sortOptions->getSortBy())->setSortOrder($sortOptions->getSortOrder());
         }
@@ -364,6 +370,7 @@ class Client
         if ($limit !== null) {
             $query['limit'] = $limit;
         }
+        $query['delayedStartTime'] = (new DateTime())->format('c');
 
         return $this->searchJobsRaw($query);
     }

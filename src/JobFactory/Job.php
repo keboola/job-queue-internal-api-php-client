@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Keboola\JobQueueInternalClient\JobFactory;
 
+use DateInterval;
 use DateTimeImmutable;
 use DateTimeZone;
 use InvalidArgumentException;
@@ -22,12 +23,12 @@ use Keboola\StorageApiBranch\ClientWrapper;
 use Keboola\StorageApiBranch\Factory\ClientOptions;
 use Keboola\StorageApiBranch\Factory\StorageClientPlainFactory;
 use Symfony\Component\Uid\Uuid;
-use Throwable;
 
 class Job implements JsonSerializable, JobInterface
 {
     private ?DateTimeImmutable $endTime = null;
     private ?DateTimeImmutable $startTime = null;
+    private ?DateTimeImmutable $delayedStartTime = null;
     private ?DateTimeImmutable $createdTime = null;
     private ?string $tokenDecrypted = null;
     private ?string $executionTokenDecrypted = null;
@@ -55,6 +56,17 @@ class Job implements JsonSerializable, JobInterface
             $this->startTime = new DateTimeImmutable($this->data['startTime'], new DateTimeZone('utc'));
             $this->data['startTime'] = $this->startTime->format('c');
         }
+        if (!empty($this->data['delayedStartTime'])) {
+            $this->delayedStartTime = new DateTimeImmutable($this->data['delayedStartTime'], new DateTimeZone('utc'));
+            $this->data['delayedStartTime'] = $this->delayedStartTime->format('c');
+        } elseif (!empty($this->data['delay'])) {
+            $this->delayedStartTime = new DateTimeImmutable('now', new DateTimeZone('utc'));
+            $this->delayedStartTime = $this->delayedStartTime->add(
+                new DateInterval('PT' . (int) $this->data['delay'] . 'S'),
+            );
+            $this->data['delayedStartTime'] = $this->delayedStartTime->format('c');
+        }
+
         if (!empty($this->data['endTime'])) {
             $this->endTime = new DateTimeImmutable($this->data['endTime'], new DateTimeZone('utc'));
             $this->data['endTime'] = $this->endTime->format('c');
@@ -420,5 +432,10 @@ class Job implements JsonSerializable, JobInterface
     public function getCreatedTime(): ?DateTimeImmutable
     {
         return $this->createdTime;
+    }
+
+    public function getDelayedStartTime(): ?DateTimeImmutable
+    {
+        return $this->delayedStartTime;
     }
 }

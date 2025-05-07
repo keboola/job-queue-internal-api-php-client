@@ -96,6 +96,8 @@ class FullJobDefinition extends NewJobDefinition
                 ->scalarNode('createdTime')->end()
                 ->scalarNode('startTime')->end()
                 ->scalarNode('endTime')->end()
+                ->scalarNode('delayedStartTime')->end()
+                ->scalarNode('delay')->end()
                 ->scalarNode('durationSeconds')->end()
                 ->arrayNode('result')->ignoreExtraKeys(false)->end()
                 ->arrayNode('usageData')->ignoreExtraKeys(false)->end()
@@ -254,6 +256,13 @@ class FullJobDefinition extends NewJobDefinition
                 ->end()
             ->end();
         // @formatter:on
+
+        $rootNode->validate()
+            ->ifTrue(function ($v) {
+                return isset($v['delayedStartTime']) && $v['delayedStartTime'] !== null
+                    && isset($v['delay']) && $v['delay'] !== null;
+            })
+            ->thenInvalid('delayedStartTime and delay cannot be set simultaneously');
 
         return $rootNode;
     }

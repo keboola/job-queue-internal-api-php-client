@@ -40,6 +40,7 @@ class FullJobDefinitionTest extends BaseTest
             'orchestrationPhaseId' => '951',
             'onlyOrchestrationTaskIds' => ['45', 67],
             'previousJobId' => '789',
+            'delayedStartTime' => '2024-03-20T10:00:00+00:00',
         ];
         $definition = new FullJobDefinition();
         $processedData = $definition->processData($expectedData);
@@ -101,6 +102,7 @@ class FullJobDefinitionTest extends BaseTest
             'orchestrationPhaseId' => null,
             'onlyOrchestrationTaskIds' => null,
             'previousJobId' => null,
+            'delay' => 3600,
         ];
         unset($data['extraKey']);
         unset($data['backend']['backendExtraKey']);
@@ -615,6 +617,23 @@ class FullJobDefinitionTest extends BaseTest
                     'previousJobId' => '',
                 ],
                 '/Invalid configuration for path "job.previousJobId": value cannot be empty string/',
+            ],
+            'delayedStartTime and delay set simultaneously' => [
+                [
+                    '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+                    'id' => '12345',
+                    'runId' => '12345',
+                    'tokenId' => '1234',
+                    'projectId' => '123',
+                    'status' => 'created',
+                    'desiredStatus' => 'processing',
+                    'configId' => '123',
+                    'componentId' => 'keboola.test',
+                    'mode' => 'run',
+                    'delayedStartTime' => '2024-03-20T10:00:00+00:00',
+                    'delay' => 3600,
+                ],
+                '/delayedStartTime and delay cannot be set simultaneously/',
             ],
         ];
     }
