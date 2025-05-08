@@ -716,13 +716,13 @@ Out of order
             new Response(
                 200,
                 ['Content-Type' => 'application/json'],
-                '[{                    
+                '[{
                     "projectId": "456",
                     "projectName": "Test project",
                     "tokenId": "789",
                     "#tokenString": "KBC::ProjectSecure::aSdF",
                     "tokenDescription": "my token",
-                    "status": "created"                    
+                    "status": "created"
                 }]',
             ),
         ]);
@@ -1322,5 +1322,66 @@ Out of order
         $this->expectExceptionMessage('Invalid job ID: "".');
 
         $client->patchJobResult('', []);
+    }
+
+    public function testGetJobsToStartWithStatus(): void
+    {
+        $mock = new MockHandler([
+            new Response(
+                200,
+                ['Content-Type' => 'application/json'],
+                (string) json_encode([
+                    [
+                        'id' => '123',
+                        'runId' => '123',
+                        'projectId' => '456',
+                        'projectName' => 'Test project',
+                        'tokenId' => '789',
+                        '#tokenString' => 'KBC::ProjectSecure::aSdF',
+                        'tokenDescription' => 'my token',
+                        'status' => 'created',
+                        'desiredStatus' => 'processing',
+                        'mode' => 'run',
+                        'componentId' => 'keboola.test',
+                        'configId' => '123456',
+                        'configData' => [
+                            'parameters' => [
+                                'foo' => 'bar',
+                            ],
+                        ],
+                        'result' => [],
+                        'usageData' => [],
+                        'isFinished' => false,
+                        'branchId' => null,
+                        'branchType' => 'default',
+                    ],
+                ]),
+            ),
+        ]);
+
+        $requestHistory = [];
+        $history = Middleware::history($requestHistory);
+        $stack = HandlerStack::create($mock);
+        $stack->push($history);
+
+        $client = $this->createClientWithInternalToken(
+            options: ['handler' => $stack],
+        );
+        $jobs = $client->getJobsToStartWithStatus(['created']);
+
+        self::assertCount(1, $jobs);
+        /** @var Job $job */
+        $job = $jobs[0];
+        self::assertSame('123', $job->getId());
+        self::assertSame('created', $job->getStatus());
+
+        self::assertCount(1, $requestHistory);
+        /** @var Request $request */
+        $request = $requestHistory[0]['request'];
+        self::assertSame(
+            'http://example.com/jobs?status%5B%5D=created&limit=100&delayedStartTime='
+            . urlencode((new DateTimeImmutable())->format(DATE_ATOM)),
+            $request->getUri()->__toString(),
+        );
     }
 }
