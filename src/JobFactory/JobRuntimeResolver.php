@@ -196,7 +196,10 @@ class JobRuntimeResolver
         For workspace size, we only consider 'workspace-snowflake' as it is the only backend supporting scaling.
         During this we ignore any containerType setting received in $tempBackend, which so far is intentional.
         We also ignore backend settings for other workspace types, as they do not make any sense at the moment.
+
         Component "keboola.legacy-transformation" supports dynamic backend, but it doesn't have workspace staging.
+        We can't set both types (workspaceSize and containerSize) at the same time, because it would assign
+        more resources to the components pod. We only need workspaceSize for the legacy transformations.
         */
         if ($jobData['componentId'] === 'keboola.legacy-transformation') {
             return new Backend($tempBackend->getType(), null, $backendContext);
