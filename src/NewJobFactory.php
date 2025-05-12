@@ -87,7 +87,7 @@ class NewJobFactory extends JobFactory
             'onlyOrchestrationTaskIds' => $data['onlyOrchestrationTaskIds'] ?? null,
             'previousJobId' => $data['previousJobId'] ?? null,
             'delay' => $data['delay'] ?? null,
-            'delayStartTime' => $data['delayStartTime'] ?? null,
+            'delayedStartTime' => $data['delayedStartTime'] ?? null,
         ];
         $jobData = $this->jobRuntimeResolver->resolveJobData($jobData, $token);
 
