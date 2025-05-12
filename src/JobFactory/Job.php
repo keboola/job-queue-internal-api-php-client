@@ -56,6 +56,21 @@ class Job implements JsonSerializable, JobInterface
             $this->startTime = new DateTimeImmutable($this->data['startTime'], new DateTimeZone('utc'));
             $this->data['startTime'] = $this->startTime->format('c');
         }
+
+        if (!empty($this->data['endTime'])) {
+            $this->endTime = new DateTimeImmutable($this->data['endTime'], new DateTimeZone('utc'));
+            $this->data['endTime'] = $this->endTime->format('c');
+        }
+        if (!empty($this->data['createdTime'])) {
+            $this->createdTime = new DateTimeImmutable($this->data['createdTime'], new DateTimeZone('utc'));
+            $this->data['createdTime'] = $this->createdTime->format('c');
+        }
+
+        $this->initializeDelayedStartTime();
+    }
+
+    private function initializeDelayedStartTime(): void
+    {
         if (!empty($this->data['delayedStartTime'])) {
             $this->delayedStartTime = new DateTimeImmutable($this->data['delayedStartTime'], new DateTimeZone('utc'));
             $this->data['delayedStartTime'] = $this->delayedStartTime->format('c');
@@ -65,15 +80,6 @@ class Job implements JsonSerializable, JobInterface
                 new DateInterval('PT' . (int) $this->data['delay'] . 'S'),
             );
             $this->data['delayedStartTime'] = $this->delayedStartTime->format('c');
-        }
-
-        if (!empty($this->data['endTime'])) {
-            $this->endTime = new DateTimeImmutable($this->data['endTime'], new DateTimeZone('utc'));
-            $this->data['endTime'] = $this->endTime->format('c');
-        }
-        if (!empty($this->data['createdTime'])) {
-            $this->createdTime = new DateTimeImmutable($this->data['createdTime'], new DateTimeZone('utc'));
-            $this->data['createdTime'] = $this->createdTime->format('c');
         }
     }
 
