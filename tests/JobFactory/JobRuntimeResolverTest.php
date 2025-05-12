@@ -104,23 +104,23 @@ class JobRuntimeResolverTest extends TestCase
             ],
         ];
 
-        $storageClient = self::createMock(BranchAwareClient::class);
-        $storageClient->expects(self::exactly(1))->method('apiGet')
+        $storageClient = $this->createMock(BranchAwareClient::class);
+        $storageClient->expects(self::once())->method('apiGet')
             ->withConsecutive(
                 [sprintf('components/%s', $componentId)],
             )->willReturnOnConsecutiveCalls(
                 $componentData,
             );
-        $clientWrapperMock = self::createMock(ClientWrapper::class);
+        $clientWrapperMock = $this->createMock(ClientWrapper::class);
         $clientWrapperMock->method('getBranchClient')->willReturn($storageClient);
-        $storageClientFactoryMock = self::createMock(StorageClientPlainFactory::class);
+        $storageClientFactoryMock = $this->createMock(StorageClientPlainFactory::class);
         $storageClientFactoryMock
-            ->expects(self::exactly(1))
+            ->expects(self::once())
             ->method('createClientWrapper')
             ->willReturn($clientWrapperMock);
         $jobRuntimeResolver = new JobRuntimeResolver($storageClientFactoryMock);
 
-        $jobData = $jobRuntimeResolver->resolveJobData($jobData, $this->createToken([]));
+        $jobData = $jobRuntimeResolver->resolveJobData($jobData, $this->createToken());
         self::assertSame($expectedJobType->value, $jobData['type']);
         self::assertSame($expectedContext, $jobData['backend']['context']);
     }
@@ -171,7 +171,7 @@ class JobRuntimeResolverTest extends TestCase
             ],
         ];
 
-        $storageClient = self::createMock(BranchAwareClient::class);
+        $storageClient = $this->createMock(BranchAwareClient::class);
         $storageClient->expects(self::exactly(2))->method('apiGet')
             ->withConsecutive(
                 ['components/keboola.ex-db-snowflake'],
@@ -218,7 +218,7 @@ class JobRuntimeResolverTest extends TestCase
                 'type' => 'container',
                 'variableValuesId' => null,
             ],
-            $jobRuntimeResolver->resolveJobData($jobData, $this->createToken([])),
+            $jobRuntimeResolver->resolveJobData($jobData, $this->createToken()),
         );
     }
 
@@ -247,7 +247,7 @@ class JobRuntimeResolverTest extends TestCase
             ],
         ];
 
-        $storageClient = self::createMock(BranchAwareClient::class);
+        $storageClient = $this->createMock(BranchAwareClient::class);
         $storageClient->expects(self::once())->method('apiGet')
             ->withConsecutive(
                 ['components/keboola.ex-db-snowflake'],
@@ -298,7 +298,7 @@ class JobRuntimeResolverTest extends TestCase
                 'variableValuesId' => '123',
                 'variableValuesData' => [],
             ],
-            $jobRuntimeResolver->resolveJobData($jobData, $this->createToken([])),
+            $jobRuntimeResolver->resolveJobData($jobData, $this->createToken()),
         );
     }
 
@@ -338,7 +338,7 @@ class JobRuntimeResolverTest extends TestCase
             ],
         ];
 
-        $storageClient = self::createMock(BranchAwareClient::class);
+        $storageClient = $this->createMock(BranchAwareClient::class);
         $storageClient->expects(self::exactly(2))->method('apiGet')
             ->withConsecutive(
                 ['components/keboola.ex-db-snowflake'],
@@ -385,7 +385,7 @@ class JobRuntimeResolverTest extends TestCase
                     ],
                 ],
             ],
-            $jobRuntimeResolver->resolveJobData($jobData, $this->createToken([])),
+            $jobRuntimeResolver->resolveJobData($jobData, $this->createToken()),
         );
     }
 
@@ -414,7 +414,7 @@ class JobRuntimeResolverTest extends TestCase
             ],
         ];
 
-        $storageClient = self::createMock(BranchAwareClient::class);
+        $storageClient = $this->createMock(BranchAwareClient::class);
         $storageClient->expects(self::exactly(2))->method('apiGet')
             ->withConsecutive(
                 ['components/keboola.ex-db-snowflake'],
@@ -453,7 +453,7 @@ class JobRuntimeResolverTest extends TestCase
                 'variableValuesId' => null,
                 'variableValuesData' => [],
             ],
-            $jobRuntimeResolver->resolveJobData($jobData, $this->createToken([])),
+            $jobRuntimeResolver->resolveJobData($jobData, $this->createToken()),
         );
     }
 
@@ -491,7 +491,7 @@ class JobRuntimeResolverTest extends TestCase
             ],
         ];
 
-        $storageClient = self::createMock(BranchAwareClient::class);
+        $storageClient = $this->createMock(BranchAwareClient::class);
         $storageClient->expects(self::exactly(2))->method('apiGet')
             ->withConsecutive(
                 ['components/keboola.ex-db-snowflake'],
@@ -540,7 +540,7 @@ class JobRuntimeResolverTest extends TestCase
                 'type' => 'standard',
                 'variableValuesData' => [],
             ],
-            $jobRuntimeResolver->resolveJobData($jobData, $this->createToken([])),
+            $jobRuntimeResolver->resolveJobData($jobData, $this->createToken()),
         );
     }
 
@@ -554,7 +554,7 @@ class JobRuntimeResolverTest extends TestCase
             ],
         ];
 
-        $storageClient = self::createMock(BranchAwareClient::class);
+        $storageClient = $this->createMock(BranchAwareClient::class);
         $storageClient->expects(self::exactly(2))->method('apiGet')
             ->withConsecutive(
                 ['components/keboola.ex-db-snowflake'],
@@ -609,7 +609,7 @@ class JobRuntimeResolverTest extends TestCase
         $jobData = array_merge(self::JOB_DATA, $jobData);
         $jobData['configData'] = $configData;
 
-        $storageClient = self::createMock(BranchAwareClient::class);
+        $storageClient = $this->createMock(BranchAwareClient::class);
         $storageClient->expects(self::exactly(2))
             ->method('apiGet')
             ->with(self::callback(function (...$args) {
@@ -791,8 +791,8 @@ class JobRuntimeResolverTest extends TestCase
             'parameters' => ['foo' => 'bar'],
         ];
 
-        $storageClient = self::createMock(BranchAwareClient::class);
-        $storageClient->expects(self::exactly(1))->method('apiGet')
+        $storageClient = $this->createMock(BranchAwareClient::class);
+        $storageClient->expects(self::once())->method('apiGet')
             ->with('components/keboola.ex-db-snowflake')
             ->willReturn($this->getTestExtractorComponentData())
         ;
@@ -800,16 +800,16 @@ class JobRuntimeResolverTest extends TestCase
         $jobRuntimeResolver = new JobRuntimeResolver(
             $this->prepareStorageClientFactoryMock($storageClient),
         );
-        self::expectException(ClientException::class);
-        self::expectExceptionCode(0);
-        self::expectExceptionMessage('Invalid configuration: Invalid type for path "overrides.variableValuesData".');
+        $this->expectException(ClientException::class);
+        $this->expectExceptionCode(0);
+        $this->expectExceptionMessage('Invalid configuration: Invalid type for path "overrides.variableValuesData".');
         $jobRuntimeResolver->resolveJobData($jobData, $this->createToken());
     }
 
     public function testResolveRuntimeSettingsConfigurationNotFound(): void
     {
         $jobData = self::JOB_DATA;
-        $storageClient = self::createMock(BranchAwareClient::class);
+        $storageClient = $this->createMock(BranchAwareClient::class);
         $countMatcher = self::exactly(2);
         $storageClient->expects($countMatcher)->method('apiGet')
             ->withConsecutive(
@@ -827,9 +827,9 @@ class JobRuntimeResolverTest extends TestCase
         $jobRuntimeResolver = new JobRuntimeResolver(
             $this->prepareStorageClientFactoryMock($storageClient),
         );
-        self::expectExceptionMessage('Cannot resolve job parameters: Configuration "454124290" not found');
-        self::expectExceptionCode(0);
-        self::expectException(ClientException::class);
+        $this->expectExceptionMessage('Cannot resolve job parameters: Configuration "454124290" not found');
+        $this->expectExceptionCode(0);
+        $this->expectException(ClientException::class);
         $jobRuntimeResolver->resolveJobData($jobData, $this->createToken());
     }
 
@@ -838,8 +838,8 @@ class JobRuntimeResolverTest extends TestCase
         $jobData = self::JOB_DATA;
         unset($jobData['configId']);
 
-        $storageClient = self::createMock(BranchAwareClient::class);
-        $storageClient->expects(self::exactly(1))->method('apiGet')
+        $storageClient = $this->createMock(BranchAwareClient::class);
+        $storageClient->expects(self::once())->method('apiGet')
             ->with('components/keboola.ex-db-snowflake')
             ->willReturn($this->getTestExtractorComponentData())
         ;
@@ -881,8 +881,8 @@ class JobRuntimeResolverTest extends TestCase
         $jobData = self::JOB_DATA;
         $jobData['configId'] = '';
 
-        $storageClient = self::createMock(BranchAwareClient::class);
-        $storageClient->expects(self::exactly(1))->method('apiGet')
+        $storageClient = $this->createMock(BranchAwareClient::class);
+        $storageClient->expects(self::once())->method('apiGet')
             ->with('components/keboola.ex-db-snowflake')
             ->willReturn($this->getTestExtractorComponentData())
         ;
@@ -925,7 +925,7 @@ class JobRuntimeResolverTest extends TestCase
         $jobData = self::JOB_DATA;
         $jobData['configId'] = '123456';
 
-        $storageClient = self::createMock(BranchAwareClient::class);
+        $storageClient = $this->createMock(BranchAwareClient::class);
         $storageClient->expects(self::exactly(2))->method('apiGet')
             ->withConsecutive(
                 ['components/keboola.ex-db-snowflake'],
@@ -993,7 +993,7 @@ class JobRuntimeResolverTest extends TestCase
             ],
         ];
 
-        $storageClient = self::createMock(BranchAwareClient::class);
+        $storageClient = $this->createMock(BranchAwareClient::class);
         $storageClient->expects(self::exactly(4))->method('apiGet')
             ->withConsecutive(
                 ['components/keboola.ex-db-snowflake'],
@@ -1028,15 +1028,15 @@ class JobRuntimeResolverTest extends TestCase
             ],
         ];
 
-        $storageClient = self::createMock(BranchAwareClient::class);
+        $storageClient = $this->createMock(BranchAwareClient::class);
         $storageClient->expects(self::once())->method('apiGet')
             ->with('components/keboola.ex-db-snowflake')->willReturn($component);
 
         $jobRuntimeResolver = new JobRuntimeResolver(
             $this->prepareStorageClientFactoryMock($storageClient),
         );
-        self::expectExceptionMessage('The component "keboola.ex-db-snowflake" is not runnable.');
-        self::expectException(ClientException::class);
+        $this->expectExceptionMessage('The component "keboola.ex-db-snowflake" is not runnable.');
+        $this->expectException(ClientException::class);
         $jobRuntimeResolver->resolveJobData($jobData, $this->createToken());
     }
 
@@ -1066,7 +1066,7 @@ class JobRuntimeResolverTest extends TestCase
             ],
         ];
 
-        $storageClient = self::createMock(BranchAwareClient::class);
+        $storageClient = $this->createMock(BranchAwareClient::class);
         $storageClient->expects(self::exactly(2))->method('apiGet')
             ->withConsecutive(
                 ['components/keboola.ex-db-snowflake'],
@@ -1116,7 +1116,7 @@ class JobRuntimeResolverTest extends TestCase
                     ],
                 ],
             ],
-            $jobRuntimeResolver->resolveJobData($jobData, $this->createToken([])),
+            $jobRuntimeResolver->resolveJobData($jobData, $this->createToken()),
         );
     }
 
@@ -1131,7 +1131,7 @@ class JobRuntimeResolverTest extends TestCase
             ],
         ];
 
-        $storageClient = self::createMock(BranchAwareClient::class);
+        $storageClient = $this->createMock(BranchAwareClient::class);
         $storageClient->expects(self::exactly(2))->method('apiGet')
             ->withConsecutive(
                 ['components/keboola.ex-db-snowflake'],
@@ -1145,8 +1145,8 @@ class JobRuntimeResolverTest extends TestCase
             $this->prepareStorageClientFactoryMock($storageClient),
         );
 
-        self::expectException(ConfigurationDisabledException::class);
-        self::expectExceptionMessage('Configuration "454124290" of component "keboola.ex-db-snowflake" is disabled.');
+        $this->expectException(ConfigurationDisabledException::class);
+        $this->expectExceptionMessage('Configuration "454124290" of component "keboola.ex-db-snowflake" is disabled.');
         $jobRuntimeResolver->resolveJobData($jobData, $this->createToken());
     }
 
@@ -1182,7 +1182,7 @@ class JobRuntimeResolverTest extends TestCase
         ];
         $jobData['parallelism'] = '5';
 
-        $storageClient = self::createMock(BranchAwareClient::class);
+        $storageClient = $this->createMock(BranchAwareClient::class);
         $storageClient->expects(self::exactly($expectedApiCallCount))->method('apiGet')
             ->with(sprintf('components/%s', $componentId))
             ->willReturn(
@@ -1746,7 +1746,7 @@ class JobRuntimeResolverTest extends TestCase
 
         $componentData = $this->getTestComponentData('workspace-snowflake');
 
-        $storageClient = self::createMock(BranchAwareClient::class);
+        $storageClient = $this->createMock(BranchAwareClient::class);
         $storageClient->expects(self::exactly(2))->method('apiGet')
             ->withConsecutive(
                 ['components/keboola.ex-db-snowflake'],
@@ -1785,7 +1785,7 @@ class JobRuntimeResolverTest extends TestCase
                 'variableValuesId' => null,
                 'variableValuesData' => [],
             ],
-            $jobRuntimeResolver->resolveJobData($jobData, $this->createToken([])),
+            $jobRuntimeResolver->resolveJobData($jobData, $this->createToken()),
         );
     }
 
@@ -1801,8 +1801,8 @@ class JobRuntimeResolverTest extends TestCase
         $jobData['configId'] = null;
         $jobData['tag'] = '1.2.3';
 
-        $storageClient = self::createMock(BranchAwareClient::class);
-        $storageClient->expects(self::exactly(1))->method('apiGet')
+        $storageClient = $this->createMock(BranchAwareClient::class);
+        $storageClient->expects(self::once())->method('apiGet')
             ->with('components/keboola.ex-db-snowflake')
             ->willReturn($this->getTestComponentData());
 
@@ -1840,7 +1840,7 @@ class JobRuntimeResolverTest extends TestCase
                 'variableValuesId' => null,
                 'variableValuesData' => [],
             ],
-            $jobRuntimeResolver->resolveJobData($jobData, $this->createToken([])),
+            $jobRuntimeResolver->resolveJobData($jobData, $this->createToken()),
         );
     }
 
@@ -1879,7 +1879,7 @@ class JobRuntimeResolverTest extends TestCase
         string $actualBranchId = self::DEFAULT_BRANCH_ID,
         bool $actualBranchIsDefault = true,
     ): StorageClientPlainFactory {
-        $clientWrapper = self::createMock(ClientWrapper::class);
+        $clientWrapper = $this->createMock(ClientWrapper::class);
         $clientWrapper->expects(self::exactly($expectedInvocationCount))
             ->method('getBranchClient')
             ->willReturn($storageClient)
@@ -1887,7 +1887,7 @@ class JobRuntimeResolverTest extends TestCase
         $clientWrapper->method('isDefaultBranch')->willReturn($actualBranchIsDefault);
         $clientWrapper->method('getBranchId')->willReturn($actualBranchId);
 
-        $storageClientFactory = self::createMock(StorageClientPlainFactory::class);
+        $storageClientFactory = $this->createMock(StorageClientPlainFactory::class);
         $storageClientFactory->expects(self::exactly($expectedInvocationCount))
             ->method('createClientWrapper')
             ->with(new ClientOptions(
@@ -2096,22 +2096,22 @@ class JobRuntimeResolverTest extends TestCase
             ],
         ];
 
-        $storageClient = self::createMock(BranchAwareClient::class);
-        $storageClient->expects(self::exactly(1))->method('apiGet')
+        $storageClient = $this->createMock(BranchAwareClient::class);
+        $storageClient->expects(self::once())->method('apiGet')
             ->with(sprintf('components/%s', $componentId))
             ->willReturn($componentData);
 
-        $clientWrapperMock = self::createMock(ClientWrapper::class);
+        $clientWrapperMock = $this->createMock(ClientWrapper::class);
         $clientWrapperMock->method('getBranchClient')->willReturn($storageClient);
-        $storageClientFactoryMock = self::createMock(StorageClientPlainFactory::class);
+        $storageClientFactoryMock = $this->createMock(StorageClientPlainFactory::class);
         $storageClientFactoryMock
-            ->expects(self::exactly(1))
+            ->expects(self::once())
             ->method('createClientWrapper')
             ->willReturn($clientWrapperMock);
 
         $jobRuntimeResolver = new JobRuntimeResolver($storageClientFactoryMock);
 
-        $resolvedJobData = $jobRuntimeResolver->resolveJobData($jobData, $this->createToken([]));
+        $resolvedJobData = $jobRuntimeResolver->resolveJobData($jobData, $this->createToken());
 
         self::assertSame(
             $expectedType->value,
