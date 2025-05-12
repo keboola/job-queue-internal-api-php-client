@@ -1911,4 +1911,212 @@ class JobRuntimeResolverTest extends TestCase
             'test-token',
         );
     }
+
+    public function resolveJobTypeDataProvider(): Generator
+    {
+        yield 'row container with explicit standard type' => [
+            'componentId' => 'keboola.ex-db-snowflake',
+            'jobData' => [
+                'parallelism' => '5', // This would normally make it a ROW_CONTAINER
+                'type' => 'standard', // But the explicit type should override
+            ],
+            'expectedType' => JobType::STANDARD,
+        ];
+
+        yield 'standard with explicit row container type' => [
+            'componentId' => 'keboola.ex-db-snowflake',
+            'jobData' => [
+                'parallelism' => '0', // This would normally make it a STANDARD
+                'type' => 'container', // But the explicit type should override
+            ],
+            'expectedType' => JobType::ROW_CONTAINER,
+        ];
+
+        yield 'orchestrator with explicit row container type' => [
+            'componentId' => JobFactory::ORCHESTRATOR_COMPONENT,
+            'jobData' => [
+                'type' => 'container', // Override the orchestration container type
+            ],
+            'expectedType' => JobType::ROW_CONTAINER,
+        ];
+
+        yield 'phase with explicit orchestration container type' => [
+            'componentId' => JobFactory::ORCHESTRATOR_COMPONENT,
+            'jobData' => [
+                'configData' => [
+                    'phaseId' => '123', // This would normally make it a PHASE_CONTAINER
+                ],
+                'type' => 'orchestrationContainer', // But the explicit type should override
+            ],
+            'expectedType' => JobType::ORCHESTRATION_CONTAINER,
+        ];
+
+        yield 'flow with explicit phase container type' => [
+            'componentId' => JobFactory::FLOW_COMPONENT,
+            'jobData' => [
+                'type' => 'phaseContainer', // Override the orchestration container type
+            ],
+            'expectedType' => JobType::PHASE_CONTAINER,
+        ];
+
+        // Test all possible enum values with explicit type only
+        yield 'explicit type standard' => [
+            'componentId' => 'keboola.ex-db-snowflake',
+            'jobData' => [
+                'type' => 'standard',
+            ],
+            'expectedType' => JobType::STANDARD,
+        ];
+
+        yield 'explicit type container' => [
+            'componentId' => 'keboola.ex-db-snowflake',
+            'jobData' => [
+                'type' => 'container',
+            ],
+            'expectedType' => JobType::ROW_CONTAINER,
+        ];
+
+        yield 'explicit type orchestration' => [
+            'componentId' => 'keboola.ex-db-snowflake',
+            'jobData' => [
+                'type' => 'orchestrationContainer',
+            ],
+            'expectedType' => JobType::ORCHESTRATION_CONTAINER,
+        ];
+
+        yield 'explicit type phase' => [
+            'componentId' => 'keboola.ex-db-snowflake',
+            'jobData' => [
+                'type' => 'phaseContainer',
+            ],
+            'expectedType' => JobType::PHASE_CONTAINER,
+        ];
+
+        // Test cases for parallelism condition
+        yield 'parallelism numeric positive' => [
+            'componentId' => 'keboola.ex-db-snowflake',
+            'jobData' => [
+                'parallelism' => '10',
+            ],
+            'expectedType' => JobType::ROW_CONTAINER,
+        ];
+
+        yield 'parallelism infinity' => [
+            'componentId' => 'keboola.ex-db-snowflake',
+            'jobData' => [
+                'parallelism' => 'infinity',
+            ],
+            'expectedType' => JobType::ROW_CONTAINER,
+        ];
+
+        yield 'parallelism zero' => [
+            'componentId' => 'keboola.ex-db-snowflake',
+            'jobData' => [
+                'parallelism' => '0',
+            ],
+            'expectedType' => JobType::STANDARD,
+        ];
+
+        yield 'parallelism null' => [
+            'componentId' => 'keboola.ex-db-snowflake',
+            'jobData' => [
+                'parallelism' => null,
+            ],
+            'expectedType' => JobType::STANDARD,
+        ];
+
+        // Test cases for component-specific conditions
+        yield 'flow component without explicit type' => [
+            'componentId' => JobFactory::FLOW_COMPONENT,
+            'jobData' => [],
+            'expectedType' => JobType::ORCHESTRATION_CONTAINER,
+        ];
+
+        yield 'orchestrator component without explicit type or phaseId' => [
+            'componentId' => JobFactory::ORCHESTRATOR_COMPONENT,
+            'jobData' => [],
+            'expectedType' => JobType::ORCHESTRATION_CONTAINER,
+        ];
+
+        yield 'orchestrator component with phaseId' => [
+            'componentId' => JobFactory::ORCHESTRATOR_COMPONENT,
+            'jobData' => [
+                'configData' => [
+                    'phaseId' => '123',
+                ],
+            ],
+            'expectedType' => JobType::PHASE_CONTAINER,
+        ];
+
+        yield 'orchestrator component with empty string phaseId' => [
+            'componentId' => JobFactory::ORCHESTRATOR_COMPONENT,
+            'jobData' => [
+                'configData' => [
+                    'phaseId' => '',
+                ],
+            ],
+            'expectedType' => JobType::ORCHESTRATION_CONTAINER,
+        ];
+
+        yield 'standard component with no special configuration' => [
+            'componentId' => 'keboola.ex-db-snowflake',
+            'jobData' => [],
+            'expectedType' => JobType::STANDARD,
+        ];
+    }
+
+    /**
+     * @dataProvider resolveJobTypeDataProvider
+     */
+    public function testResolveJobType(string $componentId, array $customJobData, JobType $expectedType): void
+    {
+        $baseJobData = [
+            'id' => '123456456',
+            'runId' => '123456456',
+            'componentId' => $componentId,
+            'mode' => 'run',
+            'status' => 'created',
+            'desiredStatus' => 'processing',
+            'projectId' => '123',
+            'tokenId' => '456',
+            '#tokenString' => 'KBC::ProjectSecure::token',
+            'branchId' => 'default',
+            'backend' => null,
+        ];
+
+        $jobData = array_merge($baseJobData, $customJobData);
+
+        $componentData = [
+            'type' => 'dummy-component-type',
+            'id' => $componentId,
+            'data' => [
+                'definition' => [
+                    'tag' => '9.9.9',
+                ],
+            ],
+        ];
+
+        $storageClient = self::createMock(BranchAwareClient::class);
+        $storageClient->expects(self::exactly(1))->method('apiGet')
+            ->with(sprintf('components/%s', $componentId))
+            ->willReturn($componentData);
+
+        $clientWrapperMock = self::createMock(ClientWrapper::class);
+        $clientWrapperMock->method('getBranchClient')->willReturn($storageClient);
+        $storageClientFactoryMock = self::createMock(StorageClientPlainFactory::class);
+        $storageClientFactoryMock
+            ->expects(self::exactly(1))
+            ->method('createClientWrapper')
+            ->willReturn($clientWrapperMock);
+
+        $jobRuntimeResolver = new JobRuntimeResolver($storageClientFactoryMock);
+
+        $resolvedJobData = $jobRuntimeResolver->resolveJobData($jobData, $this->createToken([]));
+
+        self::assertSame(
+            $expectedType->value,
+            $resolvedJobData['type'],
+            sprintf('Failed asserting job type for component "%s"', $componentId),
+        );
+    }
 }
