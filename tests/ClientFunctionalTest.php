@@ -21,6 +21,7 @@ use Keboola\StorageApi\DevBranches;
 use Keboola\StorageApi\Options\Components\Configuration;
 use Keboola\StorageApiBranch\ClientWrapper;
 use Keboola\StorageApiBranch\Factory\ClientOptions;
+use Symfony\Component\Uid\Uuid;
 
 class ClientFunctionalTest extends BaseClientFunctionalTest
 {
@@ -1048,7 +1049,8 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
             $job->getId(),
             (new JobPatchData())
                 ->setStatus($createdJob->getStatus())
-                ->setDesiredStatus($createdJob->getDesiredStatus()),
+                ->setDesiredStatus($createdJob->getDesiredStatus())
+                ->setRunnerId((string) Uuid::v4()),
         );
     }
 
