@@ -64,6 +64,8 @@ class NewJobDefinition implements ConfigurationInterface
                 ->scalarNode('parentRunId')->end()
                 ->arrayNode('configData')->ignoreExtraKeys(false)->end()
                 ->scalarNode('branchId')->end()
+                ->scalarNode('delay')->end()
+                ->scalarNode('delayedStartTime')->end()
                 ->scalarNode('type')->end()
                 ->scalarNode('parallelism')->end()
                 ->scalarNode('variableValuesId')->end()

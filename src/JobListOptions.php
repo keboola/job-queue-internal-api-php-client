@@ -28,6 +28,7 @@ class JobListOptions
     private DateTimeInterface $createdTimeTo;
     private DateTimeInterface $endTimeFrom;
     private DateTimeInterface $endTimeTo;
+    private DateTimeInterface $delayedStartTime;
     private int $durationSecondsFrom;
     private int $durationSecondsTo;
     private int $offset = 0;
@@ -80,6 +81,7 @@ class JobListOptions
             'createdTimeTo' => 'createdTimeTo',
             'endTimeFrom' => 'endTimeFrom',
             'endTimeTo' => 'endTimeTo',
+            'delayedStartTime' => 'delayedStartTime',
         ];
         $parameters = [];
         foreach ($arrayableProps as $propName => $paramName) {
@@ -402,6 +404,17 @@ class JobListOptions
     public function setType(JobType $type): JobListOptions
     {
         $this->type = $type;
+        return $this;
+    }
+
+    public function getDelayedStartTime(): DateTimeInterface
+    {
+        return $this->delayedStartTime;
+    }
+
+    public function setDelayedStartTime(DateTimeInterface $value): JobListOptions
+    {
+        $this->delayedStartTime = $value;
         return $this;
     }
 }

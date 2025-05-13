@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Keboola\JobQueueInternalClient\Tests\JobFactory;
 
+use DateInterval;
 use DateTimeImmutable;
+use DateTimeZone;
 use Keboola\JobQueueInternalClient\Exception\ClientException;
 use Keboola\JobQueueInternalClient\JobFactory;
 use Keboola\JobQueueInternalClient\JobFactory\Job;
@@ -1046,6 +1048,14 @@ class JobTest extends BaseTest
             'datetimeString' => '2024-06-11T10:11:37.000Z',
             'datetimeField' => 'createdTime',
         ];
+        yield 'delayedStartTime - MySQL offset' => [
+            'datetimeString' => '2024-06-11T10:11:37+00:00',
+            'datetimeField' => 'delayedStartTime',
+        ];
+        yield 'delayedStartTime - Elastic offset' => [
+            'datetimeString' => '2024-06-11T10:11:37.000Z',
+            'datetimeField' => 'delayedStartTime',
+        ];
     }
 
     /** @dataProvider provideValidDatetimeStrings */
@@ -1067,6 +1077,7 @@ class JobTest extends BaseTest
         yield 'endTime' => ['datetimeField' => 'endTime'];
         yield 'startTime' => ['datetimeField' => 'startTime'];
         yield 'createdTime' => ['datetimeField' => 'createdTime'];
+        yield 'delayedStartTime' => ['datetimeField' => 'delayedStartTime'];
     }
 
     /** @dataProvider provideDatetimeFields */
@@ -1096,5 +1107,47 @@ class JobTest extends BaseTest
         self::expectExceptionMessage('Failed to parse time string');
 
         $this->getJob($jobData);
+    }
+
+    public function testDelayedStartTimeWithDelay(): void
+    {
+        $jobData = $this->jobData;
+        $jobData['delay'] = '3600';
+        $job = $this->getJob($jobData);
+
+        $now = new DateTimeImmutable('now', new DateTimeZone('utc'));
+        $expectedDelayedStartTime = $now->add(new DateInterval('PT1H'));
+
+        self::assertNotNull($job->getDelayedStartTime());
+        self::assertEqualsWithDelta(
+            $expectedDelayedStartTime->getTimestamp(),
+            $job->getDelayedStartTime()->getTimestamp(),
+            2,
+        );
+    }
+
+    public function testDelayedStartTimeWithDirectValue(): void
+    {
+        $jobData = $this->jobData;
+        $jobData['delayedStartTime'] = '2024-06-11T10:11:37+00:00';
+        $job = $this->getJob($jobData);
+
+        self::assertEquals(
+            new DateTimeImmutable('2024-06-11T10:11:37+00:00'),
+            $job->getDelayedStartTime(),
+        );
+    }
+
+    public function testDelayedStartTimeWithBothValues(): void
+    {
+        $jobData = $this->jobData;
+        $jobData['delay'] = '3600';
+        $jobData['delayedStartTime'] = '2024-06-11T10:11:37+00:00';
+        $job = $this->getJob($jobData);
+
+        self::assertEquals(
+            new DateTimeImmutable('2024-06-11T10:11:37+00:00'),
+            $job->getDelayedStartTime(),
+        );
     }
 }

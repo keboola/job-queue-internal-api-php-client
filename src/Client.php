@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Keboola\JobQueueInternalClient;
 
 use Closure;
+use DateTime;
 use GuzzleHttp\Client as GuzzleClient;
 use GuzzleHttp\Exception\ClientException as GuzzleClientException;
 use GuzzleHttp\Exception\GuzzleException;
@@ -218,6 +219,20 @@ class Client
             return [];
         }
         $listOptions = (new JobListOptions())->setStatuses($statuses);
+        if ($sortOptions) {
+            $listOptions->setSortBy($sortOptions->getSortBy())->setSortOrder($sortOptions->getSortOrder());
+        }
+        return $this->listJobs($listOptions, true);
+    }
+
+    public function getJobsToStartWithStatus(array $statuses, ?JobsSortOptions $sortOptions = null): array
+    {
+        if (!$statuses) {
+            return [];
+        }
+        $listOptions = (new JobListOptions())
+            ->setStatuses($statuses)
+            ->setDelayedStartTime(new DateTime());
         if ($sortOptions) {
             $listOptions->setSortBy($sortOptions->getSortBy())->setSortOrder($sortOptions->getSortOrder());
         }
