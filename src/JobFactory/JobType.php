@@ -10,6 +10,7 @@ enum JobType: string
     case ROW_CONTAINER = 'container';
     case PHASE_CONTAINER = 'phaseContainer';
     case ORCHESTRATION_CONTAINER = 'orchestrationContainer';
+    case RETRY_CONTAINER = 'retryContainer';
 
     public function isContainer(): bool
     {
