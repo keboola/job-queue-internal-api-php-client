@@ -1992,6 +1992,14 @@ class JobRuntimeResolverTest extends TestCase
             'expectedType' => JobType::PHASE_CONTAINER,
         ];
 
+        yield 'explicit type retry' => [
+            'componentId' => 'keboola.ex-db-snowflake',
+            'jobData' => [
+                'type' => 'retryContainer',
+            ],
+            'expectedType' => JobType::RETRY_CONTAINER,
+        ];
+
         // Test cases for parallelism condition
         yield 'parallelism numeric positive' => [
             'componentId' => 'keboola.ex-db-snowflake',
