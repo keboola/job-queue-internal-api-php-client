@@ -123,7 +123,7 @@ class NewJobFactoryTest extends BaseTest
         $factory = $this->getJobFactory();
         $data = [
             '#tokenString' => self::getRequiredEnv('TEST_STORAGE_API_TOKEN'),
-            'configId' => (int) self::$configId1,
+            'configId' => self::$configId1,
             'componentId' => self::COMPONENT_ID_1,
             'mode' => 'run',
             'tag' => 123,
