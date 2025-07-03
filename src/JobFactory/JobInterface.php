@@ -117,6 +117,7 @@ interface JobInterface
     public function getStartTime(): ?DateTimeImmutable;
     public function getDelayedStartTime(): ?DateTimeImmutable;
     public function getEndTime(): ?DateTimeImmutable;
+    public function getCreatedTime(): ?DateTimeImmutable;
     public function getDurationSeconds(): ?int;
     public function getMetrics(): JobMetrics;
     public function isInRunMode(): bool;
