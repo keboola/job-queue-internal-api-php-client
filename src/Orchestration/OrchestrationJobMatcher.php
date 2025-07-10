@@ -7,7 +7,7 @@ namespace Keboola\JobQueueInternalClient\Orchestration;
 use Keboola\JobQueueInternalClient\Client;
 use Keboola\JobQueueInternalClient\Exception\OrchestrationJobMatcherValidationException;
 use Keboola\JobQueueInternalClient\JobFactory;
-use Keboola\JobQueueInternalClient\JobFactory\JobInterface;
+use Keboola\JobQueueInternalClient\JobFactory\PlainJobInterface;
 use Keboola\JobQueueInternalClient\JobListOptions;
 use Keboola\StorageApi\Components;
 use Keboola\StorageApiBranch\Factory\ClientOptions;
@@ -17,6 +17,9 @@ use SensitiveParameter;
 // https://keboola.atlassian.net/wiki/spaces/ENGG/pages/3074195457/DRAFT+RFC-2023-011+-+Rerun+orchestration#Pair-Jobs-and-Tasks
 class OrchestrationJobMatcher
 {
+    /**
+     * @param Client<PlainJobInterface> $internalClient
+     */
     public function __construct(
         private readonly Client $internalClient,
         private readonly StorageClientPlainFactory $storageClientFactory,
@@ -64,9 +67,9 @@ class OrchestrationJobMatcher
     }
 
     /**
-     * @return array<JobInterface>
+     * @return array<PlainJobInterface>
      */
-    private function getOrchestrationTaskJobs(JobInterface $job): array
+    private function getOrchestrationTaskJobs(PlainJobInterface $job): array
     {
         return $this->internalClient->listJobs(
             (new JobListOptions())->setParentRunId($job->getId()),
@@ -74,7 +77,7 @@ class OrchestrationJobMatcher
         );
     }
 
-    private function getCurrentOrchestrationConfiguration(JobInterface $job, Components $componentsApi): array
+    private function getCurrentOrchestrationConfiguration(PlainJobInterface $job, Components $componentsApi): array
     {
         $configuration = $job->getConfigData();
         if ($configuration) {
@@ -87,7 +90,7 @@ class OrchestrationJobMatcher
         )['configuration'];
     }
 
-    private function validateInputs(JobInterface $job, array $configuration): void
+    private function validateInputs(PlainJobInterface $job, array $configuration): void
     {
         /* since the matcher accepts a jobId, we need to check that it is a sort of sensible input -
             the main use case is root orchestration job, but it seems that a phaseContainer might be

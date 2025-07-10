@@ -10,8 +10,10 @@ use Keboola\StorageApi\Components as ComponentsApiClient;
 
 class JobConfigurationResolver
 {
-    public static function resolveJobConfiguration(JobInterface $job, ComponentsApiClient $componentsApiClient): array
-    {
+    public static function resolveJobConfiguration(
+        PlainJobInterface $job,
+        ComponentsApiClient $componentsApiClient,
+    ): array {
         if (!$job->getConfigId()) {
             throw new ClientException('Can\'t fetch component configuration: job has no configId set');
         }

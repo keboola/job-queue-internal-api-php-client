@@ -11,7 +11,10 @@ use Keboola\JobQueueInternalClient\JobFactory\JobInterface;
 use Keboola\JobQueueInternalClient\JobFactory\JobObjectEncryptor;
 use Keboola\StorageApiBranch\Factory\StorageClientPlainFactory;
 
-class ExistingJobFactory extends JobFactory
+/**
+ * @implements ExistingJobFactoryInterface<JobInterface>
+ */
+class ExistingJobFactory extends JobFactory implements ExistingJobFactoryInterface
 {
     public function __construct(
         private readonly StorageClientPlainFactory $storageClientFactory,

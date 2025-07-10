@@ -61,6 +61,7 @@ abstract class BaseClientFunctionalTest extends BaseTest
      * @param non-empty-string|null $kmsKeyId
      * @param non-empty-string|null $keyVaultUrl
      * @param non-empty-string|null $gkmsKeyId
+     * @return Client<JobInterface>
      */
     protected function getClient(
         ?string $kmsKeyId = null,

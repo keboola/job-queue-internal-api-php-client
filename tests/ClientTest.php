@@ -34,6 +34,9 @@ use stdClass;
 
 class ClientTest extends BaseTest
 {
+    /**
+     * @return Client<JobInterface>
+     */
     private function createClient(
         ?string $internalAuthToken = null,
         ?string $storageApiToken = null,
@@ -69,6 +72,9 @@ class ClientTest extends BaseTest
         );
     }
 
+    /**
+     * @return Client<JobInterface>
+     */
     private function createClientWithInternalToken(
         array $options = [],
         ?LoggerInterface $logger = null,

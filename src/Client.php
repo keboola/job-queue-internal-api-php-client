@@ -19,7 +19,7 @@ use Keboola\JobQueueInternalClient\Exception\DeduplicationIdConflictException;
 use Keboola\JobQueueInternalClient\Exception\StateTargetEqualsCurrentException;
 use Keboola\JobQueueInternalClient\Exception\StateTerminalException;
 use Keboola\JobQueueInternalClient\Exception\StateTransitionForbiddenException;
-use Keboola\JobQueueInternalClient\JobFactory\JobInterface;
+use Keboola\JobQueueInternalClient\JobFactory\PlainJobInterface;
 use Keboola\JobQueueInternalClient\Result\JobMetrics;
 use Keboola\JobQueueInternalClient\Result\JobResult;
 use Psr\Http\Message\RequestInterface;
@@ -32,6 +32,9 @@ use Symfony\Component\Validator\ConstraintViolationInterface;
 use Symfony\Component\Validator\Validation;
 use Throwable;
 
+/**
+ * @template-covariant TJob of PlainJobInterface
+ */
 class Client
 {
     private const DEFAULT_USER_AGENT = 'Internal PHP Client';
@@ -39,12 +42,13 @@ class Client
     private const JSON_DEPTH = 512;
 
     protected GuzzleClient $guzzle;
-    private ExistingJobFactory $existingJobFactory;
-    private LoggerInterface $logger;
 
+    /**
+     * @param ExistingJobFactoryInterface<TJob> $existingJobFactory
+     */
     public function __construct(
-        LoggerInterface $logger,
-        ExistingJobFactory $existingJobFactory,
+        private readonly LoggerInterface $logger,
+        private readonly ExistingJobFactoryInterface $existingJobFactory,
         string $internalQueueApiUrl,
         ?string $internalQueueToken,
         ?string $storageApiToken,
@@ -74,8 +78,6 @@ class Client
             $applicationToken,
             $options,
         );
-        $this->existingJobFactory = $existingJobFactory;
-        $this->logger = $logger;
     }
 
     private function validateConfiguration(
@@ -134,7 +136,11 @@ class Client
         // todo implement this
     }
 
-    public function createJob(JobInterface $job): JobInterface
+    /**
+     * @param PlainJobInterface $job
+     * @return TJob
+     */
+    public function createJob(PlainJobInterface $job): PlainJobInterface
     {
         try {
             $jobData = json_encode($job, JSON_THROW_ON_ERROR);
@@ -159,7 +165,10 @@ class Client
         return array_map(fn(array $jobData) => $this->existingJobFactory->loadFromExistingJobData($jobData), $result);
     }
 
-    public function getJob(string $jobId): JobInterface
+    /**
+     * @return TJob
+     */
+    public function getJob(string $jobId): PlainJobInterface
     {
         if (empty($jobId)) {
             throw new ClientException(sprintf('Invalid job ID: "%s".', $jobId));
@@ -171,7 +180,7 @@ class Client
     }
 
     /**
-     * @return array<JobInterface>
+     * @return array<TJob>
      */
     public function listJobs(JobListOptions $listOptions, bool $fetchAllPages): array
     {
@@ -190,7 +199,7 @@ class Client
     }
 
     /**
-     * @return array<JobInterface>
+     * @return array<TJob>
      */
     public function getJobsWithIds(array $jobIds, ?JobsSortOptions $sortOptions = null): array
     {
@@ -239,7 +248,10 @@ class Client
         return $this->listJobs($listOptions, true);
     }
 
-    public function patchJob(string $jobId, JobPatchData $patchData): JobInterface
+    /**
+     * @return TJob
+     */
+    public function patchJob(string $jobId, JobPatchData $patchData): PlainJobInterface
     {
         if (empty($jobId)) {
             throw new ClientException(sprintf('Invalid job ID: "%s".', $jobId));
@@ -254,12 +266,15 @@ class Client
         return $this->existingJobFactory->loadFromExistingJobData($this->sendRequest($request));
     }
 
+    /**
+     * @return TJob
+     */
     public function postJobResult(
         string $jobId,
         string $status,
         JobResult $result,
         ?JobMetrics $metrics = null,
-    ): JobInterface {
+    ): PlainJobInterface {
         if (empty($jobId)) {
             throw new ClientException(sprintf('Invalid job ID: "%s".', $jobId));
         }
@@ -276,7 +291,10 @@ class Client
         return $this->existingJobFactory->loadFromExistingJobData($this->sendRequest($request));
     }
 
-    public function patchJobResult(string $jobId, array $patchData): JobInterface
+    /**
+     * @return TJob
+     */
+    public function patchJobResult(string $jobId, array $patchData): PlainJobInterface
     {
         if ($jobId === '') {
             throw new ClientException(sprintf('Invalid job ID: "%s".', $jobId));
@@ -291,7 +309,7 @@ class Client
     }
 
     /**
-     * @return array<JobInterface>
+     * @return array<TJob>
      */
     public function listConfigurationsJobs(
         ListConfigurationsJobsOptions $options,
@@ -312,7 +330,7 @@ class Client
     }
 
     /**
-     * @return array<JobInterface>
+     * @return array<TJob>
      */
     public function listLatestConfigurationsJobs(
         ListLatestConfigurationsJobsOptions $options,
@@ -354,7 +372,7 @@ class Client
      * @param "asc"|"desc"|null $sortOrder
      * @param int<0, max>|null $offset
      * @param int<1, 500>|null $limit
-     * @return array<JobInterface>
+     * @return array<TJob>
      */
     public function searchJobs(
         ?SearchJobsFilters $filters = null,
@@ -383,7 +401,7 @@ class Client
         return $this->searchJobsRaw($query);
     }
 
-    /** @return JobInterface[] */
+    /** @return TJob[] */
     public function searchJobsRaw(array $rawQuery): array
     {
         $request = new Request('GET', 'search/jobs?' . http_build_query($rawQuery));
@@ -395,7 +413,7 @@ class Client
     /**
      * @param non-empty-string|null $sortBy
      * @param "asc"|"desc"|null $sortOrder
-     * @return iterable<JobInterface>
+     * @return iterable<TJob>
      */
     public function searchAllJobs(
         ?SearchJobsFilters $filters = null,
@@ -423,7 +441,7 @@ class Client
      * @param int<1, 500>|null $limit
      * @return array<int, array{
      *     group: array<string, string>,
-     *     jobs: JobInterface[]
+     *     jobs: TJob[]
      * }>
      */
     public function searchJobsGrouped(
@@ -459,7 +477,7 @@ class Client
     /**
      * @return array<int, array{
      *     group: array<string, string>,
-     *     jobs: JobInterface[]
+     *     jobs: TJob[]
      * }>
      */
     public function searchJobsGroupedRaw(array $query): array
@@ -468,7 +486,7 @@ class Client
         /**
          * @var array<int, array{
          *     group: array<string, string>,
-         *     jobs: JobInterface[]
+         *     jobs: TJob[]
          * }> $response
          */
         $response = $this->sendRequest($request);
@@ -482,21 +500,21 @@ class Client
         );
     }
 
-    /** @return JobInterface[] */
+    /** @return TJob[] */
     private function mapJobsFromSearchResponse(array $responseBody): array
     {
         return array_map(
-            fn(array $jobData): JobInterface => $this->existingJobFactory->loadFromElasticJobData($jobData),
+            fn(array $jobData) => $this->existingJobFactory->loadFromElasticJobData($jobData),
             $responseBody,
         );
     }
 
     /**
-     * @return array<JobInterface>
+     * @return array<TJob>
      */
     private function mapJobsFromResponse(array $responseBody): array
     {
-        $jobs = array_map(function (array $jobData): ?JobInterface {
+        $jobs = array_map(function (array $jobData) {
             try {
                 return $this->existingJobFactory->loadFromExistingJobData($jobData);
             } catch (Throwable $e) {

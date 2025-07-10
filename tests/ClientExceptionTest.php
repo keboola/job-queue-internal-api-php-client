@@ -15,6 +15,7 @@ use Keboola\JobQueueInternalClient\Exception\StateTerminalException;
 use Keboola\JobQueueInternalClient\Exception\StateTransitionForbiddenException;
 use Keboola\JobQueueInternalClient\ExistingJobFactory;
 use Keboola\JobQueueInternalClient\JobFactory\Job;
+use Keboola\JobQueueInternalClient\JobFactory\JobInterface;
 use Keboola\JobQueueInternalClient\JobFactory\JobObjectEncryptor;
 use Keboola\JobQueueInternalClient\Result\JobResult;
 use Keboola\ObjectEncryptor\EncryptorOptions;
@@ -26,6 +27,9 @@ use Throwable;
 
 class ClientExceptionTest extends BaseTest
 {
+    /**
+     * @return Client<JobInterface>
+     */
     private function getClient(array $options): Client
     {
         $storageClientFactory = new StorageClientPlainFactory(new ClientOptions(

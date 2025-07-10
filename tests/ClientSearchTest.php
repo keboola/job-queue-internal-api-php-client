@@ -12,6 +12,7 @@ use GuzzleHttp\Psr7\Response;
 use Keboola\JobQueueInternalClient\Client;
 use Keboola\JobQueueInternalClient\ExistingJobFactory;
 use Keboola\JobQueueInternalClient\JobFactory\Job;
+use Keboola\JobQueueInternalClient\JobFactory\JobInterface;
 use Keboola\JobQueueInternalClient\SearchJobsFilters;
 use Monolog\Logger;
 use PHPUnit\Framework\TestCase;
@@ -420,6 +421,9 @@ class ClientSearchTest extends TestCase
         );
     }
 
+    /**
+     * @return Client<JobInterface>
+     */
     private function createClient(array &$requests, array $responses): Client
     {
         $httpHandler = new MockHandler($responses);
