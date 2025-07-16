@@ -9,9 +9,9 @@ use Keboola\JobQueueInternalClient\Exception\ClientException;
 use Keboola\JobQueueInternalClient\Exception\StateTargetEqualsCurrentException;
 use Keboola\JobQueueInternalClient\JobFactory\Job;
 use Keboola\JobQueueInternalClient\JobFactory\JobInterface;
+use Keboola\JobQueueInternalClient\JobFactory\Runtime\Executor;
 use Keboola\JobQueueInternalClient\JobListOptions;
 use Keboola\JobQueueInternalClient\JobPatchData;
-use Keboola\JobQueueInternalClient\JobResultPatchData;
 use Keboola\JobQueueInternalClient\JobsSortOptions;
 use Keboola\JobQueueInternalClient\Result\JobMetrics;
 use Keboola\JobQueueInternalClient\Result\JobResult;
@@ -27,6 +27,8 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
 {
     private const COMPONENT_ID_1 = 'keboola.runner-config-test';
     private const COMPONENT_ID_2 = 'keboola.runner-workspace-test';
+    private const FEATURE_NO_DIND = 'job-queue-no-dind';
+
     private static string $configId1;
     private static string $configId2;
     private static string $configId3;
@@ -34,6 +36,7 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
 
     private static StorageClient $client;
     private static string $defaultBranchId;
+    private static Executor $defaultExecutor;
 
     public static function setUpBeforeClass(): void
     {
@@ -44,6 +47,9 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
             token: self::getRequiredEnv('TEST_STORAGE_API_TOKEN'),
         ));
         self::$defaultBranchId = $clientWrapper->getDefaultBranch()->id;
+        self::$defaultExecutor = $clientWrapper->getToken()->hasFeature(self::FEATURE_NO_DIND) ?
+            Executor::K8S_CONTAINERS :
+            Executor::getDefault();
 
         self::$client = $clientWrapper->getBasicClient();
         $componentsApi = new Components(self::$client);
@@ -181,7 +187,7 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
             ],
             'orchestrationJobId' => '123456789',
             'runnerId' => null,
-            'executor' => 'dind',
+            'executor' => self::$defaultExecutor->value,
             'branchType' => 'default',
             'orchestrationTaskId' => null,
             'orchestrationPhaseId' => null,
@@ -297,7 +303,7 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
                 ],
                 'orchestrationJobId' => $expectedOrchestraionId,
                 'runnerId' => null,
-                'executor' => 'dind',
+                'executor' => self::$defaultExecutor->value,
                 'branchType' => 'default',
                 'orchestrationTaskId' => null,
                 'orchestrationPhaseId' => null,
