@@ -713,4 +713,56 @@ class FullJobDefinitionTest extends BaseTest
             'onError' => 'warning',
         ], $definition->processData($data)['behavior']);
     }
+
+    public function testStringNormalization(): void
+    {
+        $data = [
+            '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+            'tokenId' => 12345, // integer
+            'projectId' => 123.45, // float
+            'configId' => true, // boolean
+            'componentId' => 'keboola.test',
+            'mode' => 'run',
+            'id' => '1234',
+            'runId' => '1234',
+            'status' => JobInterface::STATUS_CREATED,
+            'desiredStatus' => JobInterface::DESIRED_STATUS_PROCESSING,
+        ];
+        $definition = new FullJobDefinition();
+        $processedData = $definition->processData($data);
+
+        // Verify that non-string values are properly converted to strings
+        self::assertSame('12345', $processedData['tokenId']);
+        self::assertSame('123.45', $processedData['projectId']);
+        self::assertSame('1', $processedData['configId']);
+    }
+
+    public function testIgnoreExtraKeys(): void
+    {
+        $data = [
+            '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+            'tokenId' => '12345',
+            'projectId' => '123',
+            'configId' => '123',
+            'componentId' => 'keboola.test',
+            'mode' => 'run',
+            'id' => '1234',
+            'runId' => '1234',
+            'status' => JobInterface::STATUS_CREATED,
+            'desiredStatus' => JobInterface::DESIRED_STATUS_PROCESSING,
+            'extraKey1' => 'value1',
+            'extraKey2' => 'value2',
+            'backend' => [
+                'type' => 'small',
+                'extraBackendKey' => 'value',
+            ],
+        ];
+        $definition = new FullJobDefinition();
+        $processedData = $definition->processData($data);
+
+        // Verify that extra keys are ignored
+        self::assertArrayNotHasKey('extraKey1', $processedData);
+        self::assertArrayNotHasKey('extraKey2', $processedData);
+        self::assertArrayNotHasKey('extraBackendKey', $processedData['backend']);
+    }
 }
