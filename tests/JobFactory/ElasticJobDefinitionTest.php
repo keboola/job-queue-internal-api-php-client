@@ -298,7 +298,8 @@ class ElasticJobDefinitionTest extends TestCase
                 'status' => 'invalid',
                 'desiredStatus' => 'processing',
             ],
-            'Invalid configuration for path "job.status": Status must be one of cancelled, created, error, processing, success, terminated, terminating, waiting, warning.',
+            'Invalid configuration for path "job.status": Status must be one of cancelled, created, error, ' .
+            'processing, success, terminated, terminating, waiting, warning.',
         ];
 
         yield 'invalid desiredStatus' => [
@@ -325,7 +326,8 @@ class ElasticJobDefinitionTest extends TestCase
                 'desiredStatus' => 'processing',
                 'mode' => 'invalid',
             ],
-            'Invalid configuration for path "job.mode": Mode must be one of "run", "forceRun" or "debug" (or "dry-run","prepare","input","full","single").',
+            'Invalid configuration for path "job.mode": Mode must be one of "run", "forceRun" or "debug" ' .
+            '(or "dry-run","prepare","input","full","single").',
         ];
 
         yield 'invalid tag' => [
@@ -354,7 +356,8 @@ class ElasticJobDefinitionTest extends TestCase
                 'desiredStatus' => 'processing',
                 'type' => 'invalid',
             ],
-            'The value "invalid" is not allowed for path "job.type". Permissible values: "standard", "container", "phaseContainer", "orchestrationContainer"',
+            'The value "invalid" is not allowed for path "job.type". Permissible values: "standard", "container", ' .
+            '"phaseContainer", "orchestrationContainer"',
         ];
 
         yield 'invalid parallelism' => [
@@ -368,7 +371,8 @@ class ElasticJobDefinitionTest extends TestCase
                 'desiredStatus' => 'processing',
                 'parallelism' => 'invalid',
             ],
-            'Invalid configuration for path "job.parallelism": Parallelism value must be either null, an integer from range 2-100 or "infinity".',
+            'Invalid configuration for path "job.parallelism": Parallelism value must be either null, an integer ' .
+            'from range 2-100 or "infinity".',
         ];
 
         yield 'invalid branchType' => [
@@ -396,7 +400,8 @@ class ElasticJobDefinitionTest extends TestCase
                 'desiredStatus' => 'processing',
                 'executor' => 'invalid',
             ],
-            'The value "invalid" is not allowed for path "job.executor". Permissible values: null, "dind", "k8sContainers".',
+            'The value "invalid" is not allowed for path "job.executor". Permissible values: ' .
+            'null, "dind", "k8sContainers".',
         ];
 
         yield 'invalid deduplicationId - empty value' => [
