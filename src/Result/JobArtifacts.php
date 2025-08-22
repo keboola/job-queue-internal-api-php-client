@@ -35,6 +35,18 @@ class JobArtifacts implements JsonSerializable
         return $this;
     }
 
+    /** @param Result[] $downloadedArtifacts */
+    public function addDownloaded(array $downloadedArtifacts): void
+    {
+        $this->downloaded = array_merge($this->downloaded, $downloadedArtifacts);
+    }
+
+    /** @param Result[] $uploadedArtifacts */
+    public function addUploaded(array $uploadedArtifacts): void
+    {
+        $this->uploaded = array_merge($this->uploaded, $uploadedArtifacts);
+    }
+
     public function jsonSerialize(): array
     {
         return [
