@@ -432,6 +432,54 @@ class ClientSearchTest extends TestCase
         );
     }
 
+    public function testSearchJobsRawStreaming(): void
+    {
+        $requests = [];
+        $responses = [
+            new Response(200, body: (string) json_encode([
+                $this->createJobData(1),
+                $this->createJobData(2),
+                $this->createJobData(3),
+            ])),
+        ];
+
+        $client = $this->createClient($requests, $responses);
+        $jobsGenerator = $client->searchJobsRawStreaming([
+            'filters' => [
+                'projectId' => ['123'],
+                'status' => ['processing'],
+            ],
+            'sortBy' => 'createdTime',
+            'sortOrder' => 'desc',
+        ]);
+
+        // Collect all jobs from the generator
+        $jobs = iterator_to_array($jobsGenerator);
+
+        self::assertCount(3, $jobs);
+        self::assertSame('1', $jobs[0]->getId());
+        self::assertSame('2', $jobs[1]->getId());
+        self::assertSame('3', $jobs[2]->getId());
+
+        // Verify the request was made correctly
+        self::assertCount(1, $requests);
+        /** @var Request $request */
+        $request = $requests[0]['request'];
+
+        self::assertSame('GET', $request->getMethod());
+        self::assertSame('/search/jobs', $request->getUri()->getPath());
+
+        $expectedQuery = http_build_query([
+            'filters' => [
+                'projectId' => ['123'],
+                'status' => ['processing'],
+            ],
+            'sortBy' => 'createdTime',
+            'sortOrder' => 'desc',
+        ]);
+        self::assertSame($expectedQuery, $request->getUri()->getQuery());
+    }
+
     /**
      * @param array $requests
      * @param-out array<int, array{request: Request}> $requests

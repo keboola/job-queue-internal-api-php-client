@@ -1420,4 +1420,52 @@ Out of order
             $request->getUri()->__toString(),
         );
     }
+
+    public function testSearchJobsRawStreamingErrorHandling(): void
+    {
+        $errorBody = (string) json_encode([
+            'error' => 'Bad Request',
+            'code' => 400,
+            'message' => 'Invalid search parameters',
+            'context' => [
+                'field' => 'filters.projectId',
+                'reason' => 'Missing required field',
+            ],
+        ]);
+
+        $mock = new MockHandler([
+            new Response(
+                400,
+                ['Content-Type' => 'application/json'],
+                $errorBody,
+            ),
+            new Response(
+                400,
+                ['Content-Type' => 'application/json'],
+                $errorBody,
+            ),
+        ]);
+
+        $requestHistory = [];
+        $history = Middleware::history($requestHistory);
+        $stack = HandlerStack::create($mock);
+        $stack->push($history);
+
+        // reduce backoff, because surprisingly the client retries 400 errors
+        $client = $this->createClientWithInternalToken(
+            options: ['handler' => $stack, 'backoffMaxTries' => 1],
+        );
+
+        $generator = $client->searchJobsRawStreaming([
+            'filters' => [
+                'invalidField' => ['value'],
+            ],
+        ]);
+
+        $this->expectException(ClientException::class);
+        $this->expectExceptionMessage('Invalid search parameters');
+
+        // Trigger the generator to execute the request and hit the error
+        iterator_to_array($generator);
+    }
 }

@@ -6,6 +6,7 @@ namespace Keboola\JobQueueInternalClient;
 
 use Closure;
 use DateTime;
+use Generator;
 use GuzzleHttp\Client as GuzzleClient;
 use GuzzleHttp\Exception\ClientException as GuzzleClientException;
 use GuzzleHttp\Exception\GuzzleException;
@@ -13,7 +14,10 @@ use GuzzleHttp\HandlerStack;
 use GuzzleHttp\MessageFormatter;
 use GuzzleHttp\Middleware;
 use GuzzleHttp\Psr7\Request;
+use GuzzleHttp\Psr7\StreamWrapper;
 use JsonException;
+use JsonMachine\Items;
+use JsonMachine\JsonDecoder\ExtJsonDecoder;
 use Keboola\JobQueueInternalClient\Exception\ClientException;
 use Keboola\JobQueueInternalClient\Exception\DeduplicationIdConflictException;
 use Keboola\JobQueueInternalClient\Exception\StateTargetEqualsCurrentException;
@@ -39,7 +43,6 @@ class Client
 {
     private const DEFAULT_USER_AGENT = 'Internal PHP Client';
     private const DEFAULT_BACKOFF_RETRIES = 10;
-    private const JSON_DEPTH = 512;
 
     protected GuzzleClient $guzzle;
 
@@ -418,6 +421,22 @@ class Client
     }
 
     /**
+     * Streaming version of searchJobsRaw.
+     *
+     * @return Generator<TJob>
+     */
+    public function searchJobsRawStreaming(array $rawQuery): Generator
+    {
+        $request = new Request('GET', 'search/jobs?' . http_build_query($rawQuery));
+        $response = $this->sendRequestStreaming($request);
+
+        foreach ($response as $jobData) {
+            /** @var array $jobData */
+            yield $this->existingJobFactory->loadFromElasticJobData($jobData);
+        }
+    }
+
+    /**
      * @param non-empty-string|null $sortBy
      * @param "asc"|"desc"|null $sortOrder
      * @return iterable<TJob>
@@ -635,15 +654,46 @@ class Client
         }
     }
 
+    /**
+     * Streaming version of sendRequest that returns a generator.
+     * Parses JSON response incrementally to reduce memory usage using JsonMachine.
+     *
+     * @return Generator
+     */
+    private function sendRequestStreaming(Request $request): Generator
+    {
+        try {
+            $response = $this->guzzle->send($request);
+            yield from $this->decodeRequestBodyStreaming($response);
+        } catch (GuzzleClientException $e) {
+            // For errors, we need to read the whole body to get error details
+            $body = $this->decodeRequestBody($e->getResponse());
+            $this->throwExceptionByStringCode($body, $e);
+            throw new ClientException($e->getMessage(), $e->getCode(), $e, $body);
+        } catch (GuzzleException $e) {
+            throw new ClientException($e->getMessage(), $e->getCode(), $e);
+        }
+    }
+
+
     private function decodeRequestBody(ResponseInterface $response): array
     {
         try {
             return (array) json_decode(
                 (string) $response->getBody(),
                 true,
-                self::JSON_DEPTH,
-                JSON_THROW_ON_ERROR,
+                flags: JSON_THROW_ON_ERROR,
             );
+        } catch (Throwable $e) {
+            throw new ClientException('Unable to parse response body into JSON: ' . $e->getMessage());
+        }
+    }
+
+    private function decodeRequestBodyStreaming(ResponseInterface $response): Generator
+    {
+        try {
+            $phpStream = StreamWrapper::getResource($response->getBody());
+            yield from Items::fromStream($phpStream, ['decoder' => new ExtJsonDecoder(true)]);
         } catch (Throwable $e) {
             throw new ClientException('Unable to parse response body into JSON: ' . $e->getMessage());
         }

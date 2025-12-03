@@ -29,6 +29,7 @@
         "php": "^8.2",
         "ext-json": "*",
         "guzzlehttp/guzzle": "^6.3|^7.0",
+        "halaxa/json-machine": "^1.2",
         "keboola/job-queue-artifacts": "^4.0.3|*@dev",
         "keboola/kbc-manage-api-php-client": "^5.2|^6.0|^7.0|^8.0|^9.0",
         "keboola/object-encryptor": "^2.12",
