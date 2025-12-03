@@ -414,6 +414,22 @@ class Client
     }
 
     /**
+     * Streaming version of searchJobsRaw that returns a generator to reduce memory usage.
+     * Use this for large result sets to avoid loading everything into memory at once.
+     *
+     * @return \Generator<TJob>
+     */
+    public function searchJobsRawStreaming(array $rawQuery): \Generator
+    {
+        $request = new Request('GET', 'search/jobs?' . http_build_query($rawQuery));
+        $response = $this->sendRequestStreaming($request);
+
+        foreach ($response as $jobData) {
+            yield $this->existingJobFactory->loadFromElasticJobData($jobData);
+        }
+    }
+
+    /**
      * @param non-empty-string|null $sortBy
      * @param "asc"|"desc"|null $sortOrder
      * @return iterable<TJob>
@@ -628,25 +644,64 @@ class Client
         }
     }
 
+    /**
+     * Streaming version of sendRequest that returns a generator.
+     * Parses JSON response incrementally to reduce memory usage.
+     *
+     * @return \Generator
+     */
+    public function sendRequestStreaming(Request $request): \Generator
+    {
+        try {
+            $response = $this->guzzle->send($request);
+            yield from $this->decodeRequestBodyStreaming($response);
+        } catch (GuzzleClientException $e) {
+            // For errors, we need to read the whole body to get error details
+            $body = $this->decodeRequestBody($e->getResponse());
+            $this->throwExceptionByStringCode($body, $e);
+            throw new ClientException($e->getMessage(), $e->getCode(), $e, $body);
+        } catch (GuzzleException $e) {
+            throw new ClientException($e->getMessage(), $e->getCode(), $e);
+        }
+    }
+
     private function decodeRequestBody(ResponseInterface $response): array
     {
         try {
-//            return (array) json_decode(file_get_contents('D:\\internal-api-response.json'), true);
-////            return (array) json_decode(
-////                (string) $response->getBody(),
-////                true,
-////                self::JSON_DEPTH,
-////                JSON_THROW_ON_ERROR,
-////            );
-//            //$phpStream = StreamWrapper::getResource($response->getBody());
-//            $phpStream = fopen('D:\\internal-api-response.json', 'r');
-
+            //return (array) json_decode(file_get_contents('D:\\internal-api-response.json'), true);
+//            return (array) json_decode(
+//                (string) $response->getBody(),
+//                true,
+//                self::JSON_DEPTH,
+//                JSON_THROW_ON_ERROR,
+//            );
+            //$phpStream = StreamWrapper::getResource($response->getBody());
+            // $phpStream = fopen('D:\\internal-api-response.json', 'r');
             $phpStream = StreamWrapper::getResource($response->getBody());
             $result = [];
             foreach (Items::fromStream($phpStream, ['decoder' => new ExtJsonDecoder(true)]) as $key => $value) {
                 $result[$key] = $value;
             }
             return $result;
+        } catch (Throwable $e) {
+            throw new ClientException('Unable to parse response body into JSON: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Streaming version of decodeRequestBody that yields items one by one.
+     * This dramatically reduces memory usage for large JSON responses.
+     *
+     * @return \Generator
+     */
+    private function decodeRequestBodyStreaming(ResponseInterface $response): \Generator
+    {
+        try {
+            //$phpStream = fopen('/code/apps/public-api/internal-api-response.json', 'r');
+            //$phpStream = fopen('D:\\internal-api-response.json', 'r');
+            $phpStream = StreamWrapper::getResource($response->getBody());
+            // JsonMachine parses JSON incrementally, yielding one item at a time
+            yield from Items::fromStream($phpStream, ['decoder' => new ExtJsonDecoder(true)]);
         } catch (Throwable $e) {
             throw new ClientException('Unable to parse response body into JSON: ' . $e->getMessage());
         }
