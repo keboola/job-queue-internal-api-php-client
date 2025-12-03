@@ -13,7 +13,10 @@ use GuzzleHttp\HandlerStack;
 use GuzzleHttp\MessageFormatter;
 use GuzzleHttp\Middleware;
 use GuzzleHttp\Psr7\Request;
+use GuzzleHttp\Psr7\StreamWrapper;
 use JsonException;
+use JsonMachine\Items;
+use JsonMachine\JsonDecoder\ExtJsonDecoder;
 use Keboola\JobQueueInternalClient\Exception\ClientException;
 use Keboola\JobQueueInternalClient\Exception\DeduplicationIdConflictException;
 use Keboola\JobQueueInternalClient\Exception\StateTargetEqualsCurrentException;
@@ -610,7 +613,7 @@ class Client
         ]);
     }
 
-    private function sendRequest(Request $request): array
+    public function sendRequest(Request $request): array
     {
         try {
             $response = $this->guzzle->send($request);
@@ -628,12 +631,22 @@ class Client
     private function decodeRequestBody(ResponseInterface $response): array
     {
         try {
-            return (array) json_decode(
-                (string) $response->getBody(),
-                true,
-                self::JSON_DEPTH,
-                JSON_THROW_ON_ERROR,
-            );
+//            return (array) json_decode(file_get_contents('D:\\internal-api-response.json'), true);
+////            return (array) json_decode(
+////                (string) $response->getBody(),
+////                true,
+////                self::JSON_DEPTH,
+////                JSON_THROW_ON_ERROR,
+////            );
+//            //$phpStream = StreamWrapper::getResource($response->getBody());
+//            $phpStream = fopen('D:\\internal-api-response.json', 'r');
+
+            $phpStream = StreamWrapper::getResource($response->getBody());
+            $result = [];
+            foreach (Items::fromStream($phpStream, ['decoder' => new ExtJsonDecoder(true)]) as $key => $value) {
+                $result[$key] = $value;
+            }
+            return $result;
         } catch (Throwable $e) {
             throw new ClientException('Unable to parse response body into JSON: ' . $e->getMessage());
         }
