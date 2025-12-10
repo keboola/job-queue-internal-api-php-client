@@ -78,36 +78,31 @@ class JobMetrics implements JsonSerializable
     {
         $metricsData = isset($data['metrics']) && is_array($data['metrics']) ? $data['metrics'] : [];
         $metrics = new self();
-        if (
-            isset($metricsData['storage']) && is_array($metricsData['storage']) &&
+        if (isset($metricsData['storage']) && is_array($metricsData['storage']) &&
             isset($metricsData['storage']['inputTablesBytesSum']) &&
             is_scalar($metricsData['storage']['inputTablesBytesSum'])
         ) {
             $metrics->setInputTablesBytesSum((int) $metricsData['storage']['inputTablesBytesSum']);
         }
-        if (
-            isset($metricsData['storage']) && is_array($metricsData['storage']) &&
+        if (isset($metricsData['storage']) && is_array($metricsData['storage']) &&
             isset($metricsData['storage']['outputTablesBytesSum']) &&
             is_scalar($metricsData['storage']['outputTablesBytesSum'])
         ) {
             $metrics->setOutputTablesBytesSum((int) $metricsData['storage']['outputTablesBytesSum']);
         }
-        if (
-            isset($metricsData['backend']) && is_array($metricsData['backend']) &&
+        if (isset($metricsData['backend']) && is_array($metricsData['backend']) &&
             isset($metricsData['backend']['size']) &&
             is_scalar($metricsData['backend']['size'])
         ) {
             $metrics->setBackendSize((string) $metricsData['backend']['size']);
         }
-        if (
-            isset($metricsData['backend']) && is_array($metricsData['backend']) &&
+        if (isset($metricsData['backend']) && is_array($metricsData['backend']) &&
             isset($metricsData['backend']['containerSize']) &&
             is_scalar($metricsData['backend']['containerSize'])
         ) {
             $metrics->setBackendContainerSize((string) $metricsData['backend']['containerSize']);
         }
-        if (
-            isset($metricsData['backend']) && is_array($metricsData['backend']) &&
+        if (isset($metricsData['backend']) && is_array($metricsData['backend']) &&
             isset($metricsData['backend']['context']) &&
             is_scalar($metricsData['backend']['context'])
         ) {
