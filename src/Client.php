@@ -63,7 +63,8 @@ class Client
             $options,
         );
         if (!empty($options['backoffMaxTries'])) {
-            $options['backoffMaxTries'] = intval($options['backoffMaxTries']);
+            assert(is_scalar($options['backoffMaxTries']));
+            $options['backoffMaxTries'] = intval((string) $options['backoffMaxTries']);
         } else {
             $options['backoffMaxTries'] = self::DEFAULT_BACKOFF_RETRIES;
         }
@@ -125,6 +126,7 @@ class Client
             $messages = '';
             /** @var ConstraintViolationInterface $error */
             foreach ($errors as $error) {
+                // @phpstan-ignore-next-line
                 $messages .= 'Value "' . $error->getInvalidValue() . '" is invalid: ' . $error->getMessage() . "\n";
             }
             throw new ClientException('Invalid parameters when creating client: ' . $messages);
@@ -162,7 +164,10 @@ class Client
         }
         $result = $this->sendRequest($request);
 
-        return array_map(fn(array $jobData) => $this->existingJobFactory->loadFromExistingJobData($jobData), $result);
+        return array_map(function ($jobData) {
+            assert(is_array($jobData));
+            return $this->existingJobFactory->loadFromExistingJobData($jobData);
+        }, $result);
     }
 
     /**
@@ -364,7 +369,9 @@ class Client
 
         $request = new Request('GET', 'stats/projects/' . $projectId);
         $response = $this->sendRequest($request);
-        return $response['stats']['durationSum'];
+        assert(isset($response['stats']) && is_array($response['stats']));
+        assert(is_scalar($response['stats']['durationSum']));
+        return (int) $response['stats']['durationSum'];
     }
 
     /**
@@ -503,10 +510,10 @@ class Client
     /** @return TJob[] */
     private function mapJobsFromSearchResponse(array $responseBody): array
     {
-        return array_map(
-            fn(array $jobData) => $this->existingJobFactory->loadFromElasticJobData($jobData),
-            $responseBody,
-        );
+        return array_map(function ($jobData) {
+            assert(is_array($jobData));
+            return $this->existingJobFactory->loadFromElasticJobData($jobData);
+        }, $responseBody);
     }
 
     /**
@@ -514,7 +521,8 @@ class Client
      */
     private function mapJobsFromResponse(array $responseBody): array
     {
-        $jobs = array_map(function (array $jobData) {
+        $jobs = array_map(function ($jobData) {
+            assert(is_array($jobData));
             try {
                 return $this->existingJobFactory->loadFromExistingJobData($jobData);
             } catch (Throwable $e) {
@@ -573,10 +581,12 @@ class Client
             $handlerStack = HandlerStack::create();
         }
         // Set exponential backoff
+        assert(is_int($options['backoffMaxTries']));
         $handlerStack->push(Middleware::retry($this->createDefaultDecider($options['backoffMaxTries'])));
         // Set handler to set default headers
         $handlerStack->push(Middleware::mapRequest(
             function (RequestInterface $request) use ($internalToken, $storageToken, $applicationToken, $options) {
+                assert(is_string($options['userAgent']));
                 $request = $request->withHeader('User-Agent', $options['userAgent'])
                         ->withHeader('Content-type', 'application/json');
                 if ($internalToken !== null) {
@@ -641,7 +651,7 @@ class Client
 
     private function throwExceptionByStringCode(array $body, Throwable $previous): void
     {
-        if (empty($body['context']['stringCode'])) {
+        if (!isset($body['context']) || !is_array($body['context']) || empty($body['context']['stringCode'])) {
             return;
         }
 

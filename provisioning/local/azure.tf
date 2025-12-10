@@ -24,12 +24,19 @@ resource "azuread_application" "job_queue_internal_api_php_client" {
 }
 
 resource "azuread_service_principal" "job_queue_internal_api_php_client" {
-  application_id = azuread_application.job_queue_internal_api_php_client.application_id
+  client_id      = azuread_application.job_queue_internal_api_php_client.client_id
   owners         = [data.azuread_client_config.current.object_id]
+}
+
+resource "time_rotating" "job_queue_internal_api_php_client" {
+  rotation_days = 30
 }
 
 resource "azuread_service_principal_password" "job_queue_internal_api_php_client" {
   service_principal_id = azuread_service_principal.job_queue_internal_api_php_client.id
+  rotate_when_changed = {
+    rotation = time_rotating.job_queue_internal_api_php_client.id
+  }
 }
 
 // resource group
@@ -40,7 +47,7 @@ resource "azurerm_resource_group" "job_queue_internal_api_php_client" {
 
 resource "azurerm_role_assignment" "job_queue_daemon" {
   scope                = azurerm_resource_group.job_queue_internal_api_php_client.id
-  principal_id         = azuread_service_principal.job_queue_internal_api_php_client.id
+  principal_id         = azuread_service_principal.job_queue_internal_api_php_client.object_id
   role_definition_name = "Contributor"
 }
 
@@ -54,7 +61,7 @@ resource "azurerm_key_vault" "job_queue_internal_api_php_client" {
 
   access_policy {
     tenant_id = data.azurerm_client_config.current.tenant_id
-    object_id = azuread_service_principal.job_queue_internal_api_php_client.id
+    object_id = azuread_service_principal.job_queue_internal_api_php_client.object_id
 
     key_permissions = [
       "Decrypt",
@@ -78,7 +85,7 @@ output "azure_tenant_id" {
 }
 
 output "azure_application_id" {
-  value = azuread_application.job_queue_internal_api_php_client.application_id
+  value = azuread_application.job_queue_internal_api_php_client.client_id
 }
 
 output "azure_application_secret" {

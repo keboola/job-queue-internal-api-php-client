@@ -53,6 +53,7 @@ class JobResult implements JsonSerializable
             $result['variables'] = $this->variables->jsonSerialize();
         }
         if ($this->errorType) {
+            $result['error'] = [];
             $result['error']['type'] = $this->errorType;
         }
         if ($this->exceptionId) {

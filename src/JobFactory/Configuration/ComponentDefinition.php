@@ -41,10 +41,15 @@ class ComponentDefinition implements ConfigurationInterface
         return $treeBuilder;
     }
 
+    /**
+     * @return array{id: string, data: array{memory: string}}
+     */
     public function processData(array $jobData): array
     {
         $processor = new Processor();
-        return $processor->processConfiguration($this, [$jobData]);
+        /** @var array{id: string, data: array{memory: string}} $result */
+        $result = $processor->processConfiguration($this, [$jobData]);
+        return $result;
     }
 
     protected function getRootDefinition(TreeBuilder $treeBuilder): ArrayNodeDefinition

@@ -17,6 +17,9 @@ class Behavior
         $this->onError = $onError;
     }
 
+    /**
+     * @param array{onError?: string|null} $data
+     */
     public static function fromDataArray(array $data): self
     {
         return new self(
@@ -24,6 +27,9 @@ class Behavior
         );
     }
 
+    /**
+     * @return array{onError?: string|null}
+     */
     public function toDataArray(): array
     {
         return [

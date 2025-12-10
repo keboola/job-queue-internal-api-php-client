@@ -144,7 +144,6 @@ class JobResultTest extends TestCase
     public function testEmptyResult(): void
     {
         $result = new JobResult();
-        self::assertIsArray($result->getImages());
         self::assertEmpty($result->getImages());
         self::assertNull($result->getErrorType());
         self::assertNull($result->getConfigVersion());

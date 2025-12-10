@@ -24,6 +24,9 @@ class Backend
         $this->context = $context;
     }
 
+    /**
+     * @param array{type?: string|null, containerType?: string|null, context?: string|null} $data
+     */
     public static function fromDataArray(array $data): self
     {
         return new self(

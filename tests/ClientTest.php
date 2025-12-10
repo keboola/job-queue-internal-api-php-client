@@ -27,6 +27,7 @@ use Keboola\StorageApiBranch\Factory\ClientOptions;
 use Keboola\StorageApiBranch\Factory\StorageClientPlainFactory;
 use Monolog\Handler\TestHandler;
 use Monolog\Logger;
+use PHPUnit\Framework\MockObject\MockObject;
 use Psr\Http\Message\RequestInterface;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
@@ -336,13 +337,14 @@ class ClientTest extends BaseTest
         self::assertSame([], $job->getResult());
         self::assertSame([], $job->getUsageData());
         self::assertNull($job->getTag());
-        self::assertIsArray($job->getConfigRowIds());
         self::assertEmpty($job->getConfigRowIds());
         self::assertFalse($job->isFinished());
         self::assertStringStartsWith('KBC::ProjectSecure::', $job->getTokenString());
         self::assertSame(['parameters' => ['foo' => 'bar']], $job->getConfigData());
 
+        self::assertIsArray($requestHistory);
         self::assertCount(1, $requestHistory);
+        self::assertIsArray($requestHistory[0]);
         /** @var Request $request */
         $request = $requestHistory[0]['request'];
         self::assertSame('http://example.com/jobs/123', $request->getUri()->__toString());
@@ -423,6 +425,7 @@ class ClientTest extends BaseTest
             ],
         );
         $client->getJob('123');
+        self::assertIsArray($requestHistory[0]);
         /** @var Request $request */
         $request = $requestHistory[0]['request'];
         self::assertEquals('test agent', $request->getHeader('User-Agent')[0]);
@@ -487,12 +490,18 @@ class ClientTest extends BaseTest
         );
         $job = $client->getJob('123');
         self::assertEquals('123', $job->getId());
+        self::assertIsArray($requestHistory);
         self::assertCount(3, $requestHistory);
+        self::assertIsArray($requestHistory[0]);
+        self::assertIsArray($requestHistory[1]);
+        self::assertIsArray($requestHistory[2]);
         /** @var Request $request */
         $request = $requestHistory[0]['request'];
         self::assertEquals('http://example.com/jobs/123', $request->getUri()->__toString());
+        /** @var Request $request */
         $request = $requestHistory[1]['request'];
         self::assertEquals('http://example.com/jobs/123', $request->getUri()->__toString());
+        /** @var Request $request */
         $request = $requestHistory[2]['request'];
         self::assertEquals('http://example.com/jobs/123', $request->getUri()->__toString());
 
@@ -539,6 +548,7 @@ Out of order
         } catch (ClientException $e) {
             self::assertStringContainsString('500 Internal Server Error', $e->getMessage());
         }
+        self::assertIsArray($requestHistory);
         self::assertCount(2, $requestHistory);
 
         //phpcs:disable Generic.Files.LineLength.MaxExceeded
@@ -577,6 +587,7 @@ Out of order
         } catch (ClientException $e) {
             self::assertStringContainsString('500 Internal Server Error', $e->getMessage());
         }
+        self::assertIsArray($requestHistory);
         self::assertCount(4, $requestHistory);
     }
 
@@ -618,7 +629,9 @@ Out of order
                 ->setBackendContext('wlm'),
         );
         self::assertInstanceOf(Job::class, $result);
+        self::assertIsArray($container);
         self::assertCount(1, $container);
+        self::assertIsArray($container[0]);
         /** @var Request $request */
         $request = $container[0]['request'];
         self::assertSame('http://example.com/jobs/123', $request->getUri()->__toString());
@@ -710,7 +723,6 @@ Out of order
             ->onlyMethods(['jsonSerialize'])
             ->getMock();
         $job->method('jsonSerialize')->willReturn(['foo' => fopen('php://memory', 'rw')]);
-        /** @var Job $job */
         $this->expectException(ClientException::class);
         $this->expectExceptionMessage('Invalid job data: Type is not supported');
         $client->createJob($job);
@@ -862,6 +874,10 @@ Out of order
         );
         $client->listJobs($jobListOptions, true);
 
+        self::assertIsArray($requestHistory);
+        self::assertCount(1, $requestHistory);
+        self::assertIsArray($requestHistory[0]);
+        /** @var Request $request */
         $request = $requestHistory[0]['request'];
         self::assertSame($expectedRequestUri, $request->getUri()->__toString());
     }
@@ -1025,8 +1041,12 @@ Out of order
 
         self::assertEquals(0, $mock->count());
         $params = [];
+        self::assertIsArray($requestHistory);
         foreach ($requestHistory as $request) {
-            $requestUri = $request['request']->getUri()->getQuery();
+            self::assertIsArray($request);
+            /** @var Request $request */
+            $request = $request['request'];
+            $requestUri = $request->getUri()->getQuery();
             if (preg_match('#offset=([0-9]+)#', $requestUri, $matches)) {
                 $offset = $matches[1];
             } else {
@@ -1156,7 +1176,9 @@ Out of order
             (new JobPatchData())->setStatus(JobInterface::STATUS_PROCESSING),
         );
         self::assertInstanceOf(Job::class, $result);
+        self::assertIsArray($container);
         self::assertCount(1, $container);
+        self::assertIsArray($container[0]);
         /** @var Request $request */
         $request = $container[0]['request'];
         self::assertEquals('http://example.com/jobs/123', $request->getUri()->__toString());
@@ -1202,7 +1224,9 @@ Out of order
             (new JobPatchData())->setDesiredStatus(JobInterface::DESIRED_STATUS_TERMINATING),
         );
         self::assertInstanceOf(Job::class, $result);
+        self::assertIsArray($container);
         self::assertCount(1, $container);
+        self::assertIsArray($container[0]);
         /** @var Request $request */
         $request = $container[0]['request'];
         self::assertEquals('http://example.com/jobs/123', $request->getUri()->__toString());
@@ -1258,7 +1282,9 @@ Out of order
         $durationSum = $client->getJobsDurationSum('123');
         self::assertSame(456, $durationSum);
 
+        self::assertIsArray($requestHistory);
         self::assertCount(1, $requestHistory);
+        self::assertIsArray($requestHistory[0]);
         /** @var Request $request */
         $request = $requestHistory[0]['request'];
         self::assertEquals('http://example.com/stats/projects/123', $request->getUri()->__toString());
@@ -1306,7 +1332,9 @@ Out of order
         );
 
         self::assertInstanceOf(Job::class, $result);
+        self::assertIsArray($container);
         self::assertCount(1, $container);
+        self::assertIsArray($container[0]);
         /** @var Request $request */
         $request = $container[0]['request'];
         self::assertEquals('http://example.com/jobs/123/result', $request->getUri()->__toString());
@@ -1381,7 +1409,9 @@ Out of order
         self::assertSame('123', $job->getId());
         self::assertSame('created', $job->getStatus());
 
+        self::assertIsArray($requestHistory);
         self::assertCount(1, $requestHistory);
+        self::assertIsArray($requestHistory[0]);
         /** @var Request $request */
         $request = $requestHistory[0]['request'];
         self::assertSame(

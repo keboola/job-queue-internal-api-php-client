@@ -17,12 +17,14 @@ class ExistingPlainJobFactory extends JobFactory implements ExistingJobFactoryIn
     public function loadFromExistingJobData(array $data): PlainJobInterface
     {
         $data = $this->validateJobData($data, FullJobDefinition::class);
+        assert(isset($data['id']) && isset($data['mode']) && isset($data['isFinished']));
         return new PlainJob($data);
     }
 
     public function loadFromElasticJobData(array $data): PlainJobInterface
     {
         $data = $this->validateJobData($data, ElasticJobDefinition::class);
+        assert(isset($data['id']) && isset($data['mode']) && isset($data['isFinished']));
         return new PlainJob($data);
     }
 }

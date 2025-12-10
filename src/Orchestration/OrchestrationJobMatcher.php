@@ -38,7 +38,11 @@ class OrchestrationJobMatcher
         );
         $this->validateInputs($job, $configuration);
         $matchedTasks = [];
+        assert(is_array($configuration['tasks']));
         foreach ($configuration['tasks'] as $task) {
+            assert(is_array($task));
+            assert(is_scalar($task['id']));
+
             $matched = false;
             foreach ($childJobs as $index => $childJob) {
                 if (((string) $task['id']) === $childJob->getOrchestrationTaskId()) {
@@ -84,10 +88,12 @@ class OrchestrationJobMatcher
             return $configuration;
         }
 
-        return JobFactory\JobConfigurationResolver::resolveJobConfiguration(
+        $result = JobFactory\JobConfigurationResolver::resolveJobConfiguration(
             $job,
             $componentsApi,
-        )['configuration'];
+        );
+        assert(is_array($result['configuration']));
+        return $result['configuration'];
     }
 
     private function validateInputs(PlainJobInterface $job, array $configuration): void
@@ -107,6 +113,7 @@ class OrchestrationJobMatcher
                 $job->getId(),
             ));
         }
+        // @phpstan-ignore-next-line
         array_walk($configuration['tasks'], function (array $task) {
             if (!isset($task['id'])) {
                 throw new OrchestrationJobMatcherValidationException(sprintf(

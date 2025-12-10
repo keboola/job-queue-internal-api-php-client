@@ -763,6 +763,7 @@ class FullJobDefinitionTest extends BaseTest
         // Verify that extra keys are ignored
         self::assertArrayNotHasKey('extraKey1', $processedData);
         self::assertArrayNotHasKey('extraKey2', $processedData);
+        self::assertIsArray($processedData['backend']);
         self::assertArrayNotHasKey('extraBackendKey', $processedData['backend']);
     }
 }

@@ -31,6 +31,7 @@ class BackendTest extends TestCase
 
     /**
      * @dataProvider provideCreateFromArrayData
+     * @param array{type?: string|null, containerType?: string|null, context?: string|null} $data
      */
     public function testCreateFromArray(
         array $data,

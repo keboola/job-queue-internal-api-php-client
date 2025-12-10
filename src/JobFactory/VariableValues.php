@@ -10,9 +10,12 @@ class VariableValues
 {
     /** @var string|null */
     private $variableValuesId;
-    /** @var array */
+    /** @var array{values?: list<array{name: string, value: string}>} */
     private $variableValuesData;
 
+    /**
+     * @param array{values?: list<array{name: string, value: string}>} $variableValuesData
+     */
     public function __construct(?string $variableValuesId, array $variableValuesData)
     {
         $this->variableValuesId = $variableValuesId;
@@ -24,6 +27,12 @@ class VariableValues
         }
     }
 
+    /**
+     * @param array{
+     *     variableValuesId?: string|null,
+     *     variableValuesData?: array{values?: list<array{name: string, value: string}>}
+     * } $data
+     */
     public static function fromDataArray(array $data): self
     {
         return new self(
@@ -32,6 +41,12 @@ class VariableValues
         );
     }
 
+    /**
+     * @return array{
+     *     variableValuesId: string|null,
+     *     variableValuesData: array{values?: list<array{name: string, value: string}>}
+     * }
+     */
     public function asDataArray(): array
     {
         return [

@@ -28,6 +28,7 @@ class BehaviorTest extends TestCase
 
     /**
      * @dataProvider provideCreateFromArrayData
+     * @param array{onError?: string|null} $data
      */
     public function testCreateFromArray(array $data, ?string $expected): void
     {

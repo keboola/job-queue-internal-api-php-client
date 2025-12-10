@@ -22,7 +22,24 @@ class JobRuntimeResolverTest extends TestCase
 {
     private const DEFAULT_BRANCH_ID = '9999';
 
-    /** @var array */
+    /**
+     * @var array{
+     *     id: string,
+     *     runId: string,
+     *     configId?: string,
+     *     componentId: string,
+     *     mode: string,
+     *     status: string,
+     *     desiredStatus: string,
+     *     projectId: string,
+     *     tokenId: string,
+     *     '#tokenString': string,
+     *     backend: null,
+     *     branchId: string,
+     *     configData?: array,
+     *     parallelism?: string,
+     * }
+     */
     private const JOB_DATA = [
         'id' => '123456456',
         'runId' => '123456456',
@@ -120,8 +137,11 @@ class JobRuntimeResolverTest extends TestCase
             ->willReturn($clientWrapperMock);
         $jobRuntimeResolver = new JobRuntimeResolver($storageClientFactoryMock);
 
+        // @phpstan-ignore argument.type
         $jobData = $jobRuntimeResolver->resolveJobData($jobData, $this->createToken());
         self::assertSame($expectedJobType->value, $jobData['type']);
+        self::assertArrayHasKey('backend', $jobData);
+        // @phpstan-ignore-next-line
         self::assertSame($expectedContext, $jobData['backend']['context']);
     }
 
@@ -617,7 +637,7 @@ class JobRuntimeResolverTest extends TestCase
                     ['components/keboola.ex-db-snowflake'],
                     ['components/keboola.ex-db-snowflake/configs/454124290'],
                 ];
-
+                self::assertIsArray($expectedArgs);
                 return count($expectedArgs) > 0 && $args === array_shift($expectedArgs);
             }))
             ->willReturnOnConsecutiveCalls(
@@ -629,6 +649,7 @@ class JobRuntimeResolverTest extends TestCase
         $jobRuntimeResolver = new JobRuntimeResolver(
             $this->prepareStorageClientFactoryMock($storageClient),
         );
+        // @phpstan-ignore argument.type
         $actualResolvedData = $jobRuntimeResolver->resolveJobData($jobData, $this->createToken($features));
 
         $expectedResolvedData = [
@@ -1785,6 +1806,7 @@ class JobRuntimeResolverTest extends TestCase
                 'variableValuesId' => null,
                 'variableValuesData' => [],
             ],
+            // @phpstan-ignore argument.type
             $jobRuntimeResolver->resolveJobData($jobData, $this->createToken()),
         );
     }
@@ -2119,6 +2141,7 @@ class JobRuntimeResolverTest extends TestCase
 
         $jobRuntimeResolver = new JobRuntimeResolver($storageClientFactoryMock);
 
+        // @phpstan-ignore argument.type
         $resolvedJobData = $jobRuntimeResolver->resolveJobData($jobData, $this->createToken());
 
         self::assertSame(

@@ -228,15 +228,15 @@ class FullJobDefinition extends NewJobDefinition
                         ->thenInvalid('value cannot be empty list')
                     ->end()
                     ->validate()
-                        ->ifTrue(fn($v) => count(array_filter($v ?? [], fn($i) => !is_scalar($i))) > 0)
+                        ->ifTrue(fn($v) => count(array_filter((array) ($v ?? []), fn($i) => !is_scalar($i))) > 0)
                         ->thenInvalid('items must be scalars')
                     ->end()
                     ->validate()
-                        ->ifTrue(fn($v) => count(array_filter($v ?? [], fn($i) => $i === '')) > 0)
+                        ->ifTrue(fn($v) => count(array_filter((array) ($v ?? []), fn($i) => $i === '')) > 0)
                         ->thenInvalid('item cannot be empty string')
                     ->end()
                     ->validate()
-                        ->ifTrue(fn($v) => $v !== null && count($v) !== count(array_unique($v)))
+                        ->ifTrue(fn($v) => $v !== null && is_array($v) && count($v) !== count(array_unique($v)))
                         ->thenInvalid('items must be unique')
                     ->end()
                 ->end()
@@ -259,8 +259,9 @@ class FullJobDefinition extends NewJobDefinition
 
         $rootNode->validate()
             ->ifTrue(function ($v) {
-                return isset($v['delayedStartTime']) && $v['delayedStartTime'] !== null
-                    && isset($v['delay']) && $v['delay'] !== null;
+                assert(is_array($v));
+                return isset($v['delayedStartTime'])
+                    && isset($v['delay']);
             })
             ->thenInvalid('delayedStartTime and delay cannot be set simultaneously');
 

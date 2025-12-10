@@ -114,6 +114,7 @@ class OrchestrationJobMatcherTest extends BaseClientFunctionalTest
 
         $tokens = new Tokens($storageClient);
         $token = $tokens->createToken($tokenOptions); // new token, created specially for this job
+        self::assertIsString($token['id']);
 
         $queueClient = $this->getClient();
         $componentsApi = new Components($storageClient);
@@ -122,7 +123,10 @@ class OrchestrationJobMatcherTest extends BaseClientFunctionalTest
         $configuration->setName($this->getName());
         $configuration->setComponentId(JobFactory::ORCHESTRATOR_COMPONENT);
         $this->componentId = JobFactory::ORCHESTRATOR_COMPONENT;
-        $this->configurationId = $componentsApi->addConfiguration($configuration)['id'];
+        $configurationResponse = $componentsApi->addConfiguration($configuration);
+        self::assertIsArray($configurationResponse);
+        self::assertIsString($configurationResponse['id']);
+        $this->configurationId = $configurationResponse['id'];
 
         $orchestrationJob = $this->getNewJobFactory()->createNewJob(
             [
@@ -137,10 +141,17 @@ class OrchestrationJobMatcherTest extends BaseClientFunctionalTest
         );
         $queueClient->createJob($orchestrationJob);
         $phaseJobIds = [];
+        self::assertIsArray($configurationData['phases']);
+        self::assertIsArray($configurationData['tasks']);
+
         foreach ($configurationData['phases'] as $phase) {
+            self::assertIsArray($configurationData['tasks']);
+            self::assertIsArray($phase);
+            self::assertIsInt($phase['id']);
+
             $phaseTasks = array_filter(
                 $configurationData['tasks'],
-                fn ($task) => $task['phase'] === $phase['id'],
+                fn ($task) => is_array($task) && $task['phase'] === $phase['id'],
             );
             $configData = [
                 'tasks' => $phaseTasks,
@@ -163,6 +174,11 @@ class OrchestrationJobMatcherTest extends BaseClientFunctionalTest
         }
         $jobIds = [];
         foreach ($configurationData['tasks'] as $task) {
+            self::assertIsArray($task);
+            self::assertIsInt($task['id']);
+            self::assertIsArray($task['task']);
+            self::assertIsInt($task['phase']);
+
             if ($createOnlyTasks && !in_array((string) $task['id'], $createOnlyTasks, true)) {
                 continue;
             }
@@ -179,11 +195,11 @@ class OrchestrationJobMatcherTest extends BaseClientFunctionalTest
             ))->getId();
         }
 
-        $tokens->dropToken($token['id']); // drob token
+        $tokens->dropToken((int) $token['id']);
 
         return [
             'orchestrationJobId' => $orchestrationJob->getId(),
-            'orchestrationConfigurationId' => $this->configurationId,
+            'orchestrationConfigurationId' => (string) $this->configurationId,
             'jobIds' => $jobIds,
         ];
     }
@@ -313,6 +329,7 @@ class OrchestrationJobMatcherTest extends BaseClientFunctionalTest
 
         $tokens = new Tokens($storageClient);
         $token = $tokens->createToken($tokenOptions);
+        self::assertIsString($token['id']);
 
         $componentsApi = new Components($storageClient);
         $componentConfig = new Configuration();
@@ -320,7 +337,10 @@ class OrchestrationJobMatcherTest extends BaseClientFunctionalTest
         $componentConfig->setName('testMatcherFlowComponent');
         $componentConfig->setComponentId(JobFactory::FLOW_COMPONENT);
         $this->componentId = JobFactory::FLOW_COMPONENT;
-        $this->configurationId = $componentsApi->addConfiguration($componentConfig)['id'];
+        $addedConfiguration = $componentsApi->addConfiguration($componentConfig);
+        self::assertIsArray($addedConfiguration);
+        self::assertIsString($addedConfiguration['id']);
+        $this->configurationId = $addedConfiguration['id'];
 
         $flowJob = $this->getNewJobFactory()->createNewJob(
             [
@@ -337,7 +357,12 @@ class OrchestrationJobMatcherTest extends BaseClientFunctionalTest
 
         // Vytvoříme child jobs
         $jobIds = [];
+        self::assertIsArray($configuration['tasks']);
         foreach ($configuration['tasks'] as $task) {
+            self::assertIsArray($task);
+            self::assertIsInt($task['id']);
+            self::assertIsArray($task['task']);
+
             $jobIds[] = $client->createJob($this->getNewJobFactory()->createNewJob(
                 [
                     '#tokenString' => $token['token'],
@@ -351,7 +376,7 @@ class OrchestrationJobMatcherTest extends BaseClientFunctionalTest
             ))->getId();
         }
 
-        $tokens->dropToken($token['id']);
+        $tokens->dropToken((int) $token['id']);
 
         $matcher = new OrchestrationJobMatcher($client, $this->createStorageClientPlainFactory());
         $results = $matcher->matchTaskJobsForOrchestrationJob(
@@ -412,7 +437,11 @@ class OrchestrationJobMatcherTest extends BaseClientFunctionalTest
         $configuration->setName($this->getName());
         $configuration->setComponentId($componentId);
         $this->componentId = $componentId;
-        $this->configurationId = $componentsApi->addConfiguration($configuration)['id'];
+        $addedConfiguration = $componentsApi->addConfiguration($configuration);
+        self::assertIsArray($addedConfiguration);
+        self::assertIsString($addedConfiguration['id']);
+        $this->configurationId = $addedConfiguration['id'];
+
         $orchestrationJob = $this->getNewJobFactory()->createNewJob(
             [
                 '#tokenString' => self::getRequiredEnv('TEST_STORAGE_API_TOKEN'),

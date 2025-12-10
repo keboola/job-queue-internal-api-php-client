@@ -19,10 +19,12 @@ class JobConfigurationResolver
         }
 
         try {
-            return $componentsApiClient->getConfiguration(
+            $result = $componentsApiClient->getConfiguration(
                 $job->getComponentId(),
                 $job->getConfigId(),
             );
+            /** @var array $result */
+            return $result;
         } catch (StorageApiClientException $e) {
             throw new ClientException('Failed to fetch component configuration: '.$e->getMessage(), 0, $e);
         }

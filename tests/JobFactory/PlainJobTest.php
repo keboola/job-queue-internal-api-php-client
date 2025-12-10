@@ -19,8 +19,12 @@ use PHPUnit\Framework\TestCase;
 
 class PlainJobTest extends TestCase
 {
+    /**
+     * @param array<string, mixed> $jobData
+     */
     private function createJobWithDefaults(array $jobData): PlainJob
     {
+        // @phpstan-ignore argument.type
         return new PlainJob([
             'id' => 'job-123456456',
             'runId' => 'run-123456456',
@@ -48,7 +52,7 @@ class PlainJobTest extends TestCase
             'type' => JobType::STANDARD->value,
             'orchestrationTaskId' => '123',
             'orchestrationPhaseId' => '456',
-            'onlyOrchestrationTaskIds' => [['789']],
+            'onlyOrchestrationTaskIds' => ['789'],
             'previousJobId' => '987',
 
             ...$jobData,
@@ -60,7 +64,19 @@ class PlainJobTest extends TestCase
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Missing required parameter "branchType"');
 
-        new PlainJob([]);
+        // @phpstan-ignore argument.type
+        new PlainJob([
+            'id' => 'test-id',
+            'runId' => 'test-run-id',
+            'projectId' => 'test-project',
+            'tokenId' => 'test-token',
+            '#tokenString' => 'test-token-string',
+            'componentId' => 'test-component',
+            'mode' => 'run',
+            'status' => 'created',
+            'desiredStatus' => 'processing',
+            // branchType intentionally omitted to test validation
+        ]);
     }
 
     public function testDirectGetters(): void
@@ -110,6 +126,7 @@ class PlainJobTest extends TestCase
             'onlyOrchestrationTaskIds' => ['orchestration-task-id-1'],
             'previousJobId' => 'previous-job-id',
             'runnerId' => 'runner-id',
+            'isFinished' => false,
         ]);
 
         self::assertSame('job-id', $job->getId());
@@ -174,9 +191,17 @@ class PlainJobTest extends TestCase
     public function testDirectGettersDefaults(): void
     {
         $job = new PlainJob([
+            'id' => 'test-id',
+            'runId' => '123.456',
+            'projectId' => 'test-project',
+            'tokenId' => 'test-token',
+            '#tokenString' => 'test-token-string',
+            'componentId' => '',
+            'mode' => 'run',
             'branchType' => 'default',
             'status' => 'created',
-            'runId' => '123.456',
+            'desiredStatus' => 'processing',
+            'isFinished' => false,
         ]);
 
         self::assertNull($job->getDeduplicationId());

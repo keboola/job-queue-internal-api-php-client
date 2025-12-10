@@ -76,22 +76,42 @@ class JobMetrics implements JsonSerializable
 
     public static function fromDataArray(array $data): self
     {
-        $metricsData = $data['metrics'] ?? [];
+        $metricsData = isset($data['metrics']) && is_array($data['metrics']) ? $data['metrics'] : [];
         $metrics = new self();
-        if (isset($metricsData['storage']['inputTablesBytesSum'])) {
-            $metrics->setInputTablesBytesSum($metricsData['storage']['inputTablesBytesSum']);
+        if (
+            isset($metricsData['storage']) && is_array($metricsData['storage']) &&
+            isset($metricsData['storage']['inputTablesBytesSum']) &&
+            is_scalar($metricsData['storage']['inputTablesBytesSum'])
+        ) {
+            $metrics->setInputTablesBytesSum((int) $metricsData['storage']['inputTablesBytesSum']);
         }
-        if (isset($metricsData['storage']['outputTablesBytesSum'])) {
-            $metrics->setOutputTablesBytesSum($metricsData['storage']['outputTablesBytesSum']);
+        if (
+            isset($metricsData['storage']) && is_array($metricsData['storage']) &&
+            isset($metricsData['storage']['outputTablesBytesSum']) &&
+            is_scalar($metricsData['storage']['outputTablesBytesSum'])
+        ) {
+            $metrics->setOutputTablesBytesSum((int) $metricsData['storage']['outputTablesBytesSum']);
         }
-        if (isset($metricsData['backend']['size'])) {
-            $metrics->setBackendSize($metricsData['backend']['size']);
+        if (
+            isset($metricsData['backend']) && is_array($metricsData['backend']) &&
+            isset($metricsData['backend']['size']) &&
+            is_scalar($metricsData['backend']['size'])
+        ) {
+            $metrics->setBackendSize((string) $metricsData['backend']['size']);
         }
-        if (isset($metricsData['backend']['containerSize'])) {
-            $metrics->setBackendContainerSize($metricsData['backend']['containerSize']);
+        if (
+            isset($metricsData['backend']) && is_array($metricsData['backend']) &&
+            isset($metricsData['backend']['containerSize']) &&
+            is_scalar($metricsData['backend']['containerSize'])
+        ) {
+            $metrics->setBackendContainerSize((string) $metricsData['backend']['containerSize']);
         }
-        if (isset($metricsData['backend']['context'])) {
-            $metrics->setBackendContext($metricsData['backend']['context']);
+        if (
+            isset($metricsData['backend']) && is_array($metricsData['backend']) &&
+            isset($metricsData['backend']['context']) &&
+            is_scalar($metricsData['backend']['context'])
+        ) {
+            $metrics->setBackendContext((string) $metricsData['backend']['context']);
         }
         return $metrics;
     }

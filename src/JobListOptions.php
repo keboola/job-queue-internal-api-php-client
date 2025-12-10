@@ -87,6 +87,7 @@ class JobListOptions
         foreach ($arrayableProps as $propName => $paramName) {
             if (!empty($this->$propName)) {
                 foreach ($this->$propName as $value) {
+                    assert(is_scalar($value));
                     $parameters[] = $paramName . '[]=' . urlencode((string) $value);
                 }
             }

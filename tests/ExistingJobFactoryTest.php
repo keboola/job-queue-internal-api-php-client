@@ -8,6 +8,7 @@ use Keboola\JobQueueInternalClient\Exception\ClientException;
 use Keboola\JobQueueInternalClient\ExistingJobFactory;
 use Keboola\JobQueueInternalClient\JobFactory\JobInterface;
 use Keboola\JobQueueInternalClient\JobFactory\JobObjectEncryptor;
+use Keboola\ObjectEncryptor\ObjectEncryptor;
 use Keboola\ObjectEncryptor\ObjectEncryptorFactory;
 use Keboola\PermissionChecker\BranchType;
 use Keboola\StorageApi\Client;
@@ -36,14 +37,20 @@ class ExistingJobFactoryTest extends BaseTest
             ],
         );
 
-        self::$projectId = (string) self::$client->verifyToken()['owner']['id'];
+        $tokenInfo = self::$client->verifyToken();
+        self::assertIsArray($tokenInfo['owner']);
+        self::assertIsScalar($tokenInfo['owner']['id']);
+        self::$projectId = (string) $tokenInfo['owner']['id'];
 
         $componentsApi = new Components(self::$client);
         $configuration = new Configuration();
         $configuration->setConfiguration([]);
         $configuration->setComponentId(self::COMPONENT_ID_1);
         $configuration->setName('ClientListConfigurationsJobsFunctionalTest');
-        self::$configId1 = $componentsApi->addConfiguration($configuration)['id'];
+        $addedConfiguration = $componentsApi->addConfiguration($configuration);
+        self::assertIsArray($addedConfiguration);
+        self::assertIsScalar($addedConfiguration['id']);
+        self::$configId1 = (string) $addedConfiguration['id'];
     }
 
     public static function tearDownAfterClass(): void
@@ -67,6 +74,9 @@ class ExistingJobFactoryTest extends BaseTest
         putenv('GOOGLE_APPLICATION_CREDENTIALS=' . self::getRequiredEnv('TEST_GOOGLE_APPLICATION_CREDENTIALS'));
     }
 
+    /**
+     * @return array{ExistingJobFactory, ObjectEncryptor}
+     */
     private function getJobFactory(): array
     {
         $storageClientFactory = new StorageClientPlainFactory(new ClientOptions(
@@ -142,6 +152,9 @@ class ExistingJobFactoryTest extends BaseTest
 
         $job = $factory->loadFromExistingJobData($data);
 
+        self::assertIsString($job->getConfigData()['#foo1']);
+        self::assertIsString($job->getConfigData()['#foo2']);
+        self::assertIsString($job->getConfigData()['#foo3']);
         self::assertStringStartsWith('KBC::ProjectSecure', $job->getConfigData()['#foo1']);
         self::assertStringStartsWith('KBC::ComponentSecure', $job->getConfigData()['#foo2']);
         self::assertStringStartsWith('KBC::ConfigSecure', $job->getConfigData()['#foo3']);
