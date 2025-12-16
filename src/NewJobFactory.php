@@ -12,6 +12,7 @@ use Keboola\JobQueueInternalClient\JobFactory\JobInterface;
 use Keboola\JobQueueInternalClient\JobFactory\JobObjectEncryptor;
 use Keboola\JobQueueInternalClient\JobFactory\JobRuntimeResolver;
 use Keboola\JobQueueInternalClient\JobFactory\NewJobDefinition;
+use Keboola\JobQueueInternalClient\JobFactory\PlainJobInterface;
 use Keboola\PermissionChecker\BranchType;
 use Keboola\StorageApi\ClientException as StorageClientException;
 use Keboola\StorageApiBranch\Factory\ClientOptions;
@@ -32,13 +33,13 @@ class NewJobFactory extends JobFactory
 
         try {
             $clientWrapper = $this->storageClientFactory->createClientWrapper(new ClientOptions(
-                token: $data['#tokenString'],
+                token: (string) $data['#tokenString'],
             ));
             $token = $clientWrapper->getToken();
 
             $jobId = $clientWrapper->getBasicClient()->generateId();
             $runId = empty($data['parentRunId']) ? $jobId :
-                $data['parentRunId'] . JobInterface::RUN_ID_DELIMITER . $jobId;
+                $data['parentRunId'] . PlainJobInterface::RUN_ID_DELIMITER . $jobId;
         } catch (StorageClientException $e) {
             throw new ClientException(
                 'Cannot create job: "' . $e->getMessage() . '".',
@@ -47,7 +48,9 @@ class NewJobFactory extends JobFactory
             );
         }
 
-        if (!empty($data['variableValuesId']) && !empty($data['variableValuesData']['values'])) {
+        if (!empty($data['variableValuesId']) && !empty($data['variableValuesData']) &&
+             !empty($data['variableValuesData']['values'])
+        ) {
             throw new ClientException(
                 'Provide either "variableValuesId" or "variableValuesData", but not both.',
             );
@@ -100,6 +103,7 @@ class NewJobFactory extends JobFactory
         );
 
         $data = $this->validateJobData($data, FullJobDefinition::class);
+        assert(isset($data['id']) && isset($data['mode']) && isset($data['isFinished']));
         return new Job($this->objectEncryptor, $this->storageClientFactory, $data);
     }
 }

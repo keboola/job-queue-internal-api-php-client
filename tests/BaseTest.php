@@ -18,6 +18,12 @@ abstract class BaseTest extends TestCase
             ['url' => getenv('TEST_STORAGE_API_URL'), 'token' => getenv('TEST_STORAGE_API_TOKEN')],
         );
         $tokenInfo = $client->verifyToken();
+        self::assertIsScalar($tokenInfo['id']);
+        self::assertIsScalar($tokenInfo['description']);
+        self::assertIsArray($tokenInfo['owner']);
+        self::assertIsScalar($tokenInfo['owner']['name']);
+        self::assertIsScalar($tokenInfo['owner']['id']);
+
         print(sprintf(
             'Authorized as "%s (%s)" to project "%s (%s)" at "%s" stack.',
             $tokenInfo['description'],

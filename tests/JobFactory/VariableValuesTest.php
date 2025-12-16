@@ -12,6 +12,7 @@ class VariableValuesTest extends TestCase
 {
     /**
      * @dataProvider validValuesProvider
+     * @param array{values?: list<array{name: string, value: string}>} $expectedValuesData
      */
     public function testConstructValid(?string $expectedValuesId, array $expectedValuesData, bool $empty): void
     {
@@ -33,11 +34,17 @@ class VariableValuesTest extends TestCase
     {
         self::expectException(ClientException::class);
         self::expectExceptionMessage('Provide either "variableValuesId" or "variableValuesData", but not both.');
+        // @phpstan-ignore argument.type
         new VariableValues('123', ['values' => ['123']]);
     }
 
     /**
      * @dataProvider arrayValuesProvider
+     * @param array{
+     *     variableValuesId?: string|null,
+     *     variableValuesData?: array{values?: list<array{name: string, value: string}>}
+     * } $data
+     * @param array{values?: list<array{name: string, value: string}>} $expectedValuesData
      */
     public function testCreateFromArray(array $data, ?string $expectedValuesId, array $expectedValuesData): void
     {
@@ -81,8 +88,8 @@ class VariableValuesTest extends TestCase
             ['variableValuesId' => '123', 'variableValuesData' => []],
         ];
         yield 'data' => [
-            new VariableValues(null, ['values' => ['123']]),
-            ['variableValuesId' => null, 'variableValuesData' => ['values' => ['123']]],
+            new VariableValues(null, ['values' => [['name' => 'var1', 'value' => '123']]]),
+            ['variableValuesId' => null, 'variableValuesData' => ['values' => [['name' => 'var1', 'value' => '123']]]],
         ];
     }
 }

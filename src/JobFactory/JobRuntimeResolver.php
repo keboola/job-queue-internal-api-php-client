@@ -20,6 +20,126 @@ use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 
 /**
  * @internal
+ *
+ * @phpstan-type JobDataInput array{
+ *     id: string,
+ *     runId: string,
+ *     projectId: string,
+ *     projectName?: string|null,
+ *     tokenId: string,
+ *     tokenDescription?: string|null,
+ *     '#tokenString': string,
+ *     componentId: string,
+ *     configId?: string|int|null,
+ *     mode: string|null,
+ *     configRowIds?: list<scalar>|null,
+ *     tag?: string|null,
+ *     parentRunId?: string|null,
+ *     configData?: array|null,
+ *     createdTime?: string|null,
+ *     startTime?: string|null,
+ *     endTime?: string|null,
+ *     delayedStartTime?: string|null,
+ *     delay?: string|int|null,
+ *     durationSeconds?: string|int|null,
+ *     result?: array,
+ *     usageData?: array,
+ *     status: string,
+ *     desiredStatus: string,
+ *     type?: string|null,
+ *     parallelism?: int|string|null,
+ *     behavior?: array{onError?: string|null},
+ *     isFinished?: bool,
+ *     url?: string|null,
+ *     branchId?: int|string|null,
+ *     branchType?: string|null,
+ *     variableValuesId?: string|null,
+ *     variableValuesData?: array{values?: list<array{name: string, value: string}>},
+ *     backend?: array{
+ *         type?: string|null,
+ *         containerType?: string|null,
+ *         context?: string|null,
+ *     }|null,
+ *     executor?: string|null,
+ *     metrics?: array{
+ *         storage?: array{
+ *             inputTablesBytesSum?: int|string|null,
+ *             outputTablesBytesSum?: int|string|null,
+ *         },
+ *         backend?: array{
+ *             size?: string|null,
+ *             containerSize?: string|null,
+ *             context?: string|null,
+ *         }
+ *     }|null,
+ *     orchestrationJobId?: string|null,
+ *     orchestrationTaskId?: string|null,
+ *     orchestrationPhaseId?: string|null,
+ *     onlyOrchestrationTaskIds?: list<scalar>|null,
+ *     previousJobId?: string|null,
+ *     runnerId?: string|null,
+ *     deduplicationId?: string|null,
+ * }
+ *
+ * @phpstan-type JobDataResolved array{
+ *     id: string,
+ *     runId: string,
+ *     projectId: string,
+ *     projectName?: string|null,
+ *     tokenId: string,
+ *     tokenDescription?: string|null,
+ *     '#tokenString': string,
+ *     componentId: string,
+ *     configId?: string|int|null,
+ *     mode: string|null,
+ *     configRowIds?: list<scalar>,
+ *     tag: string,
+ *     parentRunId?: string|null,
+ *     configData?: array,
+ *     createdTime?: string|null,
+ *     startTime?: string|null,
+ *     endTime?: string|null,
+ *     delayedStartTime?: string|null,
+ *     delay?: string|int|null,
+ *     durationSeconds?: string|int|null,
+ *     result?: array,
+ *     usageData?: array,
+ *     status: string,
+ *     desiredStatus: string,
+ *     type: string,
+ *     parallelism?: int|string|null,
+ *     behavior?: array{onError?: string|null},
+ *     isFinished?: bool,
+ *     url?: string|null,
+ *     branchId: string,
+ *     branchType: string,
+ *     variableValuesId?: string|null,
+ *     variableValuesData?: array{values?: list<array{name: string, value: string}>},
+ *     backend: array{
+ *         type?: string|null,
+ *         containerType?: string|null,
+ *         context?: string|null,
+ *     },
+ *     executor: string|null,
+ *     metrics?: array{
+ *         storage?: array{
+ *             inputTablesBytesSum?: int|string|null,
+ *             outputTablesBytesSum?: int|string|null,
+ *         },
+ *         backend?: array{
+ *             size?: string|null,
+ *             containerSize?: string|null,
+ *             context?: string|null,
+ *         }
+ *     },
+ *     orchestrationJobId?: string|null,
+ *     orchestrationTaskId?: string|null,
+ *     orchestrationPhaseId?: string|null,
+ *     onlyOrchestrationTaskIds?: list<scalar>,
+ *     previousJobId?: string|null,
+ *     runnerId?: string|null,
+ *     deduplicationId?: string|null,
+ * }
  */
 class JobRuntimeResolver
 {
@@ -33,7 +153,58 @@ class JobRuntimeResolver
     private ClientWrapper $clientWrapper;
     private Components $componentsApiClient;
     private ?array $configuration;
+    /**
+     * @var array{
+     *     id: string,
+     *     type: string,
+     *     name: string,
+     *     description: string,
+     *     longDescription: string,
+     *     version: int,
+     *     complexity: string,
+     *     categories: list<string>,
+     *     data: array{
+     *         definition: array{
+     *             type: string,
+     *             uri: string,
+     *             tag?: string,
+     *             digest?: string,
+     *             repository?: array{
+     *                 region?: string,
+     *                 username?: string,
+     *                 '#password'?: string,
+     *                 server?: string,
+     *             },
+     *             build_options?: array<string, mixed>,
+     *         },
+     *         memory?: string,
+     *         configuration_format?: string,
+     *         process_timeout?: int,
+     *         forward_token?: bool,
+     *         forward_token_details?: bool,
+     *         default_bucket?: bool,
+     *         image_parameters?: mixed,
+     *         network?: string,
+     *         default_bucket_stage?: string,
+     *         vendor?: mixed,
+     *         synchronous_actions?: list<scalar>,
+     *         logging?: array{
+     *             type?: string,
+     *             verbosity?: array<scalar>,
+     *             gelf_server_type?: string,
+     *             no_application_errors?: bool,
+     *         },
+     *         staging_storage?: array{
+     *             input?: string,
+     *             output?: string,
+     *         },
+     *     },
+     * }
+     */
     private array $componentData;
+    /**
+     * @var JobDataInput
+     */
     private array $jobData;
 
     public function __construct(
@@ -41,6 +212,11 @@ class JobRuntimeResolver
     ) {
     }
 
+    /**
+     * @param JobDataInput $jobData
+     * @param StorageApiToken $token
+     * @return JobDataResolved
+     */
     public function resolveJobData(array $jobData, StorageApiToken $token): array
     {
         $this->configuration = null;
@@ -49,11 +225,13 @@ class JobRuntimeResolver
         try {
             $this->clientWrapper = $this->storageClientFactory->createClientWrapper(new ClientOptions(
                 token: $jobData['#tokenString'],
-                branchId: ((string) $jobData['branchId']) ?: null,
+                branchId: isset($jobData['branchId']) ? (string) $jobData['branchId'] : null,
             ));
 
             $this->componentsApiClient = new Components($this->clientWrapper->getBranchClient());
-            $this->componentData = $this->componentsApiClient->getComponent($jobData['componentId']);
+            /** @var array{id: string, type: string, name: string, description: string, longDescription: string, version: int, complexity: string, categories: list<string>, data: array{definition: array{type: string, uri: string, tag?: string, digest?: string, repository?: array{region?: string, username?: string, '#password'?: string, server?: string}, build_options?: array<string, mixed>}, memory?: string, configuration_format?: string, process_timeout?: int, forward_token?: bool, forward_token_details?: bool, default_bucket?: bool, image_parameters?: mixed, network?: string, default_bucket_stage?: string, vendor?: mixed, synchronous_actions?: list<scalar>, logging?: array{type?: string, verbosity?: array<scalar>, gelf_server_type?: string, no_application_errors?: bool}, staging_storage?: array{input?: string, output?: string}}} $componentData */
+            $componentData = $this->componentsApiClient->getComponent($jobData['componentId']);
+            $this->componentData = $componentData;
 
             $jobData['tag'] = $this->resolveTag($jobData);
             $variableValues = $this->resolveVariables();
@@ -62,14 +240,17 @@ class JobRuntimeResolver
             $jobData = $this->resolveBranchType($jobData);
 
             // set type after resolving parallelism
+            /** @var array{type?: string|null, parallelism?: int|string|null, componentId: string, configData?: array{phaseId?: int|string|null}} $jobData */
             $jobData['type'] = $this->resolveJobType($jobData)->value;
 
             // set backend after resolving type
+            /** @var array{projectId: string, componentId: string, type?: string|null, backend?: array{type?: string|null, containerType?: string|null, context?: string|null}} $jobData */
             $jobData['backend'] = $this->resolveBackend($jobData, $token)->toDataArray();
 
             foreach ($variableValues->asDataArray() as $key => $value) {
                 $jobData[$key] = $value;
             }
+            /** @var JobDataResolved $jobData */
             return $jobData;
         } catch (InvalidConfigurationException $e) {
             throw new ClientException('Invalid configuration: ' . $e->getMessage(), 0, $e);
@@ -78,6 +259,12 @@ class JobRuntimeResolver
         }
     }
 
+    /**
+     * @param array{
+     *     componentId: string,
+     *     tag?: string|null,
+     * } $jobData
+     */
     private function resolveTag(array $jobData): string
     {
         if (!empty($jobData['tag'])) {
@@ -117,9 +304,12 @@ class JobRuntimeResolver
         return VariableValues::fromDataArray($configuration);
     }
 
+    /**
+     * @param array{projectId: string, type?: string|null} $jobData
+     */
     private function getDefaultBackendContext(array $jobData, string $componentType): ?string
     {
-        if (!in_array($jobData['type'], self::JOB_TYPES_WITH_DEFAULT_BACKEND)) {
+        if (!in_array($jobData['type'] ?? null, self::JOB_TYPES_WITH_DEFAULT_BACKEND)) {
             return null;
         }
 
@@ -130,9 +320,12 @@ class JobRuntimeResolver
         );
     }
 
+    /**
+     * @param array{backend?: array{type?: string|null, containerType?: string|null, context?: string|null}} $jobData
+     */
     private function getBackendFromJobdata(array $jobData): Backend
     {
-        return is_array($jobData['backend'])
+        return isset($jobData['backend'])
             ? Backend::fromDataArray($jobData['backend']) : new Backend(null, null, null);
     }
 
@@ -152,12 +345,17 @@ class JobRuntimeResolver
 
     private function mergeBackendsData(Backend $backendOne, Backend $backendTwo): Backend
     {
-        return Backend::fromDataArray(array_merge(
+        /** @var array{type?: string|null, containerType?: string|null, context?: string|null} $mergedData */
+        $mergedData = array_merge(
             array_filter($backendOne->toDataArray()),
             array_filter($backendTwo->toDataArray()),
-        ));
+        );
+        return Backend::fromDataArray($mergedData);
     }
 
+    /**
+     * @param array{backend?: array{type?: string|null, containerType?: string|null, context?: string|null}} $jobData
+     */
     private function getBackend(array $jobData): Backend
     {
         $backend = new Backend(null, null, null);
@@ -172,6 +370,14 @@ class JobRuntimeResolver
         return $this->mergeBackendsData($backend, $overrideByBackend);
     }
 
+    /**
+     * @param array{
+     *     projectId: string,
+     *     componentId: string,
+     *     type?: string|null,
+     *     backend?: array{type?: string|null, containerType?: string|null, context?: string|null}
+     * } $jobData
+     */
     private function resolveBackend(array $jobData, StorageApiToken $token): Backend
     {
         $tempBackend = $this->getBackend($jobData);
@@ -217,39 +423,78 @@ class JobRuntimeResolver
         return new Backend(null, null, $backendContext);
     }
 
+    /**
+     * @param array{parallelism?: int|string|null} $jobData
+     */
     private function resolveParallelism(array $jobData): ?string
     {
-        if (isset($jobData['parallelism']) && ($jobData['parallelism'] !== null)) {
+        if (isset($jobData['parallelism'])) {
             return (string) $jobData['parallelism'];
         }
-        if (isset($this->getConfigData()['runtime']['parallelism'])
-            && $this->getConfigData()['runtime']['parallelism'] !== null) {
+        if (isset($this->getConfigData()['runtime']['parallelism'])) {
             return (string) $this->getConfigData()['runtime']['parallelism'];
         }
         $configuration = $this->getConfiguration();
         if (!empty($configuration['runtime']['parallelism'])) {
-            return $configuration['runtime']['parallelism'];
+            return (string) $configuration['runtime']['parallelism'];
         }
         return null;
     }
 
+    /**
+     * @return array{
+     *     variableValuesId?: string|null,
+     *     variableValuesData?: array{values?: list<array{name: string, value: string}>},
+     *     runtime?: array{
+     *         tag?: string|null,
+     *         image_tag?: string|null,
+     *         process_timeout?: int|null,
+     *         backend?: array{
+     *             type?: string|null,
+     *             context?: string|null,
+     *         },
+     *         executor?: string|null,
+     *         parallelism?: int|string|null,
+     *     },
+     * }
+     */
     private function getConfigData(): array
     {
         $configurationDefinition = new OverridesConfigurationDefinition();
-        return $configurationDefinition->processData($this->jobData['configData'] ?? []);
+        /** @var array{variableValuesId?: string|null, variableValuesData?: array{values?: list<array{name: string, value: string}>}, runtime?: array{tag?: string|null, image_tag?: string|null, process_timeout?: int|null, backend?: array{type?: string|null, context?: string|null}, executor?: string|null, parallelism?: int|string|null}} $result */
+        $result = $configurationDefinition->processData($this->jobData['configData'] ?? []);
+        return $result;
     }
 
+    /**
+     * @return array{
+     *     variableValuesId?: string|null,
+     *     variableValuesData?: array{values?: list<array{name: string, value: string}>},
+     *     runtime?: array{
+     *         tag?: string|null,
+     *         image_tag?: string|null,
+     *         process_timeout?: int|null,
+     *         backend?: array{
+     *             type?: string|null,
+     *             context?: string|null,
+     *         },
+     *         executor?: string|null,
+     *         parallelism?: int|string|null,
+     *     },
+     * }
+     */
     private function getConfiguration(): array
     {
         if ($this->configuration === null) {
             if (isset($this->jobData['configId']) &&
-                $this->jobData['configId'] !== null &&
                 $this->jobData['configId'] !== ''
             ) {
-                $this->configuration = $this->componentsApiClient->getConfiguration(
+                $configuration = $this->componentsApiClient->getConfiguration(
                     $this->jobData['componentId'],
                     $this->jobData['configId'],
                 );
+                assert(is_array($configuration));
+                $this->configuration = $configuration;
 
                 if (!empty($this->configuration['isDisabled']) && !$this->resolveIsForceRunMode()) {
                     throw new ConfigurationDisabledException(sprintf(
@@ -261,13 +506,15 @@ class JobRuntimeResolver
 
                 $configurationDefinition = new OverridesConfigurationDefinition();
                 $this->configuration = $configurationDefinition->processData(
-                    $this->configuration['configuration'] ?? [],
+                    (array) ($this->configuration['configuration'] ?? []),
                 );
             } else {
                 $this->configuration = [];
             }
         }
-        return $this->configuration;
+        /** @var array{variableValuesId?: string|null, variableValuesData?: array{values?: list<array{name: string, value: string}>}, runtime?: array{tag?: string|null, image_tag?: string|null, process_timeout?: int|null, backend?: array{type?: string|null, context?: string|null}, executor?: string|null, parallelism?: int|string|null}} $result */
+        $result = $this->configuration;
+        return $result;
     }
 
     private function resolveIsForceRunMode(): bool
@@ -275,13 +522,23 @@ class JobRuntimeResolver
         return isset($this->jobData['mode']) && $this->jobData['mode'] === JobInterface::MODE_FORCE_RUN;
     }
 
+    /**
+     * @param array{
+     *     type?: string|null,
+     *     parallelism?: int|string|null,
+     *     componentId: string,
+     *     configData?: array{phaseId?: string|int|null}
+     * } $jobData
+     */
     private function resolveJobType(array $jobData): JobType
     {
         if (!empty($jobData['type'])) {
             return JobType::from((string) $jobData['type']);
         }
 
-        if ((intval($jobData['parallelism']) > 0) || $jobData['parallelism'] === JobInterface::PARALLELISM_INFINITY) {
+        if ((intval($jobData['parallelism'] ?? null) > 0)
+            || ($jobData['parallelism'] ?? null) === JobInterface::PARALLELISM_INFINITY
+        ) {
             return JobType::ROW_CONTAINER;
         } else {
             if ($jobData['componentId'] === JobFactory::FLOW_COMPONENT) {
@@ -297,6 +554,9 @@ class JobRuntimeResolver
         return JobType::STANDARD;
     }
 
+    /**
+     * @param array{executor?: string|null} $jobData
+     */
     private function resolveExecutor(array $jobData, StorageApiToken $token): Executor
     {
         $value = $jobData['executor'] ??

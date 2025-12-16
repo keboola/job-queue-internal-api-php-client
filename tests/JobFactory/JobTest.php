@@ -26,6 +26,66 @@ use Throwable;
 
 class JobTest extends BaseTest
 {
+    /**
+     * @var array{
+     *     id: string,
+     *     runId: string,
+     *     projectId: string,
+     *     projectName?: string|null,
+     *     tokenId: string,
+     *     tokenDescription: string,
+     *     '#tokenString': string,
+     *     componentId: string,
+     *     configId: string,
+     *     mode: string,
+     *     configRowIds?: list<scalar>,
+     *     tag?: string|null,
+     *     parentRunId?: string|null,
+     *     configData: array,
+     *     createdTime?: string|null,
+     *     startTime?: string|null,
+     *     endTime?: string|null,
+     *     delayedStartTime?: string|null,
+     *     delay?: string|int|null,
+     *     durationSeconds: string,
+     *     result?: array,
+     *     usageData?: array,
+     *     status: string,
+     *     desiredStatus: string,
+     *     type?: string|null,
+     *     parallelism?: int|string|null,
+     *     behavior?: array{onError?: string|null},
+     *     isFinished: bool,
+     *     url?: string|null,
+     *     branchId: string,
+     *     branchType: string,
+     *     variableValuesId: string,
+     *     variableValuesData: array{values: list<array{name: string, value: string}>},
+     *     backend?: array{
+     *         type?: string|null,
+     *         containerType?: string|null,
+     *         context?: string|null,
+     *     }|null,
+     *     executor?: string|null,
+     *     metrics: array{
+     *         storage: array{
+     *             inputTablesBytesSum: int,
+     *             outputTablesBytesSum: int,
+     *         },
+     *         backend: array{
+     *             size: string,
+     *             context: string,
+     *         }
+     *     },
+     *     orchestrationJobId: string,
+     *     orchestrationTaskId?: string|null,
+     *     orchestrationPhaseId?: string|null,
+     *     onlyOrchestrationTaskIds?: list<scalar>|null,
+     *     previousJobId?: string|null,
+     *     runnerId?: string|null,
+     *     deduplicationId?: string|null,
+     * }
+     */
     private array $jobData = [
         'id' => '123456456',
         'runId' => '123456456',
@@ -64,6 +124,7 @@ class JobTest extends BaseTest
         ],
         'orchestrationJobId' => '123456789',
         'branchType' => 'default',
+        'isFinished' => false,
     ];
 
     public function testConstants(): void
@@ -141,7 +202,6 @@ class JobTest extends BaseTest
 
     public function testGetConfigRowIds(): void
     {
-        self::assertIsArray($this->getJob()->getConfigRowIds());
         self::assertEmpty($this->getJob()->getConfigRowIds());
 
         $jobDataWithRowId = $this->jobData;
@@ -243,7 +303,7 @@ class JobTest extends BaseTest
     public function testGetCustomBackend(): void
     {
         $jobData = $this->jobData;
-        $jobData['backend']['type'] = 'custom';
+        $jobData['backend'] = ['type' => 'custom'];
 
         $backend = $this->getJob($jobData)->getBackend();
         self::assertSame('custom', $backend->getType());
@@ -264,11 +324,76 @@ class JobTest extends BaseTest
         self::assertSame(Executor::K8S_CONTAINERS, $executor);
     }
 
+    /**
+     * @param array{
+     *     id: string,
+     *     runId: string,
+     *     projectId: string,
+     *     projectName?: string|null,
+     *     tokenId: string,
+     *     tokenDescription?: string|null,
+     *     '#tokenString': string,
+     *     componentId: string,
+     *     configId?: string|int|null,
+     *     mode: string|null,
+     *     configRowIds?: list<scalar>,
+     *     tag?: string|null,
+     *     parentRunId?: string|null,
+     *     configData?: array,
+     *     createdTime?: string|null,
+     *     startTime?: string|null,
+     *     endTime?: string|null,
+     *     delayedStartTime?: string|null,
+     *     delay?: string|int|null,
+     *     durationSeconds?: string|int|null,
+     *     result?: array,
+     *     usageData?: array,
+     *     status: string,
+     *     desiredStatus: string,
+     *     type?: string|null,
+     *     parallelism?: int|string|null,
+     *     behavior?: array{onError?: string|null},
+     *     isFinished: bool,
+     *     url?: string|null,
+     *     branchId?: string|null,
+     *     branchType: string,
+     *     variableValuesId?: string|null,
+     *     variableValuesData?: array{values?: list<array{name: string, value: string}>},
+     *     backend?: array{
+     *         type?: string|null,
+     *         containerType?: string|null,
+     *         context?: string|null,
+     *     }|null,
+     *     executor?: string|null,
+     *     metrics?: array{
+     *         storage?: array{
+     *             inputTablesBytesSum?: int|string|null,
+     *             outputTablesBytesSum?: int|string|null,
+     *         },
+     *         backend?: array{
+     *             size?: string|null,
+     *             containerSize?: string|null,
+     *             context?: string|null,
+     *         }
+     *     }|null,
+     *     orchestrationJobId?: string|null,
+     *     orchestrationTaskId?: string|null,
+     *     orchestrationPhaseId?: string|null,
+     *     onlyOrchestrationTaskIds?: list<scalar>|null,
+     *     previousJobId?: string|null,
+     *     runnerId?: string|null,
+     *     deduplicationId?: string|null,
+     * }|null $jobData
+     */
     private function getJob(?array $jobData = null): Job
     {
         $objectEncryptorMock = $this->createMock(JobObjectEncryptor::class);
         $storageClientFactoryMock = $this->createMock(StorageClientPlainFactory::class);
-        return new Job($objectEncryptorMock, $storageClientFactoryMock, $jobData ?? $this->jobData);
+        $data = $jobData ?? $this->jobData;
+        self::assertArrayHasKey('mode', $data);
+        self::assertArrayHasKey('isFinished', $data);
+        self::assertIsString($data['mode']);
+        return new Job($objectEncryptorMock, $storageClientFactoryMock, $data);
     }
 
     public function testGetDuration(): void
@@ -608,6 +733,7 @@ class JobTest extends BaseTest
 
     public function testGetComponentConfiguration(): void
     {
+        $configId = $this->jobData['configId'];
         $componentConfigData = [
             'uri' => 'some-uri',
             'type' => 'aws-ecr',
@@ -616,7 +742,7 @@ class JobTest extends BaseTest
         $storageClient = $this->createMock(BranchAwareClient::class);
         $storageClient->expects(self::once())
             ->method('apiGet')
-            ->with(sprintf('components/%s/configs/%s', $this->jobData['componentId'], $this->jobData['configId']))
+            ->with(sprintf('components/%s/configs/%s', $this->jobData['componentId'], $configId))
             ->willReturn($componentConfigData)
         ;
 
@@ -692,10 +818,12 @@ class JobTest extends BaseTest
 
     public function testGetComponentConfigurationWhenConfigDoesNotExist(): void
     {
+        $configId = $this->jobData['configId'];
+
         $storageClient = $this->createMock(BranchAwareClient::class);
         $storageClient->expects(self::once())
             ->method('apiGet')
-            ->with(sprintf('components/%s/configs/%s', $this->jobData['componentId'], $this->jobData['configId']))
+            ->with(sprintf('components/%s/configs/%s', $this->jobData['componentId'], $configId))
             ->willThrowException(new StorageApiClientException('Config not found', 404))
         ;
 
@@ -1066,6 +1194,7 @@ class JobTest extends BaseTest
         self::assertNull($this->getJob($jobData)->$fieldGetterName());
 
         $jobData[$datetimeField] = $datetimeString;
+        // @phpstan-ignore argument.type
         $job = $this->getJob($jobData);
 
         self::assertEquals(new DateTimeImmutable('2024-06-11T10:11:37+00:00'), $job->$fieldGetterName());
@@ -1088,6 +1217,7 @@ class JobTest extends BaseTest
         self::assertNull($this->getJob($jobData)->$fieldGetterName());
 
         $jobData[$datetimeField] = null;
+        // @phpstan-ignore argument.type
         $job = $this->getJob($jobData);
 
         self::assertNull($job->$fieldGetterName());
@@ -1106,6 +1236,7 @@ class JobTest extends BaseTest
         self::expectException(Throwable::class);
         self::expectExceptionMessage('Failed to parse time string');
 
+        // @phpstan-ignore argument.type
         $this->getJob($jobData);
     }
 

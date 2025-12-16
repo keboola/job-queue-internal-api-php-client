@@ -128,6 +128,7 @@ class Job extends PlainJob implements JobInterface
             return $this->projectFeatures;
         }
 
+        // @phpstan-ignore-next-line
         return $this->projectFeatures = $this->getStorageClientWrapper()
             ->getBranchClient()
             ->verifyToken()['owner']['features'];
@@ -141,6 +142,7 @@ class Job extends PlainJob implements JobInterface
         $options->setCanManageBuckets(true);
         $options->setCanReadAllFileUploads(true);
         $options->setExpiresIn(self::EXECUTION_TOKEN_TIMEOUT_SECONDS);
+        /** @var array{token: string} $token */
         $token = $tokens->createTokenPrivilegedInProtectedDefaultBranch($options, $applicationToken);
 
         return $token['token'];

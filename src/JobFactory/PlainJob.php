@@ -21,8 +21,70 @@ class PlainJob implements JsonSerializable, PlainJobInterface
     private ?DateTimeImmutable $delayedStartTime = null;
     private ?DateTimeImmutable $createdTime = null;
 
+    /**
+     * @param array{
+     *     id: string,
+     *     runId: string,
+     *     projectId: string,
+     *     projectName?: string|null,
+     *     tokenId: string,
+     *     tokenDescription?: string|null,
+     *     '#tokenString': string,
+     *     componentId: string,
+     *     configId?: string|int|null,
+     *     mode: string,
+     *     configRowIds?: list<scalar>,
+     *     tag?: string|null,
+     *     parentRunId?: string|null,
+     *     configData?: array,
+     *     createdTime?: string|null,
+     *     startTime?: string|null,
+     *     endTime?: string|null,
+     *     delayedStartTime?: string|null,
+     *     delay?: string|int|null,
+     *     durationSeconds?: string|int|null,
+     *     result?: array,
+     *     usageData?: array,
+     *     status: string,
+     *     desiredStatus: string,
+     *     type?: string|null,
+     *     parallelism?: int|string|null,
+     *     behavior?: array{onError?: string|null},
+     *     isFinished: bool,
+     *     url?: string|null,
+     *     branchId?: string|null,
+     *     branchType: string,
+     *     variableValuesId?: string|null,
+     *     variableValuesData?: array{values?: list<array{name: string, value: string}>},
+     *     backend?: array{
+     *         type?: string|null,
+     *         containerType?: string|null,
+     *         context?: string|null,
+     *     }|null,
+     *     executor?: string|null,
+     *     metrics?: array{
+     *         storage?: array{
+     *             inputTablesBytesSum?: int|string|null,
+     *             outputTablesBytesSum?: int|string|null,
+     *         },
+     *         backend?: array{
+     *             size?: string|null,
+     *             containerSize?: string|null,
+     *             context?: string|null,
+     *         }
+     *     }|null,
+     *     orchestrationJobId?: string|null,
+     *     orchestrationTaskId?: string|null,
+     *     orchestrationPhaseId?: string|null,
+     *     onlyOrchestrationTaskIds?: list<scalar>|null,
+     *     previousJobId?: string|null,
+     *     runnerId?: string|null,
+     *     deduplicationId?: string|null,
+     * } $data
+     */
     public function __construct(private array $data)
     {
+        // @phpstan-ignore-next-line
         if (!isset($data['branchType'])) {
             throw new InvalidArgumentException('Missing required parameter "branchType"');
         }
@@ -73,7 +135,7 @@ class PlainJob implements JsonSerializable, PlainJobInterface
 
     public function getComponentId(): string
     {
-        return $this->data['componentId'] ?? '';
+        return $this->data['componentId'];
     }
 
     public function getConfigData(): array
@@ -83,7 +145,7 @@ class PlainJob implements JsonSerializable, PlainJobInterface
 
     public function getConfigId(): ?string
     {
-        return $this->data['configId'] ?? null;
+        return isset($this->data['configId']) ? (string) $this->data['configId'] : null;
     }
 
     public function getMode(): string
@@ -96,9 +158,9 @@ class PlainJob implements JsonSerializable, PlainJobInterface
         return $this->data['projectId'];
     }
 
-    public function getProjectName(): string
+    public function getProjectName(): ?string
     {
-        return $this->data['projectName'];
+        return $this->data['projectName'] ?? null;
     }
 
     public function getResult(): array
@@ -138,7 +200,7 @@ class PlainJob implements JsonSerializable, PlainJobInterface
 
     public function getTokenDescription(): string
     {
-        return $this->data['tokenDescription'];
+        return $this->data['tokenDescription'] ?? '';
     }
 
     public function getParentRunId(): string
@@ -182,7 +244,7 @@ class PlainJob implements JsonSerializable, PlainJobInterface
 
     public function getParallelism(): ?string
     {
-        return $this->data['parallelism'] ?? null;
+        return isset($this->data['parallelism']) ? (string) $this->data['parallelism'] : null;
     }
 
     public function getBehavior(): Behavior
@@ -262,7 +324,9 @@ class PlainJob implements JsonSerializable, PlainJobInterface
      */
     public function getOrchestrationTaskId(): ?string
     {
-        return $this->data['orchestrationTaskId'] ?? null;
+        return (isset($this->data['orchestrationTaskId']) && $this->data['orchestrationTaskId'] !== '')
+            ? (string) $this->data['orchestrationTaskId']
+            : null;
     }
 
     /**
@@ -270,11 +334,13 @@ class PlainJob implements JsonSerializable, PlainJobInterface
      */
     public function getOrchestrationPhaseId(): ?string
     {
-        return $this->data['orchestrationPhaseId'] ?? null;
+        return (isset($this->data['orchestrationPhaseId']) && $this->data['orchestrationPhaseId'] !== '')
+            ? (string) $this->data['orchestrationPhaseId']
+            : null;
     }
 
     /**
-     * @return list<non-empty-list>|null
+     * @return list<scalar>|null
      */
     public function getOnlyOrchestrationTaskIds(): ?array
     {
@@ -286,7 +352,9 @@ class PlainJob implements JsonSerializable, PlainJobInterface
      */
     public function getPreviousJobId(): ?string
     {
-        return $this->data['previousJobId'] ?? null;
+        return (isset($this->data['previousJobId']) && $this->data['previousJobId'] !== '')
+            ? (string) $this->data['previousJobId']
+            : null;
     }
 
     public function getRunnerId(): ?string

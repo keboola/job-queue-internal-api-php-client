@@ -46,20 +46,31 @@ class ClientListLatestConfigurationsJobsFunctionalTest extends BaseClientFunctio
         $configuration->setComponentId(self::COMPONENT_ID_1);
         $configuration->setName($className);
 
-        self::$configId1 = $componentsApi->addConfiguration($configuration)['id'];
-        self::$configId2 = $componentsApi->addConfiguration($configuration)['id'];
+        $addedConfiguration = $componentsApi->addConfiguration($configuration);
+
+        self::assertIsArray($addedConfiguration);
+        self::assertIsScalar($addedConfiguration['id']);
+        self::$configId1 = (string) $addedConfiguration['id'];
+
+        $addedConfiguration = $componentsApi->addConfiguration($configuration);
+        self::assertIsArray($addedConfiguration);
+        self::assertIsScalar($addedConfiguration['id']);
+        self::$configId2 = (string) $addedConfiguration['id'];
         $configuration->setConfigurationId(self::$configId1);
         $configuration->setComponentId(self::COMPONENT_ID_2);
         $componentsApi->addConfiguration($configuration);
 
         $branchesApi = new DevBranches(self::$masterClient);
         foreach ($branchesApi->listBranches() as $devBranch) {
+            self::assertIsArray($devBranch);
+            self::assertIsInt($devBranch['id']);
             if ($devBranch['name'] === $className) {
                 $branchesApi->deleteBranch($devBranch['id']);
             }
         }
 
         $devBranch = $branchesApi->createBranch($className);
+        self::assertIsScalar($devBranch['id']);
         self::$branchId1 = (string) $devBranch['id'];
     }
 

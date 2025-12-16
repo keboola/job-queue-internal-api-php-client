@@ -57,13 +57,26 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
         $configuration->setConfiguration([]);
         $configuration->setComponentId(self::COMPONENT_ID_1);
         $configuration->setName('ClientListConfigurationsJobsFunctionalTest');
-        self::$configId1 = $componentsApi->addConfiguration($configuration)['id'];
-        self::$configId2 = $componentsApi->addConfiguration($configuration)['id'];
+        $addedConfiguration = $componentsApi->addConfiguration($configuration);
+        self::assertIsArray($addedConfiguration);
+        self::assertIsScalar($addedConfiguration['id']);
+        self::$configId1 = (string) $addedConfiguration['id'];
+
+        $addedConfiguration = $componentsApi->addConfiguration($configuration);
+        self::assertIsArray($addedConfiguration);
+        self::assertIsScalar($addedConfiguration['id']);
+        self::$configId2 = (string) $addedConfiguration['id'];
+
         $configuration->setComponentId(self::COMPONENT_ID_2);
-        self::$configId3 = $componentsApi->addConfiguration($configuration)['id'];
+        $addedConfiguration = $componentsApi->addConfiguration($configuration);
+        self::assertIsArray($addedConfiguration);
+        self::assertIsScalar($addedConfiguration['id']);
+        self::$configId3 = (string) $addedConfiguration['id'];
 
         $component = $componentsApi->getComponent(self::COMPONENT_ID_1);
-        self::$componentId1Tag = $component['data']['definition']['tag'];
+        self::assertIsArray($component['data']['definition']);
+        self::assertIsScalar($component['data']['definition']['tag']);
+        self::$componentId1Tag = (string) $component['data']['definition']['tag'];
     }
 
     public static function tearDownAfterClass(): void
@@ -139,6 +152,7 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
         $response = $client->createJob($job)->jsonSerialize();
         self::assertNotEmpty($response['createdTime']);
         unset($response['createdTime']);
+        self::assertIsString($response['#tokenString']);
         self::assertStringStartsWith($cipherPrefix, $response['#tokenString']);
         unset($response['#tokenString']);
 
@@ -149,6 +163,9 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
             ],
         );
         $tokenInfo = $storageClient->verifyToken();
+        self::assertIsArray($tokenInfo['owner']);
+        self::assertIsScalar($tokenInfo['owner']['id']);
+        self::assertIsScalar($tokenInfo['owner']['name']);
 
         $expected = [
             'id' => $job->getId(),
@@ -250,13 +267,16 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
             ],
         );
         $tokenInfo = $storageClient->verifyToken();
+        self::assertIsArray($tokenInfo['owner']);
+        self::assertIsScalar($tokenInfo['owner']['id']);
+        self::assertIsScalar($tokenInfo['owner']['name']);
 
-        /* @var Job $responseJob */
         foreach ($responseJobs as $responseJob) {
+            /** @var Job $responseJob */
             $responseJobJson = $responseJob->jsonSerialize();
             self::assertNotEmpty($responseJobJson['id']);
 
-            $expectedOrchestraionId = ($responseJobJson['id'] === $job2->getId()) ? '123456789' : null;
+            $expectedOrchestrationId = ($responseJobJson['id'] === $job2->getId()) ? '123456789' : null;
 
             unset($responseJobJson['id']);
             self::assertNotEmpty($responseJobJson['runId']);
@@ -265,6 +285,7 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
             unset($responseJobJson['parentRunId']);
             self::assertNotEmpty($responseJobJson['createdTime']);
             unset($responseJobJson['createdTime']);
+            self::assertIsString($responseJobJson['#tokenString']);
             self::assertStringStartsWith($cipherPrefix, $responseJobJson['#tokenString']);
             unset($responseJobJson['#tokenString']);
             $expected = [
@@ -301,7 +322,7 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
                 'behavior' => [
                     'onError' => null,
                 ],
-                'orchestrationJobId' => $expectedOrchestraionId,
+                'orchestrationJobId' => $expectedOrchestrationId,
                 'runnerId' => null,
                 'executor' => self::$defaultExecutor->value,
                 'branchType' => 'default',
@@ -710,6 +731,7 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
         );
         $branchesApi = new DevBranches($masterClient);
         $branchId = $branchesApi->createBranch(uniqid('testListJobsBranchId'))['id'];
+        self::assertIsScalar($branchId);
 
         $newJobFactory = $this->getNewJobFactory();
         $client = $this->getClient();
@@ -766,7 +788,7 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
 
         self::assertEquals($createdJob2->jsonSerialize(), $listedJob->jsonSerialize());
         self::assertSame(self::$defaultBranchId, $listedJob->jsonSerialize()['branchId']);
-        $branchesApi->deleteBranch($branchId);
+        $branchesApi->deleteBranch((int) $branchId);
     }
 
     public function testListJobsConfigRowIds(): void
@@ -811,11 +833,15 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
         /** @var Job $listedJob1 */
         $listedJob1 = $response[1];
         self::assertEquals($createdJob->jsonSerialize(), $listedJob1->jsonSerialize());
-        self::assertContains('123', $listedJob1->jsonSerialize()['configRowIds']);
+        $configRowIds = $listedJob1->jsonSerialize()['configRowIds'];
+        self::assertIsArray($configRowIds);
+        self::assertContains('123', $configRowIds);
         /** @var Job $listedJob2 */
         $listedJob2 = $response[0];
         self::assertEquals($createdJob2->jsonSerialize(), $listedJob2->jsonSerialize());
-        self::assertContains('123', $listedJob2->jsonSerialize()['configRowIds']);
+        $configRowIds = $listedJob2->jsonSerialize()['configRowIds'];
+        self::assertIsArray($configRowIds);
+        self::assertContains('123', $configRowIds);
 
         // jobs with configRowId 123 and config $configId2
         $response = $client->listJobs(

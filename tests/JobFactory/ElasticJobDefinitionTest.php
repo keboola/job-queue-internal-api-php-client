@@ -649,19 +649,24 @@ class ElasticJobDefinitionTest extends TestCase
         $result = $definition->processData($data);
 
         self::assertArrayHasKey('behavior', $result);
+        self::assertIsArray($result['behavior']);
         self::assertArrayHasKey('onError', $result['behavior']);
         self::assertArrayNotHasKey('extraKey', $result['behavior']);
 
         self::assertArrayHasKey('backend', $result);
+        self::assertIsArray($result['backend']);
         self::assertArrayHasKey('type', $result['backend']);
         self::assertArrayNotHasKey('extraKey', $result['backend']);
 
         self::assertArrayHasKey('metrics', $result);
+        self::assertIsArray($result['metrics']);
         self::assertArrayHasKey('storage', $result['metrics']);
+        self::assertIsArray($result['metrics']['storage']);
         self::assertArrayHasKey('inputTablesBytesSum', $result['metrics']['storage']);
         self::assertArrayNotHasKey('extraKey', $result['metrics']['storage']);
 
         self::assertArrayHasKey('backend', $result['metrics']);
+        self::assertIsArray($result['metrics']['backend']);
         self::assertArrayHasKey('size', $result['metrics']['backend']);
         self::assertArrayNotHasKey('extraKey', $result['metrics']['backend']);
         self::assertArrayNotHasKey('extraKey', $result['metrics']);

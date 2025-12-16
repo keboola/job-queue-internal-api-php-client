@@ -10,22 +10,22 @@ terraform {
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = "~> 5.9"
+      version = "~> 6.11"
     }
 
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "~> 4.17.0"
+      version = "~> 4.42"
     }
 
     azuread = {
       source  = "hashicorp/azuread"
-      version = "~> 2.40.0"
+      version = "~> 3.5"
     }
 
     google = {
       source  = "hashicorp/google"
-      version = "~> 4.81.0"
+      version = "~> 7.4"
     }
   }
 

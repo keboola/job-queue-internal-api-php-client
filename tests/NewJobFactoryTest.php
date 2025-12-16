@@ -42,16 +42,25 @@ class NewJobFactoryTest extends BaseTest
         ));
         self::$client = $clientWrapper->getBasicClient();
         self::$defaultBranchId = $clientWrapper->getDefaultBranch()->id;
-        self::$projectId = (string) self::$client->verifyToken()['owner']['id'];
+        $tokenInfo = self::$client->verifyToken();
+        self::assertIsArray($tokenInfo['owner']);
+        self::assertIsScalar($tokenInfo['owner']['id']);
+        self::$projectId = (string) $tokenInfo['owner']['id'];
 
         $componentsApi = new Components(self::$client);
         $configuration = new Configuration();
         $configuration->setConfiguration([]);
         $configuration->setComponentId(self::COMPONENT_ID_1);
         $configuration->setName('ClientListConfigurationsJobsFunctionalTest');
-        self::$configId1 = $componentsApi->addConfiguration($configuration)['id'];
+        $addedConfiguration = $componentsApi->addConfiguration($configuration);
+        self::assertIsArray($addedConfiguration);
+        self::assertIsString($addedConfiguration['id']);
+        self::$configId1 = $addedConfiguration['id'];
 
         $component = $componentsApi->getComponent(self::COMPONENT_ID_1);
+        self::assertIsArray($component['data']['definition']);
+        self::assertIsString($component['data']['definition']['tag']);
+
         self::$componentId1Tag = $component['data']['definition']['tag'];
     }
 
@@ -107,7 +116,6 @@ class NewJobFactoryTest extends BaseTest
         self::assertEquals([], $job->getConfigData());
         self::assertEquals(self::getRequiredEnv('TEST_STORAGE_API_TOKEN'), $job->getTokenDecrypted());
         self::assertEquals([], $job->getConfigDataDecrypted());
-        self::assertIsArray($job->getConfigRowIds());
         self::assertEmpty($job->getConfigRowIds());
         self::assertSame(self::$componentId1Tag, $job->getTag());
         self::assertEquals($job->getId(), $job->getRunId());
@@ -537,6 +545,11 @@ class NewJobFactoryTest extends BaseTest
         ];
         $job = $factory->createNewJob($data);
         // these are encrypted manually and left as is
+        self::assertIsString($job->getConfigData()['#foo1']);
+        self::assertIsString($job->getConfigData()['#foo2']);
+        self::assertIsString($job->getConfigData()['#foo3']);
+        self::assertIsString($job->getConfigData()['#foo4']);
+
         self::assertStringStartsWith('KBC::ProjectSecure', $job->getConfigData()['#foo1']);
         self::assertStringStartsWith('KBC::ComponentSecure', $job->getConfigData()['#foo2']);
         self::assertStringStartsWith('KBC::ConfigSecure', $job->getConfigData()['#foo3']);
@@ -573,6 +586,7 @@ class NewJobFactoryTest extends BaseTest
                     $trackingInvocationCount++;
                     return ['id' => '987', 'isDefault' => $isDefault];
                 }
+                // @phpstan-ignore-next-line
                 return self::$client->apiGet(...$args);
             });
         $basicClientMock
@@ -583,6 +597,7 @@ class NewJobFactoryTest extends BaseTest
         $branchClientMock
             ->method('apiGet')
             ->willReturnCallback(function (...$args) {
+                // @phpstan-ignore-next-line
                 return self::$client->apiGet(...$args);
             });
 
@@ -593,6 +608,7 @@ class NewJobFactoryTest extends BaseTest
         $clientWrapperMock->method('isDefaultBranch')->willReturn($isDefault);
         $clientWrapperMock->method('getToken')->willReturnCallback(function () use ($features) {
             $tokenInfo = self::$client->verifyToken();
+            self::assertIsArray($tokenInfo['owner']);
             $tokenInfo['owner']['features'] = $features;
 
             return new StorageApiToken(

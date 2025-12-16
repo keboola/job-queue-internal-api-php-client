@@ -8,6 +8,7 @@ use DateTimeImmutable;
 use GuzzleHttp\Handler\MockHandler;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Middleware;
+use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\Psr7\Response;
 use Keboola\JobQueueInternalClient\Client;
 use Keboola\JobQueueInternalClient\ExistingJobFactory;
@@ -123,6 +124,8 @@ class ClientSearchTest extends TestCase
         self::assertSame('2', $jobs[1]->getId());
 
         self::assertCount(1, $requests);
+
+        /** @var Request $request */
         $request = $requests[0]['request'];
 
         self::assertSame('GET', $request->getMethod());
@@ -255,6 +258,7 @@ class ClientSearchTest extends TestCase
         self::assertSame($groupBy, array_keys($groups));
 
         self::assertCount(1, $requests);
+        /** @var Request $request */
         $request = $requests[0]['request'];
 
         self::assertSame('GET', $request->getMethod());
@@ -292,6 +296,9 @@ class ClientSearchTest extends TestCase
         self::assertCount(3, $requests);
 
         // all requests should be the same filter, sort & limit, but different offset
+        self::assertInstanceOf(Request::class, $requests[0]['request']);
+        self::assertInstanceOf(Request::class, $requests[1]['request']);
+        self::assertInstanceOf(Request::class, $requests[2]['request']);
         self::assertSame('GET', $requests[0]['request']->getMethod());
         self::assertSame('/search/jobs', $requests[0]['request']->getUri()->getPath());
         self::assertSame(
@@ -353,6 +360,8 @@ class ClientSearchTest extends TestCase
             ],
         ]);
 
+        self::assertCount(1, $requests);
+        self::assertInstanceOf(Request::class, $requests[0]['request']);
         self::assertSame(
             'sortBy=1&sortOrder=1&offset=1&limit=1&filters%5Bid%5D%5B0%5D=1&' .
             'filters%5BrunId%5D%5B0%5D=1&filters%5BbranchId%5D%5B0%5D=1&filters%5BconfigId%5D%5B0%5D=1&' .
@@ -407,6 +416,8 @@ class ClientSearchTest extends TestCase
             ],
         ]);
 
+        self::assertCount(1, $requests);
+        self::assertInstanceOf(Request::class, $requests[0]['request']);
         self::assertSame(
             'sortBy=1&sortOrder=1&jobsPerGroup=1&limit=1&groupBy%5B0%5D=1&filters%5Bid%5D%5B0%5D=1&' .
             'filters%5BrunId%5D%5B0%5D=1&filters%5BbranchId%5D%5B0%5D=1&filters%5BconfigId%5D%5B0%5D=1&' .
@@ -422,6 +433,9 @@ class ClientSearchTest extends TestCase
     }
 
     /**
+     * @param array $requests
+     * @param-out array<int, array{request: Request}> $requests
+     * @param array<int, mixed> $responses
      * @return Client<JobInterface>
      */
     private function createClient(array &$requests, array $responses): Client
@@ -429,12 +443,14 @@ class ClientSearchTest extends TestCase
         $httpHandler = new MockHandler($responses);
 
         $handlerStack = HandlerStack::create($httpHandler);
+        // @phpstan-ignore-next-line
         $handlerStack->push(Middleware::history($requests));
 
         $existingJobFactory = $this->createMock(ExistingJobFactory::class);
         $existingJobFactory->method('loadFromElasticJobData')
             ->willReturnCallback(function (array $data) {
                 $job = $this->createMock(Job::class);
+                self::assertIsScalar($data['id']);
                 $job->method('getId')->willReturn((string) $data['id']);
                 return $job;
             })

@@ -12,7 +12,7 @@ class ListConfigurationsJobsOptions
     public const SORT_ORDER_DESC = 'desc';
     private const VALID_SORT_ORDER = [self::SORT_ORDER_ASC, self::SORT_ORDER_DESC];
 
-    /** @var array<string> */
+    /** @var array<string|int> */
     private array $configIds;
     private ?int $jobsPerConfig = null;
     private ?string $projectId = null;
@@ -24,6 +24,10 @@ class ListConfigurationsJobsOptions
     private ?string $type = null;
     private ?string $componentId;
 
+    /**
+     * @param string[]|int[] $configIds
+     * @param string|null $componentId
+     */
     public function __construct(array $configIds, ?string $componentId = null)
     {
         $allConfigIdsAreString = array_reduce($configIds, fn($valid, $item) => $valid && is_string($item), true);

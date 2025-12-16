@@ -25,14 +25,14 @@ class ExistingJobFactory extends JobFactory implements ExistingJobFactoryInterfa
     public function loadFromExistingJobData(array $data): JobInterface
     {
         $data = $this->validateJobData($data, FullJobDefinition::class);
-
+        // @phpstan-ignore-next-line
         return new Job($this->objectEncryptor, $this->storageClientFactory, $data);
     }
 
     public function loadFromElasticJobData(array $data): JobInterface
     {
         $data = $this->validateJobData($data, ElasticJobDefinition::class);
-
+        assert(isset($data['id']) && isset($data['mode']) && isset($data['isFinished']));
         return new Job($this->objectEncryptor, $this->storageClientFactory, $data);
     }
 }

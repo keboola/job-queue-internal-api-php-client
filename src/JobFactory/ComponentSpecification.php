@@ -10,6 +10,9 @@ use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 
 class ComponentSpecification
 {
+    /**
+     * @var array{id: string, data: array{memory: string}}
+     */
     private array $definition;
 
     /**
