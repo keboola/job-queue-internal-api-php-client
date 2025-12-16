@@ -158,9 +158,9 @@ class PlainJob implements JsonSerializable, PlainJobInterface
         return $this->data['projectId'];
     }
 
-    public function getProjectName(): string
+    public function getProjectName(): ?string
     {
-        return $this->data['projectName'] ?? '';
+        return $this->data['projectName'] ?? null;
     }
 
     public function getResult(): array

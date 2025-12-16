@@ -86,7 +86,7 @@ interface PlainJobInterface
     public function getConfigId(): ?string;
     public function getMode(): string;
     public function getProjectId(): string;
-    public function getProjectName(): string;
+    public function getProjectName(): ?string;
     public function getResult(): array;
     public function getConfigRowIds(): array;
     public function getStatus(): string;
