@@ -18,6 +18,9 @@ use Keboola\StorageApiBranch\Factory\StorageClientPlainFactory;
 use Keboola\StorageApiBranch\StorageApiToken;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * @phpstan-import-type JobDataInput from JobRuntimeResolver
+ */
 class JobRuntimeResolverTest extends TestCase
 {
     private const DEFAULT_BRANCH_ID = '9999';

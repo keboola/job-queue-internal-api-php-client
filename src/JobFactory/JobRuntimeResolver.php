@@ -20,6 +20,126 @@ use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 
 /**
  * @internal
+ *
+ * @phpstan-type JobDataInput array{
+ *     id: string,
+ *     runId: string,
+ *     projectId: string,
+ *     projectName?: string|null,
+ *     tokenId: string,
+ *     tokenDescription?: string|null,
+ *     '#tokenString': string,
+ *     componentId: string,
+ *     configId?: string|int|null,
+ *     mode: string|null,
+ *     configRowIds?: list<scalar>|null,
+ *     tag?: string|null,
+ *     parentRunId?: string|null,
+ *     configData?: array|null,
+ *     createdTime?: string|null,
+ *     startTime?: string|null,
+ *     endTime?: string|null,
+ *     delayedStartTime?: string|null,
+ *     delay?: string|int|null,
+ *     durationSeconds?: string|int|null,
+ *     result?: array,
+ *     usageData?: array,
+ *     status: string,
+ *     desiredStatus: string,
+ *     type?: string|null,
+ *     parallelism?: int|string|null,
+ *     behavior?: array{onError?: string|null},
+ *     isFinished?: bool,
+ *     url?: string|null,
+ *     branchId?: int|string|null,
+ *     branchType?: string|null,
+ *     variableValuesId?: string|null,
+ *     variableValuesData?: array{values?: list<array{name: string, value: string}>},
+ *     backend?: array{
+ *         type?: string|null,
+ *         containerType?: string|null,
+ *         context?: string|null,
+ *     }|null,
+ *     executor?: string|null,
+ *     metrics?: array{
+ *         storage?: array{
+ *             inputTablesBytesSum?: int|string|null,
+ *             outputTablesBytesSum?: int|string|null,
+ *         },
+ *         backend?: array{
+ *             size?: string|null,
+ *             containerSize?: string|null,
+ *             context?: string|null,
+ *         }
+ *     }|null,
+ *     orchestrationJobId?: string|null,
+ *     orchestrationTaskId?: string|null,
+ *     orchestrationPhaseId?: string|null,
+ *     onlyOrchestrationTaskIds?: list<scalar>|null,
+ *     previousJobId?: string|null,
+ *     runnerId?: string|null,
+ *     deduplicationId?: string|null,
+ * }
+ *
+ * @phpstan-type JobDataResolved array{
+ *     id: string,
+ *     runId: string,
+ *     projectId: string,
+ *     projectName?: string|null,
+ *     tokenId: string,
+ *     tokenDescription?: string|null,
+ *     '#tokenString': string,
+ *     componentId: string,
+ *     configId?: string|int|null,
+ *     mode: string|null,
+ *     configRowIds?: list<scalar>,
+ *     tag: string,
+ *     parentRunId?: string|null,
+ *     configData?: array,
+ *     createdTime?: string|null,
+ *     startTime?: string|null,
+ *     endTime?: string|null,
+ *     delayedStartTime?: string|null,
+ *     delay?: string|int|null,
+ *     durationSeconds?: string|int|null,
+ *     result?: array,
+ *     usageData?: array,
+ *     status: string,
+ *     desiredStatus: string,
+ *     type: string,
+ *     parallelism?: int|string|null,
+ *     behavior?: array{onError?: string|null},
+ *     isFinished?: bool,
+ *     url?: string|null,
+ *     branchId: string,
+ *     branchType: string,
+ *     variableValuesId?: string|null,
+ *     variableValuesData?: array{values?: list<array{name: string, value: string}>},
+ *     backend: array{
+ *         type?: string|null,
+ *         containerType?: string|null,
+ *         context?: string|null,
+ *     },
+ *     executor: string|null,
+ *     metrics?: array{
+ *         storage?: array{
+ *             inputTablesBytesSum?: int|string|null,
+ *             outputTablesBytesSum?: int|string|null,
+ *         },
+ *         backend?: array{
+ *             size?: string|null,
+ *             containerSize?: string|null,
+ *             context?: string|null,
+ *         }
+ *     },
+ *     orchestrationJobId?: string|null,
+ *     orchestrationTaskId?: string|null,
+ *     orchestrationPhaseId?: string|null,
+ *     onlyOrchestrationTaskIds?: list<scalar>,
+ *     previousJobId?: string|null,
+ *     runnerId?: string|null,
+ *     deduplicationId?: string|null,
+ * }
  */
 class JobRuntimeResolver
 {
@@ -83,65 +203,7 @@ class JobRuntimeResolver
      */
     private array $componentData;
     /**
-     * @var array{
-     *     id: string,
-     *     runId: string,
-     *     projectId: string,
-     *     projectName?: string|null,
-     *     tokenId: string,
-     *     tokenDescription?: string|null,
-     *     '#tokenString': string,
-     *     componentId: string,
-     *     configId?: string|int|null,
-     *     mode: string|null,
-     *     configRowIds?: list<scalar>|null,
-     *     tag?: string|null,
-     *     parentRunId?: string|null,
-     *     configData?: array|null,
-     *     createdTime?: string|null,
-     *     startTime?: string|null,
-     *     endTime?: string|null,
-     *     delayedStartTime?: string|null,
-     *     delay?: string|int|null,
-     *     durationSeconds?: string|int|null,
-     *     result?: array,
-     *     usageData?: array,
-     *     status: string,
-     *     desiredStatus: string,
-     *     type?: string|null,
-     *     parallelism?: int|string|null,
-     *     behavior?: array{onError?: string|null},
-     *     isFinished?: bool,
-     *     url?: string|null,
-     *     branchId?: int|string|null,
-     *     branchType?: string|null,
-     *     variableValuesId?: string|null,
-     *     variableValuesData?: array{values?: list<array{name: string, value: string}>},
-     *     backend?: array{
-     *         type?: string|null,
-     *         containerType?: string|null,
-     *         context?: string|null,
-     *     }|null,
-     *     executor?: string|null,
-     *     metrics?: array{
-     *         storage?: array{
-     *             inputTablesBytesSum?: int|string|null,
-     *             outputTablesBytesSum?: int|string|null,
-     *         },
-     *         backend?: array{
-     *             size?: string|null,
-     *             containerSize?: string|null,
-     *             context?: string|null,
-     *         }
-     *     }|null,
-     *     orchestrationJobId?: string|null,
-     *     orchestrationTaskId?: string|null,
-     *     orchestrationPhaseId?: string|null,
-     *     onlyOrchestrationTaskIds?: list<scalar>|null,
-     *     previousJobId?: string|null,
-     *     runnerId?: string|null,
-     *     deduplicationId?: string|null,
-     * }
+     * @var JobDataInput
      */
     private array $jobData;
 
@@ -151,125 +213,9 @@ class JobRuntimeResolver
     }
 
     /**
-     * @param array{
-     *     id: string,
-     *     runId: string,
-     *     projectId: string,
-     *     projectName?: string|null,
-     *     tokenId: string,
-     *     tokenDescription?: string|null,
-     *     '#tokenString': string,
-     *     componentId: string,
-     *     configId?: string|int|null,
-     *     mode: string|null,
-     *     configRowIds?: list<scalar>|null,
-     *     tag?: string|null,
-     *     parentRunId?: string|null,
-     *     configData?: array|null,
-     *     createdTime?: string|null,
-     *     startTime?: string|null,
-     *     endTime?: string|null,
-     *     delayedStartTime?: string|null,
-     *     delay?: string|int|null,
-     *     durationSeconds?: string|int|null,
-     *     result?: array,
-     *     usageData?: array,
-     *     status: string,
-     *     desiredStatus: string,
-     *     type?: string|null,
-     *     parallelism?: int|string|null,
-     *     behavior?: array{onError?: string|null},
-     *     isFinished?: bool,
-     *     url?: string|null,
-     *     branchId?: int|string|null,
-     *     branchType?: string|null,
-     *     variableValuesId?: string|null,
-     *     variableValuesData?: array{values?: list<array{name: string, value: string}>},
-     *     backend?: array{
-     *         type?: string|null,
-     *         containerType?: string|null,
-     *         context?: string|null,
-     *     }|null,
-     *     executor?: string|null,
-     *     metrics?: array{
-     *         storage?: array{
-     *             inputTablesBytesSum?: int|string|null,
-     *             outputTablesBytesSum?: int|string|null,
-     *         },
-     *         backend?: array{
-     *             size?: string|null,
-     *             containerSize?: string|null,
-     *             context?: string|null,
-     *         }
-     *     }|null,
-     *     orchestrationJobId?: string|null,
-     *     orchestrationTaskId?: string|null,
-     *     orchestrationPhaseId?: string|null,
-     *     onlyOrchestrationTaskIds?: list<scalar>|null,
-     *     previousJobId?: string|null,
-     *     runnerId?: string|null,
-     *     deduplicationId?: string|null,
-     * } $jobData
+     * @param JobDataInput $jobData
      * @param StorageApiToken $token
-     * @return array{
-     *     id: string,
-     *     runId: string,
-     *     projectId: string,
-     *     projectName?: string|null,
-     *     tokenId: string,
-     *     tokenDescription?: string|null,
-     *     '#tokenString': string,
-     *     componentId: string,
-     *     configId?: string|int|null,
-     *     mode: string|null,
-     *     configRowIds?: list<scalar>,
-     *     tag: string,
-     *     parentRunId?: string|null,
-     *     configData?: array,
-     *     createdTime?: string|null,
-     *     startTime?: string|null,
-     *     endTime?: string|null,
-     *     delayedStartTime?: string|null,
-     *     delay?: string|int|null,
-     *     durationSeconds?: string|int|null,
-     *     result?: array,
-     *     usageData?: array,
-     *     status: string,
-     *     desiredStatus: string,
-     *     type: string,
-     *     parallelism?: int|string|null,
-     *     behavior?: array{onError?: string|null},
-     *     isFinished?: bool,
-     *     url?: string|null,
-     *     branchId?: string|null,
-     *     branchType: string,
-     *     variableValuesId?: string|null,
-     *     variableValuesData?: array{values?: list<array{name: string, value: string}>},
-     *     backend: array{
-     *         type?: string|null,
-     *         containerType?: string|null,
-     *         context?: string|null,
-     *     },
-     *     executor: string|null,
-     *     metrics?: array{
-     *         storage?: array{
-     *             inputTablesBytesSum?: int|string|null,
-     *             outputTablesBytesSum?: int|string|null,
-     *         },
-     *         backend?: array{
-     *             size?: string|null,
-     *             containerSize?: string|null,
-     *             context?: string|null,
-     *         }
-     *     },
-     *     orchestrationJobId?: string|null,
-     *     orchestrationTaskId?: string|null,
-     *     orchestrationPhaseId?: string|null,
-     *     onlyOrchestrationTaskIds?: list<scalar>|null,
-     *     previousJobId?: string|null,
-     *     runnerId?: string|null,
-     *     deduplicationId?: string|null,
-     * }
+     * @return JobDataResolved
      */
     public function resolveJobData(array $jobData, StorageApiToken $token): array
     {
@@ -304,67 +250,7 @@ class JobRuntimeResolver
             foreach ($variableValues->asDataArray() as $key => $value) {
                 $jobData[$key] = $value;
             }
-            /**
-             * @var array{
-             *     id: string,
-             *     runId: string,
-             *     projectId: string,
-             *     projectName?: string|null,
-             *     tokenId: string,
-             *     tokenDescription?: string|null,
-             *     '#tokenString': string,
-             *     componentId: string,
-             *     configId?: string|int|null,
-             *     mode: string|null,
-             *     configRowIds?: list<scalar>,
-             *     tag: string,
-             *     parentRunId?: string|null,
-             *     configData?: array,
-             *     createdTime?: string|null,
-             *     startTime?: string|null,
-             *     endTime?: string|null,
-             *     delayedStartTime?: string|null,
-             *     delay?: string|int|null,
-             *     durationSeconds?: string|int|null,
-             *     result?: array,
-             *     usageData?: array,
-             *     status: string,
-             *     desiredStatus: string,
-             *     type: string,
-             *     parallelism?: int|string|null,
-             *     behavior?: array{onError?: string|null},
-             *     isFinished?: bool,
-             *     url?: string|null,
-             *     branchId?: string|null,
-             *     branchType: string,
-             *     variableValuesId?: string|null,
-             *     variableValuesData?: array{values?: list<array{name: string, value: string}>},
-             *     backend: array{
-             *         type?: string|null,
-             *         containerType?: string|null,
-             *         context?: string|null,
-             *     },
-             *     executor: string|null,
-             *     metrics?: array{
-             *         storage?: array{
-             *             inputTablesBytesSum?: int|string|null,
-             *             outputTablesBytesSum?: int|string|null,
-             *         },
-             *         backend?: array{
-             *             size?: string|null,
-             *             containerSize?: string|null,
-             *             context?: string|null,
-             *         }
-             *     },
-             *     orchestrationJobId?: string|null,
-             *     orchestrationTaskId?: string|null,
-             *     orchestrationPhaseId?: string|null,
-             *     onlyOrchestrationTaskIds?: list<scalar>,
-             *     previousJobId?: string|null,
-             *     runnerId?: string|null,
-             *     deduplicationId?: string|null,
-             * } $jobData
-             */
+            /** @var JobDataResolved $jobData */
             return $jobData;
         } catch (InvalidConfigurationException $e) {
             throw new ClientException('Invalid configuration: ' . $e->getMessage(), 0, $e);
