@@ -1877,6 +1877,12 @@ class JobRuntimeResolverTest extends TestCase
             'expectedBranchId' => 'default',
             'expectedBranchType' => 'default',
         ];
+        yield 'branch empty string' => [
+            'jobBranchId' => '',
+            'isDefault' => true,
+            'expectedBranchId' => 'default',
+            'expectedBranchType' => 'default',
+        ];
         yield 'branch default' => [
             'jobBranchId' => 'default',
             'isDefault' => true,
