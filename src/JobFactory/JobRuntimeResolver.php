@@ -225,7 +225,9 @@ class JobRuntimeResolver
         try {
             $this->clientWrapper = $this->storageClientFactory->createClientWrapper(new ClientOptions(
                 token: $jobData['#tokenString'],
-                branchId: isset($jobData['branchId']) ? (string) $jobData['branchId'] : null,
+                branchId: isset($jobData['branchId']) && $jobData['branchId'] !== '' ?
+                    (string) $jobData['branchId'] :
+                    null,
             ));
 
             $this->componentsApiClient = new Components($this->clientWrapper->getBranchClient());
