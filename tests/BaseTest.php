@@ -15,7 +15,10 @@ abstract class BaseTest extends TestCase
         parent::setUp();
 
         $client = new Client(
-            ['url' => getenv('TEST_STORAGE_API_URL'), 'token' => getenv('TEST_STORAGE_API_TOKEN')],
+            [
+                'url' => (string) getenv('TEST_STORAGE_API_URL'),
+                'token' => (string) getenv('TEST_STORAGE_API_TOKEN'),
+            ],
         );
         $tokenInfo = $client->verifyToken();
         self::assertIsScalar($tokenInfo['id']);

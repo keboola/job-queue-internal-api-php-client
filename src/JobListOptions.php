@@ -369,6 +369,11 @@ class JobListOptions
         return $this;
     }
 
+    public function hasSortBy(): bool
+    {
+        return isset($this->sortBy);
+    }
+
     public function getSortOrder(): string
     {
         return $this->sortOrder;

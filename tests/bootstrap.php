@@ -23,6 +23,6 @@ foreach ($requiredEnvs as $env) {
 }
 
 (new Dotenv())->usePutenv()->populate([
-    'TEST_QUEUE_API_URL' => 'https://queue.' . getenv('TEST_HOSTNAME_SUFFIX'),
+//    'TEST_QUEUE_API_URL' => 'https://queue.' . getenv('TEST_HOSTNAME_SUFFIX'),
     'TEST_STORAGE_API_URL' => 'https://connection.' . getenv('TEST_HOSTNAME_SUFFIX'),
 ]);

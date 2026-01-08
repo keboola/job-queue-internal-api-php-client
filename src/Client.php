@@ -192,6 +192,10 @@ class Client
         $jobs = [];
         $i = 1;
         $listOptions = clone $listOptions;
+        // Ensure stable pagination when fetching all pages by adding default sorting if none is set
+        if ($fetchAllPages && !$listOptions->hasSortBy()) {
+            $listOptions->setSortBy('id')->setSortOrder(JobListOptions::SORT_ORDER_ASC);
+        }
         do {
             $request = new Request('GET', 'jobs?' . implode('&', $listOptions->getQueryParameters()));
             $result = $this->sendRequest($request);

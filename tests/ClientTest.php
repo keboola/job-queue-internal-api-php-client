@@ -830,7 +830,10 @@ Out of order
         $request = $mock->getLastRequest();
         self::assertNotNull($request);
         /** @var RequestInterface $request */
-        self::assertEquals('projectId%5B%5D=456&limit=100', $request->getUri()->getQuery());
+        self::assertEquals(
+            'projectId%5B%5D=456&limit=100&sortBy=id&sortOrder=asc',
+            $request->getUri()->getQuery(),
+        );
     }
 
     /** @dataProvider provideListJobsOptionsTestData */
@@ -886,7 +889,7 @@ Out of order
     {
         yield 'empty options' => [
             'options' => new JobListOptions(),
-            'url' => 'http://example.com/jobs?limit=100',
+            'url' => 'http://example.com/jobs?limit=100&sortBy=id&sortOrder=asc',
         ];
 
         yield 'sort by id, asc' => [
@@ -900,8 +903,8 @@ Out of order
             'options' => (new JobListOptions())
                 ->setCreatedTimeFrom(new DateTimeImmutable('2022-03-01T12:17:05+10:00'))
                 ->setCreatedTimeTo(new DateTimeImmutable('2022-07-14T05:11:45-08:20')),
-            // phpcs:ignore
-            'url' => 'http://example.com/jobs?limit=100&createdTimeFrom=2022-03-01T12%3A17%3A05%2B10%3A00&createdTimeTo=2022-07-14T05%3A11%3A45-08%3A20',
+            // @phpcs:ignore Generic.Files.LineLength.MaxExceeded
+            'url' => 'http://example.com/jobs?limit=100&sortBy=id&sortOrder=asc&createdTimeFrom=2022-03-01T12%3A17%3A05%2B10%3A00&createdTimeTo=2022-07-14T05%3A11%3A45-08%3A20',
         ];
     }
 
@@ -966,7 +969,7 @@ Out of order
         /** @var RequestInterface $request */
         self::assertEquals(
             'componentId%5B%5D=th%21%24+%7C%26+n%C2%B0t+valid&' .
-            'projectId%5B%5D=%C5%A1%C4%9B%C5%99%C4%8D%21%40%23%25%5E%24%26&limit=100',
+            'projectId%5B%5D=%C5%A1%C4%9B%C5%99%C4%8D%21%40%23%25%5E%24%26&limit=100&sortBy=id&sortOrder=asc',
             $request->getUri()->getQuery(),
         );
     }
@@ -1137,11 +1140,94 @@ Out of order
         );
         $jobs = $client->listJobs((new JobListOptions()), true);
         self::assertCount(1001, $jobs);
+
+        // Verify that default sorting is added for stable pagination when fetchAllPages is true
+        // Check first request
+        self::assertIsArray($requestHistory);
+        self::assertNotEmpty($requestHistory);
+        self::assertArrayHasKey(0, $requestHistory);
+        self::assertIsArray($requestHistory[0]);
+        self::assertArrayHasKey('request', $requestHistory[0]);
+        /** @var RequestInterface $firstRequest */
+        $firstRequest = $requestHistory[0]['request'];
+        self::assertEquals('limit=100&sortBy=id&sortOrder=asc', $firstRequest->getUri()->getQuery());
+
+        // Check last request
         $request = $mock->getLastRequest();
         self::assertNotNull($request);
         /** @var RequestInterface $request */
-        self::assertEquals('offset=1000&limit=100', $request->getUri()->getQuery());
+        self::assertEquals('offset=1000&limit=100&sortBy=id&sortOrder=asc', $request->getUri()->getQuery());
         self::assertEquals(0, $mock->count());
+    }
+
+    public function testClientGetJobsPagingWithCustomSorting(): void
+    {
+        $jobData = [
+            'id' => '123',
+            'runId' => '123',
+            'projectId' => '456',
+            'projectName' => 'Test project',
+            'tokenId' => '789',
+            '#tokenString' => 'KBC=>=>ProjectSecure=>=>aSdF',
+            'tokenDescription' => 'my token',
+            'status' => 'created',
+            'desiredStatus' => 'processing',
+            'mode' => 'run',
+            'componentId' => 'keboola.test',
+            'configId' => '123456',
+            'configData' => [
+                'parameters' => [
+                    'foo' => 'bar',
+                ],
+            ],
+            'result' => [],
+            'usageData' => [],
+            'isFinished' => false,
+            'branchId' => null,
+            'branchType' => BranchType::DEFAULT->value,
+        ];
+        $queue = [
+            new Response(
+                200,
+                ['Content-Type' => 'application/json'],
+                (string) json_encode(array_fill(0, 100, $jobData)),
+            ),
+            new Response(
+                200,
+                ['Content-Type' => 'application/json'],
+                (string) json_encode([$jobData]),
+            ),
+        ];
+        $mock = new MockHandler($queue);
+
+        $requestHistory = [];
+        $history = Middleware::history($requestHistory);
+        $stack = HandlerStack::create($mock);
+        $stack->push($history);
+
+        $client = $this->createClientWithInternalToken(
+            options: ['handler' => $stack],
+        );
+
+        // Test with custom sorting - should NOT be overridden
+        $listOptions = (new JobListOptions())
+            ->setSortBy('createdTime')
+            ->setSortOrder(JobListOptions::SORT_ORDER_DESC);
+        $jobs = $client->listJobs($listOptions, true);
+        self::assertCount(101, $jobs);
+
+        // Verify that custom sorting is preserved
+        self::assertIsArray($requestHistory);
+        self::assertNotEmpty($requestHistory);
+        self::assertArrayHasKey(0, $requestHistory);
+        self::assertIsArray($requestHistory[0]);
+        self::assertArrayHasKey('request', $requestHistory[0]);
+        /** @var RequestInterface $firstRequest */
+        $firstRequest = $requestHistory[0]['request'];
+        self::assertEquals(
+            'limit=100&sortBy=createdTime&sortOrder=desc',
+            $firstRequest->getUri()->getQuery(),
+        );
     }
 
     public function testPatchJobStatus(): void
@@ -1415,7 +1501,7 @@ Out of order
         /** @var Request $request */
         $request = $requestHistory[0]['request'];
         self::assertSame(
-            'http://example.com/jobs?status%5B%5D=created&limit=100&delayedStartTime='
+            'http://example.com/jobs?status%5B%5D=created&limit=100&sortBy=id&sortOrder=asc&delayedStartTime='
             . urlencode((new DateTimeImmutable())->format(DATE_ATOM)),
             $request->getUri()->__toString(),
         );

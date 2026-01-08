@@ -158,8 +158,8 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
 
         $storageClient = new StorageClient(
             [
-                'url' => getenv('TEST_STORAGE_API_URL'),
-                'token' => getenv('TEST_STORAGE_API_TOKEN'),
+                'url' => (string) getenv('TEST_STORAGE_API_URL'),
+                'token' => (string) getenv('TEST_STORAGE_API_TOKEN'),
             ],
         );
         $tokenInfo = $storageClient->verifyToken();
@@ -262,8 +262,8 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
         self::assertNotEmpty($responseJobs);
         $storageClient = new StorageClient(
             [
-                'url' => getenv('TEST_STORAGE_API_URL'),
-                'token' => getenv('TEST_STORAGE_API_TOKEN'),
+                'url' => (string) getenv('TEST_STORAGE_API_URL'),
+                'token' => (string) getenv('TEST_STORAGE_API_TOKEN'),
             ],
         );
         $tokenInfo = $storageClient->verifyToken();
@@ -467,13 +467,14 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
         $response = $client->getJobsWithStatus([JobInterface::STATUS_CREATED]);
         self::assertCount(2, $response);
 
+        // the results are sorted implicitly
         $listedJob1 = $response[0];
-        self::assertEquals($createdJob2->jsonSerialize(), $listedJob1->jsonSerialize());
+        self::assertEquals($createdJob1->jsonSerialize(), $listedJob1->jsonSerialize());
 
         $listedJob2 = $response[1];
-        self::assertEquals($createdJob1->jsonSerialize(), $listedJob2->jsonSerialize());
+        self::assertEquals($createdJob2->jsonSerialize(), $listedJob2->jsonSerialize());
 
-        // sort ASC tests
+        // explicit sort ASC tests
         $sortOptions = (new JobsSortOptions())
             ->setSortBy('id')
             ->setSortOrder(JobsSortOptions::SORT_ORDER_ASC);
@@ -831,13 +832,13 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
         );
         self::assertCount(2, $response);
         /** @var Job $listedJob1 */
-        $listedJob1 = $response[1];
+        $listedJob1 = $response[0];
         self::assertEquals($createdJob->jsonSerialize(), $listedJob1->jsonSerialize());
         $configRowIds = $listedJob1->jsonSerialize()['configRowIds'];
         self::assertIsArray($configRowIds);
         self::assertContains('123', $configRowIds);
         /** @var Job $listedJob2 */
-        $listedJob2 = $response[0];
+        $listedJob2 = $response[1];
         self::assertEquals($createdJob2->jsonSerialize(), $listedJob2->jsonSerialize());
         $configRowIds = $listedJob2->jsonSerialize()['configRowIds'];
         self::assertIsArray($configRowIds);
