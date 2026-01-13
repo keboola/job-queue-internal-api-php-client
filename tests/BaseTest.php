@@ -10,13 +10,15 @@ use PHPUnit\Framework\TestCase;
 
 abstract class BaseTest extends TestCase
 {
+    use TestEnvVarsTrait;
     public function setUp(): void
     {
         parent::setUp();
 
-        $client = new Client(
-            ['url' => getenv('TEST_STORAGE_API_URL'), 'token' => getenv('TEST_STORAGE_API_TOKEN')],
-        );
+        $client = new Client([
+            'url' => self::getRequiredEnv('TEST_STORAGE_API_URL'),
+            'token' => self::getRequiredEnv('TEST_STORAGE_API_TOKEN'),
+        ]);
         $tokenInfo = $client->verifyToken();
         self::assertIsScalar($tokenInfo['id']);
         self::assertIsScalar($tokenInfo['description']);

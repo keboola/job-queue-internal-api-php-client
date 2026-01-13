@@ -158,8 +158,8 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
 
         $storageClient = new StorageClient(
             [
-                'url' => getenv('TEST_STORAGE_API_URL'),
-                'token' => getenv('TEST_STORAGE_API_TOKEN'),
+                'url' => self::getRequiredEnv('TEST_STORAGE_API_URL'),
+                'token' => self::getRequiredEnv('TEST_STORAGE_API_TOKEN'),
             ],
         );
         $tokenInfo = $storageClient->verifyToken();
@@ -262,8 +262,8 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
         self::assertNotEmpty($responseJobs);
         $storageClient = new StorageClient(
             [
-                'url' => getenv('TEST_STORAGE_API_URL'),
-                'token' => getenv('TEST_STORAGE_API_TOKEN'),
+                'url' => self::getRequiredEnv('TEST_STORAGE_API_URL'),
+                'token' => self::getRequiredEnv('TEST_STORAGE_API_TOKEN'),
             ],
         );
         $tokenInfo = $storageClient->verifyToken();
