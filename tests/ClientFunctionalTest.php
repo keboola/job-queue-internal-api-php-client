@@ -468,10 +468,10 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
         self::assertCount(2, $response);
 
         $listedJob1 = $response[0];
-        self::assertEquals($createdJob2->jsonSerialize(), $listedJob1->jsonSerialize());
+        self::assertEquals($createdJob1->jsonSerialize(), $listedJob1->jsonSerialize());
 
         $listedJob2 = $response[1];
-        self::assertEquals($createdJob1->jsonSerialize(), $listedJob2->jsonSerialize());
+        self::assertEquals($createdJob2->jsonSerialize(), $listedJob2->jsonSerialize());
 
         // sort ASC tests
         $sortOptions = (new JobsSortOptions())
