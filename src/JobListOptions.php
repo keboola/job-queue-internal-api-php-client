@@ -36,6 +36,7 @@ class JobListOptions
     private string $sortBy;
     private string $sortOrder;
     private ?string $parentRunId = null;
+    private ?string $parentRunIdEquals = null;
     private JobType $type;
 
     /** @var string */
@@ -67,6 +68,7 @@ class JobListOptions
             'limit' => 'limit',
             'sortBy' => 'sortBy',
             'sortOrder' => 'sortOrder',
+            'parentRunIdEquals' => 'parentRunIdEquals',
         ];
         $enumProps = [
             'type' => 'type',
@@ -394,6 +396,17 @@ class JobListOptions
     public function setParentRunId(?string $value): JobListOptions
     {
         $this->parentRunId = $value;
+        return $this;
+    }
+
+    public function getParentRunIdEquals(): ?string
+    {
+        return $this->parentRunIdEquals;
+    }
+
+    public function setParentRunIdEquals(string $value): JobListOptions
+    {
+        $this->parentRunIdEquals = $value;
         return $this;
     }
 

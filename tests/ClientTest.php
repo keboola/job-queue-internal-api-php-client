@@ -903,6 +903,12 @@ Out of order
             // phpcs:ignore
             'url' => 'http://example.com/jobs?limit=100&createdTimeFrom=2022-03-01T12%3A17%3A05%2B10%3A00&createdTimeTo=2022-07-14T05%3A11%3A45-08%3A20',
         ];
+
+        yield 'filter by parentRunIdEquals' => [
+            'options' => (new JobListOptions())
+                ->setParentRunIdEquals('123.456'),
+            'url' => 'http://example.com/jobs?limit=100&parentRunIdEquals=123.456',
+        ];
     }
 
     public function testClientGetJobsEscaping(): void
@@ -1137,6 +1143,7 @@ Out of order
         );
         $jobs = $client->listJobs((new JobListOptions()), true);
         self::assertCount(1001, $jobs);
+
         $request = $mock->getLastRequest();
         self::assertNotNull($request);
         /** @var RequestInterface $request */
