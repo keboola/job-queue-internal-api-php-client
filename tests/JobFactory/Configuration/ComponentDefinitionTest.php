@@ -259,6 +259,46 @@ class ComponentDefinitionTest extends TestCase
         //phpcs:enable Generic.Files.LineLength.MaxExceeded
     }
 
+    public function testExtraKeysAreIgnoredRecursively(): void
+    {
+        $data = [
+            'id' => 'test',
+            'extraKey' => 'ignored',
+            'data' => [
+                'extraKey' => 'ignored',
+                'definition' => [
+                    'type' => 'aws-ecr',
+                    'uri' => '123456789.dkr.ecr.us-east-1.amazonaws.com/keboola/test-component',
+                    'extraKey' => 'ignored',
+                    'repository' => [
+                        'region' => 'us-east-1',
+                        'extraKey' => 'ignored',
+                    ],
+                ],
+                'memory' => '256m',
+                'logging' => [
+                    'type' => 'standard',
+                    'extraKey' => 'ignored',
+                ],
+                'staging_storage' => [
+                    'extraKey' => 'ignored',
+                ],
+            ],
+            'dataTypesConfiguration' => [
+                'dataTypesSupport' => 'hints',
+                'extraKey' => 'ignored',
+            ],
+            'processorConfiguration' => [
+                'allowedProcessorPosition' => 'after',
+                'extraKey' => 'ignored',
+            ],
+        ];
+
+        $result = (new ComponentDefinition())->processData($data);
+
+        self::assertSame('256m', $result['data']['memory']);
+    }
+
     /**
      * @dataProvider invalidDataProvider
      */
