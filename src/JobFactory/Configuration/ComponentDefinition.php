@@ -37,7 +37,8 @@ class ComponentDefinition implements ConfigurationInterface
     public function getConfigTreeBuilder(): TreeBuilder
     {
         $treeBuilder = new TreeBuilder('component');
-        $this->getRootDefinition($treeBuilder);
+        $rootNode = $this->getRootDefinition($treeBuilder);
+        $this->makeArrayNodeDefinitionIgnoreExtraKeys($rootNode);
         return $treeBuilder;
     }
 
@@ -57,14 +58,13 @@ class ComponentDefinition implements ConfigurationInterface
         /** @var ArrayNodeDefinition $rootNode */
         $rootNode = $treeBuilder->getRootNode();
         // @formatter:off
-        $rootNode->ignoreExtraKeys()->children()
+        $rootNode->children()
             ->scalarNode('id')->isRequired()->cannotBeEmpty()->end()
             ->arrayNode('features')
                 ->scalarPrototype()->end()
                 ->defaultValue([])
             ->end()
             ->arrayNode('dataTypesConfiguration')
-                ->ignoreExtraKeys()
                 ->children()
                     ->enumNode('dataTypesSupport')
                         ->values(['none', 'authoritative', 'hints'])
@@ -73,7 +73,6 @@ class ComponentDefinition implements ConfigurationInterface
                 ->end()
             ->end()
             ->arrayNode('processorConfiguration')
-                ->ignoreExtraKeys()
                 ->children()
                     ->enumNode('allowedProcessorPosition')
                         ->values(['any', 'before', 'after'])
@@ -95,6 +94,7 @@ class ComponentDefinition implements ConfigurationInterface
                             ->scalarNode('uri')->isRequired()->cannotBeEmpty()->end()
                             ->scalarNode('tag')->defaultValue('latest')->end()
                             ->scalarNode('digest')->defaultValue('')->end()
+                            ->scalarNode('name')->defaultNull()->end()
                             ->arrayNode('repository')
                                 ->children()
                                     ->scalarNode('region')->end()
@@ -244,5 +244,21 @@ class ComponentDefinition implements ConfigurationInterface
         ->end();
         // @formatter:on
         return $rootNode;
+    }
+
+    /**
+     * Recursively configures the ArrayNode and all its children to ignore extra keys.
+     */
+    private function makeArrayNodeDefinitionIgnoreExtraKeys(ArrayNodeDefinition $node): void
+    {
+        $node->ignoreExtraKeys();
+
+        foreach ($node->getChildNodeDefinitions() as $child) {
+            if (!$child instanceof ArrayNodeDefinition) {
+                continue;
+            }
+
+            $this->makeArrayNodeDefinitionIgnoreExtraKeys($child);
+        }
     }
 }
