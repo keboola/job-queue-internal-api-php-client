@@ -152,6 +152,7 @@ class JobResultTest extends TestCase
         self::assertNull($result->getInputTables());
         self::assertNull($result->getOutputTables());
         self::assertNull($result->getVariables());
+        self::assertNull($result->getOutputVariables());
 
         self::assertSame([
             'message' => null,
@@ -164,6 +165,38 @@ class JobResultTest extends TestCase
                 'tables' => [],
             ],
         ], $result->jsonSerialize());
+    }
+
+    public function testOutputVariables(): void
+    {
+        $outputVariables = (new VariableCollection())
+            ->addVariable(new Variable('MAX_ORDER_ID', '3'))
+            ->addVariable(new Variable('my_var', 'hello'));
+
+        $jobResult = new JobResult();
+        $jobResult
+            ->setConfigVersion('1')
+            ->setMessage('Component processing finished.')
+            ->setOutputVariables($outputVariables)
+        ;
+
+        self::assertSame($outputVariables, $jobResult->getOutputVariables());
+        self::assertSame(
+            [
+                'message' => 'Component processing finished.',
+                'configVersion' => '1',
+                'images' => [],
+                'input' => ['tables' => []],
+                'output' => [
+                    'tables' => [],
+                    'variables' => [
+                        ['name' => 'MAX_ORDER_ID', 'value' => '3'],
+                        ['name' => 'my_var', 'value' => 'hello'],
+                    ],
+                ],
+            ],
+            $jobResult->jsonSerialize(),
+        );
     }
 
     public function testInvalidErrorType(): void

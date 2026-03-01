@@ -12,6 +12,7 @@ class Table implements JsonSerializable
     private string $name;
     private string $displayName;
     private ColumnCollection $columns;
+    private ?int $rowsCount = null;
 
     public function __construct(
         string $id,
@@ -45,13 +46,28 @@ class Table implements JsonSerializable
         return $this->columns;
     }
 
+    public function setRowsCount(int $rowsCount): self
+    {
+        $this->rowsCount = $rowsCount;
+        return $this;
+    }
+
+    public function getRowsCount(): ?int
+    {
+        return $this->rowsCount;
+    }
+
     public function jsonSerialize(): array
     {
-        return [
+        $result = [
             'id' => $this->id,
             'name' => $this->name,
             'displayName' => $this->displayName,
             'columns' => $this->columns->jsonSerialize(),
         ];
+        if ($this->rowsCount !== null) {
+            $result['rowsCount'] = $this->rowsCount;
+        }
+        return $result;
     }
 }
