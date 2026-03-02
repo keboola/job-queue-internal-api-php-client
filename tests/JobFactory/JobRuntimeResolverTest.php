@@ -71,8 +71,8 @@ class JobRuntimeResolverTest extends TestCase
             [
                 'parallelism' => '5',
             ],
-            JobType::ROW_CONTAINER,
-            null,
+            JobType::STANDARD,
+            '123-dummy-component-type',
         ];
         yield 'phase container job' => [
             JobFactory::ORCHESTRATOR_COMPONENT,
@@ -177,6 +177,7 @@ class JobRuntimeResolverTest extends TestCase
         $configuration = [
             'id' => '454124290',
             'isDisabled' => false,
+            'rows' => [['id' => 'r1'], ['id' => 'r2']],
             'configuration' => [
                 'runtime' => [
                     'tag' => '4.5.6',
@@ -317,7 +318,7 @@ class JobRuntimeResolverTest extends TestCase
                 'parallelism' => '5',
                 'executor' => 'dind',
                 'branchType' => 'default',
-                'type' => 'container',
+                'type' => 'standard',
                 'variableValuesId' => '123',
                 'variableValuesData' => [],
             ],
@@ -331,6 +332,7 @@ class JobRuntimeResolverTest extends TestCase
         $configuration = [
             'id' => '454124290',
             'isDisabled' => false,
+            'rows' => [['id' => 'r1'], ['id' => 'r2']],
             'configuration' => [
                 'runtime' => [
                     'backend' => [
@@ -417,6 +419,7 @@ class JobRuntimeResolverTest extends TestCase
         $jobData = self::JOB_DATA;
         $configuration = [
             'id' => '454124290',
+            'rows' => [['id' => 'r1'], ['id' => 'r2']],
             'configuration' => [
                 'runtime' => [
                     'backend' => [
@@ -1088,6 +1091,7 @@ class JobRuntimeResolverTest extends TestCase
                     ],
                 ],
             ],
+            'rows' => [['id' => 'r1'], ['id' => 'r2']],
         ];
 
         $storageClient = $this->createMock(BranchAwareClient::class);
@@ -1247,7 +1251,7 @@ class JobRuntimeResolverTest extends TestCase
                 'parallelism' => '5',
                 'executor' => 'dind',
                 'branchType' => 'default',
-                'type' => 'container',
+                'type' => 'standard',
                 'variableValuesId' => null,
             ],
             $jobRuntimeResolver->resolveJobData($jobData, $this->createToken($tokenFeatures)),
@@ -1263,7 +1267,7 @@ class JobRuntimeResolverTest extends TestCase
             1,
             null,
             null,
-            null,
+            '123-extractor',
             [],
         ];
         yield 'custom local' => [
@@ -1273,7 +1277,7 @@ class JobRuntimeResolverTest extends TestCase
             1,
             null,
             'custom',
-            null,
+            '123-extractor',
             [],
         ];
         yield 'custom context' => [
@@ -1293,7 +1297,7 @@ class JobRuntimeResolverTest extends TestCase
             1,
             null,
             null, // no container backend is set
-            null,
+            '123-extractor',
             ['pay-as-you-go'],
         ];
         yield 'custom s3' => [
@@ -1303,7 +1307,7 @@ class JobRuntimeResolverTest extends TestCase
             1,
             null,
             'custom',
-            null,
+            '123-extractor',
             [],
         ];
         yield 'custom abs' => [
@@ -1313,7 +1317,7 @@ class JobRuntimeResolverTest extends TestCase
             1,
             null,
             'custom',
-            null,
+            '123-extractor',
             [],
         ];
         yield 'custom none' => [
@@ -1323,7 +1327,7 @@ class JobRuntimeResolverTest extends TestCase
             1,
             null,
             'custom',
-            null,
+            '123-extractor',
             [],
         ];
         yield 'custom workspace-snowflake' => [
@@ -1333,7 +1337,7 @@ class JobRuntimeResolverTest extends TestCase
             1,
             'custom',
             null,
-            null,
+            '123-extractor',
             [],
         ];
         yield 'custom workspace-snowflake without feature' => [
@@ -1343,7 +1347,7 @@ class JobRuntimeResolverTest extends TestCase
             1,
             'custom',
             null,
-            null,
+            '123-extractor',
             ['pay-as-you-go'],
         ];
         yield 'custom workspace-redshift' => [
@@ -1353,7 +1357,7 @@ class JobRuntimeResolverTest extends TestCase
             1,
             null,
             null,
-            null,
+            '123-extractor',
             [],
         ];
         yield 'custom workspace-synapse' => [
@@ -1363,7 +1367,7 @@ class JobRuntimeResolverTest extends TestCase
             1,
             null,
             null,
-            null,
+            '123-extractor',
             [],
         ];
         yield 'custom workspace-abs' => [
@@ -1373,7 +1377,7 @@ class JobRuntimeResolverTest extends TestCase
             1,
             null,
             null,
-            null,
+            '123-extractor',
             [],
         ];
         yield 'custom workspace-exasol' => [
@@ -1383,7 +1387,7 @@ class JobRuntimeResolverTest extends TestCase
             1,
             null,
             null,
-            null,
+            '123-extractor',
             [],
         ];
         yield 'custom workspace-teradata' => [
@@ -1393,7 +1397,7 @@ class JobRuntimeResolverTest extends TestCase
             1,
             null,
             null,
-            null,
+            '123-extractor',
             [],
         ];
         yield 'custom workspace-bigquery' => [
@@ -1403,7 +1407,7 @@ class JobRuntimeResolverTest extends TestCase
             1,
             null,
             null,
-            null,
+            '123-extractor',
             [],
         ];
         yield 'custom unknown' => [
@@ -1413,7 +1417,7 @@ class JobRuntimeResolverTest extends TestCase
             1,
             null,
             null,
-            null,
+            '123-extractor',
             [],
         ];
         yield 'custom invalid' => [
@@ -1423,7 +1427,7 @@ class JobRuntimeResolverTest extends TestCase
             1,
             null,
             null,
-            null,
+            '123-extractor',
             [],
         ];
         yield 'legacy transformation - large' => [
@@ -1433,7 +1437,7 @@ class JobRuntimeResolverTest extends TestCase
             1,
             'large',
             null,
-            null,
+            '123-extractor',
             [],
             'keboola.legacy-transformation',
         ];
@@ -1444,7 +1448,7 @@ class JobRuntimeResolverTest extends TestCase
             1,
             null,
             null,
-            null,
+            '123-extractor',
             [],
             'keboola.legacy-transformation',
         ];
@@ -2037,7 +2041,7 @@ class JobRuntimeResolverTest extends TestCase
             'jobData' => [
                 'parallelism' => '10',
             ],
-            'expectedType' => JobType::ROW_CONTAINER,
+            'expectedType' => JobType::STANDARD,
         ];
 
         yield 'parallelism infinity' => [
@@ -2045,7 +2049,7 @@ class JobRuntimeResolverTest extends TestCase
             'jobData' => [
                 'parallelism' => 'infinity',
             ],
-            'expectedType' => JobType::ROW_CONTAINER,
+            'expectedType' => JobType::STANDARD,
         ];
 
         yield 'parallelism zero' => [
@@ -2157,6 +2161,79 @@ class JobRuntimeResolverTest extends TestCase
             $expectedType->value,
             $resolvedJobData['type'],
             sprintf('Failed asserting job type for component "%s"', $componentId),
+        );
+    }
+
+    public function resolveJobTypeWithRowsDataProvider(): Generator
+    {
+        yield 'parallelism with 0 rows' => [
+            'parallelism' => '5',
+            'rows' => [],
+            'expectedType' => JobType::STANDARD,
+        ];
+
+        yield 'parallelism with 1 row' => [
+            'parallelism' => '5',
+            'rows' => [['id' => 'r1']],
+            'expectedType' => JobType::STANDARD,
+        ];
+
+        yield 'parallelism with 2 rows' => [
+            'parallelism' => '5',
+            'rows' => [['id' => 'r1'], ['id' => 'r2']],
+            'expectedType' => JobType::ROW_CONTAINER,
+        ];
+
+        yield 'parallelism infinity with 2 rows' => [
+            'parallelism' => 'infinity',
+            'rows' => [['id' => 'r1'], ['id' => 'r2']],
+            'expectedType' => JobType::ROW_CONTAINER,
+        ];
+    }
+
+    /**
+     * @dataProvider resolveJobTypeWithRowsDataProvider
+     */
+    public function testResolveJobTypeWithRows(string $parallelism, array $rows, JobType $expectedType): void
+    {
+        $jobData = self::JOB_DATA;
+        $jobData['parallelism'] = $parallelism;
+
+        $configuration = [
+            'id' => '454124290',
+            'rows' => $rows,
+            'configuration' => [],
+        ];
+        $componentData = [
+            'type' => 'dummy-component-type',
+            'id' => 'keboola.ex-db-snowflake',
+            'data' => [
+                'definition' => [
+                    'tag' => '9.9.9',
+                ],
+            ],
+        ];
+
+        $storageClient = $this->createMock(BranchAwareClient::class);
+        $storageClient->expects(self::exactly(2))->method('apiGet')
+            ->withConsecutive(
+                ['components/keboola.ex-db-snowflake'],
+                ['components/keboola.ex-db-snowflake/configs/454124290'],
+            )->willReturnOnConsecutiveCalls(
+                $componentData,
+                $configuration,
+            );
+
+        $jobRuntimeResolver = new JobRuntimeResolver(
+            $this->prepareStorageClientFactoryMock($storageClient),
+        );
+
+        $resolvedJobData = $jobRuntimeResolver->resolveJobData($jobData, $this->createToken());
+
+        self::assertSame(
+            $expectedType->value,
+            $resolvedJobData['type'],
+            sprintf('Failed asserting job type for parallelism "%s" with %d rows', $parallelism, count($rows)),
         );
     }
 }

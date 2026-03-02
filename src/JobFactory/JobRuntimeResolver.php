@@ -153,6 +153,7 @@ class JobRuntimeResolver
     private ClientWrapper $clientWrapper;
     private Components $componentsApiClient;
     private ?array $configuration;
+    private ?array $rawConfiguration = null;
     /**
      * @var array{
      *     id: string,
@@ -220,6 +221,7 @@ class JobRuntimeResolver
     public function resolveJobData(array $jobData, StorageApiToken $token): array
     {
         $this->configuration = null;
+        $this->rawConfiguration = null;
         $this->jobData = $jobData;
 
         try {
@@ -275,7 +277,7 @@ class JobRuntimeResolver
         if (!empty($this->getConfigData()['runtime']['tag'])) {
             return (string) $this->getConfigData()['runtime']['tag'];
         }
-        $configuration = $this->getConfiguration();
+        $configuration = $this->getProcessedConfiguration();
         if (!empty($configuration['runtime']['tag'])) {
             return (string) $configuration['runtime']['tag'];
         }
@@ -301,7 +303,7 @@ class JobRuntimeResolver
                 return $variableValues;
             }
         }
-        $configuration = $this->getConfiguration();
+        $configuration = $this->getProcessedConfiguration();
         // return these irrespective if they are empty, because if they are we'd create empty VariableValues anyway
         return VariableValues::fromDataArray($configuration);
     }
@@ -340,7 +342,7 @@ class JobRuntimeResolver
 
     private function getBackendFromConfiguration(): Backend
     {
-        $configuration = $this->getConfiguration();
+        $configuration = $this->getProcessedConfiguration();
         return !empty($configuration['runtime']['backend'])
             ? Backend::fromDataArray($configuration['runtime']['backend']) : new Backend(null, null, null);
     }
@@ -436,7 +438,7 @@ class JobRuntimeResolver
         if (isset($this->getConfigData()['runtime']['parallelism'])) {
             return (string) $this->getConfigData()['runtime']['parallelism'];
         }
-        $configuration = $this->getConfiguration();
+        $configuration = $this->getProcessedConfiguration();
         if (!empty($configuration['runtime']['parallelism'])) {
             return (string) $configuration['runtime']['parallelism'];
         }
@@ -468,6 +470,34 @@ class JobRuntimeResolver
         return $result;
     }
 
+    private function getRawConfiguration(): array
+    {
+        if ($this->rawConfiguration === null) {
+            if (isset($this->jobData['configId']) &&
+                $this->jobData['configId'] !== ''
+            ) {
+                $configuration = $this->componentsApiClient->getConfiguration(
+                    $this->jobData['componentId'],
+                    $this->jobData['configId'],
+                );
+                assert(is_array($configuration));
+                $this->rawConfiguration = $configuration;
+
+                if (!empty($configuration['isDisabled']) && !$this->resolveIsForceRunMode()) {
+                    throw new ConfigurationDisabledException(sprintf(
+                        'Configuration "%s" of component "%s" is disabled.',
+                        $this->jobData['configId'],
+                        $this->jobData['componentId'],
+                    ));
+                }
+            } else {
+                $this->rawConfiguration = [];
+            }
+        }
+
+        return $this->rawConfiguration;
+    }
+
     /**
      * @return array{
      *     variableValuesId?: string|null,
@@ -485,35 +515,21 @@ class JobRuntimeResolver
      *     },
      * }
      */
-    private function getConfiguration(): array
+    private function getProcessedConfiguration(): array
     {
         if ($this->configuration === null) {
-            if (isset($this->jobData['configId']) &&
-                $this->jobData['configId'] !== ''
-            ) {
-                $configuration = $this->componentsApiClient->getConfiguration(
-                    $this->jobData['componentId'],
-                    $this->jobData['configId'],
-                );
-                assert(is_array($configuration));
-                $this->configuration = $configuration;
+            $rawConfiguration = $this->getRawConfiguration();
 
-                if (!empty($this->configuration['isDisabled']) && !$this->resolveIsForceRunMode()) {
-                    throw new ConfigurationDisabledException(sprintf(
-                        'Configuration "%s" of component "%s" is disabled.',
-                        $this->jobData['configId'],
-                        $this->jobData['componentId'],
-                    ));
-                }
-
+            if (!empty($rawConfiguration)) {
                 $configurationDefinition = new OverridesConfigurationDefinition();
                 $this->configuration = $configurationDefinition->processData(
-                    (array) ($this->configuration['configuration'] ?? []),
+                    (array) ($rawConfiguration['configuration'] ?? []),
                 );
             } else {
                 $this->configuration = [];
             }
         }
+
         /** @var array{variableValuesId?: string|null, variableValuesData?: array{values?: list<array{name: string, value: string}>}, runtime?: array{tag?: string|null, image_tag?: string|null, process_timeout?: int|null, backend?: array{type?: string|null, context?: string|null}, executor?: string|null, parallelism?: int|string|null}} $result */
         $result = $this->configuration;
         return $result;
@@ -538,21 +554,22 @@ class JobRuntimeResolver
             return JobType::from((string) $jobData['type']);
         }
 
-        if ((intval($jobData['parallelism'] ?? null) > 0)
-            || ($jobData['parallelism'] ?? null) === JobInterface::PARALLELISM_INFINITY
-        ) {
+        $parallelism = $jobData['parallelism'] ?? null;
+        $hasParallelism = $parallelism === JobInterface::PARALLELISM_INFINITY || ((int) $parallelism) > 0;
+        $configRows = (array) ($this->getRawConfiguration()['rows'] ?? []);
+        if ($hasParallelism && count($configRows) >= 2) {
             return JobType::ROW_CONTAINER;
-        } else {
-            if ($jobData['componentId'] === JobFactory::FLOW_COMPONENT) {
-                return JobType::ORCHESTRATION_CONTAINER;
-            } elseif ($jobData['componentId'] === JobFactory::ORCHESTRATOR_COMPONENT) {
-                if (isset($jobData['configData']['phaseId']) && (string) ($jobData['configData']['phaseId']) !== '') {
-                    return JobType::PHASE_CONTAINER;
-                } else {
-                    return JobType::ORCHESTRATION_CONTAINER;
-                }
-            }
         }
+
+        if ($jobData['componentId'] === JobFactory::FLOW_COMPONENT) {
+            return JobType::ORCHESTRATION_CONTAINER;
+        }
+
+        if ($jobData['componentId'] === JobFactory::ORCHESTRATOR_COMPONENT) {
+            $phaseId = (string) ($jobData['configData']['phaseId'] ?? '');
+            return $phaseId !== '' ? JobType::PHASE_CONTAINER : JobType::ORCHESTRATION_CONTAINER;
+        }
+
         return JobType::STANDARD;
     }
 
@@ -563,7 +580,7 @@ class JobRuntimeResolver
     {
         $value = $jobData['executor'] ??
             $this->getConfigData()['runtime']['executor'] ??
-            $this->getConfiguration()['runtime']['executor'] ??
+            $this->getProcessedConfiguration()['runtime']['executor'] ??
             ($token->hasFeature(self::NO_DIND_FEATURE) ? Executor::K8S_CONTAINERS->value : null) ??
             Executor::getDefault()->value
         ;
