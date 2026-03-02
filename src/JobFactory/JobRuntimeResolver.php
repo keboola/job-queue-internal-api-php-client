@@ -505,17 +505,15 @@ class JobRuntimeResolver
                         $this->jobData['componentId'],
                     ));
                 }
-
-                $configurationDefinition = new OverridesConfigurationDefinition();
-                $this->configuration = $configurationDefinition->processData(
-                    (array) ($this->configuration['configuration'] ?? []),
-                );
             } else {
                 $this->configuration = [];
             }
         }
+        $configurationDefinition = new OverridesConfigurationDefinition();
         /** @var array{variableValuesId?: string|null, variableValuesData?: array{values?: list<array{name: string, value: string}>}, runtime?: array{tag?: string|null, image_tag?: string|null, process_timeout?: int|null, backend?: array{type?: string|null, context?: string|null}, executor?: string|null, parallelism?: int|string|null}} $result */
-        $result = $this->configuration;
+        $result = $configurationDefinition->processData(
+            (array) ($this->configuration['configuration'] ?? []),
+        );
         return $result;
     }
 
@@ -541,18 +539,20 @@ class JobRuntimeResolver
         if ((intval($jobData['parallelism'] ?? null) > 0)
             || ($jobData['parallelism'] ?? null) === JobInterface::PARALLELISM_INFINITY
         ) {
-            return JobType::ROW_CONTAINER;
-        } else {
-            if ($jobData['componentId'] === JobFactory::FLOW_COMPONENT) {
-                return JobType::ORCHESTRATION_CONTAINER;
-            } elseif ($jobData['componentId'] === JobFactory::ORCHESTRATOR_COMPONENT) {
-                if (isset($jobData['configData']['phaseId']) && (string) ($jobData['configData']['phaseId']) !== '') {
-                    return JobType::PHASE_CONTAINER;
-                } else {
-                    return JobType::ORCHESTRATION_CONTAINER;
-                }
+            if (count((array) ($this->configuration['rows'] ?? [])) >= 2) {
+                return JobType::ROW_CONTAINER;
             }
         }
+
+        if ($jobData['componentId'] === JobFactory::FLOW_COMPONENT) {
+            return JobType::ORCHESTRATION_CONTAINER;
+        } elseif ($jobData['componentId'] === JobFactory::ORCHESTRATOR_COMPONENT) {
+            if (isset($jobData['configData']['phaseId']) && (string) ($jobData['configData']['phaseId']) !== '') {
+                return JobType::PHASE_CONTAINER;
+            }
+            return JobType::ORCHESTRATION_CONTAINER;
+        }
+
         return JobType::STANDARD;
     }
 
