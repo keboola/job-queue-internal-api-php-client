@@ -269,7 +269,7 @@ class NewJobFactoryTest extends BaseTest
         self::assertEquals('2345.' . $job->getId(), $job->getRunId());
         self::assertEquals(['values' => []], $job->getVariableValuesData());
         self::assertSame(null, $job->getBackend()->getType());
-        self::assertSame(JobType::ROW_CONTAINER, $job->getType());
+        self::assertSame(JobType::STANDARD, $job->getType());
     }
 
     public function testCreateNewJobParallelismInfinity(): void
@@ -294,7 +294,7 @@ class NewJobFactoryTest extends BaseTest
         self::assertEquals('2345.' . $job->getId(), $job->getRunId());
         self::assertEquals(['values' => []], $job->getVariableValuesData());
         self::assertSame(null, $job->getBackend()->getType());
-        self::assertSame(JobType::ROW_CONTAINER, $job->getType());
+        self::assertSame(JobType::STANDARD, $job->getType());
     }
 
     public function testCreateNewJobParallelismZero(): void
