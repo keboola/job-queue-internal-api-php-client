@@ -2204,6 +2204,7 @@ class JobRuntimeResolverTest extends TestCase
             'rows' => $rows,
             'configuration' => [],
         ];
+
         $componentData = [
             'type' => 'dummy-component-type',
             'id' => 'keboola.ex-db-snowflake',
@@ -2234,6 +2235,75 @@ class JobRuntimeResolverTest extends TestCase
             $expectedType->value,
             $resolvedJobData['type'],
             sprintf('Failed asserting job type for parallelism "%s" with %d rows', $parallelism, count($rows)),
+        );
+    }
+
+    public function resolveParallelismEnforceDataProvider(): Generator
+    {
+        yield 'feature on, no parallelism' => [
+            'features' => ['job-parallelism-enforce'],
+            'jobParallelism' => null,
+            'expectedParallelism' => '1',
+        ];
+
+        yield 'feature on, parallelism 0' => [
+            'features' => ['job-parallelism-enforce'],
+            'jobParallelism' => '0',
+            'expectedParallelism' => '1',
+        ];
+
+        yield 'feature on, parallelism 5' => [
+            'features' => ['job-parallelism-enforce'],
+            'jobParallelism' => '5',
+            'expectedParallelism' => '5',
+        ];
+
+        yield 'feature off, no parallelism' => [
+            'features' => [],
+            'jobParallelism' => null,
+            'expectedParallelism' => null,
+        ];
+    }
+
+    /**
+     * @dataProvider resolveParallelismEnforceDataProvider
+     */
+    public function testResolveParallelismEnforce(
+        array $features,
+        ?string $jobParallelism,
+        ?string $expectedParallelism,
+    ): void {
+        $jobData = self::JOB_DATA;
+        unset($jobData['configId']);
+        if ($jobParallelism !== null) {
+            $jobData['parallelism'] = $jobParallelism;
+        }
+
+        $componentData = [
+            'type' => 'dummy-component-type',
+            'id' => 'keboola.ex-db-snowflake',
+            'data' => [
+                'definition' => [
+                    'tag' => '9.9.9',
+                ],
+            ],
+        ];
+
+        $storageClient = $this->createMock(BranchAwareClient::class);
+        $storageClient->expects(self::once())->method('apiGet')
+            ->with('components/keboola.ex-db-snowflake')
+            ->willReturn($componentData);
+
+        $jobRuntimeResolver = new JobRuntimeResolver(
+            $this->prepareStorageClientFactoryMock($storageClient),
+        );
+
+        $resolvedJobData = $jobRuntimeResolver->resolveJobData($jobData, $this->createToken($features));
+
+        self::assertSame(
+            $expectedParallelism,
+            $resolvedJobData['parallelism'] ?? null,
+            sprintf('Failed asserting parallelism for features [%s]', implode(', ', $features)),
         );
     }
 }
