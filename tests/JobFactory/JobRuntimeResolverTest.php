@@ -2267,6 +2267,7 @@ class JobRuntimeResolverTest extends TestCase
 
     /**
      * @dataProvider resolveParallelismEnforceDataProvider
+     * @param array<string> $features
      */
     public function testResolveParallelismEnforce(
         array $features,

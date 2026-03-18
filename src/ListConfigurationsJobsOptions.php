@@ -39,6 +39,7 @@ class ListConfigurationsJobsOptions
         $this->componentId = $componentId;
     }
 
+    /** @return array<string> */
     public function getQueryParameters(): array
     {
         $arrayableProps = [

@@ -45,6 +45,7 @@ class JobListOptions
     /** @var string */
     public const SORT_ORDER_DESC = 'desc';
 
+    /** @return array<string> */
     public function getQueryParameters(): array
     {
         $arrayableProps = [
