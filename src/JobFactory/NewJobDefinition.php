@@ -135,6 +135,7 @@ class NewJobDefinition implements ConfigurationInterface
                         ->thenInvalid('item cannot be empty string')
                     ->end()
                     ->validate()
+                        // @phpstan-ignore argument.type (validated as scalars above)
                         ->ifTrue(fn($v) => $v !== null && is_array($v) && count($v) !== count(array_unique($v)))
                         ->thenInvalid('items must be unique')
                     ->end()

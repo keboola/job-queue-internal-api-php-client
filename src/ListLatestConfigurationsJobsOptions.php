@@ -19,6 +19,7 @@ class ListLatestConfigurationsJobsOptions
         $this->branchId = $branchId;
     }
 
+    /** @return array<string> */
     public function getQueryParameters(): array
     {
         $scalarProps = [
