@@ -20,6 +20,7 @@ class TableTest extends TestCase
         self::assertSame('myTable', $table->getName());
         self::assertSame('Test table', $table->getDisplayName());
         self::assertSame(1, $table->getColumns()->count());
+        self::assertNull($table->getImportedRowsCount());
 
         self::assertSame([
             'id' => 'in.c-bucket.table',
@@ -30,6 +31,22 @@ class TableTest extends TestCase
                     'name' => 'created',
                 ],
             ],
+        ], $table->jsonSerialize());
+    }
+
+    public function testImportedRowsCount(): void
+    {
+        $collection = (new ColumnCollection())->addColumn(new Column('id'));
+        $table = new Table('out.c-bucket.orders', 'orders', 'Orders', $collection);
+        $table->setImportedRowsCount(100);
+
+        self::assertSame(100, $table->getImportedRowsCount());
+        self::assertSame([
+            'id' => 'out.c-bucket.orders',
+            'name' => 'orders',
+            'displayName' => 'Orders',
+            'columns' => [['name' => 'id']],
+            'importedRowsCount' => 100,
         ], $table->jsonSerialize());
     }
 }

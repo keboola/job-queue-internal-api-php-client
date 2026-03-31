@@ -26,6 +26,7 @@ class JobResult implements JsonSerializable
 
     private ?JobArtifacts $artifacts = null;
     private ?VariableCollection $variables = null;
+    private ?VariableCollection $outputVariables = null;
 
     public function jsonSerialize(): array
     {
@@ -45,6 +46,9 @@ class JobResult implements JsonSerializable
         }
         if ($this->outputTables) {
             $result['output']['tables'] = $this->outputTables->jsonSerialize();
+        }
+        if ($this->outputVariables) {
+            $result['output']['variables'] = $this->outputVariables->jsonSerialize();
         }
         if ($this->artifacts) {
             $result['artifacts'] = $this->artifacts->jsonSerialize();
@@ -170,5 +174,16 @@ class JobResult implements JsonSerializable
     public function getVariables(): ?VariableCollection
     {
         return $this->variables;
+    }
+
+    public function setOutputVariables(VariableCollection $variables): JobResult
+    {
+        $this->outputVariables = $variables;
+        return $this;
+    }
+
+    public function getOutputVariables(): ?VariableCollection
+    {
+        return $this->outputVariables;
     }
 }
