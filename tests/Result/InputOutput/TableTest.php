@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Keboola\JobQueueInternalClient\Tests\Result\InputOutput;
 
+use InvalidArgumentException;
 use Keboola\JobQueueInternalClient\Result\InputOutput\Column;
 use Keboola\JobQueueInternalClient\Result\InputOutput\ColumnCollection;
 use Keboola\JobQueueInternalClient\Result\InputOutput\Table;
@@ -55,11 +56,44 @@ class TableTest extends TestCase
         ], $table->jsonSerialize());
     }
 
+    public function testNullGenericVariablesAreOmittedFromJson(): void
+    {
+        $collection = new ColumnCollection();
+        $table = new Table(
+            'out.c-bucket.orders',
+            'orders',
+            'Orders',
+            $collection,
+            ['importedRowsCount' => null, 'someString' => 'hello'],
+        );
+
+        self::assertSame([
+            'id' => 'out.c-bucket.orders',
+            'name' => 'orders',
+            'displayName' => 'Orders',
+            'columns' => [],
+            'someString' => 'hello',
+        ], $table->jsonSerialize());
+    }
+
+    public function testReservedKeyThrowsException(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Generic variables must not use reserved keys: id');
+
+        new Table('out.c-bucket.orders', 'orders', 'Orders', new ColumnCollection(), ['id' => 'overwrite']);
+    }
+
     public function testEmptyGenericVariablesDoNotAppearInJson(): void
     {
         $collection = new ColumnCollection();
         $table = new Table('out.c-bucket.orders', 'orders', 'Orders', $collection);
 
-        self::assertArrayNotHasKey('someVar', $table->jsonSerialize());
+        self::assertSame([
+            'id' => 'out.c-bucket.orders',
+            'name' => 'orders',
+            'displayName' => 'Orders',
+            'columns' => [],
+        ], $table->jsonSerialize());
     }
 }
