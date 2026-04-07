@@ -36,8 +36,13 @@ class TableTest extends TestCase
     public function testGenericVariables(): void
     {
         $collection = new ColumnCollection();
-        $table = new Table('out.c-bucket.orders', 'orders', 'Orders', $collection);
-        $table->setGenericVariables(['importedRowsCount' => 123, 'someString' => 'hello']);
+        $table = new Table(
+            'out.c-bucket.orders',
+            'orders',
+            'Orders',
+            $collection,
+            ['importedRowsCount' => 123, 'someString' => 'hello'],
+        );
 
         self::assertSame(['importedRowsCount' => 123, 'someString' => 'hello'], $table->getGenericVariables());
         self::assertSame([

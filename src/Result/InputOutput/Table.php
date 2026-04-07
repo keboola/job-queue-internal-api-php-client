@@ -14,18 +14,21 @@ class Table implements JsonSerializable
     private ColumnCollection $columns;
 
     /** @var array<string, int|string> */
-    private array $genericVariables = [];
+    private array $genericVariables;
 
+    /** @param array<string, int|string> $genericVariables */
     public function __construct(
         string $id,
         string $name,
         string $displayName,
         ColumnCollection $columns,
+        array $genericVariables = [],
     ) {
         $this->id = $id;
         $this->name = $name;
         $this->displayName = $displayName;
         $this->columns = $columns;
+        $this->genericVariables = $genericVariables;
     }
 
     public function getId(): string
@@ -46,13 +49,6 @@ class Table implements JsonSerializable
     public function getColumns(): ColumnCollection
     {
         return $this->columns;
-    }
-
-    /** @param array<string, int|string> $variables */
-    public function setGenericVariables(array $variables): self
-    {
-        $this->genericVariables = $variables;
-        return $this;
     }
 
     /** @return array<string, int|string> */
