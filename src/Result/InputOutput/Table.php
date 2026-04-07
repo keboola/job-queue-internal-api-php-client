@@ -14,6 +14,9 @@ class Table implements JsonSerializable
     private ColumnCollection $columns;
     private ?int $importedRowsCount = null;
 
+    /** @var array<string, int|string> */
+    private array $genericVariables = [];
+
     public function __construct(
         string $id,
         string $name,
@@ -46,6 +49,19 @@ class Table implements JsonSerializable
         return $this->columns;
     }
 
+    /** @param array<string, int|string> $variables */
+    public function setGenericVariables(array $variables): self
+    {
+        $this->genericVariables = $variables;
+        return $this;
+    }
+
+    /** @return array<string, int|string> */
+    public function getGenericVariables(): array
+    {
+        return $this->genericVariables;
+    }
+
     public function setImportedRowsCount(int $importedRowsCount): self
     {
         $this->importedRowsCount = $importedRowsCount;
@@ -65,6 +81,10 @@ class Table implements JsonSerializable
             'displayName' => $this->displayName,
             'columns' => $this->columns->jsonSerialize(),
         ];
+        foreach ($this->genericVariables as $key => $value) {
+            $result[$key] = $value;
+        }
+        // typed field has priority
         if ($this->importedRowsCount !== null) {
             $result['importedRowsCount'] = $this->importedRowsCount;
         }

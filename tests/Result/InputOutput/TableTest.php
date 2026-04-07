@@ -49,4 +49,41 @@ class TableTest extends TestCase
             'importedRowsCount' => 100,
         ], $table->jsonSerialize());
     }
+
+    public function testGenericVariables(): void
+    {
+        $collection = new ColumnCollection();
+        $table = new Table('out.c-bucket.orders', 'orders', 'Orders', $collection);
+        $table->setGenericVariables(['importedRowsCount' => 123, 'someString' => 'hello']);
+
+        self::assertSame(['importedRowsCount' => 123, 'someString' => 'hello'], $table->getGenericVariables());
+        self::assertSame([
+            'id' => 'out.c-bucket.orders',
+            'name' => 'orders',
+            'displayName' => 'Orders',
+            'columns' => [],
+            'importedRowsCount' => 123,
+            'someString' => 'hello',
+        ], $table->jsonSerialize());
+    }
+
+    public function testGenericVariablesDoNotOverrideTypedImportedRowsCount(): void
+    {
+        $collection = new ColumnCollection();
+        $table = new Table('out.c-bucket.orders', 'orders', 'Orders', $collection);
+        $table->setImportedRowsCount(999);
+        $table->setGenericVariables(['importedRowsCount' => 1]);
+
+        // typed field wins
+        self::assertSame(999, $table->getImportedRowsCount());
+        self::assertSame(999, $table->jsonSerialize()['importedRowsCount']);
+    }
+
+    public function testEmptyGenericVariablesDoNotAppearInJson(): void
+    {
+        $collection = new ColumnCollection();
+        $table = new Table('out.c-bucket.orders', 'orders', 'Orders', $collection);
+
+        self::assertArrayNotHasKey('someVar', $table->jsonSerialize());
+    }
 }
