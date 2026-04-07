@@ -12,7 +12,6 @@ class Table implements JsonSerializable
     private string $name;
     private string $displayName;
     private ColumnCollection $columns;
-    private ?int $importedRowsCount = null;
 
     /** @var array<string, int|string> */
     private array $genericVariables = [];
@@ -62,17 +61,6 @@ class Table implements JsonSerializable
         return $this->genericVariables;
     }
 
-    public function setImportedRowsCount(int $importedRowsCount): self
-    {
-        $this->importedRowsCount = $importedRowsCount;
-        return $this;
-    }
-
-    public function getImportedRowsCount(): ?int
-    {
-        return $this->importedRowsCount;
-    }
-
     public function jsonSerialize(): array
     {
         $result = [
@@ -83,10 +71,6 @@ class Table implements JsonSerializable
         ];
         foreach ($this->genericVariables as $key => $value) {
             $result[$key] = $value;
-        }
-        // typed field has priority
-        if ($this->importedRowsCount !== null) {
-            $result['importedRowsCount'] = $this->importedRowsCount;
         }
         return $result;
     }

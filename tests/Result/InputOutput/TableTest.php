@@ -20,7 +20,6 @@ class TableTest extends TestCase
         self::assertSame('myTable', $table->getName());
         self::assertSame('Test table', $table->getDisplayName());
         self::assertSame(1, $table->getColumns()->count());
-        self::assertNull($table->getImportedRowsCount());
 
         self::assertSame([
             'id' => 'in.c-bucket.table',
@@ -31,22 +30,6 @@ class TableTest extends TestCase
                     'name' => 'created',
                 ],
             ],
-        ], $table->jsonSerialize());
-    }
-
-    public function testImportedRowsCount(): void
-    {
-        $collection = (new ColumnCollection())->addColumn(new Column('id'));
-        $table = new Table('out.c-bucket.orders', 'orders', 'Orders', $collection);
-        $table->setImportedRowsCount(100);
-
-        self::assertSame(100, $table->getImportedRowsCount());
-        self::assertSame([
-            'id' => 'out.c-bucket.orders',
-            'name' => 'orders',
-            'displayName' => 'Orders',
-            'columns' => [['name' => 'id']],
-            'importedRowsCount' => 100,
         ], $table->jsonSerialize());
     }
 
@@ -65,18 +48,6 @@ class TableTest extends TestCase
             'importedRowsCount' => 123,
             'someString' => 'hello',
         ], $table->jsonSerialize());
-    }
-
-    public function testGenericVariablesDoNotOverrideTypedImportedRowsCount(): void
-    {
-        $collection = new ColumnCollection();
-        $table = new Table('out.c-bucket.orders', 'orders', 'Orders', $collection);
-        $table->setImportedRowsCount(999);
-        $table->setGenericVariables(['importedRowsCount' => 1]);
-
-        // typed field wins
-        self::assertSame(999, $table->getImportedRowsCount());
-        self::assertSame(999, $table->jsonSerialize()['importedRowsCount']);
     }
 
     public function testEmptyGenericVariablesDoNotAppearInJson(): void
