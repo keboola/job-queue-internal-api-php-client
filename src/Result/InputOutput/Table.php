@@ -4,42 +4,31 @@ declare(strict_types=1);
 
 namespace Keboola\JobQueueInternalClient\Result\InputOutput;
 
-use InvalidArgumentException;
 use JsonSerializable;
 
 class Table implements JsonSerializable
 {
-    private const RESERVED_KEYS = ['id', 'name', 'displayName', 'columns'];
-
     private string $id;
     private string $name;
     private string $displayName;
     private ColumnCollection $columns;
 
     /** @var array<string, int|string|null> */
-    private array $genericVariables;
+    private array $variables;
 
-    /** @param array<string, int|string|null> $genericVariables */
+    /** @param array<string, int|string|null> $variables */
     public function __construct(
         string $id,
         string $name,
         string $displayName,
         ColumnCollection $columns,
-        array $genericVariables = [],
+        array $variables = [],
     ) {
-        $reservedConflicts = array_intersect(array_keys($genericVariables), self::RESERVED_KEYS);
-        if ($reservedConflicts !== []) {
-            throw new InvalidArgumentException(sprintf(
-                'Generic variables must not use reserved keys: %s',
-                implode(', ', $reservedConflicts),
-            ));
-        }
-
         $this->id = $id;
         $this->name = $name;
         $this->displayName = $displayName;
         $this->columns = $columns;
-        $this->genericVariables = $genericVariables;
+        $this->variables = $variables;
     }
 
     public function getId(): string
@@ -63,9 +52,9 @@ class Table implements JsonSerializable
     }
 
     /** @return array<string, int|string|null> */
-    public function getGenericVariables(): array
+    public function getVariables(): array
     {
-        return $this->genericVariables;
+        return $this->variables;
     }
 
     public function jsonSerialize(): array
@@ -76,11 +65,17 @@ class Table implements JsonSerializable
             'displayName' => $this->displayName,
             'columns' => $this->columns->jsonSerialize(),
         ];
-        foreach ($this->genericVariables as $key => $value) {
+
+        $variables = [];
+        foreach ($this->variables as $key => $value) {
             if ($value !== null) {
-                $result[$key] = $value;
+                $variables[] = ['name' => $key, 'value' => $value];
             }
         }
+        if ($variables !== []) {
+            $result['variables'] = $variables;
+        }
+
         return $result;
     }
 }
