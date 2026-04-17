@@ -44,13 +44,13 @@ class TableTest extends TestCase
             ['importedRowsCount' => 123, 'someString' => 'hello'],
         );
 
-        self::assertSame(['importedRowsCount' => 123, 'someString' => 'hello'], $table->getVariables());
+        self::assertSame(['importedRowsCount' => 123, 'someString' => 'hello'], $table->getMetrics());
         self::assertSame([
             'id' => 'out.c-bucket.orders',
             'name' => 'orders',
             'displayName' => 'Orders',
             'columns' => [],
-            'variables' => [
+            'metrics' => [
                 ['name' => 'importedRowsCount', 'value' => 123],
                 ['name' => 'someString', 'value' => 'hello'],
             ],
@@ -73,7 +73,7 @@ class TableTest extends TestCase
             'name' => 'orders',
             'displayName' => 'Orders',
             'columns' => [],
-            'variables' => [
+            'metrics' => [
                 ['name' => 'someString', 'value' => 'hello'],
             ],
         ], $table->jsonSerialize());

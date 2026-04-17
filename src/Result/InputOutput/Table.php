@@ -14,21 +14,21 @@ class Table implements JsonSerializable
     private ColumnCollection $columns;
 
     /** @var array<string, int|string|null> */
-    private array $variables;
+    private array $metrics;
 
-    /** @param array<string, int|string|null> $variables */
+    /** @param array<string, int|string|null> $metrics */
     public function __construct(
         string $id,
         string $name,
         string $displayName,
         ColumnCollection $columns,
-        array $variables = [],
+        array $metrics = [],
     ) {
         $this->id = $id;
         $this->name = $name;
         $this->displayName = $displayName;
         $this->columns = $columns;
-        $this->variables = $variables;
+        $this->metrics = $metrics;
     }
 
     public function getId(): string
@@ -52,9 +52,9 @@ class Table implements JsonSerializable
     }
 
     /** @return array<string, int|string|null> */
-    public function getVariables(): array
+    public function getMetrics(): array
     {
-        return $this->variables;
+        return $this->metrics;
     }
 
     public function jsonSerialize(): array
@@ -66,14 +66,14 @@ class Table implements JsonSerializable
             'columns' => $this->columns->jsonSerialize(),
         ];
 
-        $variables = [];
-        foreach ($this->variables as $key => $value) {
+        $metrics = [];
+        foreach ($this->metrics as $key => $value) {
             if ($value !== null) {
-                $variables[] = ['name' => $key, 'value' => $value];
+                $metrics[] = ['name' => $key, 'value' => $value];
             }
         }
-        if ($variables !== []) {
-            $result['variables'] = $variables;
+        if ($metrics !== []) {
+            $result['metrics'] = $metrics;
         }
 
         return $result;
