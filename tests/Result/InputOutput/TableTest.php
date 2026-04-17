@@ -32,4 +32,63 @@ class TableTest extends TestCase
             ],
         ], $table->jsonSerialize());
     }
+
+    public function testTableVariables(): void
+    {
+        $collection = new ColumnCollection();
+        $table = new Table(
+            'out.c-bucket.orders',
+            'orders',
+            'Orders',
+            $collection,
+            ['importedRowsCount' => 123, 'someString' => 'hello'],
+        );
+
+        self::assertSame(['importedRowsCount' => 123, 'someString' => 'hello'], $table->getMetrics());
+        self::assertSame([
+            'id' => 'out.c-bucket.orders',
+            'name' => 'orders',
+            'displayName' => 'Orders',
+            'columns' => [],
+            'metrics' => [
+                ['name' => 'importedRowsCount', 'value' => 123],
+                ['name' => 'someString', 'value' => 'hello'],
+            ],
+        ], $table->jsonSerialize());
+    }
+
+    public function testNullTableVariablesAreOmittedFromJson(): void
+    {
+        $collection = new ColumnCollection();
+        $table = new Table(
+            'out.c-bucket.orders',
+            'orders',
+            'Orders',
+            $collection,
+            ['importedRowsCount' => null, 'someString' => 'hello'],
+        );
+
+        self::assertSame([
+            'id' => 'out.c-bucket.orders',
+            'name' => 'orders',
+            'displayName' => 'Orders',
+            'columns' => [],
+            'metrics' => [
+                ['name' => 'someString', 'value' => 'hello'],
+            ],
+        ], $table->jsonSerialize());
+    }
+
+    public function testEmptyTableVariablesDoNotAppearInJson(): void
+    {
+        $collection = new ColumnCollection();
+        $table = new Table('out.c-bucket.orders', 'orders', 'Orders', $collection);
+
+        self::assertSame([
+            'id' => 'out.c-bucket.orders',
+            'name' => 'orders',
+            'displayName' => 'Orders',
+            'columns' => [],
+        ], $table->jsonSerialize());
+    }
 }
