@@ -2307,4 +2307,136 @@ class JobRuntimeResolverTest extends TestCase
             sprintf('Failed asserting parallelism for features [%s]', implode(', ', $features)),
         );
     }
+
+    public function testResolveJobDataRejectsPerRowRetryWithoutParallelism(): void
+    {
+        $jobData = self::JOB_DATA;
+        $jobData['parallelism'] = '0';
+        $jobData['configData'] = [
+            'retry' => [
+                'strategy' => 'linear',
+                'scope' => 'row',
+                'strategyParams' => ['maxRetries' => 3, 'delay' => 5000],
+            ],
+        ];
+
+        $configuration = [
+            'id' => '454124290',
+            'rows' => [['id' => 'r1'], ['id' => 'r2']],
+            'configuration' => [],
+        ];
+        $componentData = [
+            'type' => 'dummy-component-type',
+            'id' => 'keboola.ex-db-snowflake',
+            'data' => ['definition' => ['tag' => '9.9.9']],
+        ];
+
+        $storageClient = $this->createMock(BranchAwareClient::class);
+        $storageClient->expects(self::exactly(2))->method('apiGet')
+            ->withConsecutive(
+                ['components/keboola.ex-db-snowflake'],
+                ['components/keboola.ex-db-snowflake/configs/454124290'],
+            )->willReturnOnConsecutiveCalls(
+                $componentData,
+                $configuration,
+            );
+
+        $jobRuntimeResolver = new JobRuntimeResolver(
+            $this->prepareStorageClientFactoryMock($storageClient),
+        );
+
+        $this->expectException(ClientException::class);
+        $this->expectExceptionMessage('Per-row retry (retry.scope="row") requires parallelism');
+
+        // @phpstan-ignore argument.type
+        $jobRuntimeResolver->resolveJobData($jobData, $this->createToken());
+    }
+
+    public function testResolveJobDataRejectsPerRowRetryWithSingleRow(): void
+    {
+        $jobData = self::JOB_DATA;
+        $jobData['parallelism'] = '5';
+        $jobData['configData'] = [
+            'retry' => [
+                'strategy' => 'linear',
+                'scope' => 'row',
+                'strategyParams' => ['maxRetries' => 3, 'delay' => 5000],
+            ],
+        ];
+
+        $configuration = [
+            'id' => '454124290',
+            'rows' => [['id' => 'r1']],
+            'configuration' => [],
+        ];
+        $componentData = [
+            'type' => 'dummy-component-type',
+            'id' => 'keboola.ex-db-snowflake',
+            'data' => ['definition' => ['tag' => '9.9.9']],
+        ];
+
+        $storageClient = $this->createMock(BranchAwareClient::class);
+        $storageClient->expects(self::exactly(2))->method('apiGet')
+            ->withConsecutive(
+                ['components/keboola.ex-db-snowflake'],
+                ['components/keboola.ex-db-snowflake/configs/454124290'],
+            )->willReturnOnConsecutiveCalls(
+                $componentData,
+                $configuration,
+            );
+
+        $jobRuntimeResolver = new JobRuntimeResolver(
+            $this->prepareStorageClientFactoryMock($storageClient),
+        );
+
+        $this->expectException(ClientException::class);
+        $this->expectExceptionMessage('at least 2 configuration rows');
+
+        // @phpstan-ignore argument.type
+        $jobRuntimeResolver->resolveJobData($jobData, $this->createToken());
+    }
+
+    public function testResolveJobDataAcceptsValidPerRowRetry(): void
+    {
+        $jobData = self::JOB_DATA;
+        $jobData['parallelism'] = '5';
+        $jobData['configData'] = [
+            'retry' => [
+                'strategy' => 'linear',
+                'scope' => 'row',
+                'strategyParams' => ['maxRetries' => 3, 'delay' => 5000],
+            ],
+        ];
+
+        $configuration = [
+            'id' => '454124290',
+            'rows' => [['id' => 'r1'], ['id' => 'r2']],
+            'configuration' => [],
+        ];
+        $componentData = [
+            'type' => 'dummy-component-type',
+            'id' => 'keboola.ex-db-snowflake',
+            'data' => ['definition' => ['tag' => '9.9.9']],
+        ];
+
+        $storageClient = $this->createMock(BranchAwareClient::class);
+        $storageClient->expects(self::exactly(2))->method('apiGet')
+            ->withConsecutive(
+                ['components/keboola.ex-db-snowflake'],
+                ['components/keboola.ex-db-snowflake/configs/454124290'],
+            )->willReturnOnConsecutiveCalls(
+                $componentData,
+                $configuration,
+            );
+
+        $jobRuntimeResolver = new JobRuntimeResolver(
+            $this->prepareStorageClientFactoryMock($storageClient),
+        );
+
+        // @phpstan-ignore argument.type
+        $resolvedJobData = $jobRuntimeResolver->resolveJobData($jobData, $this->createToken());
+
+        self::assertSame(JobType::ROW_CONTAINER->value, $resolvedJobData['type']);
+        self::assertSame('row', $resolvedJobData['configData']['retry']['scope']);
+    }
 }

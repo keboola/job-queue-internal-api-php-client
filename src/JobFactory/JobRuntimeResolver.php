@@ -244,6 +244,8 @@ class JobRuntimeResolver
             $jobData['executor'] = $this->resolveExecutor($jobData, $token)->value;
             $jobData = $this->resolveBranchType($jobData);
 
+            $this->validatePerRowRetry($jobData);
+
             // set type after resolving parallelism
             /** @var array{type?: string|null, parallelism?: int|string|null, componentId: string, configData?: array{phaseId?: int|string|null}} $jobData */
             $jobData['type'] = $this->resolveJobType($jobData)->value;
@@ -548,6 +550,42 @@ class JobRuntimeResolver
     private function resolveIsForceRunMode(): bool
     {
         return isset($this->jobData['mode']) && $this->jobData['mode'] === JobInterface::MODE_FORCE_RUN;
+    }
+
+    /**
+     * @param array{
+     *     parallelism?: int|string|null,
+     *     configData?: array{retry?: array{scope?: string|null, strategyParams?: array{maxRetries?: int|string|null}}}|null
+     * } $jobData
+     */
+    private function validatePerRowRetry(array $jobData): void
+    {
+        $retry = $jobData['configData']['retry'] ?? null;
+        if ($retry === null) {
+            return;
+        }
+
+        $scope = $retry['scope'] ?? 'container';
+        if ($scope !== 'row') {
+            return;
+        }
+
+        $parallelism = $jobData['parallelism'] ?? null;
+        $hasParallelism = $parallelism === JobInterface::PARALLELISM_INFINITY
+            || ((int) $parallelism) > 0;
+
+        if (!$hasParallelism) {
+            throw new ClientException(
+                'Per-row retry (retry.scope="row") requires parallelism > 0 or "infinity".',
+            );
+        }
+
+        $configRows = (array) ($this->getRawConfiguration()['rows'] ?? []);
+        if (count($configRows) < 2) {
+            throw new ClientException(
+                'Per-row retry (retry.scope="row") requires at least 2 configuration rows.',
+            );
+        }
     }
 
     /**
