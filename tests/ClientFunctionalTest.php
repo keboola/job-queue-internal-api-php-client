@@ -318,7 +318,7 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
                 ],
                 'metrics' => [],
                 'type' => 'standard',
-                'parallelism' => null,
+                'parallelism' => '1',
                 'behavior' => [
                     'onError' => null,
                 ],
