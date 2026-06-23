@@ -14,6 +14,7 @@ use GuzzleHttp\MessageFormatter;
 use GuzzleHttp\Middleware;
 use GuzzleHttp\Psr7\Request;
 use JsonException;
+use JsonSerializable;
 use Keboola\JobQueueInternalClient\Exception\ClientException;
 use Keboola\JobQueueInternalClient\Exception\DeduplicationIdConflictException;
 use Keboola\JobQueueInternalClient\Exception\StateTargetEqualsCurrentException;
@@ -25,6 +26,9 @@ use Keboola\JobQueueInternalClient\Result\JobResult;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Log\LoggerInterface;
+use Retry\BackOff\LinearBackOffPolicy;
+use Retry\Policy\CallableRetryPolicy;
+use Retry\RetryProxy;
 use Symfony\Component\Validator\Constraints\NotBlank;
 use Symfony\Component\Validator\Constraints\Range;
 use Symfony\Component\Validator\Constraints\Url;
@@ -40,6 +44,13 @@ class Client
     private const DEFAULT_USER_AGENT = 'Internal PHP Client';
     private const DEFAULT_BACKOFF_RETRIES = 10;
     private const JSON_DEPTH = 512;
+
+    /**
+     * Maximum number of attempts (incl. the initial try) for the optimistic-locking
+     * read-modify-write loop in {@see self::patchJobResultAtomically()}. keboola/retry's
+     * CallableRetryPolicy counts the initial try as attempt 1.
+     */
+    private const MAX_RESULT_VERSION_RETRIES = 5;
 
     protected GuzzleClient $guzzle;
 
@@ -304,10 +315,112 @@ class Client
         if ($jobId === '') {
             throw new ClientException(sprintf('Invalid job ID: "%s".', $jobId));
         }
+        return $this->sendPatchJobResultRequest($jobId, $patchData, []);
+    }
+
+    /**
+     * Read-modify-write a job result under optimistic version locking: retries on 409
+     * conflicts, then falls back to a legacy merge write on exhaustion (so it cannot livelock).
+     *
+     * The mutator must return a \JsonSerializable that serializes to an array — the full
+     * replacement document, as the versioned PATCH replaces rather than merges.
+     *
+     * @param callable(array<mixed>): JsonSerializable $mutator
+     * @return TJob
+     */
+    public function patchJobResultAtomically(string $jobId, callable $mutator): PlainJobInterface
+    {
+        if ($jobId === '') {
+            throw new ClientException(sprintf('Invalid job ID: "%s".', $jobId));
+        }
+
+        $retryProxy = new RetryProxy(
+            new CallableRetryPolicy(
+                fn (Throwable $e) => $e instanceof ClientException && $e->getCode() === 409,
+                self::MAX_RESULT_VERSION_RETRIES,
+            ),
+            // result-version conflicts are rare (only on concurrent writes); a small linear
+            // back-off is enough — 200ms, 400ms, 600ms, … between attempts.
+            new LinearBackOffPolicy(200, 200),
+            $this->logger,
+        );
+
+        try {
+            /** @var TJob $job */
+            $job = $retryProxy->call(function () use ($jobId, $mutator): PlainJobInterface {
+                [$current, $version] = $this->readJobResultWithVersion($jobId);
+                $payload = $this->resolveMutatorPayload($mutator, $current);
+                return $this->sendPatchJobResultRequest($jobId, $payload, ['result_version' => (string) $version]);
+            });
+            return $job;
+            // RetryProxy::call() rethrows the action's last exception (a 409 ClientException on
+            // exhaustion); PHPStan cannot infer this through its mixed/@throws signature.
+            // @phpstan-ignore catch.neverThrown
+        } catch (ClientException $e) {
+            if ($e->getCode() !== 409) {
+                throw $e;
+            }
+
+            // 409 retries exhausted -> unconditional terminal fallback to the legacy merge write.
+            $this->logger->warning(sprintf(
+                'Job "%s" result version conflict not resolved after %d attempts, '
+                . 'falling back to legacy merge write.',
+                $jobId,
+                self::MAX_RESULT_VERSION_RETRIES,
+            ));
+
+            [$current] = $this->readJobResultWithVersion($jobId);
+            $payload = $this->resolveMutatorPayload($mutator, $current);
+            return $this->patchJobResult($jobId, $payload);
+        }
+    }
+
+    /**
+     * Runs the mutator and validates that it serializes to an array document.
+     *
+     * @param callable(array<mixed>): JsonSerializable $mutator
+     * @param array<mixed> $current
+     * @return array<mixed>
+     */
+    private function resolveMutatorPayload(callable $mutator, array $current): array
+    {
+        $payload = $mutator($current)->jsonSerialize();
+        if (!is_array($payload)) {
+            throw new ClientException(sprintf(
+                'Mutator return value must serialize to an array, got "%s".',
+                get_debug_type($payload),
+            ));
+        }
+        return $payload;
+    }
+
+    /**
+     * Raw GET of a job, reading `result` + `resultVersion` directly off the decoded
+     * response. Does NOT go through getJob()/FullJobDefinition, which strips resultVersion.
+     *
+     * @return array{0: array<mixed>, 1: int} [result, version]
+     */
+    private function readJobResultWithVersion(string $jobId): array
+    {
+        $data = $this->sendRequest(new Request('GET', 'jobs/' . $jobId));
+        $result = (isset($data['result']) && is_array($data['result'])) ? $data['result'] : [];
+        $version = isset($data['resultVersion']) && is_scalar($data['resultVersion'])
+            ? (int) $data['resultVersion']
+            : 0;
+        return [$result, $version];
+    }
+
+    /**
+     * @param array<mixed> $patchData
+     * @param array<string, string> $headers
+     * @return TJob
+     */
+    private function sendPatchJobResultRequest(string $jobId, array $patchData, array $headers): PlainJobInterface
+    {
         $request = new Request(
             'PATCH',
             'jobs/' . $jobId . '/result',
-            [],
+            $headers,
             json_encode($patchData, JSON_THROW_ON_ERROR),
         );
         return $this->existingJobFactory->loadFromExistingJobData($this->sendRequest($request));

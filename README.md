@@ -23,6 +23,31 @@ $client->getJobData('123');
 $client->postJobResult('123', 'success', ['images' => ['digests' => []]]);
 ```
 
+### Atomic job result updates
+
+`patchJobResultAtomically()` performs an optimistic-locking read-modify-write of a job's
+`result` document. It reads the current result and its `result_version`, runs your mutator,
+and writes the full replacement back guarded by that version. On a version conflict (HTTP 409,
+i.e. a concurrent writer changed the result in between) it automatically re-reads and retries a
+bounded number of times; if the conflict still cannot be resolved it falls back to a legacy
+server-side merge write so a terminal write always lands.
+
+The mutator receives the current result array and must return a `\JsonSerializable` whose
+`jsonSerialize()` yields an array — the **full** replacement document (the versioned write is a
+full replace, not a merge), so always round-trip the whole result:
+
+```php
+use Keboola\JobQueueInternalClient\Result\GenericJobResult;
+
+$job = $client->patchJobResultAtomically('123', function (array $current): GenericJobResult {
+    $current['processedRows'] = ($current['processedRows'] ?? 0) + 1;
+    return new GenericJobResult($current);
+});
+```
+
+`GenericJobResult` is a trivial `\JsonSerializable` wrapper for callers that do not have their
+own result value object.
+
 ## Development
 Prerequisites:
 * configured `az` and `aws` CLI tools (run `az login` and `aws configure --profile keboola-dev-platform-services`)

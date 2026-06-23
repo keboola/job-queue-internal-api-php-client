@@ -33,6 +33,7 @@
         "keboola/kbc-manage-api-php-client": "^5.2|^6.0|^7.0|^8.0|^9.0",
         "keboola/object-encryptor": "^2.12",
         "keboola/permission-checker": "^2.0",
+        "keboola/retry": "^0.5.1",
         "keboola/storage-api-client": "^15.2|^16.0|^17.0|^18.0",
         "keboola/storage-api-php-client-branch-wrapper": "^6.0",
         "monolog/monolog": "^2.6|^3.0",
