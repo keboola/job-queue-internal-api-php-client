@@ -376,7 +376,7 @@ class Client
     }
 
     /**
-     * Runs the mutator and validates that it serializes to an array document.
+     * Runs the mutator and validates it returns a \JsonSerializable that serializes to an array.
      *
      * @param callable(array<mixed>): JsonSerializable $mutator
      * @param array<mixed> $current
@@ -384,7 +384,17 @@ class Client
      */
     private function resolveMutatorPayload(callable $mutator, array $current): array
     {
-        $payload = $mutator($current)->jsonSerialize();
+        $result = $mutator($current);
+        // Defensive: a callable's runtime return type is not enforced, so a contract-violating
+        // mutator fails with a clear ClientException instead of a fatal TypeError.
+        // @phpstan-ignore instanceof.alwaysTrue
+        if (!$result instanceof JsonSerializable) {
+            throw new ClientException(sprintf(
+                'Mutator must return a JsonSerializable, got "%s".',
+                get_debug_type($result),
+            ));
+        }
+        $payload = $result->jsonSerialize();
         if (!is_array($payload)) {
             throw new ClientException(sprintf(
                 'Mutator return value must serialize to an array, got "%s".',

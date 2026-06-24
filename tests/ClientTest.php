@@ -1658,6 +1658,35 @@ Out of order
         self::assertSame('GET', $request->getMethod());
     }
 
+    public function testPatchJobResultAtomicallyNonJsonSerializableMutatorOutputThrowsAndSendsNoPatch(): void
+    {
+        $mock = new MockHandler([
+            new Response(200, ['Content-Type' => 'application/json'], self::jobResponseJson('123', ['a' => 1], 3)),
+        ]);
+
+        $container = [];
+        $stack = HandlerStack::create($mock);
+        $stack->push(Middleware::history($container));
+        $client = $this->createClientWithInternalToken(options: ['handler' => $stack]);
+
+        try {
+            // mutator violates the contract and returns a plain array instead of a JsonSerializable
+            // @phpstan-ignore-next-line
+            $client->patchJobResultAtomically('123', fn (array $current) => ['not' => 'serializable']);
+            self::fail('Expected ClientException was not thrown.');
+        } catch (ClientException $e) {
+            self::assertStringContainsString('must return a JsonSerializable', $e->getMessage());
+        }
+
+        // only the GET was performed; no PATCH was sent
+        self::assertIsArray($container);
+        self::assertCount(1, $container);
+        self::assertIsArray($container[0]);
+        /** @var Request $request */
+        $request = $container[0]['request'];
+        self::assertSame('GET', $request->getMethod());
+    }
+
     public function testPatchJobResultAtomicallyInvalidJobId(): void
     {
         $client = $this->createClientWithInternalToken();
