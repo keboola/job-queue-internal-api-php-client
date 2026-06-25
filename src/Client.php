@@ -348,9 +348,13 @@ class Client
         try {
             /** @var TJob $job */
             $job = $retryProxy->call(function () use ($jobId, $mutator): PlainJobInterface {
-                [$current, $version] = $this->readJobResultWithVersion($jobId);
-                $payload = $this->resolveMutatorPayload($mutator, $current);
-                return $this->sendPatchJobResultRequest($jobId, $payload, ['result_version' => (string) $version]);
+                $currentJob = $this->getJob($jobId);
+                $payload = $this->resolveMutatorPayload($mutator, $currentJob->getResult());
+                return $this->sendPatchJobResultRequest(
+                    $jobId,
+                    $payload,
+                    ['Result-Version' => (string) $currentJob->getResultVersion()],
+                );
             });
             return $job;
             // RetryProxy::call() rethrows the action's last exception (a 409 ClientException on
@@ -369,8 +373,8 @@ class Client
                 self::MAX_RESULT_VERSION_RETRIES,
             ));
 
-            [$current] = $this->readJobResultWithVersion($jobId);
-            $payload = $this->resolveMutatorPayload($mutator, $current);
+            $currentJob = $this->getJob($jobId);
+            $payload = $this->resolveMutatorPayload($mutator, $currentJob->getResult());
             return $this->patchJobResult($jobId, $payload);
         }
     }
@@ -402,22 +406,6 @@ class Client
             ));
         }
         return $payload;
-    }
-
-    /**
-     * Raw GET of a job, reading `result` + `resultVersion` directly off the decoded
-     * response. Does NOT go through getJob()/FullJobDefinition, which strips resultVersion.
-     *
-     * @return array{0: array<mixed>, 1: int} [result, version]
-     */
-    private function readJobResultWithVersion(string $jobId): array
-    {
-        $data = $this->sendRequest(new Request('GET', 'jobs/' . $jobId));
-        $result = (isset($data['result']) && is_array($data['result'])) ? $data['result'] : [];
-        $version = isset($data['resultVersion']) && is_scalar($data['resultVersion'])
-            ? (int) $data['resultVersion']
-            : 0;
-        return [$result, $version];
     }
 
     /**

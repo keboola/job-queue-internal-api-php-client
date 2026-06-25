@@ -1497,7 +1497,7 @@ Out of order
         $patchRequest = $container[1]['request'];
         self::assertSame('PATCH', $patchRequest->getMethod());
         self::assertSame('http://example.com/jobs/123/result', $patchRequest->getUri()->__toString());
-        self::assertSame('3', $patchRequest->getHeader('result_version')[0]);
+        self::assertSame('3', $patchRequest->getHeader('Result-Version')[0]);
         self::assertSame(
             json_encode($mutatorOutput->jsonSerialize()),
             $patchRequest->getBody()->getContents(),
@@ -1550,12 +1550,12 @@ Out of order
 
         /** @var Request $firstPatch */
         $firstPatch = $container[1]['request'];
-        self::assertSame('3', $firstPatch->getHeader('result_version')[0]);
+        self::assertSame('3', $firstPatch->getHeader('Result-Version')[0]);
 
         /** @var Request $secondPatch */
         $secondPatch = $container[3]['request'];
         self::assertSame('PATCH', $secondPatch->getMethod());
-        self::assertSame('7', $secondPatch->getHeader('result_version')[0]);
+        self::assertSame('7', $secondPatch->getHeader('Result-Version')[0]);
         self::assertSame(
             json_encode(['a' => 2, 'b' => 1]),
             $secondPatch->getBody()->getContents(),
@@ -1619,7 +1619,7 @@ Out of order
         self::assertSame('PATCH', $terminalPatch->getMethod());
         self::assertSame('http://example.com/jobs/123/result', $terminalPatch->getUri()->__toString());
         // legacy fallback MUST NOT carry the version header
-        self::assertSame([], $terminalPatch->getHeader('result_version'));
+        self::assertSame([], $terminalPatch->getHeader('Result-Version'));
 
         self::assertTrue($logsHandler->hasWarningThatContains('result version conflict'));
     }
@@ -1702,7 +1702,7 @@ Out of order
         $mock = new MockHandler([
             new Response(200, ['Content-Type' => 'application/json'], self::jobResponseJson('123', ['a' => 1], 3)),
             new Response(400, ['Content-Type' => 'application/json'], (string) json_encode([
-                'error' => 'Header "result_version" must be a non-negative integer',
+                'error' => 'Header "Result-Version" must be a non-negative integer',
             ])),
         ]);
 
@@ -1757,6 +1757,6 @@ Out of order
         self::assertIsArray($container[1]);
         /** @var Request $patchRequest */
         $patchRequest = $container[1]['request'];
-        self::assertSame(['0'], $patchRequest->getHeader('result_version'));
+        self::assertSame(['0'], $patchRequest->getHeader('Result-Version'));
     }
 }
