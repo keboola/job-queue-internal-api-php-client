@@ -29,8 +29,8 @@ $client->postJobResult('123', 'success', ['images' => ['digests' => []]]);
 `result` document. It reads the current result and its `resultVersion`, runs your mutator,
 and writes the full replacement back guarded by that version. On a version conflict (HTTP 409,
 i.e. a concurrent writer changed the result in between) it automatically re-reads and retries a
-bounded number of times; if the conflict still cannot be resolved it falls back to a legacy
-server-side merge write so a terminal write always lands.
+bounded number of times; if the conflict still cannot be resolved within the retry budget it
+throws a `ResultVersionConflictException` rather than overwriting the concurrent change.
 
 The mutator receives the current result array and must return a `\JsonSerializable` whose
 `jsonSerialize()` yields an array — the **full** replacement document (the versioned write is a

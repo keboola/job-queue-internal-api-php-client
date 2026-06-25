@@ -13,6 +13,7 @@ use GuzzleHttp\Psr7\Response;
 use JsonSerializable;
 use Keboola\JobQueueInternalClient\Client;
 use Keboola\JobQueueInternalClient\Exception\ClientException;
+use Keboola\JobQueueInternalClient\Exception\ResultVersionConflictException;
 use Keboola\JobQueueInternalClient\ExistingJobFactory;
 use Keboola\JobQueueInternalClient\JobFactory\Job;
 use Keboola\JobQueueInternalClient\JobFactory\JobInterface;
@@ -1562,9 +1563,9 @@ Out of order
         );
     }
 
-    public function testPatchJobResultAtomicallyRetryExhaustionFallsBackToLegacyMerge(): void
+    public function testPatchJobResultAtomicallyRetryExhaustionThrowsResultVersionConflictException(): void
     {
-        // 5 attempts each: GET (version) + PATCH -> 409, then terminal: GET + legacy PATCH -> 200
+        // 5 attempts each: GET (version) + PATCH -> 409, then retries are exhausted
         $responses = [];
         for ($i = 0; $i < 5; $i++) {
             $responses[] = new Response(
@@ -1576,17 +1577,6 @@ Out of order
                 'error' => 'Job "123" result version conflict',
             ]));
         }
-        // terminal fallback: re-read + legacy header-less PATCH
-        $responses[] = new Response(
-            200,
-            ['Content-Type' => 'application/json'],
-            self::jobResponseJson('123', ['a' => 99], 99),
-        );
-        $responses[] = new Response(
-            200,
-            ['Content-Type' => 'application/json'],
-            self::jobResponseJson('123', ['a' => 99, 'final' => true], 100),
-        );
 
         $mock = new MockHandler($responses);
         $container = [];
@@ -1594,34 +1584,27 @@ Out of order
         $stack = new HandlerStack($mock);
         $stack->push(Middleware::history($container));
 
-        $logsHandler = new TestHandler();
-        $logger = new Logger('tests', [$logsHandler]);
-
         $client = $this->createClientWithInternalToken(
             options: ['handler' => $stack],
-            logger: $logger,
         );
 
-        $result = $client->patchJobResultAtomically('123', function (array $current) {
-            $current['final'] = true;
-            return new GenericJobResult($current);
-        });
+        try {
+            $client->patchJobResultAtomically('123', function (array $current) {
+                $current['final'] = true;
+                return new GenericJobResult($current);
+            });
+            self::fail('Expected ResultVersionConflictException was not thrown.');
+        } catch (ResultVersionConflictException $e) {
+            self::assertStringContainsString('result version conflict not resolved', $e->getMessage());
+            self::assertSame(409, $e->getCode());
+            // the originating 409 is preserved as the previous exception
+            self::assertInstanceOf(ClientException::class, $e->getPrevious());
+            self::assertSame(409, $e->getPrevious()->getCode());
+        }
 
-        self::assertInstanceOf(Job::class, $result);
-
-        // 5 * (GET + PATCH) + terminal (GET + PATCH) = 12 requests
+        // 5 * (GET + PATCH) = 10 requests, then it throws instead of overwriting
         self::assertIsArray($container);
-        self::assertCount(12, $container);
-        self::assertIsArray($container[11]);
-
-        /** @var Request $terminalPatch */
-        $terminalPatch = $container[11]['request'];
-        self::assertSame('PATCH', $terminalPatch->getMethod());
-        self::assertSame('http://example.com/jobs/123/result', $terminalPatch->getUri()->__toString());
-        // legacy fallback MUST NOT carry the version header
-        self::assertSame([], $terminalPatch->getHeader('Result-Version'));
-
-        self::assertTrue($logsHandler->hasWarningThatContains('result version conflict'));
+        self::assertCount(10, $container);
     }
 
     public function testPatchJobResultAtomicallyNonArrayMutatorOutputThrowsAndSendsNoPatch(): void

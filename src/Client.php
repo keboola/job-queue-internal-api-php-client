@@ -17,6 +17,7 @@ use JsonException;
 use JsonSerializable;
 use Keboola\JobQueueInternalClient\Exception\ClientException;
 use Keboola\JobQueueInternalClient\Exception\DeduplicationIdConflictException;
+use Keboola\JobQueueInternalClient\Exception\ResultVersionConflictException;
 use Keboola\JobQueueInternalClient\Exception\StateTargetEqualsCurrentException;
 use Keboola\JobQueueInternalClient\Exception\StateTerminalException;
 use Keboola\JobQueueInternalClient\Exception\StateTransitionForbiddenException;
@@ -320,13 +321,15 @@ class Client
 
     /**
      * Read-modify-write a job result under optimistic version locking: retries on 409
-     * conflicts, then falls back to a legacy merge write on exhaustion (so it cannot livelock).
+     * conflicts and, once the retries are exhausted, throws a {@see ResultVersionConflictException}
+     * rather than overwriting the concurrent change (which would defeat the locking).
      *
      * The mutator must return a \JsonSerializable that serializes to an array — the full
      * replacement document, as the versioned PATCH replaces rather than merges.
      *
      * @param callable(array<mixed>): JsonSerializable $mutator
      * @return TJob
+     * @throws ResultVersionConflictException when the version conflict is not resolved within the retry budget
      */
     public function patchJobResultAtomically(string $jobId, callable $mutator): PlainJobInterface
     {
@@ -365,17 +368,15 @@ class Client
                 throw $e;
             }
 
-            // 409 retries exhausted -> unconditional terminal fallback to the legacy merge write.
-            $this->logger->warning(sprintf(
-                'Job "%s" result version conflict not resolved after %d attempts, '
-                . 'falling back to legacy merge write.',
-                $jobId,
-                self::MAX_RESULT_VERSION_RETRIES,
-            ));
-
-            $currentJob = $this->getJob($jobId);
-            $payload = $this->resolveMutatorPayload($mutator, $currentJob->getResult());
-            return $this->patchJobResult($jobId, $payload);
+            throw new ResultVersionConflictException(
+                sprintf(
+                    'Job "%s" result version conflict not resolved after %d attempts.',
+                    $jobId,
+                    self::MAX_RESULT_VERSION_RETRIES,
+                ),
+                $e->getCode(),
+                $e,
+            );
         }
     }
 
