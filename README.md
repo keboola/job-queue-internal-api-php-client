@@ -27,14 +27,16 @@ $client->postJobResult('123', 'success', ['images' => ['digests' => []]]);
 
 `patchJobResultAtomically()` performs an optimistic-locking read-modify-write of a job's
 `result` document. It reads the current result and its `resultVersion`, runs your mutator,
-and writes the full replacement back guarded by that version. On a version conflict (HTTP 409,
-i.e. a concurrent writer changed the result in between) it automatically re-reads and retries a
+and writes it back guarded by that version. The versioned write **merges** the returned keys
+into the current server-side result (the same `array_merge` semantics as the non-versioned
+write), only made atomic by the version check. On a version conflict (HTTP 409, i.e. a
+concurrent writer changed the result in between) it automatically re-reads and retries a
 bounded number of times; if the conflict still cannot be resolved within the retry budget it
 throws a `ResultVersionConflictException` rather than overwriting the concurrent change.
 
 The mutator receives the current result array and must return a `\JsonSerializable` whose
-`jsonSerialize()` yields an array — the **full** replacement document (the versioned write is a
-full replace, not a merge), so always round-trip the whole result:
+`jsonSerialize()` yields an array. The returned keys are merged into the current result — it is
+**not** a full replace, so keys you omit are preserved (you cannot delete a key this way):
 
 ```php
 use Keboola\JobQueueInternalClient\Result\GenericJobResult;

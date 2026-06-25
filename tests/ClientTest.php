@@ -1505,6 +1505,49 @@ Out of order
         );
     }
 
+    public function testPatchJobResultAtomicallySendsOnlyMutatedKeysAndReliesOnServerMerge(): void
+    {
+        // The versioned write merges (it does not replace), so the mutator may return only the
+        // keys it wants to change; the client sends exactly that body and the server merges it
+        // into the current result, keeping the keys the mutator omitted.
+        $mock = new MockHandler([
+            new Response(200, ['Content-Type' => 'application/json'], self::jobResponseJson(
+                '123',
+                ['existing' => 'value'],
+                3,
+            )),
+            new Response(200, ['Content-Type' => 'application/json'], self::jobResponseJson(
+                '123',
+                ['existing' => 'value', 'added' => 'new'],
+                4,
+            )),
+        ]);
+
+        $container = [];
+        $stack = HandlerStack::create($mock);
+        $stack->push(Middleware::history($container));
+        $client = $this->createClientWithInternalToken(options: ['handler' => $stack]);
+
+        // mutator returns ONLY the changed key, not the round-tripped full document
+        $result = $client->patchJobResultAtomically(
+            '123',
+            fn (array $current) => new GenericJobResult(['added' => 'new']),
+        );
+
+        self::assertInstanceOf(Job::class, $result);
+        self::assertIsArray($container);
+        self::assertCount(2, $container);
+        self::assertIsArray($container[1]);
+
+        /** @var Request $patchRequest */
+        $patchRequest = $container[1]['request'];
+        self::assertSame('PATCH', $patchRequest->getMethod());
+        self::assertSame('3', $patchRequest->getHeader('Result-Version')[0]);
+        // the PATCH body carries only the mutated key; the omitted "existing" key is left to the
+        // server-side merge, not re-sent by the client
+        self::assertSame('{"added":"new"}', $patchRequest->getBody()->getContents());
+    }
+
     public function testPatchJobResultAtomicallySingle409ThenSuccess(): void
     {
         $mock = new MockHandler([

@@ -324,8 +324,8 @@ class Client
      * conflicts and, once the retries are exhausted, throws a {@see ResultVersionConflictException}
      * rather than overwriting the concurrent change (which would defeat the locking).
      *
-     * The mutator must return a \JsonSerializable that serializes to an array — the full
-     * replacement document, as the versioned PATCH replaces rather than merges.
+     * The mutator must return a \JsonSerializable that serializes to an array; its keys are
+     * merged into the current result server-side (the versioned PATCH merges, it does not replace).
      *
      * @param callable(array<mixed>): JsonSerializable $mutator
      * @return TJob
