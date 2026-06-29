@@ -10,14 +10,17 @@ use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Middleware;
 use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\Psr7\Response;
+use JsonSerializable;
 use Keboola\JobQueueInternalClient\Client;
 use Keboola\JobQueueInternalClient\Exception\ClientException;
+use Keboola\JobQueueInternalClient\Exception\ResultVersionConflictException;
 use Keboola\JobQueueInternalClient\ExistingJobFactory;
 use Keboola\JobQueueInternalClient\JobFactory\Job;
 use Keboola\JobQueueInternalClient\JobFactory\JobInterface;
 use Keboola\JobQueueInternalClient\JobFactory\JobObjectEncryptor;
 use Keboola\JobQueueInternalClient\JobListOptions;
 use Keboola\JobQueueInternalClient\JobPatchData;
+use Keboola\JobQueueInternalClient\Result\GenericJobResult;
 use Keboola\JobQueueInternalClient\Result\JobMetrics;
 use Keboola\JobQueueInternalClient\Result\JobResult;
 use Keboola\ObjectEncryptor\EncryptorOptions;
@@ -1426,5 +1429,360 @@ Out of order
             . urlencode((new DateTimeImmutable())->format(DATE_ATOM)),
             $request->getUri()->__toString(),
         );
+    }
+
+    /**
+     * @param array<mixed> $result
+     */
+    private static function jobResponseJson(string $id, array $result, int $resultVersion): string
+    {
+        return (string) json_encode([
+            'id' => $id,
+            'runId' => $id,
+            'projectId' => '123',
+            'tokenId' => '123',
+            '#tokenString' => 'KBC::XXX',
+            'componentId' => 'my-component',
+            'status' => 'processing',
+            'desiredStatus' => 'processing',
+            'branchType' => 'default',
+            'result' => $result,
+            'resultVersion' => $resultVersion,
+        ]);
+    }
+
+    public function testPatchJobResultAtomicallyHappyPath(): void
+    {
+        $mock = new MockHandler([
+            new Response(200, ['Content-Type' => 'application/json'], self::jobResponseJson(
+                '123',
+                ['existing' => 'value'],
+                3,
+            )),
+            new Response(200, ['Content-Type' => 'application/json'], self::jobResponseJson(
+                '123',
+                ['existing' => 'value', 'added' => 'new'],
+                4,
+            )),
+        ]);
+
+        $container = [];
+        $stack = HandlerStack::create($mock);
+        $stack->push(Middleware::history($container));
+        $client = $this->createClientWithInternalToken(options: ['handler' => $stack]);
+
+        $receivedByMutator = null;
+        $mutatorOutput = new GenericJobResult(['existing' => 'value', 'added' => 'new']);
+        $result = $client->patchJobResultAtomically(
+            '123',
+            function (array $current) use (&$receivedByMutator, $mutatorOutput) {
+                $receivedByMutator = $current;
+                return $mutatorOutput;
+            },
+        );
+
+        self::assertInstanceOf(Job::class, $result);
+        self::assertSame(['existing' => 'value'], $receivedByMutator);
+
+        self::assertIsArray($container);
+        self::assertCount(2, $container);
+        self::assertIsArray($container[0]);
+        self::assertIsArray($container[1]);
+
+        /** @var Request $getRequest */
+        $getRequest = $container[0]['request'];
+        self::assertSame('GET', $getRequest->getMethod());
+        self::assertSame('http://example.com/jobs/123', $getRequest->getUri()->__toString());
+
+        /** @var Request $patchRequest */
+        $patchRequest = $container[1]['request'];
+        self::assertSame('PATCH', $patchRequest->getMethod());
+        self::assertSame('http://example.com/jobs/123/result', $patchRequest->getUri()->__toString());
+        self::assertSame('3', $patchRequest->getHeader('Result-Version')[0]);
+        self::assertSame(
+            json_encode($mutatorOutput->jsonSerialize()),
+            $patchRequest->getBody()->getContents(),
+        );
+    }
+
+    public function testPatchJobResultAtomicallySendsOnlyMutatedKeysAndReliesOnServerMerge(): void
+    {
+        // The versioned write merges (it does not replace), so the mutator may return only the
+        // keys it wants to change; the client sends exactly that body and the server merges it
+        // into the current result, keeping the keys the mutator omitted.
+        $mock = new MockHandler([
+            new Response(200, ['Content-Type' => 'application/json'], self::jobResponseJson(
+                '123',
+                ['existing' => 'value'],
+                3,
+            )),
+            new Response(200, ['Content-Type' => 'application/json'], self::jobResponseJson(
+                '123',
+                ['existing' => 'value', 'added' => 'new'],
+                4,
+            )),
+        ]);
+
+        $container = [];
+        $stack = HandlerStack::create($mock);
+        $stack->push(Middleware::history($container));
+        $client = $this->createClientWithInternalToken(options: ['handler' => $stack]);
+
+        // mutator returns ONLY the changed key, not the round-tripped full document
+        $result = $client->patchJobResultAtomically(
+            '123',
+            fn (array $current) => new GenericJobResult(['added' => 'new']),
+        );
+
+        self::assertInstanceOf(Job::class, $result);
+        self::assertIsArray($container);
+        self::assertCount(2, $container);
+        self::assertIsArray($container[1]);
+
+        /** @var Request $patchRequest */
+        $patchRequest = $container[1]['request'];
+        self::assertSame('PATCH', $patchRequest->getMethod());
+        self::assertSame('3', $patchRequest->getHeader('Result-Version')[0]);
+        // the PATCH body carries only the mutated key; the omitted "existing" key is left to the
+        // server-side merge, not re-sent by the client
+        self::assertSame('{"added":"new"}', $patchRequest->getBody()->getContents());
+    }
+
+    public function testPatchJobResultAtomicallySingle409ThenSuccess(): void
+    {
+        $mock = new MockHandler([
+            // first attempt
+            new Response(200, ['Content-Type' => 'application/json'], self::jobResponseJson('123', ['a' => 1], 3)),
+            new Response(409, ['Content-Type' => 'application/json'], (string) json_encode([
+                'error' => 'Job "123" result version conflict',
+            ])),
+            // second attempt (re-read with refreshed version, then success)
+            new Response(200, ['Content-Type' => 'application/json'], self::jobResponseJson('123', ['a' => 2], 7)),
+            new Response(
+                200,
+                ['Content-Type' => 'application/json'],
+                self::jobResponseJson('123', ['a' => 2, 'b' => 1], 8),
+            ),
+        ]);
+
+        $container = [];
+        // Use a bare HandlerStack (not HandlerStack::create) so the mock stack does NOT add its
+        // own http_errors layer. The Client's own stack adds http_errors exactly once, mirroring
+        // production's flat stack where a 409 surfaces cleanly (the transport retry decider only
+        // retries >= 500). With a nested HandlerStack::create the inner http_errors would make the
+        // 409 reach the decider's error branch and be retried at transport level, masking the
+        // application-level 409 retry under test.
+        $stack = new HandlerStack($mock);
+        $stack->push(Middleware::history($container));
+        $client = $this->createClientWithInternalToken(
+            options: ['handler' => $stack],
+        );
+
+        $mutatorCalls = 0;
+        $result = $client->patchJobResultAtomically('123', function (array $current) use (&$mutatorCalls) {
+            $mutatorCalls++;
+            $current['b'] = 1;
+            return new GenericJobResult($current);
+        });
+
+        self::assertInstanceOf(Job::class, $result);
+        self::assertSame(2, $mutatorCalls);
+        self::assertIsArray($container);
+        self::assertCount(4, $container);
+        self::assertIsArray($container[1]);
+        self::assertIsArray($container[3]);
+
+        /** @var Request $firstPatch */
+        $firstPatch = $container[1]['request'];
+        self::assertSame('3', $firstPatch->getHeader('Result-Version')[0]);
+
+        /** @var Request $secondPatch */
+        $secondPatch = $container[3]['request'];
+        self::assertSame('PATCH', $secondPatch->getMethod());
+        self::assertSame('7', $secondPatch->getHeader('Result-Version')[0]);
+        self::assertSame(
+            json_encode(['a' => 2, 'b' => 1]),
+            $secondPatch->getBody()->getContents(),
+        );
+    }
+
+    public function testPatchJobResultAtomicallyRetryExhaustionThrowsResultVersionConflictException(): void
+    {
+        // 5 attempts each: GET (version) + PATCH -> 409, then retries are exhausted
+        $responses = [];
+        for ($i = 0; $i < 5; $i++) {
+            $responses[] = new Response(
+                200,
+                ['Content-Type' => 'application/json'],
+                self::jobResponseJson('123', ['a' => $i], $i),
+            );
+            $responses[] = new Response(409, ['Content-Type' => 'application/json'], (string) json_encode([
+                'error' => 'Job "123" result version conflict',
+            ]));
+        }
+
+        $mock = new MockHandler($responses);
+        $container = [];
+        // bare HandlerStack: mirror production's flat stack (see single-409 test for rationale)
+        $stack = new HandlerStack($mock);
+        $stack->push(Middleware::history($container));
+
+        $client = $this->createClientWithInternalToken(
+            options: ['handler' => $stack],
+        );
+
+        try {
+            $client->patchJobResultAtomically('123', function (array $current) {
+                $current['final'] = true;
+                return new GenericJobResult($current);
+            });
+            self::fail('Expected ResultVersionConflictException was not thrown.');
+        } catch (ResultVersionConflictException $e) {
+            self::assertStringContainsString('result version conflict not resolved', $e->getMessage());
+            self::assertSame(409, $e->getCode());
+            // the originating 409 is preserved as the previous exception
+            self::assertInstanceOf(ClientException::class, $e->getPrevious());
+            self::assertSame(409, $e->getPrevious()->getCode());
+        }
+
+        // 5 * (GET + PATCH) = 10 requests, then it throws instead of overwriting
+        self::assertIsArray($container);
+        self::assertCount(10, $container);
+    }
+
+    public function testPatchJobResultAtomicallyNonArrayMutatorOutputThrowsAndSendsNoPatch(): void
+    {
+        $mock = new MockHandler([
+            new Response(200, ['Content-Type' => 'application/json'], self::jobResponseJson('123', ['a' => 1], 3)),
+        ]);
+
+        $container = [];
+        $stack = HandlerStack::create($mock);
+        $stack->push(Middleware::history($container));
+        $client = $this->createClientWithInternalToken(options: ['handler' => $stack]);
+
+        $nonArrayResult = new class implements JsonSerializable {
+            public function jsonSerialize(): string
+            {
+                return 'not-an-array';
+            }
+        };
+
+        try {
+            $client->patchJobResultAtomically('123', fn (array $current) => $nonArrayResult);
+            self::fail('Expected ClientException was not thrown.');
+        } catch (ClientException $e) {
+            self::assertStringContainsString('must serialize to an array', $e->getMessage());
+        }
+
+        // only the GET was performed; no PATCH was sent
+        self::assertIsArray($container);
+        self::assertCount(1, $container);
+        self::assertIsArray($container[0]);
+        /** @var Request $request */
+        $request = $container[0]['request'];
+        self::assertSame('GET', $request->getMethod());
+    }
+
+    public function testPatchJobResultAtomicallyNonJsonSerializableMutatorOutputThrowsAndSendsNoPatch(): void
+    {
+        $mock = new MockHandler([
+            new Response(200, ['Content-Type' => 'application/json'], self::jobResponseJson('123', ['a' => 1], 3)),
+        ]);
+
+        $container = [];
+        $stack = HandlerStack::create($mock);
+        $stack->push(Middleware::history($container));
+        $client = $this->createClientWithInternalToken(options: ['handler' => $stack]);
+
+        try {
+            // mutator violates the contract and returns a plain array instead of a JsonSerializable
+            // @phpstan-ignore-next-line
+            $client->patchJobResultAtomically('123', fn (array $current) => ['not' => 'serializable']);
+            self::fail('Expected ClientException was not thrown.');
+        } catch (ClientException $e) {
+            self::assertStringContainsString('must return a JsonSerializable', $e->getMessage());
+        }
+
+        // only the GET was performed; no PATCH was sent
+        self::assertIsArray($container);
+        self::assertCount(1, $container);
+        self::assertIsArray($container[0]);
+        /** @var Request $request */
+        $request = $container[0]['request'];
+        self::assertSame('GET', $request->getMethod());
+    }
+
+    public function testPatchJobResultAtomicallyInvalidJobId(): void
+    {
+        $client = $this->createClientWithInternalToken();
+
+        $this->expectException(ClientException::class);
+        $this->expectExceptionMessage('Invalid job ID: "".');
+
+        $client->patchJobResultAtomically('', fn (array $current) => new GenericJobResult($current));
+    }
+
+    public function testPatchJobResultAtomicallyNon409ErrorPropagates(): void
+    {
+        $mock = new MockHandler([
+            new Response(200, ['Content-Type' => 'application/json'], self::jobResponseJson('123', ['a' => 1], 3)),
+            new Response(400, ['Content-Type' => 'application/json'], (string) json_encode([
+                'error' => 'Header "Result-Version" must be a non-negative integer',
+            ])),
+        ]);
+
+        $container = [];
+        // bare HandlerStack: mirror production's flat stack (see single-409 test for rationale)
+        $stack = new HandlerStack($mock);
+        $stack->push(Middleware::history($container));
+        $client = $this->createClientWithInternalToken(
+            options: ['handler' => $stack],
+        );
+
+        try {
+            $client->patchJobResultAtomically('123', fn (array $current) => new GenericJobResult($current));
+            self::fail('Expected ClientException was not thrown.');
+        } catch (ClientException $e) {
+            self::assertSame(400, $e->getCode());
+        }
+
+        // GET + the single failing PATCH; no retry, no fallback
+        self::assertIsArray($container);
+        self::assertCount(2, $container);
+    }
+
+    public function testPatchJobResultAtomicallySendsVersionZeroAsString(): void
+    {
+        $mock = new MockHandler([
+            // resultVersion omitted entirely -> defaults to 0
+            new Response(200, ['Content-Type' => 'application/json'], (string) json_encode([
+                'id' => '123',
+                'runId' => '123',
+                'projectId' => '123',
+                'tokenId' => '123',
+                '#tokenString' => 'KBC::XXX',
+                'componentId' => 'my-component',
+                'status' => 'processing',
+                'desiredStatus' => 'processing',
+                'branchType' => 'default',
+                'result' => [],
+            ])),
+            new Response(200, ['Content-Type' => 'application/json'], self::jobResponseJson('123', ['x' => 1], 1)),
+        ]);
+
+        $container = [];
+        $stack = HandlerStack::create($mock);
+        $stack->push(Middleware::history($container));
+        $client = $this->createClientWithInternalToken(options: ['handler' => $stack]);
+
+        $client->patchJobResultAtomically('123', fn (array $current) => new GenericJobResult(['x' => 1]));
+
+        self::assertIsArray($container);
+        self::assertCount(2, $container);
+        self::assertIsArray($container[1]);
+        /** @var Request $patchRequest */
+        $patchRequest = $container[1]['request'];
+        self::assertSame(['0'], $patchRequest->getHeader('Result-Version'));
     }
 }

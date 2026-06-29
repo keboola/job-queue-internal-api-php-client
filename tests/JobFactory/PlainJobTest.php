@@ -91,6 +91,7 @@ class PlainJobTest extends TestCase
             'projectId' => 'project-id',
             'projectName' => 'project-name',
             'result' => ['bar' => 'foo'],
+            'resultVersion' => 42,
             'configRowIds' => ['config-row-id-1', 'config-row-id-2'],
             'status' => 'created',
             'desiredStatus' => 'processing',
@@ -138,6 +139,7 @@ class PlainJobTest extends TestCase
         self::assertSame('project-id', $job->getProjectId());
         self::assertSame('project-name', $job->getProjectName());
         self::assertSame(['bar' => 'foo'], $job->getResult());
+        self::assertSame(42, $job->getResultVersion());
         self::assertSame(['config-row-id-1', 'config-row-id-2'], $job->getConfigRowIds());
         self::assertSame('created', $job->getStatus());
         self::assertSame('processing', $job->getDesiredStatus());
@@ -209,6 +211,7 @@ class PlainJobTest extends TestCase
         self::assertSame([], $job->getConfigData());
         self::assertNull($job->getConfigId());
         self::assertSame([], $job->getResult());
+        self::assertSame(0, $job->getResultVersion());
         self::assertSame([], $job->getConfigRowIds());
         self::assertNull($job->getTag());
         self::assertSame([], $job->getUsageData());
