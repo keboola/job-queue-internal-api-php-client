@@ -1281,4 +1281,22 @@ class JobTest extends BaseTest
             $job->getDelayedStartTime(),
         );
     }
+
+    public function testGetDelay(): void
+    {
+        $jobData = $this->jobData;
+        $jobData['delay'] = '3600';
+        $job = $this->getJob($jobData);
+
+        self::assertSame(3600, $job->getDelay());
+        self::assertSame('3600', $job->jsonSerialize()['delay']);
+    }
+
+    public function testGetDelayReturnsNullWhenNotSet(): void
+    {
+        $jobData = $this->jobData;
+        $job = $this->getJob($jobData);
+
+        self::assertNull($job->getDelay());
+    }
 }

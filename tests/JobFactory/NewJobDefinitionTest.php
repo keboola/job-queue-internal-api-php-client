@@ -284,6 +284,17 @@ class NewJobDefinitionTest extends BaseTest
                 ],
                 '/Invalid configuration for path "job.previousJobId": value cannot be empty string/',
             ],
+            'delayedStartTime and delay set simultaneously' => [
+                [
+                    '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+                    'configId' => '123',
+                    'componentId' => 'keboola.test',
+                    'result' => [],
+                    'delayedStartTime' => '2024-03-20T10:00:00+00:00',
+                    'delay' => 3600,
+                ],
+                '/delayedStartTime and delay cannot be set simultaneously/',
+            ],
         ];
     }
 
