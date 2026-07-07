@@ -149,7 +149,6 @@ class JobRuntimeResolver
 
     private const PAY_AS_YOU_GO_FEATURE = 'pay-as-you-go';
     private const NO_DIND_FEATURE = 'job-queue-no-dind';
-    private const PARALLELISM_ENFORCE_FEATURE = 'job-parallelism-enforce';
 
     private ClientWrapper $clientWrapper;
     private Components $componentsApiClient;
@@ -240,7 +239,7 @@ class JobRuntimeResolver
 
             $jobData['tag'] = $this->resolveTag($jobData);
             $variableValues = $this->resolveVariables();
-            $jobData['parallelism'] = $this->resolveParallelism($jobData, $token);
+            $jobData['parallelism'] = $this->resolveParallelism($jobData);
             $jobData['executor'] = $this->resolveExecutor($jobData, $token)->value;
             $jobData = $this->resolveBranchType($jobData);
 
@@ -431,7 +430,7 @@ class JobRuntimeResolver
     /**
      * @param array{parallelism?: int|string|null} $jobData
      */
-    private function resolveParallelism(array $jobData, StorageApiToken $token): ?string
+    private function resolveParallelism(array $jobData): string
     {
         $parallelism = null;
 
@@ -446,9 +445,7 @@ class JobRuntimeResolver
             }
         }
 
-        if (($parallelism === null || $parallelism === '0')
-            && $token->hasFeature(self::PARALLELISM_ENFORCE_FEATURE)
-        ) {
+        if ($parallelism === null || $parallelism === '0') {
             return '1';
         }
 
