@@ -95,6 +95,7 @@ class Client
                 requestHandler: $requestHandler,
                 logger: $logger,
             ),
+            errorMessageResolver: new TransportErrorMessageResolver(),
         );
     }
 

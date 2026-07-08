@@ -339,6 +339,30 @@ class ClientTest extends BaseTest
         $client->getJob('123');
     }
 
+    public function testClientErrorMessageUsesTransportFormat(): void
+    {
+        $mock = new MockHandler([
+            new Response(
+                404,
+                ['Content-Type' => 'application/json'],
+                (string) json_encode(['error' => 'Job "123" not found']),
+            ),
+        ]);
+        $stack = HandlerStack::create($mock);
+        $client = $this->createClientWithInternalToken(options: ['handler' => $stack, 'backoffMaxTries' => 0]);
+
+        try {
+            $client->getJob('123');
+            self::fail('Expected ClientException was not thrown.');
+        } catch (ClientException $e) {
+            // The transport (Guzzle) message is preserved, not the decoded `error` field, so
+            // callers relying on the historical format (e.g. "404 Not Found") keep working.
+            self::assertStringContainsString('404 Not Found', $e->getMessage());
+            self::assertSame(404, $e->getCode());
+            self::assertSame(['error' => 'Job "123" not found'], $e->getResponseData());
+        }
+    }
+
     public function testLogger(): void
     {
         $mock = new MockHandler([
