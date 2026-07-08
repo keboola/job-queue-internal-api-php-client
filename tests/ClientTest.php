@@ -372,7 +372,7 @@ class ClientTest extends BaseTest
             options: ['handler' => $stack],
         );
         $this->expectException(ClientException::class);
-        $this->expectExceptionMessage('Unable to parse response body into JSON: Syntax error');
+        $this->expectExceptionMessage('Response is not valid JSON: Syntax error');
         $client->getJob('123');
     }
 
@@ -429,8 +429,7 @@ class ClientTest extends BaseTest
         /** @var Request $request */
         $request = $requestHistory[0]['request'];
         self::assertEquals('test agent', $request->getHeader('User-Agent')[0]);
-        self::assertTrue($logsHandler->hasInfoThatContains('"GET  /1.1" 200 '));
-        self::assertTrue($logsHandler->hasInfoThatContains('test agent'));
+        self::assertTrue($logsHandler->hasInfoThatContains('GET http://example.com/jobs/123 : 200'));
     }
 
     public function testRetrySuccess(): void
@@ -505,14 +504,9 @@ class ClientTest extends BaseTest
         $request = $requestHistory[2]['request'];
         self::assertEquals('http://example.com/jobs/123', $request->getUri()->__toString());
 
-        //phpcs:disable Generic.Files.LineLength.MaxExceeded
-        self::assertTrue($logsHandler->hasNoticeThatContains('Got a 500 error with this message: Server error: `GET http://example.com/jobs/123` resulted in a `500 Internal Server Error` response:
-{"message" => "Out of order"}
-, retrying.'));
-        self::assertTrue($logsHandler->hasNoticeThatContains('Got a 500 error with this message: Server error: `GET http://example.com/jobs/123` resulted in a `500 Internal Server Error` response:
-Out of order
-, retrying.'));
-        //phpcs:enable Generic.Files.LineLength.MaxExceeded
+        self::assertTrue($logsHandler->hasWarningThatContains('500 Internal Server Error'));
+        self::assertTrue($logsHandler->hasWarningThatContains('retrying (1 of 10)'));
+        self::assertTrue($logsHandler->hasWarningThatContains('retrying (2 of 10)'));
     }
 
     public function testRetryFailure(): void
@@ -551,12 +545,8 @@ Out of order
         self::assertIsArray($requestHistory);
         self::assertCount(2, $requestHistory);
 
-        //phpcs:disable Generic.Files.LineLength.MaxExceeded
-        self::assertTrue($logsHandler->hasNoticeThatContains('Got a 500 error with this message: Server error: `GET http://example.com/jobs/123` resulted in a `500 Internal Server Error` response:
-{"message" => "Out of order"}
-, retrying.'));
-        self::assertTrue($logsHandler->hasNoticeThatMatches('#We have tried this 1 times.\s*Giving up.#'));
-        //phpcs:enable Generic.Files.LineLength.MaxExceeded
+        self::assertTrue($logsHandler->hasWarningThatContains('500 Internal Server Error'));
+        self::assertTrue($logsHandler->hasWarningThatContains('retrying (1 of 1)'));
     }
 
     public function testRetryFailureReducedBackoff(): void

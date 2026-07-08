@@ -13,9 +13,6 @@ final readonly class InternalApiTokenAuthenticator implements RequestAuthenticat
 {
     public const HEADER = 'X-JobQueue-InternalApi-Token';
 
-    /**
-     * @param non-empty-string $token
-     */
     public function __construct(
         #[SensitiveParameter]
         private string $token,

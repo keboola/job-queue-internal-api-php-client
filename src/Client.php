@@ -6,14 +6,16 @@ namespace Keboola\JobQueueInternalClient;
 
 use Closure;
 use DateTime;
-use GuzzleHttp\Client as GuzzleClient;
-use GuzzleHttp\Exception\ClientException as GuzzleClientException;
-use GuzzleHttp\Exception\GuzzleException;
-use GuzzleHttp\HandlerStack;
-use GuzzleHttp\MessageFormatter;
-use GuzzleHttp\Middleware;
 use GuzzleHttp\Psr7\Request;
 use JsonException;
+use Keboola\ApiClientBase\ApiClient;
+use Keboola\ApiClientBase\ApiClientOptions;
+use Keboola\ApiClientBase\Auth\ManageApiTokenAuthenticator;
+use Keboola\ApiClientBase\Auth\RequestAuthenticatorInterface;
+use Keboola\ApiClientBase\Auth\StorageApiTokenAuthenticator;
+use Keboola\ApiClientBase\Exception\ClientException as ApiClientException;
+use Keboola\ApiClientBase\Json;
+use Keboola\JobQueueInternalClient\Authenticator\InternalApiTokenAuthenticator;
 use Keboola\JobQueueInternalClient\Exception\ClientException;
 use Keboola\JobQueueInternalClient\Exception\DeduplicationIdConflictException;
 use Keboola\JobQueueInternalClient\Exception\StateTargetEqualsCurrentException;
@@ -22,8 +24,6 @@ use Keboola\JobQueueInternalClient\Exception\StateTransitionForbiddenException;
 use Keboola\JobQueueInternalClient\JobFactory\PlainJobInterface;
 use Keboola\JobQueueInternalClient\Result\JobMetrics;
 use Keboola\JobQueueInternalClient\Result\JobResult;
-use Psr\Http\Message\RequestInterface;
-use Psr\Http\Message\ResponseInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Validator\Constraints\NotBlank;
 use Symfony\Component\Validator\Constraints\Range;
@@ -39,9 +39,8 @@ class Client
 {
     private const DEFAULT_USER_AGENT = 'Internal PHP Client';
     private const DEFAULT_BACKOFF_RETRIES = 10;
-    private const JSON_DEPTH = 512;
 
-    protected GuzzleClient $guzzle;
+    private readonly ApiClient $apiClient;
 
     /**
      * @param ExistingJobFactoryInterface<TJob> $existingJobFactory
@@ -72,12 +71,31 @@ class Client
             $options['userAgent'] = self::DEFAULT_USER_AGENT;
         }
 
-        $this->guzzle = $this->initClient(
+        assert($internalQueueApiUrl !== '');
+        assert(is_string($options['userAgent']));
+        assert($options['backoffMaxTries'] >= 0);
+
+        $requestHandler = null;
+        if (isset($options['handler']) && is_callable($options['handler'])) {
+            // Force the base to nest the provided handler as its *base* handler (so its auth/retry/
+            // log middleware wrap the caller's handler), matching how this client behaved before and
+            // keeping test history middleware capturing post-auth requests.
+            $requestHandler = Closure::fromCallable($options['handler']);
+        }
+
+        $logger = ($options['logger'] ?? null) instanceof LoggerInterface
+            ? $options['logger']
+            : $this->logger;
+
+        $this->apiClient = new ApiClient(
             $internalQueueApiUrl,
-            $internalQueueToken,
-            $storageApiToken,
-            $applicationToken,
-            $options,
+            $this->createAuthenticator($internalQueueToken, $storageApiToken, $applicationToken),
+            new ApiClientOptions(
+                userAgent: $options['userAgent'],
+                backoffMaxTries: $options['backoffMaxTries'],
+                requestHandler: $requestHandler,
+                logger: $logger,
+            ),
         );
     }
 
@@ -146,7 +164,7 @@ class Client
     {
         try {
             $jobData = json_encode($job, JSON_THROW_ON_ERROR);
-            $request = new Request('POST', 'jobs', [], $jobData);
+            $request = $this->createRequest('POST', 'jobs', (string) $jobData);
         } catch (JsonException $e) {
             throw new ClientException('Invalid job data: ' . $e->getMessage(), $e->getCode(), $e);
         }
@@ -158,7 +176,7 @@ class Client
     {
         try {
             $jobsData = json_encode($jobs, JSON_THROW_ON_ERROR);
-            $request = new Request('POST', 'jobs/batch', [], $jobsData);
+            $request = $this->createRequest('POST', 'jobs/batch', (string) $jobsData);
         } catch (JsonException $e) {
             throw new ClientException('Invalid json of jobs: ' . $e->getMessage(), $e->getCode(), $e);
         }
@@ -179,7 +197,7 @@ class Client
             throw new ClientException(sprintf('Invalid job ID: "%s".', $jobId));
         }
 
-        $request = new Request('GET', 'jobs/' . $jobId);
+        $request = $this->createRequest('GET', 'jobs/' . $jobId);
         $result = $this->sendRequest($request);
         return $this->existingJobFactory->loadFromExistingJobData($result);
     }
@@ -193,7 +211,7 @@ class Client
         $i = 1;
         $listOptions = clone $listOptions;
         do {
-            $request = new Request('GET', 'jobs?' . implode('&', $listOptions->getQueryParameters()));
+            $request = $this->createRequest('GET', 'jobs?' . implode('&', $listOptions->getQueryParameters()));
             $result = $this->sendRequest($request);
             $chunk = $this->mapJobsFromResponse($result);
             $jobs = array_merge($jobs, $chunk);
@@ -262,11 +280,10 @@ class Client
             throw new ClientException(sprintf('Invalid job ID: "%s".', $jobId));
         }
         /** @noinspection PhpUnhandledExceptionInspection */
-        $request = new Request(
+        $request = $this->createRequest(
             'PUT',
             'jobs/' . $jobId,
-            [],
-            json_encode($patchData->jsonSerialize(), JSON_THROW_ON_ERROR),
+            (string) json_encode($patchData->jsonSerialize(), JSON_THROW_ON_ERROR),
         );
         return $this->existingJobFactory->loadFromExistingJobData($this->sendRequest($request));
     }
@@ -284,11 +301,10 @@ class Client
             throw new ClientException(sprintf('Invalid job ID: "%s".', $jobId));
         }
         /** @noinspection PhpUnhandledExceptionInspection */
-        $request = new Request(
+        $request = $this->createRequest(
             'PUT',
             'jobs/' . $jobId,
-            [],
-            json_encode(
+            (string) json_encode(
                 ['status' => $status, 'result' => $result, 'metrics' => $metrics],
                 JSON_THROW_ON_ERROR,
             ),
@@ -304,11 +320,10 @@ class Client
         if ($jobId === '') {
             throw new ClientException(sprintf('Invalid job ID: "%s".', $jobId));
         }
-        $request = new Request(
+        $request = $this->createRequest(
             'PATCH',
             'jobs/' . $jobId . '/result',
-            [],
-            json_encode($patchData, JSON_THROW_ON_ERROR),
+            (string) json_encode($patchData, JSON_THROW_ON_ERROR),
         );
         return $this->existingJobFactory->loadFromExistingJobData($this->sendRequest($request));
     }
@@ -324,7 +339,10 @@ class Client
         $i = 1;
         $options = clone $options;
         do {
-            $request = new Request('GET', 'configurations-jobs?' . implode('&', $options->getQueryParameters()));
+            $request = $this->createRequest(
+                'GET',
+                'configurations-jobs?' . implode('&', $options->getQueryParameters()),
+            );
             $result = $this->sendRequest($request);
             $chunk = $this->mapJobsFromResponse($result);
             $jobs = array_merge($jobs, $chunk);
@@ -345,7 +363,7 @@ class Client
         $i = 1;
         $options = clone $options;
         do {
-            $request = new Request(
+            $request = $this->createRequest(
                 'GET',
                 sprintf(
                     'latest-configurations-jobs?%s',
@@ -367,7 +385,7 @@ class Client
             throw new ClientException(sprintf('Invalid project ID: "%s".', $projectId));
         }
 
-        $request = new Request('GET', 'stats/projects/' . $projectId);
+        $request = $this->createRequest('GET', 'stats/projects/' . $projectId);
         $response = $this->sendRequest($request);
         assert(isset($response['stats']) && is_array($response['stats']));
         assert(is_scalar($response['stats']['durationSum']));
@@ -411,7 +429,7 @@ class Client
     /** @return TJob[] */
     public function searchJobsRaw(array $rawQuery): array
     {
-        $request = new Request('GET', 'search/jobs?' . http_build_query($rawQuery));
+        $request = $this->createRequest('GET', 'search/jobs?' . http_build_query($rawQuery));
         $response = $this->sendRequest($request);
 
         return $this->mapJobsFromSearchResponse($response);
@@ -489,7 +507,7 @@ class Client
      */
     public function searchJobsGroupedRaw(array $query): array
     {
-        $request = new Request('GET', 'search/grouped-jobs?' . http_build_query($query));
+        $request = $this->createRequest('GET', 'search/grouped-jobs?' . http_build_query($query));
         /**
          * @var array<int, array{
          *     group: array<string, string>,
@@ -534,118 +552,57 @@ class Client
         return array_filter($jobs);
     }
 
-    private function createDefaultDecider(int $maxRetries): Closure
-    {
-        return function (
-            int $retries,
-            RequestInterface $request,
-            ?ResponseInterface $response = null,
-            $error = null,
-        ) use ($maxRetries) {
-            if ($retries >= $maxRetries) {
-                $this->logger->notice(sprintf('We have tried this %d times. Giving up.', $maxRetries));
-                return false;
-            } elseif ($response && $response->getStatusCode() >= 500) {
-                $this->logger->notice(sprintf(
-                    'Got a %s response for this reason: %s, retrying.',
-                    $response->getStatusCode(),
-                    $response->getReasonPhrase(),
-                ));
-                return true;
-            } elseif ($error) {
-                if ($error instanceof Throwable) {
-                    $this->logger->notice(sprintf(
-                        'Got a %s error with this message: %s, retrying.',
-                        $error->getCode(),
-                        $error->getMessage(),
-                    ));
-                }
-                return true;
-            } else {
-                return false;
-            }
-        };
+    private function createAuthenticator(
+        ?string $internalQueueToken,
+        ?string $storageApiToken,
+        ?string $applicationToken,
+    ): RequestAuthenticatorInterface {
+        if ($internalQueueToken !== null) {
+            assert($internalQueueToken !== '');
+            return new InternalApiTokenAuthenticator($internalQueueToken);
+        }
+        if ($storageApiToken !== null) {
+            assert($storageApiToken !== '');
+            return new StorageApiTokenAuthenticator($storageApiToken);
+        }
+        if ($applicationToken !== null) {
+            assert($applicationToken !== '');
+            return new ManageApiTokenAuthenticator($applicationToken);
+        }
+        // validateConfiguration() guarantees exactly one token is set; this satisfies the return type.
+        throw new ClientException(
+            'No token provided (internalQueueToken, storageApiToken and applicationToken are empty)',
+        );
     }
 
-    private function initClient(
-        string $url,
-        ?string $internalToken,
-        ?string $storageToken,
-        ?string $applicationToken,
-        array $options = [],
-    ): GuzzleClient {
-        // Initialize handlers (start with those supplied in constructor)
-        if (isset($options['handler']) && is_callable($options['handler'])) {
-            $handlerStack = HandlerStack::create($options['handler']);
-        } else {
-            $handlerStack = HandlerStack::create();
-        }
-        // Set exponential backoff
-        assert(is_int($options['backoffMaxTries']));
-        $handlerStack->push(Middleware::retry($this->createDefaultDecider($options['backoffMaxTries'])));
-        // Set handler to set default headers
-        $handlerStack->push(Middleware::mapRequest(
-            function (RequestInterface $request) use ($internalToken, $storageToken, $applicationToken, $options) {
-                assert(is_string($options['userAgent']));
-                $request = $request->withHeader('User-Agent', $options['userAgent'])
-                        ->withHeader('Content-type', 'application/json');
-                if ($internalToken !== null) {
-                    $request = $request->withHeader('X-JobQueue-InternalApi-Token', $internalToken);
-                }
-                if ($storageToken !== null) {
-                    $request = $request->withHeader('X-StorageApi-Token', $storageToken);
-                }
-                if ($applicationToken !== null) {
-                    $request = $request->withHeader('X-KBC-ManageApiToken', $applicationToken);
-                }
-                return $request;
-            },
-        ));
-        // Set client logger
-        if (isset($options['logger']) && $options['logger'] instanceof LoggerInterface) {
-            $handlerStack->push(Middleware::log(
-                $options['logger'],
-                new MessageFormatter(
-                    '{hostname} {req_header_User-Agent} - [{ts}] "{method} {resource} {protocol}/{version}"' .
-                    ' {code} {res_header_Content-Length}',
-                ),
-            ));
-        }
-        // finally create the instance
-        return new GuzzleClient([
-            'base_uri' => $url,
-            'handler' => $handlerStack,
-            'connect_timeout' => 10,
-            'timeout' => 120,
-        ]);
+    private function createRequest(string $method, string $uri, string $body = ''): Request
+    {
+        return new Request($method, $uri, ['Content-Type' => 'application/json'], $body);
     }
 
     private function sendRequest(Request $request): array
     {
         try {
-            $response = $this->guzzle->send($request);
-            $data = $this->decodeRequestBody($response);
-            return $data ?: [];
-        } catch (GuzzleClientException $e) {
-            $body = $this->decodeRequestBody($e->getResponse());
+            return $this->apiClient->sendRequestAndMapResponse($request, ArrayResponse::class)->data;
+        } catch (ApiClientException $e) {
+            $body = $this->decodeErrorBody($e->getResponseBody());
             $this->throwExceptionByStringCode($body, $e);
             throw new ClientException($e->getMessage(), $e->getCode(), $e, $body);
-        } catch (GuzzleException $e) {
-            throw new ClientException($e->getMessage(), $e->getCode(), $e);
         }
     }
 
-    private function decodeRequestBody(ResponseInterface $response): array
+    /**
+     * @return array<mixed>
+     */
+    private function decodeErrorBody(?string $body): array
     {
+        if ($body === null || $body === '') {
+            return [];
+        }
         try {
-            return (array) json_decode(
-                (string) $response->getBody(),
-                true,
-                self::JSON_DEPTH,
-                JSON_THROW_ON_ERROR,
-            );
-        } catch (Throwable $e) {
-            throw new ClientException('Unable to parse response body into JSON: ' . $e->getMessage());
+            return Json::decodeArray($body);
+        } catch (JsonException) {
+            return [];
         }
     }
 

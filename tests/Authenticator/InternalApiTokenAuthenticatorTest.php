@@ -25,6 +25,6 @@ class InternalApiTokenAuthenticatorTest extends TestCase
     public function testEmptyTokenThrows(): void
     {
         $this->expectException(InvalidArgumentException::class);
-        new InternalApiTokenAuthenticator(''); // @phpstan-ignore-line
+        new InternalApiTokenAuthenticator('');
     }
 }
