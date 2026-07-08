@@ -211,6 +211,7 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
             'previousJobId' => null,
             'onlyOrchestrationTaskIds' => null,
             'delayedStartTime' => null,
+            'resultVersion' => 0,
         ];
         self::assertEquals($expected, $response);
     }
@@ -318,7 +319,7 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
                 ],
                 'metrics' => [],
                 'type' => 'standard',
-                'parallelism' => null,
+                'parallelism' => '1',
                 'behavior' => [
                     'onError' => null,
                 ],
@@ -331,6 +332,7 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
                 'previousJobId' => null,
                 'onlyOrchestrationTaskIds' => null,
                 'delayedStartTime' => null,
+                'resultVersion' => 0,
             ];
             self::assertEquals($expected, $responseJobJson);
         }

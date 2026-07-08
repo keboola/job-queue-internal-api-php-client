@@ -9,6 +9,7 @@ use DateTime;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Psr7\Request;
 use JsonException;
+use JsonSerializable;
 use Keboola\ApiClientBase\ApiClient;
 use Keboola\ApiClientBase\ApiClientOptions;
 use Keboola\ApiClientBase\Auth\ManageApiTokenAuthenticator;
@@ -19,6 +20,7 @@ use Keboola\ApiClientBase\Json;
 use Keboola\JobQueueInternalClient\Authenticator\InternalApiTokenAuthenticator;
 use Keboola\JobQueueInternalClient\Exception\ClientException;
 use Keboola\JobQueueInternalClient\Exception\DeduplicationIdConflictException;
+use Keboola\JobQueueInternalClient\Exception\ResultVersionConflictException;
 use Keboola\JobQueueInternalClient\Exception\StateTargetEqualsCurrentException;
 use Keboola\JobQueueInternalClient\Exception\StateTerminalException;
 use Keboola\JobQueueInternalClient\Exception\StateTransitionForbiddenException;
@@ -27,6 +29,9 @@ use Keboola\JobQueueInternalClient\Result\JobMetrics;
 use Keboola\JobQueueInternalClient\Result\JobResult;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
+use Retry\BackOff\LinearBackOffPolicy;
+use Retry\Policy\CallableRetryPolicy;
+use Retry\RetryProxy;
 use Symfony\Component\Validator\Constraints\NotBlank;
 use Symfony\Component\Validator\Constraints\Url;
 use Symfony\Component\Validator\ConstraintViolationInterface;
@@ -40,6 +45,13 @@ class Client
 {
     private const DEFAULT_USER_AGENT = 'Internal PHP Client';
     private const DEFAULT_BACKOFF_RETRIES = 10;
+
+    /**
+     * Maximum number of attempts (incl. the initial try) for the optimistic-locking
+     * read-modify-write loop in {@see self::patchJobResultAtomically()}. keboola/retry's
+     * CallableRetryPolicy counts the initial try as attempt 1.
+     */
+    private const MAX_RESULT_VERSION_RETRIES = 5;
 
     private readonly ApiClient $apiClient;
     private readonly LoggerInterface $logger;
@@ -303,10 +315,111 @@ class Client
         if ($jobId === '') {
             throw new ClientException(sprintf('Invalid job ID: "%s".', $jobId));
         }
+        return $this->sendPatchJobResultRequest($jobId, $patchData, []);
+    }
+
+    /**
+     * Read-modify-write a job result under optimistic version locking: retries on 409
+     * conflicts and, once the retries are exhausted, throws a {@see ResultVersionConflictException}
+     * rather than overwriting the concurrent change (which would defeat the locking).
+     *
+     * The mutator must return a \JsonSerializable that serializes to an array; its keys are
+     * merged into the current result server-side (the versioned PATCH merges, it does not replace).
+     *
+     * @param callable(array<mixed>): JsonSerializable $mutator
+     * @return TJob
+     * @throws ResultVersionConflictException when the version conflict is not resolved within the retry budget
+     */
+    public function patchJobResultAtomically(string $jobId, callable $mutator): PlainJobInterface
+    {
+        if ($jobId === '') {
+            throw new ClientException(sprintf('Invalid job ID: "%s".', $jobId));
+        }
+
+        $retryProxy = new RetryProxy(
+            new CallableRetryPolicy(
+                fn (Throwable $e) => $e instanceof ClientException && $e->getCode() === 409,
+                self::MAX_RESULT_VERSION_RETRIES,
+            ),
+            // result-version conflicts are rare (only on concurrent writes); a small linear
+            // back-off is enough — 200ms, 400ms, 600ms, … between attempts.
+            new LinearBackOffPolicy(200, 200),
+            $this->logger,
+        );
+
+        try {
+            /** @var TJob $job */
+            $job = $retryProxy->call(function () use ($jobId, $mutator): PlainJobInterface {
+                $currentJob = $this->getJob($jobId);
+                $payload = $this->resolveMutatorPayload($mutator, $currentJob->getResult());
+                return $this->sendPatchJobResultRequest(
+                    $jobId,
+                    $payload,
+                    ['Result-Version' => (string) $currentJob->getResultVersion()],
+                );
+            });
+            return $job;
+            // RetryProxy::call() rethrows the action's last exception (a 409 ClientException on
+            // exhaustion); PHPStan cannot infer this through its mixed/@throws signature.
+            // @phpstan-ignore catch.neverThrown
+        } catch (ClientException $e) {
+            if ($e->getCode() !== 409) {
+                throw $e;
+            }
+
+            throw new ResultVersionConflictException(
+                sprintf(
+                    'Job "%s" result version conflict not resolved after %d attempts.',
+                    $jobId,
+                    self::MAX_RESULT_VERSION_RETRIES,
+                ),
+                $e->getCode(),
+                $e,
+            );
+        }
+    }
+
+    /**
+     * Runs the mutator and validates it returns a \JsonSerializable that serializes to an array.
+     *
+     * @param callable(array<mixed>): JsonSerializable $mutator
+     * @param array<mixed> $current
+     * @return array<mixed>
+     */
+    private function resolveMutatorPayload(callable $mutator, array $current): array
+    {
+        $result = $mutator($current);
+        // Defensive: a callable's runtime return type is not enforced, so a contract-violating
+        // mutator fails with a clear ClientException instead of a fatal TypeError.
+        // @phpstan-ignore instanceof.alwaysTrue
+        if (!$result instanceof JsonSerializable) {
+            throw new ClientException(sprintf(
+                'Mutator must return a JsonSerializable, got "%s".',
+                get_debug_type($result),
+            ));
+        }
+        $payload = $result->jsonSerialize();
+        if (!is_array($payload)) {
+            throw new ClientException(sprintf(
+                'Mutator return value must serialize to an array, got "%s".',
+                get_debug_type($payload),
+            ));
+        }
+        return $payload;
+    }
+
+    /**
+     * @param array<mixed> $patchData
+     * @param array<string, string> $headers
+     * @return TJob
+     */
+    private function sendPatchJobResultRequest(string $jobId, array $patchData, array $headers): PlainJobInterface
+    {
         $request = $this->createRequest(
             'PATCH',
             'jobs/' . $jobId . '/result',
             (string) json_encode($patchData, JSON_THROW_ON_ERROR),
+            $headers,
         );
         return $this->existingJobFactory->loadFromExistingJobData($this->sendRequest($request));
     }
@@ -558,9 +671,12 @@ class Client
         );
     }
 
-    private function createRequest(string $method, string $uri, string $body = ''): Request
+    /**
+     * @param array<string, string> $headers
+     */
+    private function createRequest(string $method, string $uri, string $body = '', array $headers = []): Request
     {
-        return new Request($method, $uri, ['Content-Type' => 'application/json'], $body);
+        return new Request($method, $uri, ['Content-Type' => 'application/json'] + $headers, $body);
     }
 
     private function sendRequest(Request $request): array

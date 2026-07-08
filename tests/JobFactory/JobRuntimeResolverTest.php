@@ -560,7 +560,7 @@ class JobRuntimeResolverTest extends TestCase
                     ],
                 ],
                 'tag' => '4.5.6',
-                'parallelism' => '0',
+                'parallelism' => '1',
                 'executor' => 'dind',
                 'branchType' => 'default',
                 'type' => 'standard',
@@ -613,7 +613,7 @@ class JobRuntimeResolverTest extends TestCase
                 ],
                 'branchId' => self::DEFAULT_BRANCH_ID,
                 'tag' => '9.9.9',
-                'parallelism' => null,
+                'parallelism' => '1',
                 'executor' => 'dind',
                 'branchType' => 'default',
                 'type' => 'standard',
@@ -678,7 +678,7 @@ class JobRuntimeResolverTest extends TestCase
             ],
             'configData' => $configData,
             'tag' => '9.9.9',
-            'parallelism' => null,
+            'parallelism' => '1',
             'executor' => $expectedResult,
             'type' => 'standard',
             'variableValuesId' => null,
@@ -892,7 +892,7 @@ class JobRuntimeResolverTest extends TestCase
                 ],
                 'branchId' => self::DEFAULT_BRANCH_ID,
                 'tag' => '9.9.9',
-                'parallelism' => null,
+                'parallelism' => '1',
                 'executor' => 'dind',
                 'branchType' => 'default',
                 'type' => 'standard',
@@ -936,7 +936,7 @@ class JobRuntimeResolverTest extends TestCase
                 ],
                 'branchId' => self::DEFAULT_BRANCH_ID,
                 'tag' => '9.9.9',
-                'parallelism' => null,
+                'parallelism' => '1',
                 'executor' => 'dind',
                 'branchType' => 'default',
                 'type' => 'standard',
@@ -985,7 +985,7 @@ class JobRuntimeResolverTest extends TestCase
                 ],
                 'branchId' => self::DEFAULT_BRANCH_ID,
                 'tag' => '9.9.9',
-                'parallelism' => null,
+                'parallelism' => '1',
                 'executor' => 'dind',
                 'branchType' => 'default',
                 'type' => 'standard',
@@ -1806,7 +1806,7 @@ class JobRuntimeResolverTest extends TestCase
                 'branchId' => self::DEFAULT_BRANCH_ID,
                 'tag' => '1.2.3',
                 'configData' => $jobData['configData'],
-                'parallelism' => null,
+                'parallelism' => '1',
                 'executor' => 'dind',
                 'branchType' => 'default',
                 'type' => 'standard',
@@ -1862,7 +1862,7 @@ class JobRuntimeResolverTest extends TestCase
                 ],
                 'branchId' => $expectedBranchId,
                 'tag' => '1.2.3',
-                'parallelism' => null,
+                'parallelism' => '1',
                 'executor' => 'dind',
                 'branchType' => $expectedBranchType,
                 'type' => 'standard',
@@ -2240,37 +2240,26 @@ class JobRuntimeResolverTest extends TestCase
 
     public function resolveParallelismEnforceDataProvider(): Generator
     {
-        yield 'feature on, no parallelism' => [
-            'features' => ['job-parallelism-enforce'],
+        yield 'no parallelism' => [
             'jobParallelism' => null,
             'expectedParallelism' => '1',
         ];
 
-        yield 'feature on, parallelism 0' => [
-            'features' => ['job-parallelism-enforce'],
+        yield 'parallelism 0' => [
             'jobParallelism' => '0',
             'expectedParallelism' => '1',
         ];
 
-        yield 'feature on, parallelism 5' => [
-            'features' => ['job-parallelism-enforce'],
+        yield 'parallelism 5' => [
             'jobParallelism' => '5',
             'expectedParallelism' => '5',
-        ];
-
-        yield 'feature off, no parallelism' => [
-            'features' => [],
-            'jobParallelism' => null,
-            'expectedParallelism' => null,
         ];
     }
 
     /**
      * @dataProvider resolveParallelismEnforceDataProvider
-     * @param array<string> $features
      */
     public function testResolveParallelismEnforce(
-        array $features,
         ?string $jobParallelism,
         ?string $expectedParallelism,
     ): void {
@@ -2299,12 +2288,12 @@ class JobRuntimeResolverTest extends TestCase
             $this->prepareStorageClientFactoryMock($storageClient),
         );
 
-        $resolvedJobData = $jobRuntimeResolver->resolveJobData($jobData, $this->createToken($features));
+        $resolvedJobData = $jobRuntimeResolver->resolveJobData($jobData, $this->createToken([]));
 
         self::assertSame(
             $expectedParallelism,
             $resolvedJobData['parallelism'] ?? null,
-            sprintf('Failed asserting parallelism for features [%s]', implode(', ', $features)),
+            sprintf('Failed asserting parallelism for job parallelism "%s"', $jobParallelism ?? 'null'),
         );
     }
 }
