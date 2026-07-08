@@ -363,6 +363,27 @@ class ClientTest extends BaseTest
         }
     }
 
+    public function testClientErrorWithEmptyBodyThrowsParseErrorWithZeroCode(): void
+    {
+        // The internal API can return a 4xx with an empty body (e.g. a job gone during
+        // termination). The historical client surfaced this as an "Unable to parse..." exception
+        // with code 0; callers and the service-container console exit code (Symfony maps <=0 to 1)
+        // depend on it, so it must not become a code-404 exception (which Symfony clamps to 255).
+        $mock = new MockHandler([
+            new Response(404, ['Content-Type' => 'application/json'], ''),
+        ]);
+        $stack = HandlerStack::create($mock);
+        $client = $this->createClientWithInternalToken(options: ['handler' => $stack, 'backoffMaxTries' => 0]);
+
+        try {
+            $client->getJob('123');
+            self::fail('Expected ClientException was not thrown.');
+        } catch (ClientException $e) {
+            self::assertStringContainsString('Unable to parse response body into JSON', $e->getMessage());
+            self::assertSame(0, $e->getCode());
+        }
+    }
+
     public function testLogger(): void
     {
         $mock = new MockHandler([

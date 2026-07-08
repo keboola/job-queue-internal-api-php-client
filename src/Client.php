@@ -685,24 +685,29 @@ class Client
         try {
             return $this->apiClient->sendRequestAndMapResponse($request, ArrayResponse::class)->data;
         } catch (ApiClientException $e) {
-            $body = $this->decodeErrorBody($e->getResponseBody());
-            $this->throwExceptionByStringCode($body, $e);
-            throw new ClientException($e->getMessage(), $e->getCode(), $e, $body);
+            $statusCode = $e->getStatusCode();
+            // Client (4xx) errors mirror the historical client: the body is decoded first, so an
+            // unparseable/empty body surfaces as an "Unable to parse..." ClientException (code 0),
+            // and a recognised context.stringCode maps to a typed exception. Server (5xx) errors,
+            // transport failures and non-JSON success bodies are surfaced with the base message/code.
+            if ($statusCode !== null && $statusCode >= 400 && $statusCode < 500) {
+                $body = $this->decodeResponseBody((string) $e->getResponseBody());
+                $this->throwExceptionByStringCode($body, $e);
+                throw new ClientException($e->getMessage(), $e->getCode(), $e, $body);
+            }
+            throw new ClientException($e->getMessage(), $e->getCode(), $e);
         }
     }
 
     /**
      * @return array<mixed>
      */
-    private function decodeErrorBody(?string $body): array
+    private function decodeResponseBody(string $body): array
     {
-        if ($body === null || $body === '') {
-            return [];
-        }
         try {
             return Json::decodeArray($body);
-        } catch (JsonException) {
-            return [];
+        } catch (JsonException $e) {
+            throw new ClientException('Unable to parse response body into JSON: ' . $e->getMessage());
         }
     }
 
