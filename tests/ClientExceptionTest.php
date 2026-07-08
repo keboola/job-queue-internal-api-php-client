@@ -22,12 +22,15 @@ use Keboola\ObjectEncryptor\EncryptorOptions;
 use Keboola\ObjectEncryptor\ObjectEncryptor;
 use Keboola\StorageApiBranch\Factory\ClientOptions;
 use Keboola\StorageApiBranch\Factory\StorageClientPlainFactory;
-use Psr\Log\NullLogger;
 use Throwable;
 
 class ClientExceptionTest extends BaseTest
 {
     /**
+     * @param array{
+     *     handler?: HandlerStack,
+     *     backoffMaxTries?: int<0, max>,
+     * } $options
      * @return Client<JobInterface>
      */
     private function getClient(array $options): Client
@@ -49,14 +52,14 @@ class ClientExceptionTest extends BaseTest
             new JobObjectEncryptor($objectEncryptor),
         );
 
+        $handler = $options['handler'] ?? null;
+
         return new Client(
-            new NullLogger(),
             $existingJobFactory,
             'http://example.com/',
-            'testToken',
-            null,
-            null,
-            $options,
+            internalQueueToken: 'testToken',
+            backoffMaxTries: $options['backoffMaxTries'] ?? 10,
+            requestHandler: $handler !== null ? $handler(...) : null,
         );
     }
 

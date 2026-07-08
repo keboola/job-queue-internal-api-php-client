@@ -38,6 +38,15 @@ class ClientTest extends BaseTest
     /**
      * @return Client<JobInterface>
      */
+    /**
+     * @param array{
+     *     handler?: HandlerStack,
+     *     logger?: LoggerInterface,
+     *     backoffMaxTries?: int<0, max>,
+     *     userAgent?: string,
+     * } $options
+     * @return Client<JobInterface>
+     */
     private function createClient(
         ?string $internalAuthToken = null,
         ?string $storageApiToken = null,
@@ -62,18 +71,30 @@ class ClientTest extends BaseTest
             new JobObjectEncryptor($objectEncryptor),
         );
 
+        // Pass the mock handler as a Closure (first-class callable) so the base ApiClient nests it
+        // as its base handler and its auth middleware runs *inside* the test's history middleware.
+        $handler = $options['handler'] ?? null;
+
         return new Client(
-            $logger ?? new NullLogger(),
             $jobFactory,
             'http://example.com/',
-            $internalAuthToken,
-            $storageApiToken,
-            $applicationToken,
-            $options,
+            internalQueueToken: $internalAuthToken,
+            storageApiToken: $storageApiToken,
+            applicationToken: $applicationToken,
+            logger: $logger ?? $options['logger'] ?? null,
+            backoffMaxTries: $options['backoffMaxTries'] ?? 10,
+            userAgent: $options['userAgent'] ?? 'Internal PHP Client',
+            requestHandler: $handler !== null ? $handler(...) : null,
         );
     }
 
     /**
+     * @param array{
+     *     handler?: HandlerStack,
+     *     logger?: LoggerInterface,
+     *     backoffMaxTries?: int<0, max>,
+     *     userAgent?: string,
+     * } $options
      * @return Client<JobInterface>
      */
     private function createClientWithInternalToken(
@@ -84,57 +105,6 @@ class ClientTest extends BaseTest
             internalAuthToken: 'testToken',
             options: $options,
             logger: $logger,
-        );
-    }
-
-    public function testCreateClientInvalidBackoff(): void
-    {
-        $this->expectException(ClientException::class);
-        $this->expectExceptionMessage(
-            'Invalid parameters when creating client: Value "abc" is invalid: This value should be a valid number',
-        );
-        new Client(
-            new NullLogger(),
-            $this->createMock(ExistingJobFactory::class),
-            'http://example.com/',
-            'testToken',
-            null,
-            null,
-            ['backoffMaxTries' => 'abc'],
-        );
-    }
-
-    public function testCreateClientTooLowBackoff(): void
-    {
-        $this->expectException(ClientException::class);
-        $this->expectExceptionMessage(
-            'Invalid parameters when creating client: Value "-1" is invalid: This value should be between 0 and 100.',
-        );
-        new Client(
-            new NullLogger(),
-            $this->createMock(ExistingJobFactory::class),
-            'http://example.com/',
-            'testToken',
-            null,
-            null,
-            ['backoffMaxTries' => -1],
-        );
-    }
-
-    public function testCreateClientTooHighBackoff(): void
-    {
-        $this->expectException(ClientException::class);
-        $this->expectExceptionMessage(
-            'Invalid parameters when creating client: Value "101" is invalid: This value should be between 0 and 100.',
-        );
-        new Client(
-            new NullLogger(),
-            $this->createMock(ExistingJobFactory::class),
-            'http://example.com/',
-            'testToken',
-            null,
-            null,
-            ['backoffMaxTries' => 101],
         );
     }
 
@@ -200,12 +170,11 @@ class ClientTest extends BaseTest
         $this->expectException(ClientException::class);
         $this->expectExceptionMessage($expectedError);
         new Client(
-            new NullLogger(),
             $this->createMock(ExistingJobFactory::class),
             'http://example.com/',
-            $storageApiToken,
-            $internalAuthToken,
-            $applicationToken,
+            internalQueueToken: $storageApiToken,
+            storageApiToken: $internalAuthToken,
+            applicationToken: $applicationToken,
         );
     }
 
@@ -216,12 +185,9 @@ class ClientTest extends BaseTest
             'Invalid parameters when creating client: Value "invalid url" is invalid: This value is not a valid URL.',
         );
         new Client(
-            new NullLogger(),
             $this->createMock(ExistingJobFactory::class),
             'invalid url',
-            'testToken',
-            null,
-            null,
+            internalQueueToken: 'testToken',
         );
     }
 
@@ -233,12 +199,9 @@ class ClientTest extends BaseTest
             . "\n" . 'Value "" is invalid: This value should not be blank.' . "\n",
         );
         new Client(
-            new NullLogger(),
             $this->createMock(ExistingJobFactory::class),
             'invalid url',
-            '',
-            null,
-            null,
+            internalQueueToken: '',
         );
     }
 

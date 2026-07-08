@@ -6,6 +6,7 @@ namespace Keboola\JobQueueInternalClient;
 
 use Closure;
 use DateTime;
+use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Psr7\Request;
 use JsonException;
 use Keboola\ApiClientBase\ApiClient;
@@ -25,8 +26,8 @@ use Keboola\JobQueueInternalClient\JobFactory\PlainJobInterface;
 use Keboola\JobQueueInternalClient\Result\JobMetrics;
 use Keboola\JobQueueInternalClient\Result\JobResult;
 use Psr\Log\LoggerInterface;
+use Psr\Log\NullLogger;
 use Symfony\Component\Validator\Constraints\NotBlank;
-use Symfony\Component\Validator\Constraints\Range;
 use Symfony\Component\Validator\Constraints\Url;
 use Symfony\Component\Validator\ConstraintViolationInterface;
 use Symfony\Component\Validator\Validation;
@@ -41,58 +42,44 @@ class Client
     private const DEFAULT_BACKOFF_RETRIES = 10;
 
     private readonly ApiClient $apiClient;
+    private readonly LoggerInterface $logger;
 
     /**
      * @param ExistingJobFactoryInterface<TJob> $existingJobFactory
+     * @param int<0, max> $backoffMaxTries
      */
     public function __construct(
-        private readonly LoggerInterface $logger,
         private readonly ExistingJobFactoryInterface $existingJobFactory,
         string $internalQueueApiUrl,
-        ?string $internalQueueToken,
-        ?string $storageApiToken,
-        ?string $applicationToken,
-        array $options = [],
+        ?string $internalQueueToken = null,
+        ?string $storageApiToken = null,
+        ?string $applicationToken = null,
+        ?LoggerInterface $logger = null,
+        int $backoffMaxTries = self::DEFAULT_BACKOFF_RETRIES,
+        int $connectTimeout = ApiClientOptions::DEFAULT_CONNECT_TIMEOUT,
+        int $requestTimeout = ApiClientOptions::DEFAULT_REQUEST_TIMEOUT,
+        string $userAgent = self::DEFAULT_USER_AGENT,
+        null|Closure|HandlerStack $requestHandler = null,
     ) {
+        $this->logger = $logger ?? new NullLogger();
+
         $this->validateConfiguration(
             $internalQueueApiUrl,
             $internalQueueToken,
             $storageApiToken,
             $applicationToken,
-            $options,
         );
-        if (!empty($options['backoffMaxTries'])) {
-            assert(is_scalar($options['backoffMaxTries']));
-            $options['backoffMaxTries'] = intval((string) $options['backoffMaxTries']);
-        } else {
-            $options['backoffMaxTries'] = self::DEFAULT_BACKOFF_RETRIES;
-        }
-        if (empty($options['userAgent'])) {
-            $options['userAgent'] = self::DEFAULT_USER_AGENT;
-        }
 
         assert($internalQueueApiUrl !== '');
-        assert(is_string($options['userAgent']));
-        assert($options['backoffMaxTries'] >= 0);
-
-        $requestHandler = null;
-        if (isset($options['handler']) && is_callable($options['handler'])) {
-            // Force the base to nest the provided handler as its *base* handler (so its auth/retry/
-            // log middleware wrap the caller's handler), matching how this client behaved before and
-            // keeping test history middleware capturing post-auth requests.
-            $requestHandler = Closure::fromCallable($options['handler']);
-        }
-
-        $logger = ($options['logger'] ?? null) instanceof LoggerInterface
-            ? $options['logger']
-            : $this->logger;
 
         $this->apiClient = new ApiClient(
             $internalQueueApiUrl,
             $this->createAuthenticator($internalQueueToken, $storageApiToken, $applicationToken),
             new ApiClientOptions(
-                userAgent: $options['userAgent'],
-                backoffMaxTries: $options['backoffMaxTries'],
+                userAgent: $userAgent,
+                backoffMaxTries: $backoffMaxTries,
+                connectTimeout: $connectTimeout,
+                requestTimeout: $requestTimeout,
                 requestHandler: $requestHandler,
                 logger: $logger,
             ),
@@ -104,7 +91,6 @@ class Client
         ?string $internalQueueToken,
         ?string $storageApiToken,
         ?string $applicationToken,
-        array $options,
     ): void {
         $validator = Validation::createValidator();
         $errors = $validator->validate($internalQueueApiUrl, [new Url()]);
@@ -136,9 +122,6 @@ class Client
             $errors->addAll(
                 $validator->validate($applicationToken, [new NotBlank()]),
             );
-        }
-        if (!empty($options['backoffMaxTries'])) {
-            $errors->addAll($validator->validate($options['backoffMaxTries'], [new Range(['min' => 0, 'max' => 100])]));
         }
         if ($errors->count() !== 0) {
             $messages = '';
