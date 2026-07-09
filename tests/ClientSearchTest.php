@@ -457,15 +457,11 @@ class ClientSearchTest extends TestCase
         ;
 
         return new Client(
-            new Logger('test'),
             $existingJobFactory,
             'http://example.com',
             internalQueueToken: 'internal-token',
-            storageApiToken: null,
-            applicationToken: null,
-            options: [
-                'handler' => $handlerStack,
-            ],
+            logger: new Logger('test'),
+            requestHandler: $handlerStack(...),
         );
     }
 

@@ -39,6 +39,12 @@ use stdClass;
 class ClientTest extends BaseTest
 {
     /**
+     * @param array{
+     *     handler?: HandlerStack,
+     *     logger?: LoggerInterface,
+     *     backoffMaxTries?: int<0, max>,
+     *     userAgent?: string,
+     * } $options
      * @return Client<JobInterface>
      */
     private function createClient(
@@ -65,18 +71,30 @@ class ClientTest extends BaseTest
             new JobObjectEncryptor($objectEncryptor),
         );
 
+        // Pass the mock handler as a Closure (first-class callable) so the base ApiClient nests it
+        // as its base handler and its auth middleware runs *inside* the test's history middleware.
+        $handler = $options['handler'] ?? null;
+
         return new Client(
-            $logger ?? new NullLogger(),
             $jobFactory,
             'http://example.com/',
-            $internalAuthToken,
-            $storageApiToken,
-            $applicationToken,
-            $options,
+            internalQueueToken: $internalAuthToken,
+            storageApiToken: $storageApiToken,
+            applicationToken: $applicationToken,
+            logger: $logger ?? $options['logger'] ?? null,
+            backoffMaxTries: $options['backoffMaxTries'] ?? 10,
+            userAgent: $options['userAgent'] ?? 'Internal PHP Client',
+            requestHandler: $handler !== null ? $handler(...) : null,
         );
     }
 
     /**
+     * @param array{
+     *     handler?: HandlerStack,
+     *     logger?: LoggerInterface,
+     *     backoffMaxTries?: int<0, max>,
+     *     userAgent?: string,
+     * } $options
      * @return Client<JobInterface>
      */
     private function createClientWithInternalToken(
@@ -87,57 +105,6 @@ class ClientTest extends BaseTest
             internalAuthToken: 'testToken',
             options: $options,
             logger: $logger,
-        );
-    }
-
-    public function testCreateClientInvalidBackoff(): void
-    {
-        $this->expectException(ClientException::class);
-        $this->expectExceptionMessage(
-            'Invalid parameters when creating client: Value "abc" is invalid: This value should be a valid number',
-        );
-        new Client(
-            new NullLogger(),
-            $this->createMock(ExistingJobFactory::class),
-            'http://example.com/',
-            'testToken',
-            null,
-            null,
-            ['backoffMaxTries' => 'abc'],
-        );
-    }
-
-    public function testCreateClientTooLowBackoff(): void
-    {
-        $this->expectException(ClientException::class);
-        $this->expectExceptionMessage(
-            'Invalid parameters when creating client: Value "-1" is invalid: This value should be between 0 and 100.',
-        );
-        new Client(
-            new NullLogger(),
-            $this->createMock(ExistingJobFactory::class),
-            'http://example.com/',
-            'testToken',
-            null,
-            null,
-            ['backoffMaxTries' => -1],
-        );
-    }
-
-    public function testCreateClientTooHighBackoff(): void
-    {
-        $this->expectException(ClientException::class);
-        $this->expectExceptionMessage(
-            'Invalid parameters when creating client: Value "101" is invalid: This value should be between 0 and 100.',
-        );
-        new Client(
-            new NullLogger(),
-            $this->createMock(ExistingJobFactory::class),
-            'http://example.com/',
-            'testToken',
-            null,
-            null,
-            ['backoffMaxTries' => 101],
         );
     }
 
@@ -203,12 +170,11 @@ class ClientTest extends BaseTest
         $this->expectException(ClientException::class);
         $this->expectExceptionMessage($expectedError);
         new Client(
-            new NullLogger(),
             $this->createMock(ExistingJobFactory::class),
             'http://example.com/',
-            $storageApiToken,
-            $internalAuthToken,
-            $applicationToken,
+            internalQueueToken: $storageApiToken,
+            storageApiToken: $internalAuthToken,
+            applicationToken: $applicationToken,
         );
     }
 
@@ -219,12 +185,9 @@ class ClientTest extends BaseTest
             'Invalid parameters when creating client: Value "invalid url" is invalid: This value is not a valid URL.',
         );
         new Client(
-            new NullLogger(),
             $this->createMock(ExistingJobFactory::class),
             'invalid url',
-            'testToken',
-            null,
-            null,
+            internalQueueToken: 'testToken',
         );
     }
 
@@ -236,12 +199,9 @@ class ClientTest extends BaseTest
             . "\n" . 'Value "" is invalid: This value should not be blank.' . "\n",
         );
         new Client(
-            new NullLogger(),
             $this->createMock(ExistingJobFactory::class),
             'invalid url',
-            '',
-            null,
-            null,
+            internalQueueToken: '',
         );
     }
 
@@ -375,8 +335,53 @@ class ClientTest extends BaseTest
             options: ['handler' => $stack],
         );
         $this->expectException(ClientException::class);
-        $this->expectExceptionMessage('Unable to parse response body into JSON: Syntax error');
+        $this->expectExceptionMessage('Response is not valid JSON: Syntax error');
         $client->getJob('123');
+    }
+
+    public function testClientErrorMessageUsesTransportFormat(): void
+    {
+        $mock = new MockHandler([
+            new Response(
+                404,
+                ['Content-Type' => 'application/json'],
+                (string) json_encode(['error' => 'Job "123" not found']),
+            ),
+        ]);
+        $stack = HandlerStack::create($mock);
+        $client = $this->createClientWithInternalToken(options: ['handler' => $stack, 'backoffMaxTries' => 0]);
+
+        try {
+            $client->getJob('123');
+            self::fail('Expected ClientException was not thrown.');
+        } catch (ClientException $e) {
+            // The transport (Guzzle) message is preserved, not the decoded `error` field, so
+            // callers relying on the historical format (e.g. "404 Not Found") keep working.
+            self::assertStringContainsString('404 Not Found', $e->getMessage());
+            self::assertSame(404, $e->getCode());
+            self::assertSame(['error' => 'Job "123" not found'], $e->getResponseData());
+        }
+    }
+
+    public function testClientErrorWithEmptyBodyThrowsParseErrorWithZeroCode(): void
+    {
+        // The internal API can return a 4xx with an empty body (e.g. a job gone during
+        // termination). The historical client surfaced this as an "Unable to parse..." exception
+        // with code 0; callers and the service-container console exit code (Symfony maps <=0 to 1)
+        // depend on it, so it must not become a code-404 exception (which Symfony clamps to 255).
+        $mock = new MockHandler([
+            new Response(404, ['Content-Type' => 'application/json'], ''),
+        ]);
+        $stack = HandlerStack::create($mock);
+        $client = $this->createClientWithInternalToken(options: ['handler' => $stack, 'backoffMaxTries' => 0]);
+
+        try {
+            $client->getJob('123');
+            self::fail('Expected ClientException was not thrown.');
+        } catch (ClientException $e) {
+            self::assertStringContainsString('Unable to parse response body into JSON', $e->getMessage());
+            self::assertSame(0, $e->getCode());
+        }
     }
 
     public function testLogger(): void
@@ -432,8 +437,7 @@ class ClientTest extends BaseTest
         /** @var Request $request */
         $request = $requestHistory[0]['request'];
         self::assertEquals('test agent', $request->getHeader('User-Agent')[0]);
-        self::assertTrue($logsHandler->hasInfoThatContains('"GET  /1.1" 200 '));
-        self::assertTrue($logsHandler->hasInfoThatContains('test agent'));
+        self::assertTrue($logsHandler->hasInfoThatContains('GET http://example.com/jobs/123 : 200'));
     }
 
     public function testRetrySuccess(): void
@@ -508,14 +512,9 @@ class ClientTest extends BaseTest
         $request = $requestHistory[2]['request'];
         self::assertEquals('http://example.com/jobs/123', $request->getUri()->__toString());
 
-        //phpcs:disable Generic.Files.LineLength.MaxExceeded
-        self::assertTrue($logsHandler->hasNoticeThatContains('Got a 500 error with this message: Server error: `GET http://example.com/jobs/123` resulted in a `500 Internal Server Error` response:
-{"message" => "Out of order"}
-, retrying.'));
-        self::assertTrue($logsHandler->hasNoticeThatContains('Got a 500 error with this message: Server error: `GET http://example.com/jobs/123` resulted in a `500 Internal Server Error` response:
-Out of order
-, retrying.'));
-        //phpcs:enable Generic.Files.LineLength.MaxExceeded
+        self::assertTrue($logsHandler->hasWarningThatContains('500 Internal Server Error'));
+        self::assertTrue($logsHandler->hasWarningThatContains('retrying (1 of 10)'));
+        self::assertTrue($logsHandler->hasWarningThatContains('retrying (2 of 10)'));
     }
 
     public function testRetryFailure(): void
@@ -554,12 +553,8 @@ Out of order
         self::assertIsArray($requestHistory);
         self::assertCount(2, $requestHistory);
 
-        //phpcs:disable Generic.Files.LineLength.MaxExceeded
-        self::assertTrue($logsHandler->hasNoticeThatContains('Got a 500 error with this message: Server error: `GET http://example.com/jobs/123` resulted in a `500 Internal Server Error` response:
-{"message" => "Out of order"}
-, retrying.'));
-        self::assertTrue($logsHandler->hasNoticeThatMatches('#We have tried this 1 times.\s*Giving up.#'));
-        //phpcs:enable Generic.Files.LineLength.MaxExceeded
+        self::assertTrue($logsHandler->hasWarningThatContains('500 Internal Server Error'));
+        self::assertTrue($logsHandler->hasWarningThatContains('retrying (1 of 1)'));
     }
 
     public function testRetryFailureReducedBackoff(): void

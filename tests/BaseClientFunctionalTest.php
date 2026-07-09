@@ -16,7 +16,6 @@ use Keboola\ObjectEncryptor\EncryptorOptions;
 use Keboola\ObjectEncryptor\ObjectEncryptorFactory;
 use Keboola\StorageApiBranch\Factory\ClientOptions;
 use Keboola\StorageApiBranch\Factory\StorageClientPlainFactory;
-use Psr\Log\NullLogger;
 
 abstract class BaseClientFunctionalTest extends BaseTest
 {
@@ -78,12 +77,9 @@ abstract class BaseClientFunctionalTest extends BaseTest
         );
 
         return new Client(
-            new NullLogger(),
             $existingJobFactory,
             self::getRequiredEnv('TEST_QUEUE_API_URL'),
-            self::getRequiredEnv('TEST_QUEUE_API_TOKEN'),
-            null,
-            null,
+            internalQueueToken: self::getRequiredEnv('TEST_QUEUE_API_TOKEN'),
         );
     }
 

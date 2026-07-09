@@ -28,11 +28,12 @@
     "require": {
         "php": "^8.2",
         "ext-json": "*",
-        "guzzlehttp/guzzle": "^6.3|^7.0",
+        "guzzlehttp/guzzle": "^7.8",
         "keboola/job-queue-artifacts": "^4.0.3|*@dev",
         "keboola/kbc-manage-api-php-client": "^5.2|^6.0|^7.0|^8.0|^9.0|^10.0",
         "keboola/object-encryptor": "^2.12",
         "keboola/permission-checker": "^2.0|^3.0",
+        "keboola/php-api-client-base": "^1.0",
         "keboola/retry": "^0.5.1",
         "keboola/storage-api-client": "^15.2|^16.0|^17.0|^18.0",
         "keboola/storage-api-php-client-branch-wrapper": "^6.0",
@@ -40,7 +41,8 @@
         "psr/log": "^1.1|^2.0|^3.0",
         "symfony/config": "^5.4|^6.0|^7.0",
         "symfony/uid": "^5.4|^6.2|^7.0",
-        "symfony/validator": "^5.4|^6.0|^7.0"
+        "symfony/validator": "^5.4|^6.0|^7.0",
+        "webmozart/assert": "^1.11"
     },
     "require-dev": {
         "infection/infection": "^0.27",
