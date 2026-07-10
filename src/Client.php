@@ -329,6 +329,38 @@ class Client
      */
     public function patchJobResultAtomically(string $jobId, callable $mutator): PlainJobInterface
     {
+        return $this->patchJobAtomicallyInternal($jobId, $mutator, null);
+    }
+
+    /**
+     * Like {@see patchJobResultAtomically()}, but also transitions the job to $status in the SAME
+     * version-locked write: the merged result and the status flip commit together or not at all. Use
+     * this to finish a job whose result is built incrementally (e.g. a Conditional Flow) without a
+     * window where the job is terminal but its result not yet merged.
+     *
+     * The status transition is validated server-side; an invalid transition (e.g. an already-terminal
+     * job) surfaces as {@see StateTerminalException}/{@see StateTargetEqualsCurrentException} and is not
+     * retried, leaving the job untouched.
+     *
+     * @param callable(array<mixed>): JsonSerializable $mutator
+     * @return TJob
+     * @throws ResultVersionConflictException when the version conflict is not resolved within the retry budget
+     */
+    public function patchJobAtomically(string $jobId, callable $mutator, string $status): PlainJobInterface
+    {
+        return $this->patchJobAtomicallyInternal($jobId, $mutator, $status);
+    }
+
+    /**
+     * @param callable(array<mixed>): JsonSerializable $mutator
+     * @return TJob
+     * @throws ResultVersionConflictException when the version conflict is not resolved within the retry budget
+     */
+    private function patchJobAtomicallyInternal(
+        string $jobId,
+        callable $mutator,
+        ?string $status,
+    ): PlainJobInterface {
         if ($jobId === '') {
             throw new ClientException(sprintf('Invalid job ID: "%s".', $jobId));
         }
@@ -346,12 +378,16 @@ class Client
 
         try {
             /** @var TJob $job */
-            $job = $retryProxy->call(function () use ($jobId, $mutator): PlainJobInterface {
+            $job = $retryProxy->call(function () use ($jobId, $mutator, $status): PlainJobInterface {
                 $currentJob = $this->getJob($jobId);
                 $payload = $this->resolveMutatorPayload($mutator, $currentJob->getResult());
-                return $this->sendPatchJobResultRequest(
+                $body = ['result' => $payload];
+                if ($status !== null) {
+                    $body['status'] = $status;
+                }
+                return $this->sendPatchJobRequest(
                     $jobId,
-                    $payload,
+                    $body,
                     ['Result-Version' => (string) $currentJob->getResultVersion()],
                 );
             });
@@ -415,6 +451,22 @@ class Client
         $request = $this->createRequest(
             'PATCH',
             'jobs/' . $jobId . '/result',
+            (string) json_encode($patchData, JSON_THROW_ON_ERROR),
+            $headers,
+        );
+        return $this->existingJobFactory->loadFromExistingJobData($this->sendRequest($request));
+    }
+
+    /**
+     * @param array<mixed> $patchData
+     * @param array<string, string> $headers
+     * @return TJob
+     */
+    private function sendPatchJobRequest(string $jobId, array $patchData, array $headers): PlainJobInterface
+    {
+        $request = $this->createRequest(
+            'PATCH',
+            'jobs/' . $jobId,
             (string) json_encode($patchData, JSON_THROW_ON_ERROR),
             $headers,
         );

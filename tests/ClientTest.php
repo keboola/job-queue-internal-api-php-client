@@ -14,6 +14,7 @@ use JsonSerializable;
 use Keboola\JobQueueInternalClient\Client;
 use Keboola\JobQueueInternalClient\Exception\ClientException;
 use Keboola\JobQueueInternalClient\Exception\ResultVersionConflictException;
+use Keboola\JobQueueInternalClient\Exception\StateTerminalException;
 use Keboola\JobQueueInternalClient\ExistingJobFactory;
 use Keboola\JobQueueInternalClient\JobFactory\Job;
 use Keboola\JobQueueInternalClient\JobFactory\JobInterface;
@@ -1506,10 +1507,11 @@ class ClientTest extends BaseTest
         /** @var Request $patchRequest */
         $patchRequest = $container[1]['request'];
         self::assertSame('PATCH', $patchRequest->getMethod());
-        self::assertSame('http://example.com/jobs/123/result', $patchRequest->getUri()->__toString());
+        self::assertSame('http://example.com/jobs/123', $patchRequest->getUri()->__toString());
         self::assertSame('3', $patchRequest->getHeader('Result-Version')[0]);
+        // the mutated result is wrapped under the "result" key of the job PATCH body
         self::assertSame(
-            json_encode($mutatorOutput->jsonSerialize()),
+            json_encode(['result' => $mutatorOutput->jsonSerialize()]),
             $patchRequest->getBody()->getContents(),
         );
     }
@@ -1552,9 +1554,9 @@ class ClientTest extends BaseTest
         $patchRequest = $container[1]['request'];
         self::assertSame('PATCH', $patchRequest->getMethod());
         self::assertSame('3', $patchRequest->getHeader('Result-Version')[0]);
-        // the PATCH body carries only the mutated key; the omitted "existing" key is left to the
-        // server-side merge, not re-sent by the client
-        self::assertSame('{"added":"new"}', $patchRequest->getBody()->getContents());
+        // the PATCH body carries only the mutated key (under "result"); the omitted "existing" key is
+        // left to the server-side merge, not re-sent by the client
+        self::assertSame('{"result":{"added":"new"}}', $patchRequest->getBody()->getContents());
     }
 
     public function testPatchJobResultAtomicallySingle409ThenSuccess(): void
@@ -1610,7 +1612,7 @@ class ClientTest extends BaseTest
         self::assertSame('PATCH', $secondPatch->getMethod());
         self::assertSame('7', $secondPatch->getHeader('Result-Version')[0]);
         self::assertSame(
-            json_encode(['a' => 2, 'b' => 1]),
+            json_encode(['result' => ['a' => 2, 'b' => 1]]),
             $secondPatch->getBody()->getContents(),
         );
     }
@@ -1793,5 +1795,93 @@ class ClientTest extends BaseTest
         /** @var Request $patchRequest */
         $patchRequest = $container[1]['request'];
         self::assertSame(['0'], $patchRequest->getHeader('Result-Version'));
+    }
+
+    public function testPatchJobAtomicallySendsResultAndStatusUnderVersionLock(): void
+    {
+        $mock = new MockHandler([
+            new Response(200, ['Content-Type' => 'application/json'], self::jobResponseJson('123', ['a' => 1], 3)),
+            new Response(
+                200,
+                ['Content-Type' => 'application/json'],
+                self::jobResponseJson('123', ['a' => 1, 'message' => 'boom'], 4),
+            ),
+        ]);
+
+        $container = [];
+        $stack = HandlerStack::create($mock);
+        $stack->push(Middleware::history($container));
+        $client = $this->createClientWithInternalToken(options: ['handler' => $stack]);
+
+        $result = $client->patchJobAtomically(
+            '123',
+            fn (array $current) => new GenericJobResult(['message' => 'boom']),
+            JobInterface::STATUS_ERROR,
+        );
+
+        self::assertInstanceOf(Job::class, $result);
+        self::assertIsArray($container);
+        self::assertCount(2, $container);
+        self::assertIsArray($container[1]);
+
+        /** @var Request $patchRequest */
+        $patchRequest = $container[1]['request'];
+        self::assertSame('PATCH', $patchRequest->getMethod());
+        self::assertSame('http://example.com/jobs/123', $patchRequest->getUri()->__toString());
+        self::assertSame('3', $patchRequest->getHeader('Result-Version')[0]);
+        // result and status ride the same versioned job PATCH
+        self::assertSame(
+            json_encode(['result' => ['message' => 'boom'], 'status' => JobInterface::STATUS_ERROR]),
+            $patchRequest->getBody()->getContents(),
+        );
+    }
+
+    public function testPatchJobAtomicallyInvalidTransitionIsNotRetriedAndPropagates(): void
+    {
+        $mock = new MockHandler([
+            new Response(200, ['Content-Type' => 'application/json'], self::jobResponseJson('123', ['a' => 1], 3)),
+            // server rejects the transition on an already-terminal job
+            new Response(400, ['Content-Type' => 'application/json'], (string) json_encode([
+                'error' => 'Invalid status transition',
+                'context' => ['stringCode' => StateTerminalException::STRING_CODE],
+            ])),
+        ]);
+
+        $container = [];
+        // bare HandlerStack: mirror production's flat stack (see single-409 test for rationale)
+        $stack = new HandlerStack($mock);
+        $stack->push(Middleware::history($container));
+        $client = $this->createClientWithInternalToken(options: ['handler' => $stack]);
+
+        try {
+            $client->patchJobAtomically(
+                '123',
+                fn (array $current) => new GenericJobResult(['message' => 'late']),
+                JobInterface::STATUS_SUCCESS,
+            );
+            self::fail('Expected StateTerminalException was not thrown.');
+        } catch (ClientException $e) {
+            // expected: an invalid transition is a terminal 4xx (not a version conflict), surfaced as
+            // the typed StateTerminalException and not retried
+            self::assertInstanceOf(StateTerminalException::class, $e);
+        }
+
+        // GET + the single failing PATCH; the invalid transition is NOT retried
+        self::assertIsArray($container);
+        self::assertCount(2, $container);
+    }
+
+    public function testPatchJobAtomicallyInvalidJobId(): void
+    {
+        $client = $this->createClientWithInternalToken();
+
+        $this->expectException(ClientException::class);
+        $this->expectExceptionMessage('Invalid job ID: "".');
+
+        $client->patchJobAtomically(
+            '',
+            fn (array $current) => new GenericJobResult($current),
+            JobInterface::STATUS_ERROR,
+        );
     }
 }
