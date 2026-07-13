@@ -1030,6 +1030,77 @@ class JobTest extends BaseTest
         self::assertSame('th1s-i5-pr1vIl3ged-70k3n', $executionToken);
     }
 
+    public function testGetExecutionTokenDecryptedWithFeatureBranchDefaultWithoutApplicationToken(): void
+    {
+        // With no application token the Storage Tokens client authenticates the privileged-token
+        // request as the connection ServiceAccount (default projected-token path). That file is
+        // absent in tests, so the request fails with serviceAccountTokenNotReadable - proving the
+        // null propagates all the way to createTokenPrivilegedInProtectedDefaultBranch and selects
+        // the ServiceAccount rather than a manage token.
+        $tokenData = [
+            'owner' => [
+                'id' => 123,
+                'name' => 'dummy',
+                'features' => [
+                    JobFactory::PROTECTED_DEFAULT_BRANCH_FEATURE,
+                ],
+            ],
+        ];
+
+        $storageClient = $this->createMock(BranchAwareClient::class);
+        $storageClient->expects(self::once())
+            ->method('verifyToken')
+            ->willReturn($tokenData)
+        ;
+        // The ServiceAccount token read fails before the privileged token is requested.
+        $storageClient->expects(self::never())
+            ->method('apiPostJson')
+        ;
+
+        $storageClientWrapperMock = $this->createMock(ClientWrapper::class);
+        $storageClientWrapperMock->expects(self::atLeastOnce())
+            ->method('getBranchClient')
+            ->willReturn($storageClient)
+        ;
+        $storageClientWrapperMock->expects(self::atLeastOnce())
+            ->method('getBasicClient')
+            ->willReturn($storageClient)
+        ;
+
+        $storageClientFactory = $this->createMock(StorageClientPlainFactory::class);
+        $storageClientFactory->expects(self::atLeastOnce())
+            ->method('createClientWrapper')
+            ->with(new ClientOptions(null, 'token', $this->jobData['branchId']))
+            ->willReturn($storageClientWrapperMock)
+        ;
+
+        $objectEncryptorMock = $this->createMock(JobObjectEncryptor::class);
+        $objectEncryptorMock->expects(self::once())
+            ->method('decrypt')
+            ->with(
+                'KBC::ProjectSecure::token',
+                $this->jobData['componentId'],
+                $this->jobData['projectId'],
+                $this->jobData['configId'],
+                BranchType::from($this->jobData['branchType']),
+            )
+            ->willReturn('token')
+        ;
+
+        $job = new Job(
+            $objectEncryptorMock,
+            $storageClientFactory,
+            array_merge($this->jobData, ['branchType' => BranchType::DEFAULT->value]),
+        );
+
+        $this->expectException(StorageApiClientException::class);
+        $this->expectExceptionMessage(
+            'Service account token file '
+            . '"/var/run/secrets/connection.keboola.com/serviceaccount/token" is not readable',
+        );
+        $job->getExecutionTokenDecrypted();
+    }
+
     public function testGetExecutionTokenDecryptedWithFeatureBranchDev(): void
     {
         $applicationToken = '4pPl1cAti0nT0k3n';

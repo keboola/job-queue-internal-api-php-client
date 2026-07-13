@@ -10,7 +10,7 @@ interface JobInterface extends PlainJobInterface
 
     public function getComponentConfiguration(): array;
 
-    public function getExecutionTokenDecrypted(string $applicationToken): string;
+    public function getExecutionTokenDecrypted(?string $applicationToken = null): string;
 
     public function getTokenDecrypted(): string;
 

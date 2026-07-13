@@ -48,7 +48,7 @@ class Job extends PlainJob implements JobInterface
         );
     }
 
-    public function getExecutionTokenDecrypted(string $applicationToken): string
+    public function getExecutionTokenDecrypted(?string $applicationToken = null): string
     {
         if (in_array(JobFactory::PROTECTED_DEFAULT_BRANCH_FEATURE, $this->getProjectFeatures())
             && ($this->getBranchType() === BranchType::DEFAULT)
@@ -134,7 +134,7 @@ class Job extends PlainJob implements JobInterface
             ->verifyToken()['owner']['features'];
     }
 
-    private function createPrivilegedToken(string $applicationToken): string
+    private function createPrivilegedToken(?string $applicationToken): string
     {
         $tokens = new Tokens($this->getStorageClientWrapper()->getBasicClient());
         $options = new TokenCreateOptions();
