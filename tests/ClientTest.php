@@ -110,13 +110,6 @@ class ClientTest extends BaseTest
 
     public static function provideInvalidTokensConfiguration(): iterable
     {
-        yield 'no token' => [
-            'storageApiToken' => null,
-            'internalAuthToken' => null,
-            'applicationToken' => null,
-            'expectedError' => 'No token provided (internalQueueToken, storageApiToken and applicationToken are empty)',
-        ];
-
         yield 'storage + internal token' => [
             'storageApiToken' => 'storageToken',
             'internalAuthToken' => 'internalToken',
@@ -315,6 +308,27 @@ class ClientTest extends BaseTest
         self::assertSame('testToken', $request->getHeaderLine($expectedAuthHeader));
         self::assertSame('Internal PHP Client', $request->getHeaderLine('User-Agent'));
         self::assertSame('application/json', $request->getHeaderLine('Content-type'));
+    }
+
+    public function testNoTokenUsesServiceAccountTokenWithDefaultPath(): void
+    {
+        // Mirroring the other Keboola API clients: with no explicit token the client
+        // authenticates as the connection ServiceAccount, reading the projected token from
+        // the default path. That file is absent here, so the base authenticator fails and its
+        // message reveals the default path - proving the ServiceAccount authenticator is wired
+        // for the no-token case. backoffMaxTries:0 avoids retrying the credential failure.
+        $mock = new MockHandler([
+            new Response(200, ['Content-Type' => 'application/json'], '{}'),
+        ]);
+        $stack = HandlerStack::create($mock);
+        $client = $this->createClient(options: ['handler' => $stack, 'backoffMaxTries' => 0]);
+
+        $this->expectException(ClientException::class);
+        $this->expectExceptionMessage(
+            'Service account token file '
+            . '"/var/run/secrets/connection.keboola.com/serviceaccount/token" is not readable',
+        );
+        $client->getJob('123');
     }
 
     public function testInvalidResponse(): void

@@ -12,6 +12,7 @@ use JsonException;
 use JsonSerializable;
 use Keboola\ApiClientBase\ApiClient;
 use Keboola\ApiClientBase\ApiClientOptions;
+use Keboola\ApiClientBase\Auth\KeboolaServiceAccountAuthenticator;
 use Keboola\ApiClientBase\Auth\ManageApiTokenAuthenticator;
 use Keboola\ApiClientBase\Auth\RequestAuthenticatorInterface;
 use Keboola\ApiClientBase\Auth\StorageApiTokenAuthenticator;
@@ -113,11 +114,9 @@ class Client
             fn(?string $token) => $token !== null,
         );
 
-        if (count($providedTokens) === 0) {
-            throw new ClientException(
-                'No token provided (internalQueueToken, storageApiToken and applicationToken are empty)',
-            );
-        }
+        // No explicit token falls back to the connection ServiceAccount authenticator
+        // (see createAuthenticator()), mirroring the other Keboola API clients, so zero
+        // tokens is valid; more than one is still ambiguous.
         if (count($providedTokens) > 1) {
             throw new ClientException('More than one authentication token provided');
         }
@@ -666,10 +665,9 @@ class Client
             assert($applicationToken !== '');
             return new ManageApiTokenAuthenticator($applicationToken);
         }
-        // validateConfiguration() guarantees exactly one token is set; this satisfies the return type.
-        throw new ClientException(
-            'No token provided (internalQueueToken, storageApiToken and applicationToken are empty)',
-        );
+        // No explicit token: authenticate as the connection ServiceAccount using the projected
+        // token file at the default path, mirroring the other Keboola API clients.
+        return new KeboolaServiceAccountAuthenticator();
     }
 
     /**
