@@ -114,9 +114,8 @@ class Client
             fn(?string $token) => $token !== null,
         );
 
-        // No explicit token falls back to the connection ServiceAccount authenticator
-        // (see createAuthenticator()), mirroring the other Keboola API clients, so zero
-        // tokens is valid; more than one is still ambiguous.
+        // Reject only the ambiguous multi-token case; zero tokens is valid and falls back
+        // to ServiceAccount auth in createAuthenticator().
         if (count($providedTokens) > 1) {
             throw new ClientException('More than one authentication token provided');
         }
