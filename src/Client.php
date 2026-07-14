@@ -114,8 +114,6 @@ class Client
             fn(?string $token) => $token !== null,
         );
 
-        // Reject only the ambiguous multi-token case; zero tokens is valid and falls back
-        // to ServiceAccount auth in createAuthenticator().
         if (count($providedTokens) > 1) {
             throw new ClientException('More than one authentication token provided');
         }
