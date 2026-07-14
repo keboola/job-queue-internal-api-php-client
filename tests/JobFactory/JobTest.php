@@ -1030,7 +1030,7 @@ class JobTest extends BaseTest
         self::assertSame('th1s-i5-pr1vIl3ged-70k3n', $executionToken);
     }
 
-    public function testGetExecutionTokenDecryptedWithFeatureBranchDefaultWithoutApplicationToken(): void
+    public function testGetExecutionTokenDecryptedFallsBackToServiceAccount(): void
     {
         // With no application token the Storage Tokens client authenticates the privileged-token
         // request as the connection ServiceAccount (default projected-token path). That file is
