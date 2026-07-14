@@ -1098,7 +1098,7 @@ class JobTest extends BaseTest
             'Service account token file '
             . '"/var/run/secrets/connection.keboola.com/serviceaccount/token" is not readable',
         );
-        $job->getExecutionTokenDecrypted();
+        $job->getExecutionTokenDecrypted(null);
     }
 
     public function testGetExecutionTokenDecryptedWithFeatureBranchDev(): void

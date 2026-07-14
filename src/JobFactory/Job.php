@@ -51,7 +51,7 @@ class Job extends PlainJob implements JobInterface
     /**
      * @param non-empty-string|null $applicationToken
      */
-    public function getExecutionTokenDecrypted(?string $applicationToken = null): string
+    public function getExecutionTokenDecrypted(?string $applicationToken): string
     {
         if (in_array(JobFactory::PROTECTED_DEFAULT_BRANCH_FEATURE, $this->getProjectFeatures())
             && ($this->getBranchType() === BranchType::DEFAULT)

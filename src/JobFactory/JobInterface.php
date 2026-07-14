@@ -13,7 +13,7 @@ interface JobInterface extends PlainJobInterface
     /**
      * @param non-empty-string|null $applicationToken
      */
-    public function getExecutionTokenDecrypted(?string $applicationToken = null): string;
+    public function getExecutionTokenDecrypted(?string $applicationToken): string;
 
     public function getTokenDecrypted(): string;
 
