@@ -11,6 +11,10 @@ interface JobInterface extends PlainJobInterface
     public function getComponentConfiguration(): array;
 
     /**
+     * $applicationToken authorizes minting the privileged execution token: pass an explicit
+     * application (manage) token, or null to fall back to service identity authentication
+     * (the connection ServiceAccount) - the same behaviour as the manage API client.
+     *
      * @param non-empty-string|null $applicationToken
      */
     public function getExecutionTokenDecrypted(?string $applicationToken): string;
