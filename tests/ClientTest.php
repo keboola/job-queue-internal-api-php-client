@@ -1886,7 +1886,11 @@ class ClientTest extends BaseTest
     public function testPatchJobAtomicallyInvalidTransitionIsNotRetriedAndPropagates(): void
     {
         $mock = new MockHandler([
-            new Response(200, ['Content-Type' => 'application/json'], self::jobResponseJson('123', ['a' => 1], 3)),
+            new Response(
+                200,
+                ['Content-Type' => 'application/json'],
+                self::jobResponseJson('123', ['a' => 1], 3, rowVersion: 5),
+            ),
             // server rejects the transition on an already-terminal job
             new Response(400, ['Content-Type' => 'application/json'], (string) json_encode([
                 'error' => 'Invalid status transition',

@@ -45,7 +45,7 @@ class PlainJob implements JsonSerializable, PlainJobInterface
      *     durationSeconds?: string|int|null,
      *     result?: array,
      *     resultVersion?: int|string|null,
-     *     rowVersion?: int,
+     *     rowVersion?: int|string|null,
      *     usageData?: array,
      *     status: string,
      *     desiredStatus: string,
@@ -177,7 +177,7 @@ class PlainJob implements JsonSerializable, PlainJobInterface
 
     public function getRowVersion(): int
     {
-        return $this->data['rowVersion'] ?? 1;
+        return isset($this->data['rowVersion']) ? (int) $this->data['rowVersion'] : 1;
     }
 
     public function getConfigRowIds(): array
