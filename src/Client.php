@@ -329,38 +329,64 @@ class Client
      */
     public function patchJobResultAtomically(string $jobId, callable $mutator): PlainJobInterface
     {
-        return $this->patchJobAtomicallyInternal($jobId, $mutator, null);
+        return $this->runVersionLockedPatch($jobId, function () use ($jobId, $mutator): PlainJobInterface {
+            $currentJob = $this->getJob($jobId);
+            $payload = $this->resolveMutatorPayload($mutator, $currentJob->getResult());
+            return $this->sendPatchJobResultRequest(
+                $jobId,
+                $payload,
+                ['Result-Version' => (string) $currentJob->getResultVersion()],
+            );
+        });
     }
 
     /**
-     * Like {@see patchJobResultAtomically()}, but also transitions the job to $status in the SAME
-     * version-locked write: the merged result and the status flip commit together or not at all. Use
+     * Read-modify-write a job under Doctrine optimistic locking on the whole row (PATCH /jobs/{id}):
+     * merges the mutated result and, optionally, transitions the job to $status in the SAME
+     * version-locked write, so the merged result and the status flip commit together or not at all. Use
      * this to finish a job whose result is built incrementally (e.g. a Conditional Flow) without a
      * window where the job is terminal but its result not yet merged.
      *
-     * The status transition is validated server-side; an invalid transition (e.g. an already-terminal
-     * job) surfaces as {@see StateTerminalException}/{@see StateTargetEqualsCurrentException} and is not
-     * retried, leaving the job untouched.
+     * Retries on 409 (row-version conflict) and throws {@see ResultVersionConflictException} once the
+     * retries are exhausted. The status transition is validated server-side; an invalid transition
+     * (e.g. an already-terminal job) surfaces as {@see StateTerminalException}/{@see
+     * StateTargetEqualsCurrentException} and is not retried, leaving the job untouched.
      *
-     * @param callable(array<mixed>): JsonSerializable $mutator
+     * @param callable(array<mixed>): JsonSerializable $resultMutator
      * @return TJob
      * @throws ResultVersionConflictException when the version conflict is not resolved within the retry budget
      */
-    public function patchJobAtomically(string $jobId, callable $mutator, string $status): PlainJobInterface
-    {
-        return $this->patchJobAtomicallyInternal($jobId, $mutator, $status);
+    public function patchJobAtomically(
+        string $jobId,
+        callable $resultMutator,
+        ?string $status = null,
+    ): PlainJobInterface {
+        return $this->runVersionLockedPatch($jobId, function () use ($jobId, $resultMutator, $status): PlainJobInterface {
+            $currentJob = $this->getJob($jobId);
+            $payload = $this->resolveMutatorPayload($resultMutator, $currentJob->getResult());
+            $body = ['result' => $payload];
+            if ($status !== null) {
+                $body['status'] = $status;
+            }
+            return $this->sendPatchJobRequest(
+                $jobId,
+                $body,
+                ['Row-Version' => (string) $currentJob->getRowVersion()],
+            );
+        });
     }
 
     /**
-     * @param callable(array<mixed>): JsonSerializable $mutator
+     * Shared optimistic-locking retry wrapper: runs $attempt under a 409-only retry policy and, once the
+     * retries are exhausted, converts the 409 into a {@see ResultVersionConflictException} rather than
+     * letting the concurrent change be overwritten (which would defeat the locking).
+     *
+     * @param callable(): PlainJobInterface $attempt
      * @return TJob
      * @throws ResultVersionConflictException when the version conflict is not resolved within the retry budget
      */
-    private function patchJobAtomicallyInternal(
-        string $jobId,
-        callable $mutator,
-        ?string $status,
-    ): PlainJobInterface {
+    private function runVersionLockedPatch(string $jobId, callable $attempt): PlainJobInterface
+    {
         if ($jobId === '') {
             throw new ClientException(sprintf('Invalid job ID: "%s".', $jobId));
         }
@@ -370,7 +396,7 @@ class Client
                 fn (Throwable $e) => $e instanceof ClientException && $e->getCode() === 409,
                 self::MAX_RESULT_VERSION_RETRIES,
             ),
-            // result-version conflicts are rare (only on concurrent writes); a small linear
+            // version conflicts are rare (only on concurrent writes); a small linear
             // back-off is enough — 200ms, 400ms, 600ms, … between attempts.
             new LinearBackOffPolicy(200, 200),
             $this->logger,
@@ -378,19 +404,7 @@ class Client
 
         try {
             /** @var TJob $job */
-            $job = $retryProxy->call(function () use ($jobId, $mutator, $status): PlainJobInterface {
-                $currentJob = $this->getJob($jobId);
-                $payload = $this->resolveMutatorPayload($mutator, $currentJob->getResult());
-                $body = ['result' => $payload];
-                if ($status !== null) {
-                    $body['status'] = $status;
-                }
-                return $this->sendPatchJobRequest(
-                    $jobId,
-                    $body,
-                    ['Result-Version' => (string) $currentJob->getResultVersion()],
-                );
-            });
+            $job = $retryProxy->call($attempt);
             return $job;
             // RetryProxy::call() rethrows the action's last exception (a 409 ClientException on
             // exhaustion); PHPStan cannot infer this through its mixed/@throws signature.

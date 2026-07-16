@@ -1444,9 +1444,13 @@ class ClientTest extends BaseTest
     /**
      * @param array<mixed> $result
      */
-    private static function jobResponseJson(string $id, array $result, int $resultVersion): string
-    {
-        return (string) json_encode([
+    private static function jobResponseJson(
+        string $id,
+        array $result,
+        int $resultVersion,
+        ?int $rowVersion = null,
+    ): string {
+        $data = [
             'id' => $id,
             'runId' => $id,
             'projectId' => '123',
@@ -1458,7 +1462,11 @@ class ClientTest extends BaseTest
             'branchType' => 'default',
             'result' => $result,
             'resultVersion' => $resultVersion,
-        ]);
+        ];
+        if ($rowVersion !== null) {
+            $data['rowVersion'] = $rowVersion;
+        }
+        return (string) json_encode($data);
     }
 
     public function testPatchJobResultAtomicallyHappyPath(): void
@@ -1507,11 +1515,10 @@ class ClientTest extends BaseTest
         /** @var Request $patchRequest */
         $patchRequest = $container[1]['request'];
         self::assertSame('PATCH', $patchRequest->getMethod());
-        self::assertSame('http://example.com/jobs/123', $patchRequest->getUri()->__toString());
+        self::assertSame('http://example.com/jobs/123/result', $patchRequest->getUri()->__toString());
         self::assertSame('3', $patchRequest->getHeader('Result-Version')[0]);
-        // the mutated result is wrapped under the "result" key of the job PATCH body
         self::assertSame(
-            json_encode(['result' => $mutatorOutput->jsonSerialize()]),
+            json_encode($mutatorOutput->jsonSerialize()),
             $patchRequest->getBody()->getContents(),
         );
     }
@@ -1554,9 +1561,9 @@ class ClientTest extends BaseTest
         $patchRequest = $container[1]['request'];
         self::assertSame('PATCH', $patchRequest->getMethod());
         self::assertSame('3', $patchRequest->getHeader('Result-Version')[0]);
-        // the PATCH body carries only the mutated key (under "result"); the omitted "existing" key is
-        // left to the server-side merge, not re-sent by the client
-        self::assertSame('{"result":{"added":"new"}}', $patchRequest->getBody()->getContents());
+        // the PATCH body carries only the mutated key; the omitted "existing" key is left to the
+        // server-side merge, not re-sent by the client
+        self::assertSame('{"added":"new"}', $patchRequest->getBody()->getContents());
     }
 
     public function testPatchJobResultAtomicallySingle409ThenSuccess(): void
@@ -1612,7 +1619,7 @@ class ClientTest extends BaseTest
         self::assertSame('PATCH', $secondPatch->getMethod());
         self::assertSame('7', $secondPatch->getHeader('Result-Version')[0]);
         self::assertSame(
-            json_encode(['result' => ['a' => 2, 'b' => 1]]),
+            json_encode(['a' => 2, 'b' => 1]),
             $secondPatch->getBody()->getContents(),
         );
     }
@@ -1800,11 +1807,15 @@ class ClientTest extends BaseTest
     public function testPatchJobAtomicallySendsResultAndStatusUnderVersionLock(): void
     {
         $mock = new MockHandler([
-            new Response(200, ['Content-Type' => 'application/json'], self::jobResponseJson('123', ['a' => 1], 3)),
             new Response(
                 200,
                 ['Content-Type' => 'application/json'],
-                self::jobResponseJson('123', ['a' => 1, 'message' => 'boom'], 4),
+                self::jobResponseJson('123', ['a' => 1], 3, rowVersion: 5),
+            ),
+            new Response(
+                200,
+                ['Content-Type' => 'application/json'],
+                self::jobResponseJson('123', ['a' => 1, 'message' => 'boom'], 3, rowVersion: 6),
             ),
         ]);
 
@@ -1827,13 +1838,49 @@ class ClientTest extends BaseTest
         /** @var Request $patchRequest */
         $patchRequest = $container[1]['request'];
         self::assertSame('PATCH', $patchRequest->getMethod());
+        // the whole-row optimistic lock uses PATCH /jobs/{id} and the Row-Version header
         self::assertSame('http://example.com/jobs/123', $patchRequest->getUri()->__toString());
-        self::assertSame('3', $patchRequest->getHeader('Result-Version')[0]);
+        self::assertSame('5', $patchRequest->getHeader('Row-Version')[0]);
+        self::assertSame([], $patchRequest->getHeader('Result-Version'));
         // result and status ride the same versioned job PATCH
         self::assertSame(
             json_encode(['result' => ['message' => 'boom'], 'status' => JobInterface::STATUS_ERROR]),
             $patchRequest->getBody()->getContents(),
         );
+    }
+
+    public function testPatchJobAtomicallyResultOnlyOmitsStatus(): void
+    {
+        $mock = new MockHandler([
+            new Response(
+                200,
+                ['Content-Type' => 'application/json'],
+                self::jobResponseJson('123', ['a' => 1], 3, rowVersion: 5),
+            ),
+            new Response(
+                200,
+                ['Content-Type' => 'application/json'],
+                self::jobResponseJson('123', ['a' => 1, 'b' => 2], 3, rowVersion: 6),
+            ),
+        ]);
+
+        $container = [];
+        $stack = HandlerStack::create($mock);
+        $stack->push(Middleware::history($container));
+        $client = $this->createClientWithInternalToken(options: ['handler' => $stack]);
+
+        $client->patchJobAtomically('123', fn (array $current) => new GenericJobResult(['b' => 2]));
+
+        self::assertIsArray($container);
+        self::assertCount(2, $container);
+        self::assertIsArray($container[1]);
+
+        /** @var Request $patchRequest */
+        $patchRequest = $container[1]['request'];
+        self::assertSame('http://example.com/jobs/123', $patchRequest->getUri()->__toString());
+        self::assertSame('5', $patchRequest->getHeader('Row-Version')[0]);
+        // no status key when none is passed
+        self::assertSame('{"result":{"b":2}}', $patchRequest->getBody()->getContents());
     }
 
     public function testPatchJobAtomicallyInvalidTransitionIsNotRetriedAndPropagates(): void
