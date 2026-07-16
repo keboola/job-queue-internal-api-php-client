@@ -361,7 +361,7 @@ class Client
         callable $resultMutator,
         ?string $status = null,
     ): PlainJobInterface {
-        return $this->runVersionLockedPatch($jobId, function () use ($jobId, $resultMutator, $status): PlainJobInterface {
+        $attempt = function () use ($jobId, $resultMutator, $status): PlainJobInterface {
             $currentJob = $this->getJob($jobId);
             $payload = $this->resolveMutatorPayload($resultMutator, $currentJob->getResult());
             $body = ['result' => $payload];
@@ -373,7 +373,9 @@ class Client
                 $body,
                 ['Row-Version' => (string) $currentJob->getRowVersion()],
             );
-        });
+        };
+
+        return $this->runVersionLockedPatch($jobId, $attempt);
     }
 
     /**
