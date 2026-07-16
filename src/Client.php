@@ -329,15 +329,47 @@ class Client
      */
     public function patchJobResultAtomically(string $jobId, callable $mutator): PlainJobInterface
     {
-        return $this->runVersionLockedPatch($jobId, function () use ($jobId, $mutator): PlainJobInterface {
-            $currentJob = $this->getJob($jobId);
-            $payload = $this->resolveMutatorPayload($mutator, $currentJob->getResult());
-            return $this->sendPatchJobResultRequest(
-                $jobId,
-                $payload,
-                ['Result-Version' => (string) $currentJob->getResultVersion()],
+        if ($jobId === '') {
+            throw new ClientException(sprintf('Invalid job ID: "%s".', $jobId));
+        }
+
+        $retryProxy = new RetryProxy(
+            new CallableRetryPolicy(
+                fn (Throwable $e) => $e instanceof ClientException && $e->getCode() === 409,
+                self::MAX_RESULT_VERSION_RETRIES,
+            ),
+            new LinearBackOffPolicy(200, 200),
+            $this->logger,
+        );
+
+        try {
+            /** @var TJob $job */
+            $job = $retryProxy->call(function () use ($jobId, $mutator): PlainJobInterface {
+                $currentJob = $this->getJob($jobId);
+                $payload = $this->resolveMutatorPayload($mutator, $currentJob->getResult());
+                return $this->sendPatchJobResultRequest(
+                    $jobId,
+                    $payload,
+                    ['Result-Version' => (string) $currentJob->getResultVersion()],
+                );
+            });
+            return $job;
+            // @phpstan-ignore catch.neverThrown
+        } catch (ClientException $e) {
+            if ($e->getCode() !== 409) {
+                throw $e;
+            }
+
+            throw new ResultVersionConflictException(
+                sprintf(
+                    'Job "%s" result version conflict not resolved after %d attempts.',
+                    $jobId,
+                    self::MAX_RESULT_VERSION_RETRIES,
+                ),
+                $e->getCode(),
+                $e,
             );
-        });
+        }
     }
 
     /**
@@ -349,8 +381,8 @@ class Client
      *
      * Retries on 409 (row-version conflict) and throws {@see ResultVersionConflictException} once the
      * retries are exhausted. The status transition is validated server-side; an invalid transition
-     * (e.g. an already-terminal job) surfaces as {@see StateTerminalException}/{@see
-     * StateTargetEqualsCurrentException} and is not retried, leaving the job untouched.
+     * (an already-terminal job, or a disallowed target) surfaces as {@see StateTerminalException} /
+     * {@see StateTransitionForbiddenException} and is not retried, leaving the job untouched.
      *
      * @param callable(array<mixed>): JsonSerializable $resultMutator
      * @return TJob
@@ -418,7 +450,7 @@ class Client
 
             throw new ResultVersionConflictException(
                 sprintf(
-                    'Job "%s" result version conflict not resolved after %d attempts.',
+                    'Job "%s" row version conflict not resolved after %d attempts.',
                     $jobId,
                     self::MAX_RESULT_VERSION_RETRIES,
                 ),
