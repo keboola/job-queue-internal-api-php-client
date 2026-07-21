@@ -14,6 +14,7 @@ use JsonSerializable;
 use Keboola\JobQueueInternalClient\Client;
 use Keboola\JobQueueInternalClient\Exception\ClientException;
 use Keboola\JobQueueInternalClient\Exception\ResultVersionConflictException;
+use Keboola\JobQueueInternalClient\Exception\StateTerminalException;
 use Keboola\JobQueueInternalClient\ExistingJobFactory;
 use Keboola\JobQueueInternalClient\JobFactory\Job;
 use Keboola\JobQueueInternalClient\JobFactory\JobInterface;
@@ -1443,9 +1444,13 @@ class ClientTest extends BaseTest
     /**
      * @param array<mixed> $result
      */
-    private static function jobResponseJson(string $id, array $result, int $resultVersion): string
-    {
-        return (string) json_encode([
+    private static function jobResponseJson(
+        string $id,
+        array $result,
+        int $resultVersion,
+        ?int $rowVersion = null,
+    ): string {
+        $data = [
             'id' => $id,
             'runId' => $id,
             'projectId' => '123',
@@ -1457,7 +1462,11 @@ class ClientTest extends BaseTest
             'branchType' => 'default',
             'result' => $result,
             'resultVersion' => $resultVersion,
-        ]);
+        ];
+        if ($rowVersion !== null) {
+            $data['rowVersion'] = $rowVersion;
+        }
+        return (string) json_encode($data);
     }
 
     public function testPatchJobResultAtomicallyHappyPath(): void
@@ -1793,5 +1802,137 @@ class ClientTest extends BaseTest
         /** @var Request $patchRequest */
         $patchRequest = $container[1]['request'];
         self::assertSame(['0'], $patchRequest->getHeader('Result-Version'));
+    }
+
+    public function testPatchJobAtomicallySendsResultAndStatusUnderVersionLock(): void
+    {
+        $mock = new MockHandler([
+            new Response(
+                200,
+                ['Content-Type' => 'application/json'],
+                self::jobResponseJson('123', ['a' => 1], 3, rowVersion: 5),
+            ),
+            new Response(
+                200,
+                ['Content-Type' => 'application/json'],
+                self::jobResponseJson('123', ['a' => 1, 'message' => 'boom'], 3, rowVersion: 6),
+            ),
+        ]);
+
+        $container = [];
+        $stack = HandlerStack::create($mock);
+        $stack->push(Middleware::history($container));
+        $client = $this->createClientWithInternalToken(options: ['handler' => $stack]);
+
+        $result = $client->patchJobAtomically(
+            '123',
+            fn (array $current) => new GenericJobResult(['message' => 'boom']),
+            JobInterface::STATUS_ERROR,
+        );
+
+        self::assertInstanceOf(Job::class, $result);
+        self::assertIsArray($container);
+        self::assertCount(2, $container);
+        self::assertIsArray($container[1]);
+
+        /** @var Request $patchRequest */
+        $patchRequest = $container[1]['request'];
+        self::assertSame('PATCH', $patchRequest->getMethod());
+        // the whole-row optimistic lock uses PATCH /jobs/{id} and the Row-Version header
+        self::assertSame('http://example.com/jobs/123', $patchRequest->getUri()->__toString());
+        self::assertSame('5', $patchRequest->getHeader('Row-Version')[0]);
+        self::assertSame([], $patchRequest->getHeader('Result-Version'));
+        // result and status ride the same versioned job PATCH
+        self::assertSame(
+            json_encode(['result' => ['message' => 'boom'], 'status' => JobInterface::STATUS_ERROR]),
+            $patchRequest->getBody()->getContents(),
+        );
+    }
+
+    public function testPatchJobAtomicallyResultOnlyOmitsStatus(): void
+    {
+        $mock = new MockHandler([
+            new Response(
+                200,
+                ['Content-Type' => 'application/json'],
+                self::jobResponseJson('123', ['a' => 1], 3, rowVersion: 5),
+            ),
+            new Response(
+                200,
+                ['Content-Type' => 'application/json'],
+                self::jobResponseJson('123', ['a' => 1, 'b' => 2], 3, rowVersion: 6),
+            ),
+        ]);
+
+        $container = [];
+        $stack = HandlerStack::create($mock);
+        $stack->push(Middleware::history($container));
+        $client = $this->createClientWithInternalToken(options: ['handler' => $stack]);
+
+        $client->patchJobAtomically('123', fn (array $current) => new GenericJobResult(['b' => 2]));
+
+        self::assertIsArray($container);
+        self::assertCount(2, $container);
+        self::assertIsArray($container[1]);
+
+        /** @var Request $patchRequest */
+        $patchRequest = $container[1]['request'];
+        self::assertSame('http://example.com/jobs/123', $patchRequest->getUri()->__toString());
+        self::assertSame('5', $patchRequest->getHeader('Row-Version')[0]);
+        // no status key when none is passed
+        self::assertSame('{"result":{"b":2}}', $patchRequest->getBody()->getContents());
+    }
+
+    public function testPatchJobAtomicallyInvalidTransitionIsNotRetriedAndPropagates(): void
+    {
+        $mock = new MockHandler([
+            new Response(
+                200,
+                ['Content-Type' => 'application/json'],
+                self::jobResponseJson('123', ['a' => 1], 3, rowVersion: 5),
+            ),
+            // server rejects the transition on an already-terminal job
+            new Response(400, ['Content-Type' => 'application/json'], (string) json_encode([
+                'error' => 'Invalid status transition',
+                'context' => ['stringCode' => StateTerminalException::STRING_CODE],
+            ])),
+        ]);
+
+        $container = [];
+        // bare HandlerStack: mirror production's flat stack (see single-409 test for rationale)
+        $stack = new HandlerStack($mock);
+        $stack->push(Middleware::history($container));
+        $client = $this->createClientWithInternalToken(options: ['handler' => $stack]);
+
+        try {
+            $client->patchJobAtomically(
+                '123',
+                fn (array $current) => new GenericJobResult(['message' => 'late']),
+                JobInterface::STATUS_SUCCESS,
+            );
+            self::fail('Expected StateTerminalException was not thrown.');
+        } catch (ClientException $e) {
+            // expected: an invalid transition is a terminal 4xx (not a version conflict), surfaced as
+            // the typed StateTerminalException and not retried
+            self::assertInstanceOf(StateTerminalException::class, $e);
+        }
+
+        // GET + the single failing PATCH; the invalid transition is NOT retried
+        self::assertIsArray($container);
+        self::assertCount(2, $container);
+    }
+
+    public function testPatchJobAtomicallyInvalidJobId(): void
+    {
+        $client = $this->createClientWithInternalToken();
+
+        $this->expectException(ClientException::class);
+        $this->expectExceptionMessage('Invalid job ID: "".');
+
+        $client->patchJobAtomically(
+            '',
+            fn (array $current) => new GenericJobResult($current),
+            JobInterface::STATUS_ERROR,
+        );
     }
 }

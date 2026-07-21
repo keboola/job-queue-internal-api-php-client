@@ -101,6 +101,7 @@ class FullJobDefinition extends NewJobDefinition
                 ->scalarNode('durationSeconds')->end()
                 ->arrayNode('result')->ignoreExtraKeys(false)->end()
                 ->scalarNode('resultVersion')->end()
+                ->integerNode('rowVersion')->end()
                 ->arrayNode('usageData')->ignoreExtraKeys(false)->end()
                 ->scalarNode('status')->isRequired()
                     ->validate()
