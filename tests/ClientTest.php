@@ -452,7 +452,7 @@ class ClientTest extends BaseTest
         /** @var Request $request */
         $request = $requestHistory[0]['request'];
         self::assertEquals('test agent', $request->getHeader('User-Agent')[0]);
-        self::assertTrue($logsHandler->hasInfoThatContains('GET http://example.com/jobs/123 : 200'));
+        self::assertTrue($logsHandler->hasDebugThatContains('GET http://example.com/jobs/123 : 200'));
     }
 
     public function testRetrySuccess(): void
