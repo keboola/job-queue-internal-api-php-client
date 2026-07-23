@@ -13,6 +13,7 @@ use Keboola\PermissionChecker\BranchType;
 use Keboola\StorageApi\ClientException as StorageClientException;
 use Keboola\StorageApi\Components;
 use Keboola\StorageApiBranch\ClientWrapper;
+use Keboola\StorageApiBranch\Factory\AuthType;
 use Keboola\StorageApiBranch\Factory\ClientOptions;
 use Keboola\StorageApiBranch\Factory\StorageClientPlainFactory;
 use Keboola\StorageApiBranch\StorageApiToken;
@@ -230,6 +231,7 @@ class JobRuntimeResolver
                 branchId: isset($jobData['branchId']) && $jobData['branchId'] !== '' ?
                     (string) $jobData['branchId'] :
                     null,
+                authType: AuthType::STORAGE_TOKEN,
             ));
 
             $this->componentsApiClient = new Components($this->clientWrapper->getBranchClient());

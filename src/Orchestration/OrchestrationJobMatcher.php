@@ -10,6 +10,7 @@ use Keboola\JobQueueInternalClient\JobFactory;
 use Keboola\JobQueueInternalClient\JobFactory\PlainJobInterface;
 use Keboola\JobQueueInternalClient\JobListOptions;
 use Keboola\StorageApi\Components;
+use Keboola\StorageApiBranch\Factory\AuthType;
 use Keboola\StorageApiBranch\Factory\ClientOptions;
 use Keboola\StorageApiBranch\Factory\StorageClientPlainFactory;
 use SensitiveParameter;
@@ -132,7 +133,8 @@ class OrchestrationJobMatcher
             $this->storageClientFactory->createClientWrapper(
                 (new ClientOptions())
                     ->setBranchId($branchId)
-                    ->setToken($token),
+                    ->setToken($token)
+                    ->setAuthType(AuthType::STORAGE_TOKEN),
             )->getBranchClient(),
         );
     }

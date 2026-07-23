@@ -13,6 +13,7 @@ use Keboola\JobQueueInternalClient\JobFactory\JobType;
 use Keboola\StorageApi\BranchAwareClient;
 use Keboola\StorageApi\ClientException as StorageClientException;
 use Keboola\StorageApiBranch\ClientWrapper;
+use Keboola\StorageApiBranch\Factory\AuthType;
 use Keboola\StorageApiBranch\Factory\ClientOptions;
 use Keboola\StorageApiBranch\Factory\StorageClientPlainFactory;
 use Keboola\StorageApiBranch\StorageApiToken;
@@ -1928,6 +1929,7 @@ class JobRuntimeResolverTest extends TestCase
             ->with(new ClientOptions(
                 token: 'KBC::ProjectSecure::token',
                 branchId: $expectedBranchId,
+                authType: AuthType::STORAGE_TOKEN,
             ))
             ->willReturn($clientWrapper)
         ;
@@ -1944,6 +1946,7 @@ class JobRuntimeResolverTest extends TestCase
                 ],
             ],
             'test-token',
+            AuthType::STORAGE_TOKEN,
         );
     }
 

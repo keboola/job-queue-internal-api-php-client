@@ -18,6 +18,7 @@ use Keboola\PermissionChecker\BranchType;
 use Keboola\StorageApi\BranchAwareClient;
 use Keboola\StorageApi\ClientException as StorageApiClientException;
 use Keboola\StorageApiBranch\ClientWrapper;
+use Keboola\StorageApiBranch\Factory\AuthType;
 use Keboola\StorageApiBranch\Factory\ClientOptions;
 use Keboola\StorageApiBranch\Factory\StorageClientPlainFactory;
 use RuntimeException;
@@ -581,7 +582,7 @@ class JobTest extends BaseTest
         $storageClientFactoryMock = $this->createMock(StorageClientPlainFactory::class);
         $storageClientFactoryMock->expects(self::once())
             ->method('createClientWrapper')
-            ->with(new ClientOptions(null, $tokenDecrypted, '987'))
+            ->with(new ClientOptions(null, $tokenDecrypted, '987', authType: AuthType::STORAGE_TOKEN))
             ->willReturn($storageApiClientWrapperMock)
         ;
 
@@ -662,7 +663,7 @@ class JobTest extends BaseTest
             ->expects(self::once())->method('getBranchClient')->willReturn($clientMock);
         $factory = $this->createMock(StorageClientPlainFactory::class);
         $factory->expects(self::once())->method('createClientWrapper')
-            ->with(new ClientOptions(null, 'token', '987'))
+            ->with(new ClientOptions(null, 'token', '987', authType: AuthType::STORAGE_TOKEN))
             ->willReturn($clientWrapperMock);
 
         $objectEncryptorMock = $this->createMock(JobObjectEncryptor::class);
@@ -702,7 +703,7 @@ class JobTest extends BaseTest
         $storageClientFactory = $this->createMock(StorageClientPlainFactory::class);
         $storageClientFactory->expects(self::once())
             ->method('createClientWrapper')
-            ->with(new ClientOptions(null, 'token', $this->jobData['branchId']))
+            ->with(new ClientOptions(null, 'token', $this->jobData['branchId'], authType: AuthType::STORAGE_TOKEN))
             ->willReturn($storageClientWrapperMock)
         ;
 
@@ -755,7 +756,7 @@ class JobTest extends BaseTest
         $storageClientFactory = $this->createMock(StorageClientPlainFactory::class);
         $storageClientFactory->expects(self::once())
             ->method('createClientWrapper')
-            ->with(new ClientOptions(null, 'token', $this->jobData['branchId']))
+            ->with(new ClientOptions(null, 'token', $this->jobData['branchId'], authType: AuthType::STORAGE_TOKEN))
             ->willReturn($storageClientWrapperMock)
         ;
 
@@ -836,7 +837,7 @@ class JobTest extends BaseTest
         $storageClientFactory = $this->createMock(StorageClientPlainFactory::class);
         $storageClientFactory->expects(self::once())
             ->method('createClientWrapper')
-            ->with(new ClientOptions(null, 'token', $this->jobData['branchId']))
+            ->with(new ClientOptions(null, 'token', $this->jobData['branchId'], authType: AuthType::STORAGE_TOKEN))
             ->willReturn($storageClientWrapperMock)
         ;
 
@@ -911,7 +912,7 @@ class JobTest extends BaseTest
         $storageClientFactory = $this->createMock(StorageClientPlainFactory::class);
         $storageClientFactory->expects(self::once())
             ->method('createClientWrapper')
-            ->with(new ClientOptions(null, 'token', $this->jobData['branchId']))
+            ->with(new ClientOptions(null, 'token', $this->jobData['branchId'], authType: AuthType::STORAGE_TOKEN))
             ->willReturn($storageClientWrapperMock)
         ;
 
@@ -999,7 +1000,7 @@ class JobTest extends BaseTest
         $storageClientFactory = $this->createMock(StorageClientPlainFactory::class);
         $storageClientFactory->expects(self::atLeastOnce())
             ->method('createClientWrapper')
-            ->with(new ClientOptions(null, 'token', $this->jobData['branchId']))
+            ->with(new ClientOptions(null, 'token', $this->jobData['branchId'], authType: AuthType::STORAGE_TOKEN))
             ->willReturn($storageClientWrapperMock)
         ;
 
@@ -1070,7 +1071,7 @@ class JobTest extends BaseTest
         $storageClientFactory = $this->createMock(StorageClientPlainFactory::class);
         $storageClientFactory->expects(self::atLeastOnce())
             ->method('createClientWrapper')
-            ->with(new ClientOptions(null, 'token', $this->jobData['branchId']))
+            ->with(new ClientOptions(null, 'token', $this->jobData['branchId'], authType: AuthType::STORAGE_TOKEN))
             ->willReturn($storageClientWrapperMock)
         ;
 
@@ -1134,7 +1135,7 @@ class JobTest extends BaseTest
         $storageClientFactory = $this->createMock(StorageClientPlainFactory::class);
         $storageClientFactory->expects(self::atLeastOnce())
             ->method('createClientWrapper')
-            ->with(new ClientOptions(null, 'token', $this->jobData['branchId']))
+            ->with(new ClientOptions(null, 'token', $this->jobData['branchId'], authType: AuthType::STORAGE_TOKEN))
             ->willReturn($storageClientWrapperMock)
         ;
 
@@ -1193,7 +1194,7 @@ class JobTest extends BaseTest
         $storageClientFactory = $this->createMock(StorageClientPlainFactory::class);
         $storageClientFactory->expects(self::atLeastOnce())
             ->method('createClientWrapper')
-            ->with(new ClientOptions(null, 'token', $this->jobData['branchId']))
+            ->with(new ClientOptions(null, 'token', $this->jobData['branchId'], authType: AuthType::STORAGE_TOKEN))
             ->willReturn($storageClientWrapperMock)
         ;
 
