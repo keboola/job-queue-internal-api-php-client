@@ -36,7 +36,7 @@
         "keboola/php-api-client-base": "^1.0",
         "keboola/retry": "^0.5.1",
         "keboola/storage-api-client": "^15.2|^16.0|^17.0|^18.0",
-        "keboola/storage-api-php-client-branch-wrapper": "^6.0",
+        "keboola/storage-api-php-client-branch-wrapper": "^7.0",
         "monolog/monolog": "^2.6|^3.0",
         "psr/log": "^1.1|^2.0|^3.0",
         "symfony/config": "^5.4|^6.0|^7.0",

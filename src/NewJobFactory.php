@@ -15,6 +15,7 @@ use Keboola\JobQueueInternalClient\JobFactory\NewJobDefinition;
 use Keboola\JobQueueInternalClient\JobFactory\PlainJobInterface;
 use Keboola\PermissionChecker\BranchType;
 use Keboola\StorageApi\ClientException as StorageClientException;
+use Keboola\StorageApiBranch\Factory\AuthType;
 use Keboola\StorageApiBranch\Factory\ClientOptions;
 use Keboola\StorageApiBranch\Factory\StorageClientPlainFactory;
 
@@ -34,6 +35,7 @@ class NewJobFactory extends JobFactory
         try {
             $clientWrapper = $this->storageClientFactory->createClientWrapper(new ClientOptions(
                 token: (string) $data['#tokenString'],
+                authType: AuthType::STORAGE_TOKEN,
             ));
             $token = $clientWrapper->getToken();
 

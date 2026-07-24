@@ -20,6 +20,7 @@ use Keboola\StorageApi\Components;
 use Keboola\StorageApi\DevBranches;
 use Keboola\StorageApi\Options\Components\Configuration;
 use Keboola\StorageApiBranch\ClientWrapper;
+use Keboola\StorageApiBranch\Factory\AuthType;
 use Keboola\StorageApiBranch\Factory\ClientOptions;
 use Symfony\Component\Uid\Uuid;
 
@@ -45,6 +46,7 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
         $clientWrapper = new ClientWrapper(new ClientOptions(
             url: self::getRequiredEnv('TEST_STORAGE_API_URL'),
             token: self::getRequiredEnv('TEST_STORAGE_API_TOKEN'),
+            authType: AuthType::STORAGE_TOKEN,
         ));
         self::$defaultBranchId = $clientWrapper->getDefaultBranch()->id;
         self::$defaultExecutor = $clientWrapper->getToken()->hasFeature(self::FEATURE_NO_DIND) ?

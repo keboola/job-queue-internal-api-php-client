@@ -10,6 +10,7 @@ use Keboola\StorageApi\Components;
 use Keboola\StorageApi\DevBranches;
 use Keboola\StorageApi\Options\Components\Configuration;
 use Keboola\StorageApiBranch\ClientWrapper;
+use Keboola\StorageApiBranch\Factory\AuthType;
 use Keboola\StorageApiBranch\Factory\ClientOptions;
 
 class ClientListConfigurationsJobsFunctionalTest extends BaseClientFunctionalTest
@@ -353,6 +354,7 @@ class ClientListConfigurationsJobsFunctionalTest extends BaseClientFunctionalTes
         $defaultBranchId = (new ClientWrapper(new ClientOptions(
             url: self::getRequiredEnv('TEST_STORAGE_API_URL'),
             token: self::getRequiredEnv('TEST_STORAGE_API_TOKEN'),
+            authType: AuthType::STORAGE_TOKEN,
         )))->getDefaultBranch()->id;
 
         self::assertNotSame($createdJob1->getId(), $response[1]->getId());

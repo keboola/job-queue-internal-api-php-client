@@ -16,6 +16,7 @@ use Keboola\StorageApi\Client;
 use Keboola\StorageApi\Components;
 use Keboola\StorageApi\Options\Components\Configuration;
 use Keboola\StorageApiBranch\ClientWrapper;
+use Keboola\StorageApiBranch\Factory\AuthType;
 use Keboola\StorageApiBranch\Factory\ClientOptions;
 use Keboola\StorageApiBranch\Factory\StorageClientPlainFactory;
 use Keboola\StorageApiBranch\StorageApiToken;
@@ -39,6 +40,7 @@ class NewJobFactoryTest extends BaseTest
         $clientWrapper = new ClientWrapper(new ClientOptions(
             url: self::getRequiredEnv('TEST_STORAGE_API_URL'),
             token: self::getRequiredEnv('TEST_STORAGE_API_TOKEN'),
+            authType: AuthType::STORAGE_TOKEN,
         ));
         self::$client = $clientWrapper->getBasicClient();
         self::$defaultBranchId = $clientWrapper->getDefaultBranch()->id;
@@ -614,6 +616,7 @@ class NewJobFactoryTest extends BaseTest
             return new StorageApiToken(
                 $tokenInfo,
                 self::getRequiredEnv('TEST_STORAGE_API_TOKEN'),
+                AuthType::STORAGE_TOKEN,
             );
         });
 

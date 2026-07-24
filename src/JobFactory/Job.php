@@ -12,6 +12,7 @@ use Keboola\StorageApi\Components as ComponentsApiClient;
 use Keboola\StorageApi\Options\TokenCreateOptions;
 use Keboola\StorageApi\Tokens;
 use Keboola\StorageApiBranch\ClientWrapper;
+use Keboola\StorageApiBranch\Factory\AuthType;
 use Keboola\StorageApiBranch\Factory\ClientOptions;
 use Keboola\StorageApiBranch\Factory\StorageClientPlainFactory;
 use Symfony\Component\Uid\Uuid;
@@ -162,7 +163,12 @@ class Job extends PlainJob implements JobInterface
     private function getStorageClientWrapper(): ClientWrapper
     {
         return $this->storageClientFactory->createClientWrapper(
-            new ClientOptions(null, $this->getTokenDecrypted(), $this->getBranchId()),
+            new ClientOptions(
+                null,
+                $this->getTokenDecrypted(),
+                $this->getBranchId(),
+                authType: AuthType::STORAGE_TOKEN,
+            ),
         );
     }
 }
