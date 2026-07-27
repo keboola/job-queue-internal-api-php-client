@@ -618,23 +618,6 @@ class FullJobDefinitionTest extends BaseTest
                 ],
                 '/Invalid configuration for path "job.previousJobId": value cannot be empty string/',
             ],
-            'delayedStartTime and delay set simultaneously' => [
-                [
-                    '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
-                    'id' => '12345',
-                    'runId' => '12345',
-                    'tokenId' => '1234',
-                    'projectId' => '123',
-                    'status' => 'created',
-                    'desiredStatus' => 'processing',
-                    'configId' => '123',
-                    'componentId' => 'keboola.test',
-                    'mode' => 'run',
-                    'delayedStartTime' => '2024-03-20T10:00:00+00:00',
-                    'delay' => 3600,
-                ],
-                '/delayedStartTime and delay cannot be set simultaneously/',
-            ],
         ];
     }
 
@@ -649,6 +632,32 @@ class FullJobDefinitionTest extends BaseTest
         self::expectExceptionMessageMatches($message);
         $definition = new FullJobDefinition();
         $definition->processData($jobData);
+    }
+
+    public function testDelayedStartTimeAndDelayCanCoexist(): void
+    {
+        // A persisted job carries both the original delay and the derived delayedStartTime,
+        // so the full job definition (used when loading existing jobs) must accept both.
+        $jobData = [
+            '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+            'id' => '12345',
+            'runId' => '12345',
+            'tokenId' => '1234',
+            'projectId' => '123',
+            'status' => 'created',
+            'desiredStatus' => 'processing',
+            'configId' => '123',
+            'componentId' => 'keboola.test',
+            'mode' => 'run',
+            'delayedStartTime' => '2024-03-20T10:00:00+00:00',
+            'delay' => 3600,
+        ];
+
+        $definition = new FullJobDefinition();
+        $result = $definition->processData($jobData);
+
+        self::assertSame('2024-03-20T10:00:00+00:00', $result['delayedStartTime']);
+        self::assertSame(3600, $result['delay']);
     }
 
     public function testBackendConfiguration(): void

@@ -394,4 +394,9 @@ class PlainJob implements JsonSerializable, PlainJobInterface
     {
         return $this->delayedStartTime;
     }
+
+    public function getDelay(): ?int
+    {
+        return isset($this->data['delay']) ? (int) $this->data['delay'] : null;
+    }
 }

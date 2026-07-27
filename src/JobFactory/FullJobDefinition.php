@@ -260,14 +260,6 @@ class FullJobDefinition extends NewJobDefinition
             ->end();
         // @formatter:on
 
-        $rootNode->validate()
-            ->ifTrue(function ($v) {
-                assert(is_array($v));
-                return isset($v['delayedStartTime'])
-                    && isset($v['delay']);
-            })
-            ->thenInvalid('delayedStartTime and delay cannot be set simultaneously');
-
         return $rootNode;
     }
 
