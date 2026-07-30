@@ -186,6 +186,7 @@ class PlainJobTest extends TestCase
         self::assertSame('orchestration-task-id', $job->getOrchestrationTaskId());
         self::assertSame('orchestration-phase-id', $job->getOrchestrationPhaseId());
         self::assertSame(['orchestration-task-id-1'], $job->getOnlyOrchestrationTaskIds());
+        self::assertSame(['orchestration-task-id-1'], $job->getOnlyFlowTaskIds());
         self::assertSame('previous-job-id', $job->getPreviousJobId());
         self::assertSame('runner-id', $job->getRunnerId());
     }
@@ -230,6 +231,7 @@ class PlainJobTest extends TestCase
         self::assertNull($job->getOrchestrationTaskId());
         self::assertNull($job->getOrchestrationPhaseId());
         self::assertNull($job->getOnlyOrchestrationTaskIds());
+        self::assertNull($job->getOnlyFlowTaskIds());
         self::assertNull($job->getPreviousJobId());
         self::assertNull($job->getRunnerId());
     }
