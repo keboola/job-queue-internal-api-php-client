@@ -352,9 +352,20 @@ class PlainJob implements JsonSerializable, PlainJobInterface
     }
 
     /**
+     * @deprecated For the flow use-case use getOnlyFlowTaskIds()
      * @return list<scalar>|null
      */
     public function getOnlyOrchestrationTaskIds(): ?array
+    {
+        return $this->data['onlyOrchestrationTaskIds'] ?? null;
+    }
+
+    /**
+     * Public alias of getOnlyOrchestrationTaskIds(). The internal data key stays "onlyOrchestrationTaskIds".
+     *
+     * @return list<scalar>|null
+     */
+    public function getOnlyFlowTaskIds(): ?array
     {
         return $this->data['onlyOrchestrationTaskIds'] ?? null;
     }
