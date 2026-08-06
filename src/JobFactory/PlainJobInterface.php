@@ -127,8 +127,14 @@ interface PlainJobInterface
     /** @return non-empty-string|null */
     public function getOrchestrationPhaseId(): ?string;
 
-    /** @return list<non-empty-list>|null */
+    /**
+     * @deprecated For the flow use-case use getOnlyFlowTaskIds()
+     * @return list<scalar>|null
+     */
     public function getOnlyOrchestrationTaskIds(): ?array;
+
+    /** @return list<scalar>|null */
+    public function getOnlyFlowTaskIds(): ?array;
 
     /** @return non-empty-string|null */
     public function getPreviousJobId(): ?string;
