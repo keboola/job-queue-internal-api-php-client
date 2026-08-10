@@ -143,11 +143,6 @@ class Client
         }
     }
 
-    public function addJobUsage(string $jobId, array $usage): void
-    {
-        // todo implement this
-    }
-
     /**
      * @param PlainJobInterface $job
      * @return TJob
