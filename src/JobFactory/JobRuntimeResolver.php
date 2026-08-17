@@ -451,6 +451,14 @@ class JobRuntimeResolver
             return '1';
         }
 
+        if ($parallelism === JobInterface::PARALLELISM_INFINITY) {
+            // `infinity` was the last unbounded path. Every other accepted value is
+            // capped at 100, and under k8sContainers each row becomes its own pod, so
+            // an unbounded fan-out can flood the pool. Capped rather than rejected so
+            // that existing configurations keep running.
+            return JobInterface::PARALLELISM_MAX;
+        }
+
         return $parallelism;
     }
 

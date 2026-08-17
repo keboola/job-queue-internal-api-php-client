@@ -2257,6 +2257,18 @@ class JobRuntimeResolverTest extends TestCase
             'jobParallelism' => '5',
             'expectedParallelism' => '5',
         ];
+
+        yield 'parallelism 100 stays at the cap' => [
+            'jobParallelism' => '100',
+            'expectedParallelism' => '100',
+        ];
+
+        // `infinity` is still accepted on input but must never reach a resolved job —
+        // it was the last unbounded row-parallelism path.
+        yield 'parallelism infinity is capped to 100' => [
+            'jobParallelism' => 'infinity',
+            'expectedParallelism' => '100',
+        ];
     }
 
     /**

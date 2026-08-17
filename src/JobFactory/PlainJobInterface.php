@@ -62,6 +62,13 @@ interface PlainJobInterface
         self::DESIRED_STATUS_TERMINATING,
     ];
 
+    public const PARALLELISM_MAX = '100';
+
+    /**
+     * @deprecated Still accepted on input for backward compatibility, but
+     *   JobRuntimeResolver caps it to PARALLELISM_MAX, so a resolved job never
+     *   carries it. Do not treat this value as unbounded.
+     */
     public const PARALLELISM_INFINITY = 'infinity';
     public const PARALLELISM_ALL = [
         '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10',
