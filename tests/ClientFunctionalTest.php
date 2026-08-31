@@ -213,6 +213,7 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
             'previousJobId' => null,
             'onlyOrchestrationTaskIds' => null,
             'delayedStartTime' => null,
+            'requestedDelay' => null,
             'resultVersion' => 0,
             'rowVersion' => 1,
         ];
@@ -335,6 +336,7 @@ class ClientFunctionalTest extends BaseClientFunctionalTest
                 'previousJobId' => null,
                 'onlyOrchestrationTaskIds' => null,
                 'delayedStartTime' => null,
+                'requestedDelay' => null,
                 'resultVersion' => 0,
                 'rowVersion' => 1,
             ];
