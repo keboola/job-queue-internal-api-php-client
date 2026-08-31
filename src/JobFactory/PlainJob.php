@@ -42,6 +42,7 @@ class PlainJob implements JsonSerializable, PlainJobInterface
      *     endTime?: string|null,
      *     delayedStartTime?: string|null,
      *     delay?: string|int|null,
+     *     requestedDelay?: string|int|null,
      *     durationSeconds?: string|int|null,
      *     result?: array,
      *     resultVersion?: int|string|null,
@@ -393,5 +394,17 @@ class PlainJob implements JsonSerializable, PlainJobInterface
     public function getDelayedStartTime(): ?DateTimeImmutable
     {
         return $this->delayedStartTime;
+    }
+
+    /**
+     * The delay (in seconds) the job was originally created with, as persisted by the internal API.
+     *
+     * Unlike the transient `delay` creation input, this is a read-only attribute that coexists with
+     * `delayedStartTime` on a stored job. Returns null for jobs created before the value was persisted
+     * and for jobs that were never delayed.
+     */
+    public function getRequestedDelay(): ?int
+    {
+        return isset($this->data['requestedDelay']) ? (int) $this->data['requestedDelay'] : null;
     }
 }

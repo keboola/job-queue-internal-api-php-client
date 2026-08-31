@@ -1353,4 +1353,32 @@ class JobTest extends BaseTest
             $job->getDelayedStartTime(),
         );
     }
+
+    public function testRequestedDelay(): void
+    {
+        $jobData = $this->jobData;
+        $jobData['requestedDelay'] = '3600';
+        $job = $this->getJob($jobData);
+
+        self::assertSame(3600, $job->getRequestedDelay());
+    }
+
+    public function testRequestedDelayIsNullWhenNotSet(): void
+    {
+        $job = $this->getJob($this->jobData);
+
+        self::assertNull($job->getRequestedDelay());
+    }
+
+    public function testRequestedDelayIsIndependentOfDelayInput(): void
+    {
+        // `delay` is a creation input that only derives delayedStartTime; it never populates
+        // the persisted requestedDelay attribute, which the internal API writes on its own.
+        $jobData = $this->jobData;
+        $jobData['delay'] = '3600';
+        $job = $this->getJob($jobData);
+
+        self::assertNull($job->getRequestedDelay());
+        self::assertNotNull($job->getDelayedStartTime());
+    }
 }

@@ -766,4 +766,31 @@ class FullJobDefinitionTest extends BaseTest
         self::assertIsArray($processedData['backend']);
         self::assertArrayNotHasKey('extraBackendKey', $processedData['backend']);
     }
+
+    public function testRequestedDelayCoexistsWithDelayedStartTime(): void
+    {
+        // A persisted job carries the derived delayedStartTime together with the recorded
+        // requestedDelay. Only the transient `delay` creation input is mutually exclusive
+        // with delayedStartTime, so this combination must round-trip without error.
+        $jobData = [
+            '#tokenString' => (string) getenv('TEST_STORAGE_API_TOKEN'),
+            'id' => '12345',
+            'runId' => '12345',
+            'tokenId' => '1234',
+            'projectId' => '123',
+            'status' => 'created',
+            'desiredStatus' => 'processing',
+            'configId' => '123',
+            'componentId' => 'keboola.test',
+            'mode' => 'run',
+            'delayedStartTime' => '2024-03-20T10:00:00+00:00',
+            'requestedDelay' => 3600,
+        ];
+
+        $definition = new FullJobDefinition();
+        $result = $definition->processData($jobData);
+
+        self::assertSame('2024-03-20T10:00:00+00:00', $result['delayedStartTime']);
+        self::assertSame(3600, $result['requestedDelay']);
+    }
 }

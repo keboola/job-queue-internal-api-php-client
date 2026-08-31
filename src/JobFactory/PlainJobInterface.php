@@ -121,6 +121,7 @@ interface PlainJobInterface
     public function hasVariables(): bool;
     public function getStartTime(): ?DateTimeImmutable;
     public function getDelayedStartTime(): ?DateTimeImmutable;
+    public function getRequestedDelay(): ?int;
     public function getEndTime(): ?DateTimeImmutable;
     public function getCreatedTime(): ?DateTimeImmutable;
     public function getDurationSeconds(): ?int;
