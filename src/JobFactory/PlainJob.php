@@ -53,7 +53,6 @@ class PlainJob implements JsonSerializable, PlainJobInterface
      *     parallelism?: int|string|null,
      *     behavior?: array{onError?: string|null},
      *     isFinished: bool,
-     *     outcome?: string|null,
      *     url?: string|null,
      *     branchId?: string|null,
      *     branchType: string,
@@ -93,7 +92,6 @@ class PlainJob implements JsonSerializable, PlainJobInterface
         }
 
         $this->data['isFinished'] = in_array($this->getStatus(), PlainJobInterface::STATUSES_FINISHED);
-        $this->data['outcome'] = self::resolveOutcome($this->getStatus());
         $this->data['parentRunId'] = $this->getParentRunId();
 
         if (!empty($this->data['startTime'])) {
@@ -238,14 +236,21 @@ class PlainJob implements JsonSerializable, PlainJobInterface
      * Whether a finished job delivered what it was asked to do.
      *
      * - `null` exactly while `isFinished()` is false — a running job has no outcome yet.
-     * - Derived from `status` on construction, never stored, the same way `isFinished` is.
+     * - Derived from `status` on read. It is neither stored nor serialized, so the job payload on
+     *   the wire is unchanged and an `outcome` in the input data is ignored.
      */
     public function getOutcome(): ?string
     {
-        return $this->data['outcome'] ?? null;
+        return self::resolveOutcome($this->getStatus());
     }
 
-    private static function resolveOutcome(string $status): ?string
+    /**
+     * The outcome a finished job's `status` amounts to.
+     *
+     * - `null` for every status that is not finished.
+     * - The public API derives the response field with it, so the rule lives in one place.
+     */
+    public static function resolveOutcome(string $status): ?string
     {
         if (in_array($status, PlainJobInterface::STATUSES_SUCCESSFUL, true)) {
             return PlainJobInterface::OUTCOME_SUCCESS;

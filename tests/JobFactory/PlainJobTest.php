@@ -351,13 +351,12 @@ class PlainJobTest extends TestCase
         self::assertSame($outcome !== null, $job->isFinished());
     }
 
-    /** @dataProvider provideOutcomes */
-    public function testOutcomeIsSerialized(string $status, ?string $outcome): void
+    public function testOutcomeIsNotSerialized(): void
     {
         $job = $this->createJobWithDefaults([
-            'status' => $status,
+            'status' => PlainJobInterface::STATUS_SUCCESS,
         ]);
-        self::assertSame($outcome, $job->jsonSerialize()['outcome']);
+        self::assertArrayNotHasKey('outcome', $job->jsonSerialize());
     }
 
     public function testOutcomeIsDerivedAndNotTakenFromInput(): void

@@ -54,6 +54,13 @@ interface PlainJobInterface
         self::STATUS_PROCESSING,
     ];
 
+    /**
+     * What a finished job's `status` says about whether it delivered.
+     *
+     * - `PlainJob::resolveOutcome()` maps a status to one of these; the getter is on `PlainJob`
+     *   alone. A new method here would break every downstream class implementing this interface,
+     *   which `ExistingJobFactoryInterface<TJob of PlainJobInterface>` invites.
+     */
     public const OUTCOME_SUCCESS = 'success';
     public const OUTCOME_FAILURE = 'failure';
 
@@ -137,7 +144,6 @@ interface PlainJobInterface
     public function getParentRunId(): string;
     public function getRunId(): string;
     public function isFinished(): bool;
-    public function getOutcome(): ?string;
     public function getUsageData(): array;
     public function getBackend(): Backend;
     public function getExecutor(): Executor;
