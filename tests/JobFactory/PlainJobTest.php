@@ -293,6 +293,82 @@ class PlainJobTest extends TestCase
         self::assertSame($isFinished, $job->isFinished());
     }
 
+    public static function provideOutcomes(): iterable
+    {
+        yield 'cancelled' => [
+            'status' => PlainJobInterface::STATUS_CANCELLED,
+            'outcome' => PlainJobInterface::OUTCOME_FAILURE,
+        ];
+
+        yield 'created' => [
+            'status' => PlainJobInterface::STATUS_CREATED,
+            'outcome' => null,
+        ];
+
+        yield 'error' => [
+            'status' => PlainJobInterface::STATUS_ERROR,
+            'outcome' => PlainJobInterface::OUTCOME_FAILURE,
+        ];
+
+        yield 'processing' => [
+            'status' => PlainJobInterface::STATUS_PROCESSING,
+            'outcome' => null,
+        ];
+
+        yield 'success' => [
+            'status' => PlainJobInterface::STATUS_SUCCESS,
+            'outcome' => PlainJobInterface::OUTCOME_SUCCESS,
+        ];
+
+        yield 'terminated' => [
+            'status' => PlainJobInterface::STATUS_TERMINATED,
+            'outcome' => PlainJobInterface::OUTCOME_FAILURE,
+        ];
+
+        yield 'terminating' => [
+            'status' => PlainJobInterface::STATUS_TERMINATING,
+            'outcome' => null,
+        ];
+
+        yield 'waiting' => [
+            'status' => PlainJobInterface::STATUS_WAITING,
+            'outcome' => null,
+        ];
+
+        yield 'warning' => [
+            'status' => PlainJobInterface::STATUS_WARNING,
+            'outcome' => PlainJobInterface::OUTCOME_SUCCESS,
+        ];
+    }
+
+    /** @dataProvider provideOutcomes */
+    public function testGetOutcome(string $status, ?string $outcome): void
+    {
+        $job = $this->createJobWithDefaults([
+            'status' => $status,
+        ]);
+        self::assertSame($outcome, $job->getOutcome());
+        self::assertSame($outcome !== null, $job->isFinished());
+    }
+
+    /** @dataProvider provideOutcomes */
+    public function testOutcomeIsSerialized(string $status, ?string $outcome): void
+    {
+        $job = $this->createJobWithDefaults([
+            'status' => $status,
+        ]);
+        self::assertSame($outcome, $job->jsonSerialize()['outcome']);
+    }
+
+    public function testOutcomeIsDerivedAndNotTakenFromInput(): void
+    {
+        $job = $this->createJobWithDefaults([
+            'status' => PlainJobInterface::STATUS_ERROR,
+            'outcome' => PlainJobInterface::OUTCOME_SUCCESS,
+        ]);
+        self::assertSame(PlainJobInterface::OUTCOME_FAILURE, $job->getOutcome());
+    }
+
     public function testGetParentRunId(): void
     {
         $job = $this->createJobWithDefaults([

@@ -54,6 +54,36 @@ interface PlainJobInterface
         self::STATUS_PROCESSING,
     ];
 
+    public const OUTCOME_SUCCESS = 'success';
+    public const OUTCOME_FAILURE = 'failure';
+
+    /**
+     * Finished statuses that count as `OUTCOME_SUCCESS`.
+     *
+     * - `warning` is one: a child job failed and its `behavior.onError` was `warning`, so the
+     *   configuration asked the container to tolerate it and go on. The run delivered what that
+     *   configuration defined as its work.
+     * - The daemon already groups the two together — `PhysicalJobStatus` maps both to
+     *   `STOPPED_SUCCESS`, and both flow engines run the next phase after either.
+     */
+    public const STATUSES_SUCCESSFUL = [
+        self::STATUS_SUCCESS,
+        self::STATUS_WARNING,
+    ];
+
+    /**
+     * Finished statuses that count as `OUTCOME_FAILURE`.
+     *
+     * - `cancelled` and `terminated` answer "did this job deliver", not "did something break": a
+     *   user stopped the job. `cancelled` never started executing, `terminated` stopped part-way,
+     *   and neither produced the job's output.
+     */
+    public const STATUSES_FAILED = [
+        self::STATUS_ERROR,
+        self::STATUS_CANCELLED,
+        self::STATUS_TERMINATED,
+    ];
+
     public const DESIRED_STATUS_PROCESSING = 'processing';
     public const DESIRED_STATUS_TERMINATING = 'terminating';
 
@@ -107,6 +137,7 @@ interface PlainJobInterface
     public function getParentRunId(): string;
     public function getRunId(): string;
     public function isFinished(): bool;
+    public function getOutcome(): ?string;
     public function getUsageData(): array;
     public function getBackend(): Backend;
     public function getExecutor(): Executor;
