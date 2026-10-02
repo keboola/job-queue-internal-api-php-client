@@ -150,6 +150,7 @@ class JobRuntimeResolver
 
     private const PAY_AS_YOU_GO_FEATURE = 'pay-as-you-go';
     private const NO_DIND_FEATURE = 'job-queue-no-dind';
+    private const RETRY_SCOPE_ROW = 'row';
 
     private ClientWrapper $clientWrapper;
     private Components $componentsApiClient;
@@ -246,7 +247,7 @@ class JobRuntimeResolver
             $jobData = $this->resolveBranchType($jobData);
 
             // set type after resolving parallelism
-            /** @var array{type?: string|null, parallelism?: int|string|null, componentId: string, configData?: array{phaseId?: int|string|null}} $jobData */
+            /** @var array{type?: string|null, parallelism?: int|string|null, componentId: string, configData?: array{phaseId?: int|string|null, retry?: array{scope?: string|null}}} $jobData */
             $jobData['type'] = $this->resolveJobType($jobData)->value;
 
             // set backend after resolving type
@@ -562,7 +563,7 @@ class JobRuntimeResolver
      *     type?: string|null,
      *     parallelism?: int|string|null,
      *     componentId: string,
-     *     configData?: array{phaseId?: string|int|null}
+     *     configData?: array{phaseId?: string|int|null, retry?: array{scope?: string|null}}
      * } $jobData
      */
     private function resolveJobType(array $jobData): JobType
@@ -571,9 +572,15 @@ class JobRuntimeResolver
             return JobType::from((string) $jobData['type']);
         }
 
+        $configRows = (array) ($this->getRawConfiguration()['rows'] ?? []);
+        if (($jobData['configData']['retry']['scope'] ?? null) === self::RETRY_SCOPE_ROW) {
+            // Row-scope retry (set by conditional flows) needs a row container so that every row gets its own
+            // retry container, even for a single row. Without rows, the whole job is retried instead.
+            return count($configRows) > 0 ? JobType::ROW_CONTAINER : JobType::RETRY_CONTAINER;
+        }
+
         $parallelism = $jobData['parallelism'] ?? null;
         $hasParallelism = $parallelism === JobInterface::PARALLELISM_INFINITY || ((int) $parallelism) > 0;
-        $configRows = (array) ($this->getRawConfiguration()['rows'] ?? []);
         if ($hasParallelism && count($configRows) >= 2) {
             return JobType::ROW_CONTAINER;
         }
