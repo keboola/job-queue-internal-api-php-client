@@ -351,6 +351,18 @@ class PlainJobTest extends TestCase
         self::assertSame($outcome !== null, $job->isFinished());
     }
 
+    public function testOutcomeStatusesPartitionTheFinishedStatuses(): void
+    {
+        self::assertEqualsCanonicalizing(
+            PlainJobInterface::STATUSES_FINISHED,
+            [...PlainJobInterface::STATUSES_SUCCESSFUL, ...PlainJobInterface::STATUSES_FAILED],
+        );
+        self::assertSame(
+            [],
+            array_intersect(PlainJobInterface::STATUSES_SUCCESSFUL, PlainJobInterface::STATUSES_FAILED),
+        );
+    }
+
     public function testOutcomeIsNotSerialized(): void
     {
         $job = $this->createJobWithDefaults([
