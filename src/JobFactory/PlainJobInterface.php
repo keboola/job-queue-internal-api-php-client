@@ -64,27 +64,13 @@ interface PlainJobInterface
     public const OUTCOME_SUCCESS = 'success';
     public const OUTCOME_FAILURE = 'failure';
 
-    /**
-     * Finished statuses that count as `OUTCOME_SUCCESS`.
-     *
-     * - `warning` is one: a child job failed and its `behavior.onError` was `warning`, so the
-     *   configuration asked the container to tolerate it and go on. The run delivered what that
-     *   configuration defined as its work.
-     * - The daemon already groups the two together — `PhysicalJobStatus` maps both to
-     *   `STOPPED_SUCCESS`, and both flow engines run the next phase after either.
-     */
+    /** Finished statuses that count as `OUTCOME_SUCCESS`; the reasoning is on `JobOutcome` in swagger.yaml. */
     public const STATUSES_SUCCESSFUL = [
         self::STATUS_SUCCESS,
         self::STATUS_WARNING,
     ];
 
-    /**
-     * Finished statuses that count as `OUTCOME_FAILURE`.
-     *
-     * - `cancelled` and `terminated` answer "did this job deliver", not "did something break": a
-     *   user stopped the job. `cancelled` never started executing, `terminated` stopped part-way,
-     *   and neither produced the job's output.
-     */
+    /** Finished statuses that count as `OUTCOME_FAILURE`; the reasoning is on `JobOutcome` in swagger.yaml. */
     public const STATUSES_FAILED = [
         self::STATUS_ERROR,
         self::STATUS_CANCELLED,
