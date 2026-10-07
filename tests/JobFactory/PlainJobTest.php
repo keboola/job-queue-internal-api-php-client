@@ -293,65 +293,65 @@ class PlainJobTest extends TestCase
         self::assertSame($isFinished, $job->isFinished());
     }
 
-    public static function provideOutcomes(): iterable
+    public static function provideIsSuccess(): iterable
     {
         yield 'cancelled' => [
             'status' => PlainJobInterface::STATUS_CANCELLED,
-            'outcome' => PlainJobInterface::OUTCOME_FAILURE,
+            'isSuccess' => false,
         ];
 
         yield 'created' => [
             'status' => PlainJobInterface::STATUS_CREATED,
-            'outcome' => null,
+            'isSuccess' => null,
         ];
 
         yield 'error' => [
             'status' => PlainJobInterface::STATUS_ERROR,
-            'outcome' => PlainJobInterface::OUTCOME_FAILURE,
+            'isSuccess' => false,
         ];
 
         yield 'processing' => [
             'status' => PlainJobInterface::STATUS_PROCESSING,
-            'outcome' => null,
+            'isSuccess' => null,
         ];
 
         yield 'success' => [
             'status' => PlainJobInterface::STATUS_SUCCESS,
-            'outcome' => PlainJobInterface::OUTCOME_SUCCESS,
+            'isSuccess' => true,
         ];
 
         yield 'terminated' => [
             'status' => PlainJobInterface::STATUS_TERMINATED,
-            'outcome' => PlainJobInterface::OUTCOME_FAILURE,
+            'isSuccess' => false,
         ];
 
         yield 'terminating' => [
             'status' => PlainJobInterface::STATUS_TERMINATING,
-            'outcome' => null,
+            'isSuccess' => null,
         ];
 
         yield 'waiting' => [
             'status' => PlainJobInterface::STATUS_WAITING,
-            'outcome' => null,
+            'isSuccess' => null,
         ];
 
         yield 'warning' => [
             'status' => PlainJobInterface::STATUS_WARNING,
-            'outcome' => PlainJobInterface::OUTCOME_SUCCESS,
+            'isSuccess' => true,
         ];
     }
 
-    /** @dataProvider provideOutcomes */
-    public function testGetOutcome(string $status, ?string $outcome): void
+    /** @dataProvider provideIsSuccess */
+    public function testIsSuccess(string $status, ?bool $isSuccess): void
     {
         $job = $this->createJobWithDefaults([
             'status' => $status,
         ]);
-        self::assertSame($outcome, $job->getOutcome());
-        self::assertSame($outcome !== null, $job->isFinished());
+        self::assertSame($isSuccess, $job->isSuccess());
+        self::assertSame($isSuccess !== null, $job->isFinished());
     }
 
-    public function testOutcomeStatusesPartitionTheFinishedStatuses(): void
+    public function testSuccessfulAndFailedStatusesPartitionTheFinishedStatuses(): void
     {
         self::assertEqualsCanonicalizing(
             PlainJobInterface::STATUSES_FINISHED,
@@ -363,21 +363,21 @@ class PlainJobTest extends TestCase
         );
     }
 
-    public function testOutcomeIsNotSerialized(): void
+    public function testIsSuccessIsNotSerialized(): void
     {
         $job = $this->createJobWithDefaults([
             'status' => PlainJobInterface::STATUS_SUCCESS,
         ]);
-        self::assertArrayNotHasKey('outcome', $job->jsonSerialize());
+        self::assertArrayNotHasKey('isSuccess', $job->jsonSerialize());
     }
 
-    public function testOutcomeIsDerivedAndNotTakenFromInput(): void
+    public function testIsSuccessIsDerivedAndNotTakenFromInput(): void
     {
         $job = $this->createJobWithDefaults([
             'status' => PlainJobInterface::STATUS_ERROR,
-            'outcome' => PlainJobInterface::OUTCOME_SUCCESS,
+            'isSuccess' => true,
         ]);
-        self::assertSame(PlainJobInterface::OUTCOME_FAILURE, $job->getOutcome());
+        self::assertFalse($job->isSuccess());
     }
 
     public function testGetParentRunId(): void

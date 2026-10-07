@@ -55,22 +55,19 @@ interface PlainJobInterface
     ];
 
     /**
-     * What a finished job's `status` says about whether it delivered.
+     * How a finished job's `status` answers "did it deliver".
      *
-     * - `PlainJob::resolveOutcome()` maps a status to one of these; the getter is on `PlainJob`
-     *   alone. A new method here would break every downstream class implementing this interface,
-     *   which `ExistingJobFactoryInterface<TJob of PlainJobInterface>` invites.
+     * - `PlainJob::resolveIsSuccess()` maps a status with these two lists; the getter is on
+     *   `PlainJob` alone. A new method here would break every downstream class implementing this
+     *   interface, which `ExistingJobFactoryInterface<TJob of PlainJobInterface>` invites.
+     * - Together they partition `STATUSES_FINISHED`; the reasoning is on `isSuccess` in the public
+     *   API's swagger.yaml.
      */
-    public const OUTCOME_SUCCESS = 'success';
-    public const OUTCOME_FAILURE = 'failure';
-
-    /** Finished statuses that count as `OUTCOME_SUCCESS`; the reasoning is on `JobOutcome` in swagger.yaml. */
     public const STATUSES_SUCCESSFUL = [
         self::STATUS_SUCCESS,
         self::STATUS_WARNING,
     ];
 
-    /** Finished statuses that count as `OUTCOME_FAILURE`; the reasoning is on `JobOutcome` in swagger.yaml. */
     public const STATUSES_FAILED = [
         self::STATUS_ERROR,
         self::STATUS_CANCELLED,

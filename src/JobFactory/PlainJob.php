@@ -235,28 +235,28 @@ class PlainJob implements JsonSerializable, PlainJobInterface
     /**
      * Whether a finished job delivered what it was asked to do.
      *
-     * - `null` exactly while `isFinished()` is false — a running job has no outcome yet.
+     * - `null` exactly while `isFinished()` is false — a running job has not answered yet.
      * - Derived from `status` on read. It is neither stored nor serialized, so the job payload on
-     *   the wire is unchanged and an `outcome` in the input data is ignored.
+     *   the wire is unchanged and an `isSuccess` in the input data is ignored.
      */
-    public function getOutcome(): ?string
+    public function isSuccess(): ?bool
     {
-        return self::resolveOutcome($this->getStatus());
+        return self::resolveIsSuccess($this->getStatus());
     }
 
     /**
-     * The outcome a finished job's `status` amounts to.
+     * What a finished job's `status` says about whether it delivered.
      *
      * - `null` for every status that is not finished.
      * - The public API derives the response field with it, so the rule lives in one place.
      */
-    public static function resolveOutcome(string $status): ?string
+    public static function resolveIsSuccess(string $status): ?bool
     {
         if (in_array($status, PlainJobInterface::STATUSES_SUCCESSFUL, true)) {
-            return PlainJobInterface::OUTCOME_SUCCESS;
+            return true;
         }
         if (in_array($status, PlainJobInterface::STATUSES_FAILED, true)) {
-            return PlainJobInterface::OUTCOME_FAILURE;
+            return false;
         }
         return null;
     }
