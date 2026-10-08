@@ -54,15 +54,7 @@ interface PlainJobInterface
         self::STATUS_PROCESSING,
     ];
 
-    /**
-     * How a finished job's `status` answers "did it deliver".
-     *
-     * - `PlainJob::resolveIsSuccess()` maps a status with these two lists; the getter is on
-     *   `PlainJob` alone. A new method here would break every downstream class implementing this
-     *   interface, which `ExistingJobFactoryInterface<TJob of PlainJobInterface>` invites.
-     * - Together they partition `STATUSES_FINISHED`; the reasoning is on `isSuccess` in the public
-     *   API's swagger.yaml.
-     */
+    /** Partition `STATUSES_FINISHED` for `PlainJob::resolveIsSuccess()`; rationale in swagger.yaml. */
     public const STATUSES_SUCCESSFUL = [
         self::STATUS_SUCCESS,
         self::STATUS_WARNING,

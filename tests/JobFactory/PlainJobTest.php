@@ -342,13 +342,10 @@ class PlainJobTest extends TestCase
     }
 
     /** @dataProvider provideIsSuccess */
-    public function testIsSuccess(string $status, ?bool $isSuccess): void
+    public function testResolveIsSuccess(string $status, ?bool $isSuccess): void
     {
-        $job = $this->createJobWithDefaults([
-            'status' => $status,
-        ]);
-        self::assertSame($isSuccess, $job->isSuccess());
-        self::assertSame($isSuccess !== null, $job->isFinished());
+        self::assertSame($isSuccess, PlainJob::resolveIsSuccess($status));
+        self::assertSame($isSuccess !== null, in_array($status, PlainJobInterface::STATUSES_FINISHED, true));
     }
 
     public function testSuccessfulAndFailedStatusesPartitionTheFinishedStatuses(): void
@@ -361,23 +358,6 @@ class PlainJobTest extends TestCase
             [],
             array_intersect(PlainJobInterface::STATUSES_SUCCESSFUL, PlainJobInterface::STATUSES_FAILED),
         );
-    }
-
-    public function testIsSuccessIsNotSerialized(): void
-    {
-        $job = $this->createJobWithDefaults([
-            'status' => PlainJobInterface::STATUS_SUCCESS,
-        ]);
-        self::assertArrayNotHasKey('isSuccess', $job->jsonSerialize());
-    }
-
-    public function testIsSuccessIsDerivedAndNotTakenFromInput(): void
-    {
-        $job = $this->createJobWithDefaults([
-            'status' => PlainJobInterface::STATUS_ERROR,
-            'isSuccess' => true,
-        ]);
-        self::assertFalse($job->isSuccess());
     }
 
     public function testGetParentRunId(): void
