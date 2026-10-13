@@ -233,6 +233,18 @@ class PlainJob implements JsonSerializable, PlainJobInterface
         return (bool) $this->data['isFinished'];
     }
 
+    /** Whether a finished job delivered; `null` for an unfinished status. */
+    public static function resolveIsSuccess(string $status): ?bool
+    {
+        if (in_array($status, PlainJobInterface::STATUSES_SUCCESSFUL, true)) {
+            return true;
+        }
+        if (in_array($status, PlainJobInterface::STATUSES_FAILED, true)) {
+            return false;
+        }
+        return null;
+    }
+
     public function getUsageData(): array
     {
         return $this->data['usageData'] ?? [];

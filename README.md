@@ -10,7 +10,7 @@ composer require keboola/job-queue-internal-api-php-client
 ```php
 use Keboola\JobQueueInternalClient\Client;
 
-$storageClientFactory = new JobFactory\StorageClientFactory('http://connetion.keboola.com/');
+$storageClientFactory = new JobFactory\StorageClientFactory('http://connection.keboola.com/');
 $objectEncryptorFactory = new ObjectEncryptorFactory('key-id', 'us-east-1', '', '');
 $jobFactory = new JobFactory($storageClientFactory, $objectEncryptorFactory);
 $client = new Client(
@@ -55,7 +55,7 @@ Prerequisites:
 * configured `az` and `aws` CLI tools (run `az login` and `aws configure --profile keboola-dev-platform-services`)
 * installed GCP CLI `gcloud` (and run `gcloud auth login` or `gcloud auth application-default login`)
 * installed `terraform` (https://www.terraform.io) and `jq` (https://stedolan.github.io/jq) to setup local env
-* intalled `docker` and `docker compose` to run & develop the app
+* installed `docker` and `docker compose` to run & develop the app
 
 TL;DR:
 ```

@@ -293,6 +293,73 @@ class PlainJobTest extends TestCase
         self::assertSame($isFinished, $job->isFinished());
     }
 
+    public static function provideIsSuccess(): iterable
+    {
+        yield 'cancelled' => [
+            'status' => PlainJobInterface::STATUS_CANCELLED,
+            'isSuccess' => false,
+        ];
+
+        yield 'created' => [
+            'status' => PlainJobInterface::STATUS_CREATED,
+            'isSuccess' => null,
+        ];
+
+        yield 'error' => [
+            'status' => PlainJobInterface::STATUS_ERROR,
+            'isSuccess' => false,
+        ];
+
+        yield 'processing' => [
+            'status' => PlainJobInterface::STATUS_PROCESSING,
+            'isSuccess' => null,
+        ];
+
+        yield 'success' => [
+            'status' => PlainJobInterface::STATUS_SUCCESS,
+            'isSuccess' => true,
+        ];
+
+        yield 'terminated' => [
+            'status' => PlainJobInterface::STATUS_TERMINATED,
+            'isSuccess' => false,
+        ];
+
+        yield 'terminating' => [
+            'status' => PlainJobInterface::STATUS_TERMINATING,
+            'isSuccess' => null,
+        ];
+
+        yield 'waiting' => [
+            'status' => PlainJobInterface::STATUS_WAITING,
+            'isSuccess' => null,
+        ];
+
+        yield 'warning' => [
+            'status' => PlainJobInterface::STATUS_WARNING,
+            'isSuccess' => true,
+        ];
+    }
+
+    /** @dataProvider provideIsSuccess */
+    public function testResolveIsSuccess(string $status, ?bool $isSuccess): void
+    {
+        self::assertSame($isSuccess, PlainJob::resolveIsSuccess($status));
+        self::assertSame($isSuccess !== null, in_array($status, PlainJobInterface::STATUSES_FINISHED, true));
+    }
+
+    public function testSuccessfulAndFailedStatusesPartitionTheFinishedStatuses(): void
+    {
+        self::assertEqualsCanonicalizing(
+            PlainJobInterface::STATUSES_FINISHED,
+            [...PlainJobInterface::STATUSES_SUCCESSFUL, ...PlainJobInterface::STATUSES_FAILED],
+        );
+        self::assertSame(
+            [],
+            array_intersect(PlainJobInterface::STATUSES_SUCCESSFUL, PlainJobInterface::STATUSES_FAILED),
+        );
+    }
+
     public function testGetParentRunId(): void
     {
         $job = $this->createJobWithDefaults([
