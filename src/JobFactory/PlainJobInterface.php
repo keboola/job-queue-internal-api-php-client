@@ -54,6 +54,18 @@ interface PlainJobInterface
         self::STATUS_PROCESSING,
     ];
 
+    /** Partition `STATUSES_FINISHED` for `PlainJob::resolveIsSuccess()`; rationale in swagger.yaml. */
+    public const STATUSES_SUCCESSFUL = [
+        self::STATUS_SUCCESS,
+        self::STATUS_WARNING,
+    ];
+
+    public const STATUSES_FAILED = [
+        self::STATUS_ERROR,
+        self::STATUS_CANCELLED,
+        self::STATUS_TERMINATED,
+    ];
+
     public const DESIRED_STATUS_PROCESSING = 'processing';
     public const DESIRED_STATUS_TERMINATING = 'terminating';
 

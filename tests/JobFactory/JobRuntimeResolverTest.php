@@ -2241,6 +2241,86 @@ class JobRuntimeResolverTest extends TestCase
         );
     }
 
+    public function resolveJobTypeWithRetryScopeDataProvider(): Generator
+    {
+        yield 'row scope with 0 rows' => [
+            'retryScope' => 'row',
+            'rows' => [],
+            'expectedType' => JobType::RETRY_CONTAINER,
+        ];
+
+        yield 'row scope with 1 row' => [
+            'retryScope' => 'row',
+            'rows' => [['id' => 'r1']],
+            'expectedType' => JobType::ROW_CONTAINER,
+        ];
+
+        yield 'row scope with 2 rows' => [
+            'retryScope' => 'row',
+            'rows' => [['id' => 'r1'], ['id' => 'r2']],
+            'expectedType' => JobType::ROW_CONTAINER,
+        ];
+
+        yield 'container scope with 1 row' => [
+            'retryScope' => 'container',
+            'rows' => [['id' => 'r1']],
+            'expectedType' => JobType::STANDARD,
+        ];
+    }
+
+    /**
+     * @dataProvider resolveJobTypeWithRetryScopeDataProvider
+     */
+    public function testResolveJobTypeWithRetryScope(string $retryScope, array $rows, JobType $expectedType): void
+    {
+        $jobData = self::JOB_DATA;
+        $jobData['configData'] = [
+            'retry' => [
+                'scope' => $retryScope,
+                'strategy' => 'linear',
+                'strategyParams' => ['maxRetries' => 2, 'delay' => 10],
+            ],
+        ];
+
+        $configuration = [
+            'id' => '454124290',
+            'rows' => $rows,
+            'configuration' => [],
+        ];
+
+        $componentData = [
+            'type' => 'dummy-component-type',
+            'id' => 'keboola.ex-db-snowflake',
+            'data' => [
+                'definition' => [
+                    'tag' => '9.9.9',
+                ],
+            ],
+        ];
+
+        $storageClient = $this->createMock(BranchAwareClient::class);
+        $storageClient->expects(self::exactly(2))->method('apiGet')
+            ->withConsecutive(
+                ['components/keboola.ex-db-snowflake'],
+                ['components/keboola.ex-db-snowflake/configs/454124290'],
+            )->willReturnOnConsecutiveCalls(
+                $componentData,
+                $configuration,
+            );
+
+        $jobRuntimeResolver = new JobRuntimeResolver(
+            $this->prepareStorageClientFactoryMock($storageClient),
+        );
+
+        $resolvedJobData = $jobRuntimeResolver->resolveJobData($jobData, $this->createToken());
+
+        self::assertSame(
+            $expectedType->value,
+            $resolvedJobData['type'],
+            sprintf('Failed asserting job type for retry scope "%s" with %d rows', $retryScope, count($rows)),
+        );
+    }
+
     public function resolveParallelismEnforceDataProvider(): Generator
     {
         yield 'no parallelism' => [

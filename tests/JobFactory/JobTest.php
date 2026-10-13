@@ -508,11 +508,12 @@ class JobTest extends BaseTest
 
         $job = new Job($objectEncryptorMock, $storageClientFactoryMock, $this->jobData);
 
-        // first call - calls the Encryptor API (mock)
-        self::assertSame($tokenDecrypted, $job->getTokenDecrypted());
+        // the mock accepts a single decrypt() call, so the second one must come from the cache
+        $firstCall = $job->getTokenDecrypted();
+        $secondCall = $job->getTokenDecrypted();
 
-        // second call - should be cached
-        self::assertSame($tokenDecrypted, $job->getTokenDecrypted());
+        self::assertSame($tokenDecrypted, $firstCall);
+        self::assertSame($tokenDecrypted, $secondCall);
     }
 
     public function testCacheDecryptedComponentConfig(): void
@@ -588,11 +589,12 @@ class JobTest extends BaseTest
 
         $job = new Job($objectEncryptorMock, $storageClientFactoryMock, $this->jobData);
 
-        // first call - calls the Encryptor API (mock)
-        self::assertSame($componentDataDecrypted, $job->getComponentConfigurationDecrypted());
+        // the mock accepts a single decrypt() call, so the second one must come from the cache
+        $firstCall = $job->getComponentConfigurationDecrypted();
+        $secondCall = $job->getComponentConfigurationDecrypted();
 
-        // second call - should be cached
-        self::assertSame($componentDataDecrypted, $job->getComponentConfigurationDecrypted());
+        self::assertSame($componentDataDecrypted, $firstCall);
+        self::assertSame($componentDataDecrypted, $secondCall);
     }
 
     public function testCacheDecryptedConfigData(): void
@@ -625,11 +627,12 @@ class JobTest extends BaseTest
 
         $job = new Job($objectEncryptorMock, $storageClientFactoryMock, $jobData);
 
-        // first call - calls the Encryptor API (mock)
-        self::assertSame($configDataDecrypted, $job->getConfigDataDecrypted());
+        // the mock accepts a single decrypt() call, so the second one must come from the cache
+        $firstCall = $job->getConfigDataDecrypted();
+        $secondCall = $job->getConfigDataDecrypted();
 
-        // second call - should be cached
-        self::assertSame($configDataDecrypted, $job->getConfigDataDecrypted());
+        self::assertSame($configDataDecrypted, $firstCall);
+        self::assertSame($configDataDecrypted, $secondCall);
     }
 
     public function testGetBranchType(): void
