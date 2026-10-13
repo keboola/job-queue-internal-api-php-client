@@ -98,6 +98,7 @@ class FullJobDefinition extends NewJobDefinition
                 ->scalarNode('endTime')->end()
                 ->scalarNode('delayedStartTime')->end()
                 ->scalarNode('delay')->end()
+                ->scalarNode('requestedDelay')->end()
                 ->scalarNode('durationSeconds')->end()
                 ->arrayNode('result')->ignoreExtraKeys(false)->end()
                 ->scalarNode('resultVersion')->end()

@@ -697,4 +697,26 @@ class ElasticJobDefinitionTest extends TestCase
         self::assertSame(null, $result['configId']);
         self::assertNull($result['branchId']); // Empty string becomes null
     }
+
+    public function testRequestedDelaySurvivesElasticReadPath(): void
+    {
+        // ElasticJobDefinition uses ignoreExtraKeys(true), so an undeclared field would be
+        // silently dropped when a job is reconstructed from a search hit.
+        $data = [
+            'id' => '12345',
+            'runId' => '12345',
+            'projectId' => '123',
+            'tokenId' => '1234',
+            'componentId' => 'keboola.test',
+            'status' => 'created',
+            'desiredStatus' => 'processing',
+            'delayedStartTime' => '2024-03-20T10:00:00+00:00',
+            'requestedDelay' => 3600,
+        ];
+
+        $definition = new ElasticJobDefinition();
+        $result = $definition->processData($data);
+
+        self::assertSame(3600, $result['requestedDelay']);
+    }
 }

@@ -93,6 +93,7 @@ class ElasticJobDefinition extends NewJobDefinition
                 ->scalarNode('startTime')->end()
                 ->scalarNode('endTime')->end()
                 ->scalarNode('delayedStartTime')->end()
+                ->scalarNode('requestedDelay')->end()
                 ->scalarNode('durationSeconds')->end()
                 ->arrayNode('result')->ignoreExtraKeys(false)->end()
                 ->arrayNode('usageData')->ignoreExtraKeys(false)->end()
