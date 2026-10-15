@@ -8,6 +8,7 @@ use Generator;
 use Keboola\JobQueueInternalClient\Exception\ClientException;
 use Keboola\JobQueueInternalClient\Exception\ConfigurationDisabledException;
 use Keboola\JobQueueInternalClient\JobFactory;
+use Keboola\JobQueueInternalClient\JobFactory\JobInterface;
 use Keboola\JobQueueInternalClient\JobFactory\JobRuntimeResolver;
 use Keboola\JobQueueInternalClient\JobFactory\JobType;
 use Keboola\StorageApi\BranchAwareClient;
@@ -17,6 +18,7 @@ use Keboola\StorageApiBranch\Factory\AuthType;
 use Keboola\StorageApiBranch\Factory\ClientOptions;
 use Keboola\StorageApiBranch\Factory\StorageClientPlainFactory;
 use Keboola\StorageApiBranch\StorageApiToken;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -1179,6 +1181,110 @@ class JobRuntimeResolverTest extends TestCase
         $jobRuntimeResolver->resolveJobData($jobData, $this->createToken());
     }
 
+    public function allRowsDisabledDataProvider(): Generator
+    {
+        yield 'single disabled row' => [
+            'rows' => [['id' => 'r1', 'isDisabled' => true]],
+        ];
+
+        yield 'all of several rows disabled' => [
+            'rows' => [['id' => 'r1', 'isDisabled' => true], ['id' => 'r2', 'isDisabled' => true]],
+        ];
+    }
+
+    /**
+     * @dataProvider allRowsDisabledDataProvider
+     */
+    public function testConfigurationWithAllRowsDisabledException(array $rows): void
+    {
+        $jobRuntimeResolver = new JobRuntimeResolver(
+            $this->prepareStorageClientFactoryMock($this->createStorageClientWithConfigurationRows($rows)),
+        );
+
+        $this->expectException(ConfigurationDisabledException::class);
+        $this->expectExceptionMessage(
+            'All rows of configuration "454124290" of component "keboola.ex-db-snowflake" are disabled.',
+        );
+        $jobRuntimeResolver->resolveJobData(self::JOB_DATA, $this->createToken());
+    }
+
+    public function configurationWithDisabledRowsRunsDataProvider(): Generator
+    {
+        yield 'one of the rows enabled' => [
+            'mode' => JobInterface::MODE_RUN,
+            'configRowIds' => [],
+            'rows' => [['id' => 'r1', 'isDisabled' => true], ['id' => 'r2', 'isDisabled' => false]],
+            'expectedType' => JobType::ROW_CONTAINER,
+            'expectedConfigRowIds' => [],
+        ];
+
+        yield 'disabled row requested explicitly' => [
+            'mode' => JobInterface::MODE_RUN,
+            'configRowIds' => ['r1'],
+            'rows' => [['id' => 'r1', 'isDisabled' => true]],
+            'expectedType' => JobType::STANDARD,
+            'expectedConfigRowIds' => ['r1'],
+        ];
+
+        yield 'force run of a single disabled row' => [
+            'mode' => JobInterface::MODE_FORCE_RUN,
+            'configRowIds' => [],
+            'rows' => [['id' => 'r1', 'isDisabled' => true]],
+            'expectedType' => JobType::STANDARD,
+            'expectedConfigRowIds' => ['r1'],
+        ];
+
+        yield 'force run of several disabled rows' => [
+            'mode' => JobInterface::MODE_FORCE_RUN,
+            'configRowIds' => [],
+            'rows' => [['id' => 'r1', 'isDisabled' => true], ['id' => 'r2', 'isDisabled' => true]],
+            'expectedType' => JobType::ROW_CONTAINER,
+            'expectedConfigRowIds' => ['r1', 'r2'],
+        ];
+
+        yield 'force run with one of the rows enabled' => [
+            'mode' => JobInterface::MODE_FORCE_RUN,
+            'configRowIds' => [],
+            'rows' => [['id' => 'r1', 'isDisabled' => true], ['id' => 'r2', 'isDisabled' => false]],
+            'expectedType' => JobType::ROW_CONTAINER,
+            'expectedConfigRowIds' => [],
+        ];
+
+        yield 'force run of an explicitly requested row' => [
+            'mode' => JobInterface::MODE_FORCE_RUN,
+            'configRowIds' => ['r2'],
+            'rows' => [['id' => 'r1', 'isDisabled' => true], ['id' => 'r2', 'isDisabled' => true]],
+            'expectedType' => JobType::ROW_CONTAINER,
+            'expectedConfigRowIds' => ['r2'],
+        ];
+    }
+
+    /**
+     * @dataProvider configurationWithDisabledRowsRunsDataProvider
+     * @param list<string> $configRowIds
+     * @param list<string> $expectedConfigRowIds
+     */
+    public function testConfigurationWithDisabledRowsRuns(
+        string $mode,
+        array $configRowIds,
+        array $rows,
+        JobType $expectedType,
+        array $expectedConfigRowIds,
+    ): void {
+        $jobData = self::JOB_DATA;
+        $jobData['mode'] = $mode;
+        $jobData['configRowIds'] = $configRowIds;
+
+        $jobRuntimeResolver = new JobRuntimeResolver(
+            $this->prepareStorageClientFactoryMock($this->createStorageClientWithConfigurationRows($rows)),
+        );
+
+        $resolvedJobData = $jobRuntimeResolver->resolveJobData($jobData, $this->createToken());
+
+        self::assertSame($expectedType->value, $resolvedJobData['type']);
+        self::assertSame($expectedConfigRowIds, $resolvedJobData['configRowIds'] ?? []);
+    }
+
     /**
      * @dataProvider backendProvider
      */
@@ -1453,6 +1559,33 @@ class JobRuntimeResolverTest extends TestCase
             [],
             'keboola.legacy-transformation',
         ];
+    }
+
+    private function createStorageClientWithConfigurationRows(array $rows): BranchAwareClient&MockObject
+    {
+        $storageClient = $this->createMock(BranchAwareClient::class);
+        $storageClient->expects(self::exactly(2))->method('apiGet')
+            ->withConsecutive(
+                ['components/keboola.ex-db-snowflake'],
+                ['components/keboola.ex-db-snowflake/configs/454124290'],
+            )->willReturnOnConsecutiveCalls(
+                [
+                    'type' => 'dummy-component-type',
+                    'id' => 'keboola.ex-db-snowflake',
+                    'data' => [
+                        'definition' => [
+                            'tag' => '9.9.9',
+                        ],
+                    ],
+                ],
+                [
+                    'id' => '454124290',
+                    'rows' => $rows,
+                    'configuration' => [],
+                ],
+            );
+
+        return $storageClient;
     }
 
     private function getTestComponentData(?string $stagingInput = 'local'): array
