@@ -510,6 +510,14 @@ class JobRuntimeResolver
                         $this->jobData['componentId'],
                     ));
                 }
+
+                if ($this->hasOnlyDisabledRows($configuration) && !$this->resolveIsForceRunMode()) {
+                    throw new ConfigurationDisabledException(sprintf(
+                        'All rows of configuration "%s" of component "%s" are disabled.',
+                        $this->jobData['configId'],
+                        $this->jobData['componentId'],
+                    ));
+                }
             } else {
                 $this->rawConfiguration = [];
             }
@@ -553,6 +561,29 @@ class JobRuntimeResolver
         /** @var array{variableValuesId?: string|null, variableValuesData?: array{values?: list<array{name: string, value: string}>}, runtime?: array{tag?: string|null, image_tag?: string|null, process_timeout?: int|null, backend?: array{type?: string|null, context?: string|null}, executor?: string|null, parallelism?: int|string|null}} $result */
         $result = $this->configuration;
         return $result;
+    }
+
+    /**
+     * Explicitly requested rows run even when disabled, so only a run of the whole configuration is checked.
+     */
+    private function hasOnlyDisabledRows(array $configuration): bool
+    {
+        if (!empty($this->jobData['configRowIds'])) {
+            return false;
+        }
+
+        $rows = (array) ($configuration['rows'] ?? []);
+        if ($rows === []) {
+            return false;
+        }
+
+        foreach ($rows as $row) {
+            if (!is_array($row) || empty($row['isDisabled'])) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     private function resolveIsForceRunMode(): bool
