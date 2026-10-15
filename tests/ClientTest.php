@@ -1883,6 +1883,53 @@ class ClientTest extends BaseTest
         self::assertSame('{"result":{"b":2}}', $patchRequest->getBody()->getContents());
     }
 
+    public function testPatchJobAtomicallySendsMetricsInTheSameRequest(): void
+    {
+        $mock = new MockHandler([
+            new Response(
+                200,
+                ['Content-Type' => 'application/json'],
+                self::jobResponseJson('123', ['a' => 1], 3, rowVersion: 5),
+            ),
+            new Response(
+                200,
+                ['Content-Type' => 'application/json'],
+                self::jobResponseJson('123', ['a' => 1, 'b' => 2], 3, rowVersion: 6),
+            ),
+        ]);
+
+        $container = [];
+        $stack = HandlerStack::create($mock);
+        $stack->push(Middleware::history($container));
+        $client = $this->createClientWithInternalToken(options: ['handler' => $stack]);
+
+        $client->patchJobAtomically(
+            '123',
+            fn (array $current) => new GenericJobResult(['b' => 2]),
+            JobInterface::STATUS_SUCCESS,
+            (new JobMetrics())->setInputTablesBytesSum(10)->setOutputTablesBytesSum(20),
+        );
+
+        self::assertIsArray($container);
+        self::assertCount(2, $container);
+        self::assertIsArray($container[1]);
+
+        /** @var Request $patchRequest */
+        $patchRequest = $container[1]['request'];
+        self::assertSame('5', $patchRequest->getHeader('Row-Version')[0]);
+        self::assertSame(
+            json_encode([
+                'result' => ['b' => 2],
+                'status' => JobInterface::STATUS_SUCCESS,
+                'metrics' => [
+                    'storage' => ['inputTablesBytesSum' => 10, 'outputTablesBytesSum' => 20],
+                    'backend' => ['size' => null, 'containerSize' => null, 'context' => null],
+                ],
+            ]),
+            $patchRequest->getBody()->getContents(),
+        );
+    }
+
     public function testPatchJobAtomicallyInvalidTransitionIsNotRetriedAndPropagates(): void
     {
         $mock = new MockHandler([
