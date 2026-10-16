@@ -483,6 +483,20 @@ class NewJobFactoryTest extends BaseTest
         self::assertSame(['444'], $job->getOnlyOrchestrationTaskIds());
     }
 
+    public function testCreateJobWithRuntimeTimezone(): void
+    {
+        $factory = $this->getJobFactory();
+        $data = [
+            '#tokenString' => self::getRequiredEnv('TEST_STORAGE_API_TOKEN'),
+            'componentId' => 'keboola.orchestrator',
+            'mode' => 'run',
+            'configData' => [],
+            'runtimeTimezone' => 'Europe/Prague',
+        ];
+        $job = $factory->createNewJob($data);
+        self::assertSame('Europe/Prague', $job->getRuntimeTimezone());
+    }
+
     public function testCreateInvalidJob(): void
     {
         $jobData = [
