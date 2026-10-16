@@ -150,6 +150,16 @@ class NewJobDefinition implements ConfigurationInterface
                         ->thenInvalid('value cannot be empty string')
                     ->end()
                 ->end()
+                ->scalarNode('runtimeTimezone')
+                    ->validate()
+                        ->ifTrue(fn($v) => $v !== null && !is_string($v))
+                        ->thenInvalid('value must be a string')
+                    ->end()
+                    ->validate()
+                        ->ifTrue(fn($v) => $v === '')
+                        ->thenInvalid('value cannot be empty string')
+                    ->end()
+                ->end()
             ->end();
         // @formatter:on
         return $rootNode;

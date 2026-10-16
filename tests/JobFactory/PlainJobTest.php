@@ -126,6 +126,7 @@ class PlainJobTest extends TestCase
             'orchestrationPhaseId' => 'orchestration-phase-id',
             'onlyOrchestrationTaskIds' => ['orchestration-task-id-1'],
             'previousJobId' => 'previous-job-id',
+            'runtimeTimezone' => 'Europe/Prague',
             'runnerId' => 'runner-id',
             'isFinished' => false,
         ]);
@@ -188,6 +189,7 @@ class PlainJobTest extends TestCase
         self::assertSame(['orchestration-task-id-1'], $job->getOnlyOrchestrationTaskIds());
         self::assertSame(['orchestration-task-id-1'], $job->getOnlyFlowTaskIds());
         self::assertSame('previous-job-id', $job->getPreviousJobId());
+        self::assertSame('Europe/Prague', $job->getRuntimeTimezone());
         self::assertSame('runner-id', $job->getRunnerId());
     }
 
@@ -233,6 +235,7 @@ class PlainJobTest extends TestCase
         self::assertNull($job->getOnlyOrchestrationTaskIds());
         self::assertNull($job->getOnlyFlowTaskIds());
         self::assertNull($job->getPreviousJobId());
+        self::assertNull($job->getRuntimeTimezone());
         self::assertNull($job->getRunnerId());
     }
 
