@@ -79,6 +79,7 @@ use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
  *     orchestrationPhaseId?: string|null,
  *     onlyOrchestrationTaskIds?: list<scalar>|null,
  *     previousJobId?: string|null,
+ *     runtimeTimezone?: string|null,
  *     runnerId?: string|null,
  *     deduplicationId?: string|null,
  * }
@@ -140,6 +141,7 @@ use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
  *     orchestrationPhaseId?: string|null,
  *     onlyOrchestrationTaskIds?: list<scalar>,
  *     previousJobId?: string|null,
+ *     runtimeTimezone?: string|null,
  *     runnerId?: string|null,
  *     deduplicationId?: string|null,
  * }

@@ -78,6 +78,7 @@ abstract class JobFactory
      *         orchestrationPhaseId?: string|null,
      *         onlyOrchestrationTaskIds?: list<scalar>,
      *         previousJobId?: string|null,
+     *         runtimeTimezone?: string|null,
      *         runnerId?: string|null,
      *         deduplicationId?: string|null,
      *     }
@@ -113,6 +114,7 @@ abstract class JobFactory
      *         orchestrationPhaseId?: string|null,
      *         onlyOrchestrationTaskIds?: list<scalar>|null,
      *         previousJobId?: string|null,
+     *         runtimeTimezone?: string|null,
      *     }
      * )
      */
