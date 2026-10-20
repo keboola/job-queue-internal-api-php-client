@@ -378,6 +378,7 @@ class Client
      * retries are exhausted. The status transition is validated server-side; an invalid transition
      * (an already-terminal job, or a disallowed target) surfaces as {@see StateTerminalException} /
      * {@see StateTransitionForbiddenException} and is not retried, leaving the job untouched.
+     * Metrics, when given, are written in the same request.
      *
      * @param callable(array<mixed>): JsonSerializable $resultMutator
      * @return TJob
@@ -387,13 +388,17 @@ class Client
         string $jobId,
         callable $resultMutator,
         ?string $status = null,
+        ?JobMetrics $metrics = null,
     ): PlainJobInterface {
-        $attempt = function () use ($jobId, $resultMutator, $status): PlainJobInterface {
+        $attempt = function () use ($jobId, $resultMutator, $status, $metrics): PlainJobInterface {
             $currentJob = $this->getJob($jobId);
             $payload = $this->resolveMutatorPayload($resultMutator, $currentJob->getResult());
             $body = ['result' => $payload];
             if ($status !== null) {
                 $body['status'] = $status;
+            }
+            if ($metrics !== null) {
+                $body['metrics'] = $metrics->jsonSerialize();
             }
             return $this->sendPatchJobRequest(
                 $jobId,
