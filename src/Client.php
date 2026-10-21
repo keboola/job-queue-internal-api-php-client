@@ -176,6 +176,30 @@ class Client
     }
 
     /**
+     * @return non-empty-list<string>
+     */
+    public function generateJobIds(int $count = 1): array
+    {
+        $request = $this->createRequest('POST', 'job-ids', (string) json_encode(['count' => $count]));
+        $result = $this->sendRequest($request);
+
+        $ids = $result['ids'] ?? null;
+        if (!is_array($ids) || count($ids) !== $count) {
+            throw new ClientException('Invalid response when generating job IDs.');
+        }
+
+        $jobIds = [];
+        foreach ($ids as $id) {
+            if (!is_string($id) && !is_int($id)) {
+                throw new ClientException('Invalid response when generating job IDs.');
+            }
+            $jobIds[] = (string) $id;
+        }
+        assert($jobIds !== []);
+        return $jobIds;
+    }
+
+    /**
      * @return TJob
      */
     public function getJob(string $jobId): PlainJobInterface

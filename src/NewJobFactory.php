@@ -13,6 +13,8 @@ use Keboola\JobQueueInternalClient\JobFactory\JobObjectEncryptor;
 use Keboola\JobQueueInternalClient\JobFactory\JobRuntimeResolver;
 use Keboola\JobQueueInternalClient\JobFactory\NewJobDefinition;
 use Keboola\JobQueueInternalClient\JobFactory\PlainJobInterface;
+use Keboola\JobQueueInternalClient\JobIdGenerator\JobIdGeneratorInterface;
+use Keboola\JobQueueInternalClient\JobIdGenerator\StorageTicketJobIdGenerator;
 use Keboola\PermissionChecker\BranchType;
 use Keboola\StorageApi\ClientException as StorageClientException;
 use Keboola\StorageApiBranch\Factory\AuthType;
@@ -25,6 +27,7 @@ class NewJobFactory extends JobFactory
         private readonly StorageClientPlainFactory $storageClientFactory,
         private readonly JobRuntimeResolver $jobRuntimeResolver,
         private readonly JobObjectEncryptor $objectEncryptor,
+        private readonly JobIdGeneratorInterface $jobIdGenerator = new StorageTicketJobIdGenerator(),
     ) {
     }
 
@@ -39,7 +42,7 @@ class NewJobFactory extends JobFactory
             ));
             $token = $clientWrapper->getToken();
 
-            $jobId = $clientWrapper->getBasicClient()->generateId();
+            $jobId = $this->jobIdGenerator->generateJobId($clientWrapper);
             $runId = empty($data['parentRunId']) ? $jobId :
                 $data['parentRunId'] . PlainJobInterface::RUN_ID_DELIMITER . $jobId;
         } catch (StorageClientException $e) {

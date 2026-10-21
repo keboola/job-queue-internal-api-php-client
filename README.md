@@ -23,6 +23,16 @@ $client->getJobData('123');
 $client->postJobResult('123', 'success', ['images' => ['digests' => []]]);
 ```
 
+### Job IDs
+
+`NewJobFactory` gets job IDs from a `JobIdGeneratorInterface`:
+
+- `StorageTicketJobIdGenerator` (default) uses Storage tickets (`POST /v2/storage/tickets`).
+- `InternalApiJobIdGenerator` uses the job ID sequence of the internal API (`POST /job-ids`).
+
+`JobIdGeneratorFactory::create()` builds one of them from a string (`storage` or `internal`), so an app can switch
+them with an environment variable.
+
 ### Atomic job result updates
 
 `patchJobResultAtomically()` performs an optimistic-locking read-modify-write of a job's

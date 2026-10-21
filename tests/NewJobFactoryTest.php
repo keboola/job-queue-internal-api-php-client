@@ -9,6 +9,8 @@ use Keboola\JobQueueInternalClient\Exception\ClientException;
 use Keboola\JobQueueInternalClient\JobFactory\JobObjectEncryptor;
 use Keboola\JobQueueInternalClient\JobFactory\JobRuntimeResolver;
 use Keboola\JobQueueInternalClient\JobFactory\JobType;
+use Keboola\JobQueueInternalClient\JobIdGenerator\JobIdGeneratorInterface;
+use Keboola\JobQueueInternalClient\JobIdGenerator\StorageTicketJobIdGenerator;
 use Keboola\JobQueueInternalClient\NewJobFactory;
 use Keboola\ObjectEncryptor\ObjectEncryptorFactory;
 use Keboola\StorageApi\BranchAwareClient;
@@ -87,7 +89,7 @@ class NewJobFactoryTest extends BaseTest
         putenv('GOOGLE_APPLICATION_CREDENTIALS=' . self::getRequiredEnv('TEST_GOOGLE_APPLICATION_CREDENTIALS'));
     }
 
-    private function getJobFactory(): NewJobFactory
+    private function getJobFactory(?JobIdGeneratorInterface $jobIdGenerator = null): NewJobFactory
     {
         $storageClientFactory = new StorageClientPlainFactory(new ClientOptions(
             self::getRequiredEnv('TEST_STORAGE_API_URL'),
@@ -99,7 +101,25 @@ class NewJobFactoryTest extends BaseTest
             $storageClientFactory,
             new JobRuntimeResolver($storageClientFactory),
             new JobObjectEncryptor($objectEncryptor),
+            $jobIdGenerator ?? new StorageTicketJobIdGenerator(),
         );
+    }
+
+    public function testCreateNewJobUsesJobIdGenerator(): void
+    {
+        $jobIdGenerator = $this->createMock(JobIdGeneratorInterface::class);
+        $jobIdGenerator->expects(self::once())->method('generateJobId')->willReturn('987654321');
+
+        $job = $this->getJobFactory($jobIdGenerator)->createNewJob([
+            '#tokenString' => self::getRequiredEnv('TEST_STORAGE_API_TOKEN'),
+            'configData' => [],
+            'componentId' => 'keboola.runner-config-test',
+            'mode' => 'run',
+            'parentRunId' => '123',
+        ]);
+
+        self::assertSame('987654321', $job->getId());
+        self::assertSame('123.987654321', $job->getRunId());
     }
 
     public function testCreateNewJob(): void

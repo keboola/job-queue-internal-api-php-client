@@ -1982,4 +1982,39 @@ class ClientTest extends BaseTest
             JobInterface::STATUS_ERROR,
         );
     }
+
+    public function testGenerateJobIds(): void
+    {
+        $mock = new MockHandler([
+            new Response(201, ['Content-Type' => 'application/json'], '{"ids": ["1001", "1002"]}'),
+        ]);
+        $requestHistory = [];
+        $stack = HandlerStack::create($mock);
+        $stack->push(Middleware::history($requestHistory));
+        $client = $this->createClientWithInternalToken(options: ['handler' => $stack]);
+
+        self::assertSame(['1001', '1002'], $client->generateJobIds(2));
+
+        self::assertIsArray($requestHistory);
+        self::assertCount(1, $requestHistory);
+        self::assertIsArray($requestHistory[0]);
+        /** @var Request $request */
+        $request = $requestHistory[0]['request'];
+        self::assertSame('POST', $request->getMethod());
+        self::assertSame('http://example.com/job-ids', (string) $request->getUri());
+        self::assertSame('{"count":2}', (string) $request->getBody());
+    }
+
+    public function testGenerateJobIdsWithInvalidResponse(): void
+    {
+        $mock = new MockHandler([
+            new Response(201, ['Content-Type' => 'application/json'], '{"ids": ["1001"]}'),
+        ]);
+        $client = $this->createClientWithInternalToken(options: ['handler' => HandlerStack::create($mock)]);
+
+        $this->expectException(ClientException::class);
+        $this->expectExceptionMessage('Invalid response when generating job IDs.');
+
+        $client->generateJobIds(2);
+    }
 }
