@@ -719,4 +719,23 @@ class ElasticJobDefinitionTest extends TestCase
 
         self::assertSame(3600, $result['requestedDelay']);
     }
+
+    public function testRuntimeTimezoneSurvivesElasticReadPath(): void
+    {
+        $data = [
+            'id' => '12345',
+            'runId' => '12345',
+            'projectId' => '123',
+            'tokenId' => '1234',
+            'componentId' => 'keboola.test',
+            'status' => 'created',
+            'desiredStatus' => 'processing',
+            'runtimeTimezone' => 'Europe/Prague',
+        ];
+
+        $definition = new ElasticJobDefinition();
+        $result = $definition->processData($data);
+
+        self::assertSame('Europe/Prague', $result['runtimeTimezone']);
+    }
 }
