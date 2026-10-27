@@ -395,7 +395,7 @@ class PlainJob implements JsonSerializable, PlainJobInterface
     }
 
     /**
-     * Timezone the job was triggered in (e.g. the schedule's cron timezone); null for manual runs.
+     * Timezone the job was triggered in (e.g. the schedule's cron timezone); null when not provided.
      *
      * @return non-empty-string|null
      */
