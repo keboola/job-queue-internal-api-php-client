@@ -586,6 +586,34 @@ class ElasticJobDefinitionTest extends TestCase
             'Invalid configuration for path "job.previousJobId": value must be a string',
         ];
 
+        yield 'invalid runtimeTimezone - empty string' => [
+            [
+                'id' => '12345',
+                'runId' => '12345',
+                'projectId' => '123',
+                'tokenId' => '1234',
+                'componentId' => 'keboola.test',
+                'status' => 'created',
+                'desiredStatus' => 'processing',
+                'runtimeTimezone' => '',
+            ],
+            'Invalid configuration for path "job.runtimeTimezone": value cannot be empty string',
+        ];
+
+        yield 'invalid runtimeTimezone - non-string value' => [
+            [
+                'id' => '12345',
+                'runId' => '12345',
+                'projectId' => '123',
+                'tokenId' => '1234',
+                'componentId' => 'keboola.test',
+                'status' => 'created',
+                'desiredStatus' => 'processing',
+                'runtimeTimezone' => 123,
+            ],
+            'Invalid configuration for path "job.runtimeTimezone": value must be a string',
+        ];
+
         yield 'invalid variableValuesData - invalid values item' => [
             [
                 'id' => '12345',
