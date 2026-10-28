@@ -159,5 +159,8 @@ interface PlainJobInterface
     /** @return non-empty-string|null */
     public function getPreviousJobId(): ?string;
 
+    /** @return non-empty-string|null */
+    public function getRuntimeTimezone(): ?string;
+
     public function getBranchType(): BranchType;
 }

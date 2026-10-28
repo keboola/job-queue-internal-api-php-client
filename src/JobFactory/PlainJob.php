@@ -81,6 +81,7 @@ class PlainJob implements JsonSerializable, PlainJobInterface
      *     orchestrationPhaseId?: string|null,
      *     onlyOrchestrationTaskIds?: list<scalar>|null,
      *     previousJobId?: string|null,
+     *     runtimeTimezone?: string|null,
      *     runnerId?: string|null,
      *     deduplicationId?: string|null,
      * } $data
@@ -390,6 +391,18 @@ class PlainJob implements JsonSerializable, PlainJobInterface
     {
         return (isset($this->data['previousJobId']) && $this->data['previousJobId'] !== '')
             ? (string) $this->data['previousJobId']
+            : null;
+    }
+
+    /**
+     * Timezone the job was triggered in (e.g. the schedule's cron timezone); null when not provided.
+     *
+     * @return non-empty-string|null
+     */
+    public function getRuntimeTimezone(): ?string
+    {
+        return (isset($this->data['runtimeTimezone']) && $this->data['runtimeTimezone'] !== '')
+            ? (string) $this->data['runtimeTimezone']
             : null;
     }
 

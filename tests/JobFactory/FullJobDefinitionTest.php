@@ -40,6 +40,7 @@ class FullJobDefinitionTest extends BaseTest
             'orchestrationPhaseId' => '951',
             'onlyOrchestrationTaskIds' => ['45', 67],
             'previousJobId' => '789',
+            'runtimeTimezone' => 'Europe/Prague',
             'delayedStartTime' => '2024-03-20T10:00:00+00:00',
         ];
         $definition = new FullJobDefinition();
@@ -617,6 +618,38 @@ class FullJobDefinitionTest extends BaseTest
                     'previousJobId' => '',
                 ],
                 '/Invalid configuration for path "job.previousJobId": value cannot be empty string/',
+            ],
+            'runtimeTimezone not string' => [
+                [
+                    '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+                    'id' => '12345',
+                    'runId' => '12345',
+                    'tokenId' => '1234',
+                    'projectId' => '123',
+                    'status' => 'created',
+                    'desiredStatus' => 'processing',
+                    'configId' => '123',
+                    'componentId' => 'keboola.test',
+                    'mode' => 'run',
+                    'runtimeTimezone' => 134,
+                ],
+                '/Invalid configuration for path "job.runtimeTimezone": value must be a string/',
+            ],
+            'runtimeTimezone empty string' => [
+                [
+                    '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+                    'id' => '12345',
+                    'runId' => '12345',
+                    'tokenId' => '1234',
+                    'projectId' => '123',
+                    'status' => 'created',
+                    'desiredStatus' => 'processing',
+                    'configId' => '123',
+                    'componentId' => 'keboola.test',
+                    'mode' => 'run',
+                    'runtimeTimezone' => '',
+                ],
+                '/Invalid configuration for path "job.runtimeTimezone": value cannot be empty string/',
             ],
             'delayedStartTime and delay set simultaneously' => [
                 [

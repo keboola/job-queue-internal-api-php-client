@@ -68,6 +68,7 @@ class NewJobDefinitionTest extends BaseTest
             'orchestrationPhaseId' => '951',
             'onlyOrchestrationTaskIds' => ['45', 67],
             'previousJobId' => '789',
+            'runtimeTimezone' => 'Europe/Prague',
         ];
         $definition = new NewJobDefinition();
         $result = $definition->processData($data);
@@ -283,6 +284,26 @@ class NewJobDefinitionTest extends BaseTest
                     'previousJobId' => '',
                 ],
                 '/Invalid configuration for path "job.previousJobId": value cannot be empty string/',
+            ],
+            'runtimeTimezone not string' => [
+                [
+                    '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+                    'configId' => '123',
+                    'componentId' => 'keboola.test',
+                    'result' => [],
+                    'runtimeTimezone' => 134,
+                ],
+                '/Invalid configuration for path "job.runtimeTimezone": value must be a string/',
+            ],
+            'runtimeTimezone empty string' => [
+                [
+                    '#tokenString' => getenv('TEST_STORAGE_API_TOKEN'),
+                    'configId' => '123',
+                    'componentId' => 'keboola.test',
+                    'result' => [],
+                    'runtimeTimezone' => '',
+                ],
+                '/Invalid configuration for path "job.runtimeTimezone": value cannot be empty string/',
             ],
         ];
     }

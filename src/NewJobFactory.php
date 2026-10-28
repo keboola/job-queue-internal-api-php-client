@@ -91,6 +91,7 @@ class NewJobFactory extends JobFactory
             'orchestrationPhaseId' => $data['orchestrationPhaseId'] ?? null,
             'onlyOrchestrationTaskIds' => $data['onlyOrchestrationTaskIds'] ?? null,
             'previousJobId' => $data['previousJobId'] ?? null,
+            'runtimeTimezone' => $data['runtimeTimezone'] ?? null,
             'delay' => $data['delay'] ?? null,
             'delayedStartTime' => $data['delayedStartTime'] ?? null,
         ];
