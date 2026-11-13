@@ -76,6 +76,81 @@ class NewJobDefinitionTest extends BaseTest
         self::assertSame($data, $result);
     }
 
+    public function validComponentIdProvider(): Generator
+    {
+        yield 'vendor and name' => ['keboola.ex-db-oracle'];
+        yield 'name only' => ['ex-generic-v2'];
+        yield 'underscore' => ['kds-team.app-custom_python'];
+        yield 'single character' => ['a'];
+        yield '63 characters' => [str_repeat('a', 63)];
+    }
+
+    /**
+     * @dataProvider validComponentIdProvider
+     */
+    public function testValidComponentId(string $componentId): void
+    {
+        $definition = new NewJobDefinition();
+        $result = $definition->processData([
+            '#tokenString' => 'token',
+            'componentId' => $componentId,
+        ]);
+
+        self::assertSame($componentId, $result['componentId']);
+    }
+
+    public function invalidComponentIdProvider(): Generator
+    {
+        yield 'trailing space' => [
+            'keboola.ex-db-oracle ',
+            'Invalid component ID "keboola.ex-db-oracle ".',
+        ];
+        yield 'leading space' => [
+            ' keboola.ex-db-oracle',
+            'Invalid component ID " keboola.ex-db-oracle".',
+        ];
+        yield 'tab' => [
+            "\tkeboola.ex-db-oracle",
+            "Invalid component ID \"\tkeboola.ex-db-oracle\"",
+        ];
+        yield 'trailing newline' => [
+            "keboola.ex-db-oracle\n",
+            "Invalid component ID \"keboola.ex-db-oracle\n\"",
+        ];
+        yield 'whitespace only' => [
+            ' ',
+            'Invalid component ID " ".',
+        ];
+        yield 'path traversal' => [
+            './keboola.sandboxes',
+            'Invalid component ID "./keboola.sandboxes".',
+        ];
+        yield 'too long' => [
+            str_repeat('a', 64),
+            sprintf('Invalid component ID "%s".', str_repeat('a', 64)),
+        ];
+        yield 'empty' => [
+            '',
+            'The path "job.componentId" cannot contain an empty value, but got "".',
+        ];
+    }
+
+    /**
+     * @dataProvider invalidComponentIdProvider
+     */
+    public function testInvalidComponentId(string $componentId, string $expectedMessage): void
+    {
+        $definition = new NewJobDefinition();
+
+        $this->expectException(InvalidConfigurationException::class);
+        $this->expectExceptionMessage($expectedMessage);
+
+        $definition->processData([
+            '#tokenString' => 'token',
+            'componentId' => $componentId,
+        ]);
+    }
+
     public function invalidJobProvider(): array
     {
         return [

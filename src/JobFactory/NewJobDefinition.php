@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Keboola\JobQueueInternalClient\JobFactory;
 
+use InvalidArgumentException;
 use Keboola\JobQueueInternalClient\JobFactory\Runtime\Executor;
 use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
@@ -44,7 +45,19 @@ class NewJobDefinition implements ConfigurationInterface
                 ->end()
                 ->scalarNode('#tokenString')->isRequired()->cannotBeEmpty()->end()
                 ->scalarNode('configId')->end()
-                ->scalarNode('componentId')->isRequired()->cannotBeEmpty()->end()
+                ->scalarNode('componentId')
+                    ->isRequired()->cannotBeEmpty()
+                    // the component ID ends up in a Kubernetes pod label value, so it must satisfy its syntax
+                    ->validate()
+                        ->ifTrue(fn(string|int|float|bool $v) => !preg_match(
+                            '/\A[A-Za-z0-9](?:[-A-Za-z0-9_.]{0,61}[A-Za-z0-9])?\z/',
+                            (string) $v,
+                        ))
+                        ->then(fn(string|int|float|bool $v) => throw new InvalidArgumentException(
+                            sprintf('Invalid component ID "%s".', $v),
+                        ))
+                    ->end()
+                ->end()
                 ->arrayNode('result')->ignoreExtraKeys(false)->end()
                 ->scalarNode('mode')->defaultValue('run')
                     ->validate()
